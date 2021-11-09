@@ -1,0 +1,41 @@
+{
+  "name": "ogre-tools",
+  "version": "0.0.1",
+  "description": "An assortment of tools for brutal software development.",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ogre-works/ogre-tools"
+  },
+  "scripts": {
+    "install-all-packages": "lerna bootstrap",
+    "build-all-packages": "lerna run build",
+    "build-and-publish-minor-version": "npm run build-all-packages && npm test && lerna publish minor --yes --no-push && git push && git push --tags",
+    "build-and-publish-patch-version": "npm run build-all-packages && npm test && lerna publish patch --yes --no-push && git push && git push --tags",
+    "test": "jest --coverage --coverageReporters=lcov"
+  },
+  "keywords": [],
+  "author": "Ogre Works",
+  "license": "MIT",
+  "devDependencies": {
+    "@babel/core": "^7.10.3",
+    "@babel/preset-env": "^7.10.3",
+    "@babel/preset-react": "^7.14.5",
+    "babel-loader": "^8.1.0",
+    "jest": "^27.0.6",
+    "lerna": "^4.0.0",
+    "lodash": "^4.17.21",
+    "node": "^14.4.0",
+    "prettier": "^2.0.5",
+    "webpack": "^4.43.0",
+    "webpack-cli": "^3.3.12",
+    "@async-fn/jest": "^1.4.2",
+    "enzyme": "^3.11.0",
+    "@wojtekmaj/enzyme-adapter-react-17": "0.6.3",
+    "jest-enzyme": "^7.0.2",
+    "react": "^17.0.2",
+    "mobx": "^6.3.6",
+    "mobx-react": "^7.2.1",
+    "timers": "^0.1.1",
+    "react-dom": "^17.0.2"
+  }
+}
