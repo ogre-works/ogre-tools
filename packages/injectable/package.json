@@ -1,0 +1,24 @@
+{
+  "name": "@ogre-tools/injectable",
+  "private": false,
+  "version": "0.0.1",
+  "description": "A brutal dependency injection container",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ogre-works/ogre-tools"
+  },
+  "main": "src/index.js",
+  "keywords": [
+    "js",
+    "functional-programming"
+  ],
+  "author": "Ogre Works",
+  "license": "MIT",
+  "dependencies": {
+    "lodash": "^4.17.21",
+    "@ogre-tools/fp": "0.0.1"
+  },
+  "scripts": {
+    "build": "webpack"
+  }
+}
