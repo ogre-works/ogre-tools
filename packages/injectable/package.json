@@ -1,7 +1,7 @@
 {
   "name": "@ogre-tools/injectable",
   "private": false,
-  "version": "0.0.1",
+  "version": "1.0.0",
   "description": "A brutal dependency injection container",
   "repository": {
     "type": "git",
@@ -15,7 +15,7 @@
   "author": "Ogre Works",
   "license": "MIT",
   "dependencies": {
-    "@ogre-tools/fp": "^0.0.1",
+    "@ogre-tools/fp": "^1.0.0",
     "lodash": "^4.17.21"
   },
   "scripts": {

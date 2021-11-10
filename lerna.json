@@ -1,9 +1,13 @@
 {
-  "version": "0.0.1",
-  "packages": ["packages/*"],
+  "version": "1.0.0",
+  "packages": [
+    "packages/*"
+  ],
   "command": {
     "publish": {
-      "ignoreChanges": ["ignored-file"],
+      "ignoreChanges": [
+        "ignored-file"
+      ],
       "message": "Publish %s"
     }
   }
