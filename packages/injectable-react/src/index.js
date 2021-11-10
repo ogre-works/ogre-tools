@@ -1,3 +1,3 @@
-import createContainer from './dependency-injection-container/createContainer';
+import Inject, { DiContextProvider } from './Inject/Inject';
 
-export { createContainer };
+export { Inject, DiContextProvider };
