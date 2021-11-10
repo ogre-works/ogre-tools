@@ -1,7 +1,5 @@
 const path = require('path');
 
-console.log('blaa');
-
 module.exports = {
   entry: './src/index.js',
   target: 'node',
