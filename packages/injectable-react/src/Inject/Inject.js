@@ -3,6 +3,7 @@ import { Observer } from 'mobx-react';
 import React from 'react';
 import constant from 'lodash/fp/constant';
 import isFunction from 'lodash/fp/isFunction';
+import get from 'lodash/fp/get';
 
 import { isPromise } from '@ogre-tools/fp';
 
@@ -32,6 +33,18 @@ export default ({
           }
 
           return props => {
+            if (isClassComponent(instantiate)) {
+              const ClassComponent = instantiate;
+
+              return (
+                <ClassComponent
+                  {...dependencies}
+                  {...props}
+                  {...instantiationParameter}
+                />
+              );
+            }
+
             const ComponentJsxOrFunctionComponent = instantiate({
               ...dependencies,
               ...props,
@@ -81,3 +94,5 @@ const getObservablePromise = asyncValue => {
 
   return observableObject;
 };
+
+const isClassComponent = get('prototype.isReactComponent');

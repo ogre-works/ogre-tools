@@ -10,6 +10,22 @@ exports[`Inject given anonymous function as instantiate, works 1`] = `
 </div>
 `;
 
+exports[`Inject given class component with a synchronous dependency, renders 1`] = `
+<div
+  data-some-prop-test="true"
+>
+  some-synchronous-dependency-value
+</div>
+`;
+
+exports[`Inject given class component with an asynchronous dependency, renders 1`] = `
+<div
+  data-some-prop-test="true"
+>
+  some-asynchronous-dependency-value
+</div>
+`;
+
 exports[`Inject given instantiation parameter and one level function component with asynchronous dependencies, works 1`] = `null`;
 
 exports[`Inject given instantiation parameter and one level function component with synchronous dependencies, works 1`] = `

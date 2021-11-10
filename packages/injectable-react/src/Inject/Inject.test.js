@@ -107,6 +107,56 @@ describe('Inject', () => {
     });
   });
 
+  it('given class component with a synchronous dependency, renders', () => {
+    class SomeClassComponent extends React.Component {
+      render() {
+        const { someDependency, ...props } = this.props;
+
+        return <div {...props}>{someDependency}</div>;
+      }
+    }
+
+    di.register({
+      id: 'irrelevant',
+      getDependencies: () => ({
+        someDependency: 'some-synchronous-dependency-value',
+      }),
+      instantiate: SomeClassComponent,
+    });
+
+    const component = mount(
+      <Inject Component={SomeClassComponent} data-some-prop-test />,
+    );
+
+    expect(component).toMatchHtmlSnapshot();
+  });
+
+  it('given class component with an asynchronous dependency, renders', async () => {
+    class SomeClassComponent extends React.Component {
+      render() {
+        const { someDependency, ...props } = this.props;
+
+        return <div {...props}>{someDependency}</div>;
+      }
+    }
+
+    di.register({
+      id: 'irrelevant',
+      getDependencies: () => ({
+        someDependency: Promise.resolve('some-asynchronous-dependency-value'),
+      }),
+      instantiate: SomeClassComponent,
+    });
+
+    const component = mount(
+      <Inject Component={SomeClassComponent} data-some-prop-test />,
+    );
+
+    await enzymeUpdate(component);
+
+    expect(component).toMatchHtmlSnapshot();
+  });
+
   it('given two level function component with asynchronous dependencies with placeholder, when dependency has not resolved yet, renders placeholder', () => {
     const AsyncComponent =
       ({ someDependency }) =>
