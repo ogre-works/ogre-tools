@@ -7,7 +7,7 @@
     "type": "git",
     "url": "https://github.com/ogre-works/ogre-tools"
   },
-  "main": "src/index.js",
+  "main": "build/index.js",
   "keywords": [
     "js",
     "functional-programming"

@@ -7,7 +7,7 @@
     "type": "git",
     "url": "https://github.com/ogre-works/ogre-tools"
   },
-  "main": "src/index.js",
+  "main": "build/index.js",
   "keywords": [
     "js",
     "functional-programming"
@@ -20,10 +20,10 @@
     "lodash": "^4.17.21"
   },
   "peerDependencies": {
-    "mobx": "^6.3.6",
-    "mobx-react": "^7.2.1",
-    "react": "^17.0.2",
-    "react-dom": "^17.0.2"
+    "mobx": "^6.3.0",
+    "mobx-react": "^7.2.0",
+    "react": "^17.0.0",
+    "react-dom": "^17.0.0"
   },
   "scripts": {
     "build": "webpack"
