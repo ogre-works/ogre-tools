@@ -45,38 +45,37 @@ const getNewReferencePath = (key, oldReferencePath) => [
   key,
 ];
 
-const toEntriesFor = (how, oldReferencePath, rootThing, nonCyclicThings) => ([
-  key,
-  value,
-]) => {
-  const newReferencePath = getNewReferencePath(key, oldReferencePath);
+const toEntriesFor =
+  (how, oldReferencePath, rootThing, nonCyclicThings) =>
+  ([key, value]) => {
+    const newReferencePath = getNewReferencePath(key, oldReferencePath);
 
-  const maybeAsyncNewThing = how(value, newReferencePath, rootThing);
+    const maybeAsyncNewThing = how(value, newReferencePath, rootThing);
 
-  if (nonCyclicThings.has(maybeAsyncNewThing)) {
-    throw new Error(
-      `Cycle encountered when mapping path: "${newReferencePath.join('.')}"`,
-    );
-  }
+    if (nonCyclicThings.has(maybeAsyncNewThing)) {
+      throw new Error(
+        `Cycle encountered when mapping path: "${newReferencePath.join('.')}"`,
+      );
+    }
 
-  const newNonCyclicThings = new Set([
-    ...nonCyclicThings.values(),
-    maybeAsyncNewThing,
-  ]);
+    const newNonCyclicThings = new Set([
+      ...nonCyclicThings.values(),
+      maybeAsyncNewThing,
+    ]);
 
-  return pipeline(maybeAsyncNewThing, syncNewThing => [
-    key,
+    return pipeline(maybeAsyncNewThing, syncNewThing => [
+      key,
 
-    isPrimitive(syncNewThing)
-      ? syncNewThing
-      : recursiveMapValuesDeep({
-          how,
-          referencePath: newReferencePath,
-          thing: syncNewThing,
-          rootThing,
-          nonCyclicThings: newNonCyclicThings,
-        }),
-  ]);
-};
+      isPrimitive(syncNewThing)
+        ? syncNewThing
+        : recursiveMapValuesDeep({
+            how,
+            referencePath: newReferencePath,
+            thing: syncNewThing,
+            rootThing,
+            nonCyclicThings: newNonCyclicThings,
+          }),
+    ]);
+  };
 
 const valueIsUndefined = flow(nth(1), isUndefined);

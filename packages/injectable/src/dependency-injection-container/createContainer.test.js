@@ -42,7 +42,7 @@ describe('createContainer', () => {
     };
 
     const parentInjectable = {
-      instantiate: (di) => di.inject(childInjectable),
+      instantiate: di => di.inject(childInjectable),
     };
 
     const di = getDi(childInjectable, parentInjectable);
@@ -61,11 +61,11 @@ describe('createContainer', () => {
     };
 
     const parentInjectable = {
-      getDependencies: (di) => ({
+      getDependencies: di => ({
         syncChild: di.inject(asyncChildInjectable),
       }),
 
-      instantiate: (dependencies) => dependencies.syncChild.someProperty,
+      instantiate: dependencies => dependencies.syncChild.someProperty,
     };
 
     const di = getDi(asyncChildInjectable, parentInjectable);
@@ -161,7 +161,7 @@ describe('createContainer', () => {
     };
 
     const parentInjectable = {
-      instantiate: (di) => di.inject(childInjectable),
+      instantiate: di => di.inject(childInjectable),
     };
 
     const di = getDi(childInjectable, parentInjectable);
@@ -177,7 +177,7 @@ describe('createContainer', () => {
     const someInjectable = {
       id: 'some-injectable-id',
 
-      setup: (di) => {
+      setup: di => {
         const self = di.inject('some-alias');
 
         self.setupped = true;
@@ -266,7 +266,7 @@ describe('createContainer', () => {
     };
 
     const parentInjectable = {
-      instantiate: (di) => di.inject(childInjectable),
+      instantiate: di => di.inject(childInjectable),
     };
 
     const di = getDi(childInjectable, parentInjectable);
@@ -286,7 +286,7 @@ describe('createContainer', () => {
     };
 
     const parentInjectable = {
-      instantiate: (di) => di.inject(childInjectable),
+      instantiate: di => di.inject(childInjectable),
     };
 
     const di = getDi(childInjectable, parentInjectable);
@@ -304,7 +304,7 @@ describe('createContainer', () => {
     };
 
     const parentInjectable = {
-      instantiate: (di) => di.inject(childInjectable),
+      instantiate: di => di.inject(childInjectable),
     };
 
     const di = getDi(childInjectable, parentInjectable);
@@ -525,7 +525,7 @@ describe('createContainer', () => {
     const someInjectable = {
       id: 'some-injectable-id',
 
-      setup: (di) => {
+      setup: di => {
         const instance = di.inject('some-alias');
 
         instance.someProperty = 'some-value';
@@ -547,7 +547,7 @@ describe('createContainer', () => {
   it('given injectable with setup that injects other injectable with setup, when running setups, throws', () => {
     const someInjectable = {
       id: 'some-injectable-id',
-      setup: (di) => {
+      setup: di => {
         di.inject(someOtherInjectable);
       },
 
@@ -643,14 +643,14 @@ describe('createContainer', () => {
 
     const someInjectable = {
       aliases: ['some-alias'],
-      viability: (di) =>
+      viability: di =>
         di.inject('third-injectable-alias') !== 'third-injectable-instance',
       instantiate: () => 'irrelevant',
     };
 
     const someOtherInjectable = {
       aliases: ['some-alias'],
-      viability: (di) =>
+      viability: di =>
         di.inject('third-injectable-alias') === 'third-injectable-instance',
       instantiate: () => 'viable-instance',
     };
@@ -784,7 +784,7 @@ describe('createContainer', () => {
       const someInjectable = {
         aliases: ['some-alias'],
         instantiate: () => ({}),
-        lifecycle: lifecycleEnum.scopedTransient((di) =>
+        lifecycle: lifecycleEnum.scopedTransient(di =>
           di.inject('some-alias-for-scope'),
         ),
       };
@@ -792,7 +792,7 @@ describe('createContainer', () => {
       const someOtherInjectable = {
         aliases: ['some-other-alias'],
         instantiate: () => ({}),
-        lifecycle: lifecycleEnum.scopedTransient((di) =>
+        lifecycle: lifecycleEnum.scopedTransient(di =>
           di.inject('some-alias-for-scope'),
         ),
       };
@@ -847,11 +847,11 @@ const getDi = (...injectables) => {
   return createContainer(...listOfGetRequireContexts);
 };
 
-const getRequireContextStub = (files) => {
+const getRequireContextStub = files => {
   const contextDictionary = pipeline(
     files,
     castArray,
-    map((file) => ({ default: file })),
+    map(file => ({ default: file })),
     nonCappedMap((file, index) => [
       `stubbed-require-context-key-${index}`,
       file,
@@ -859,7 +859,7 @@ const getRequireContextStub = (files) => {
     fromPairs,
   );
 
-  const contextStub = (contextKey) => contextDictionary[contextKey];
+  const contextStub = contextKey => contextDictionary[contextKey];
 
   contextStub.keys = () => keys(contextDictionary);
 

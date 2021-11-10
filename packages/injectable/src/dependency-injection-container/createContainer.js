@@ -67,7 +67,7 @@ export default (...listOfGetRequireContexts) => {
       });
     },
 
-    register: (injectable) => {
+    register: injectable => {
       if (!injectable.id) {
         throw new Error('Tried to register injectable without ID.');
       }
@@ -110,7 +110,7 @@ export default (...listOfGetRequireContexts) => {
       });
     },
 
-    unoverride: (alias) => {
+    unoverride: alias => {
       overridingInjectables = pipeline(
         overridingInjectables,
         reject(getRelatedInjectables(alias)),
@@ -125,7 +125,7 @@ export default (...listOfGetRequireContexts) => {
       pipeline(
         injectables,
 
-        map((originalInjectable) => {
+        map(originalInjectable => {
           const overridingInjectable = getOverridingInjectable({
             overridingInjectables,
             alias: originalInjectable.id,
@@ -137,7 +137,7 @@ export default (...listOfGetRequireContexts) => {
         }),
 
         filter('setup'),
-        forEach((injectable) => {
+        forEach(injectable => {
           injectable.isBeingSetupped = true;
           injectable.setup(di);
           injectable.isBeingSetupped = false;
@@ -151,19 +151,19 @@ export default (...listOfGetRequireContexts) => {
       sideEffectsArePrevented = true;
     },
 
-    permitSideEffects: (alias) => {
+    permitSideEffects: alias => {
       getInjectable({ injectables, alias, di }).permitSideEffects();
     },
   };
 
-  listOfGetRequireContexts.forEach((getRequireContextForInjectables) => {
+  listOfGetRequireContexts.forEach(getRequireContextForInjectables => {
     autoRegisterInjectables({ getRequireContextForInjectables, di });
   });
 
   return di;
 };
 
-const getRelatedInjectables = (alias) => conforms({ aliases: includes(alias) });
+const getRelatedInjectables = alias => conforms({ aliases: includes(alias) });
 
 const autoRegisterInjectables = ({ getRequireContextForInjectables, di }) => {
   const requireContextForInjectables = getRequireContextForInjectables();
@@ -171,7 +171,7 @@ const autoRegisterInjectables = ({ getRequireContextForInjectables, di }) => {
   pipeline(
     requireContextForInjectables,
     invoke('keys'),
-    map((key) => {
+    map(key => {
       const injectableExport = requireContextForInjectables(key).default;
 
       return {
@@ -181,7 +181,7 @@ const autoRegisterInjectables = ({ getRequireContextForInjectables, di }) => {
       };
     }),
 
-    forEach((injectable) => di.register(injectable)),
+    forEach(injectable => di.register(injectable)),
   );
 };
 
@@ -207,7 +207,7 @@ const getInjectable = ({ injectables, alias, di }) => {
 
   const viableInjectables = pipeline(
     relatedInjectables,
-    filter((injectable) =>
+    filter(injectable =>
       injectable.viability ? injectable.viability(di) : true,
     ),
   );

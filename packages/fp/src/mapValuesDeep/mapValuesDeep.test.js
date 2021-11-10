@@ -6,7 +6,7 @@ import toUpper from 'lodash/fp/toUpper';
 
 import mapValuesDeep from './mapValuesDeep';
 
-const stringsToUpperSnakeCase = (thing) =>
+const stringsToUpperSnakeCase = thing =>
   isString(thing) ? toUpper(thing) : thing;
 
 describe('mapValuesDeep', () => {
@@ -65,7 +65,7 @@ describe('mapValuesDeep', () => {
   });
 
   it('when mapping an object, provides path to mapping function', () => {
-    const mapperMock = jest.fn((x) => x);
+    const mapperMock = jest.fn(x => x);
 
     mapValuesDeep(mapperMock)({
       a: { b: { c: 'irrelevant', d: 'irrelevant' } },
@@ -81,7 +81,7 @@ describe('mapValuesDeep', () => {
   });
 
   it('when mapping an object, provides root object to mapping function', () => {
-    const mapperMock = jest.fn((x) => x);
+    const mapperMock = jest.fn(x => x);
 
     const rootObject = {
       a: { b: { c: 'irrelevant', d: 'irrelevant' } },
@@ -99,7 +99,7 @@ describe('mapValuesDeep', () => {
   });
 
   it('when mapping an array, provides path to mapping function', () => {
-    const mapperMock = jest.fn((x) => x);
+    const mapperMock = jest.fn(x => x);
 
     mapValuesDeep(mapperMock)([
       {
@@ -125,14 +125,14 @@ describe('mapValuesDeep', () => {
     ];
 
     expect(() => {
-      mapValuesDeep((value) => (value === 'cycle' ? objectWithCycle : value))({
+      mapValuesDeep(value => (value === 'cycle' ? objectWithCycle : value))({
         someProperty: 'cycle',
       });
     }).toThrow('Cycle encountered when mapping path: "someProperty.0.a.b.0"');
   });
 
   it('when mapping an array, provides values to mapping function', () => {
-    const mapperMock = jest.fn((x) => x);
+    const mapperMock = jest.fn(x => x);
 
     mapValuesDeep(mapperMock)([
       {
@@ -157,7 +157,7 @@ describe('mapValuesDeep', () => {
   });
 
   it('maps primitive values', () => {
-    const actual = mapValuesDeep((x) => x)({
+    const actual = mapValuesDeep(x => x)({
       a: 42,
       b: 'some-string',
       c: false,
@@ -181,7 +181,7 @@ describe('mapValuesDeep', () => {
   });
 
   it('rejects undefined values', () => {
-    const actual = mapValuesDeep((x) => x)({
+    const actual = mapValuesDeep(x => x)({
       a: undefined,
       b: { c: undefined, d: 'some-value' },
       e: 'some-other-value',
@@ -196,7 +196,7 @@ describe('mapValuesDeep', () => {
   });
 
   it('maps root object', () => {
-    const mapperMock = jest.fn((x) => x);
+    const mapperMock = jest.fn(x => x);
 
     mapValuesDeep(mapperMock, { someProperty: 'some-value' });
 
@@ -212,7 +212,7 @@ describe('mapValuesDeep', () => {
       someOtherProperty: 'some-sync-value',
     };
 
-    const mapperStub = (thing) =>
+    const mapperStub = thing =>
       thing === 'promise' ? Promise.resolve('some-async-value') : thing;
 
     const actual = await mapValuesDeep(mapperStub, someObject);
@@ -229,7 +229,7 @@ describe('mapValuesDeep', () => {
       someOtherProperty: 'some-sync-value',
     };
 
-    const mapperStub = (thing) =>
+    const mapperStub = thing =>
       thing === 'promise' ? { some: 'some-async-value' } : thing;
 
     const actualPromise = mapValuesDeep(mapperStub, someObject);

@@ -7,27 +7,27 @@ import { createContainer } from '@ogre-tools/injectable';
 
 const flushPromises = () => new Promise(flushMicroTasks);
 
-const getDiForUnitTesting = createContainer;
-
-const enzymeUpdate = async (component) => {
+const enzymeUpdate = async component => {
   component.setProps();
 
   await flushPromises();
 
-  component.find('Observer').forEach((Observer) => Observer.update());
+  component.find('Observer').forEach(Observer => Observer.update());
 };
 
-const mountFor = (di) => (node, ...rest) =>
-  enzyme.mount(<DiContextProvider value={{ di }}>{node}</DiContextProvider>, {
-    ...rest,
-  });
+const mountFor =
+  di =>
+  (node, ...rest) =>
+    enzyme.mount(<DiContextProvider value={{ di }}>{node}</DiContextProvider>, {
+      ...rest,
+    });
 
 describe('Inject', () => {
   let di;
   let mount;
 
   beforeEach(() => {
-    di = getDiForUnitTesting();
+    di = createContainer();
 
     mount = mountFor(di);
   });
@@ -55,9 +55,8 @@ describe('Inject', () => {
   });
 
   it('given two level function component with synchronous dependencies, works', () => {
-    const SyncComponent = () => (props) => (
-      <div {...props}>Some sync component content</div>
-    );
+    const SyncComponent = () => props =>
+      <div {...props}>Some sync component content</div>;
 
     di.register({
       id: 'irrelevant',
@@ -77,9 +76,10 @@ describe('Inject', () => {
     let someMock;
 
     beforeEach(() => {
-      const AsyncComponent = ({ someDependency }) => (props) => (
-        <div {...props}>{someDependency}</div>
-      );
+      const AsyncComponent =
+        ({ someDependency }) =>
+        props =>
+          <div {...props}>{someDependency}</div>;
 
       someMock = asyncFn();
 
@@ -108,9 +108,10 @@ describe('Inject', () => {
   });
 
   it('given two level function component with asynchronous dependencies with placeholder, when dependency has not resolved yet, renders placeholder', () => {
-    const AsyncComponent = ({ someDependency }) => (props) => (
-      <div {...props}>{someDependency}</div>
-    );
+    const AsyncComponent =
+      ({ someDependency }) =>
+      props =>
+        <div {...props}>{someDependency}</div>;
 
     di.register({
       id: 'irrelevant',
@@ -248,17 +249,18 @@ describe('Inject', () => {
   });
 
   it('given anonymous function as instantiate, works', () => {
-    const SyncComponentFor = ({ dependencyValue, instantiationParameter }) => ({
-      ...props
-    }) => (
-      <div
-        data-dependency-value={dependencyValue}
-        data-instantiation-parameter={instantiationParameter.some}
-        {...props}
-      >
-        Some sync component content
-      </div>
-    );
+    const SyncComponentFor =
+      ({ dependencyValue, instantiationParameter }) =>
+      ({ ...props }) =>
+        (
+          <div
+            data-dependency-value={dependencyValue}
+            data-instantiation-parameter={instantiationParameter.some}
+            {...props}
+          >
+            Some sync component content
+          </div>
+        );
 
     di.register({
       id: 'irrelevant',

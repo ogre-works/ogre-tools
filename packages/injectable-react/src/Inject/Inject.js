@@ -6,10 +6,8 @@ import isFunction from 'lodash/fp/isFunction';
 
 import { isPromise } from '@ogre-tools/fp';
 
-const {
-  Provider: DiContextProvider,
-  Consumer: DiContextConsumer,
-} = React.createContext();
+const { Provider: DiContextProvider, Consumer: DiContextConsumer } =
+  React.createContext();
 
 export { DiContextProvider };
 
@@ -26,14 +24,14 @@ export default ({
         injectableKey,
         instantiationParameter,
 
-        (instantiate) => (dependencies, instantiationParameter) => {
+        instantiate => (dependencies, instantiationParameter) => {
           const componentWithoutDependencies = dependencies === di;
 
           if (componentWithoutDependencies) {
             return instantiate(di, instantiationParameter);
           }
 
-          return (props) => {
+          return props => {
             const ComponentJsxOrFunctionComponent = instantiate({
               ...dependencies,
               ...props,
@@ -70,13 +68,13 @@ export default ({
   </DiContextConsumer>
 );
 
-const getObservablePromise = (asyncValue) => {
+const getObservablePromise = asyncValue => {
   const observableObject = observable({ value: null }, null, {
     deep: false,
   });
 
   asyncValue.then(
-    action((syncValue) => {
+    action(syncValue => {
       observableObject.value = syncValue;
     }),
   );

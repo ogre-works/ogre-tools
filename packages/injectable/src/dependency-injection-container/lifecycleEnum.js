@@ -17,7 +17,7 @@ const getInstance = ({
     return pipeline(
       injectable.getDependencies(di, instantiationParameter),
       synchronize,
-      (syncDependencies) =>
+      syncDependencies =>
         injectable.Model
           ? new injectable.Model(syncDependencies, instantiationParameter)
           : instantiationDecorator(injectable.instantiate)(
@@ -67,7 +67,7 @@ export default {
     getInstance,
   },
 
-  scopedTransient: (getScope) => ({
+  scopedTransient: getScope => ({
     getInstance: ({
       di,
       injectable,
