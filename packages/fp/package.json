@@ -1,7 +1,7 @@
 {
   "name": "@ogre-tools/fp",
   "private": false,
-  "version": "1.0.0",
+  "version": "0.0.1",
   "description": "A collection of low abstraction functions in functional programming flavor",
   "repository": {
     "type": "git",
@@ -19,5 +19,12 @@
   },
   "scripts": {
     "build": "webpack"
+  },
+  "bugs": {
+    "url": "https://github.com/ogre-works/ogre-tools/issues"
+  },
+  "homepage": "https://github.com/ogre-works/ogre-tools#readme",
+  "publishConfig": {
+    "access": "public"
   }
 }
