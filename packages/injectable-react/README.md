@@ -16,21 +16,27 @@ import { Inject } from '@ogre-tools/injectable-react';
 ## Usage
 
 ```
-it('given an injectable is registered, when injected, injects', () => {
-  const TestComponent = ({ someDependency, ...props}) = <div {...props}>Some content</div>;
+  it('given a Component is registered, when Inject is rendered for the Component, renders with dependencies', () => {
+    const TestComponent = ({ someDependency, ...props }) => (
+      <div {...props}>Some content: "{someDependency}"</div>
+    );
 
-  const di = createContainer();
+    const di = createContainer();
 
-  di.register({
-    id: 'some-id',
-    getDependencies: di => ({someDependency: 'some-value' }),
-    instantiate: di => props = <div {...props}>Some content</div>,
+    di.register({
+      id: 'some-id',
+      getDependencies: () => ({ someDependency: 'some-value' }),
+      instantiate: TestComponent,
+    });
+
+    const actual = mount(
+      <DiContextProvider value={{ di }}>
+        <Inject Component={TestComponent} />
+      </DiContextProvider>,
+    );
+
+    expect(actual).toHaveText('Some content: "some-value"');
   });
-
-  const actual = mount(<Inject component={} />);
-
-  expect(actual).toBe('some-instance');
-});
 ```
 
 ## Documentation
