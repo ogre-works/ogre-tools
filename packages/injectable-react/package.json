@@ -1,7 +1,7 @@
 {
   "name": "@ogre-tools/injectable-react",
   "private": false,
-  "version": "1.0.3",
+  "version": "1.1.0",
   "description": "A brutal component for injecting components that use injectable",
   "repository": {
     "type": "git",
@@ -16,7 +16,7 @@
   "license": "MIT",
   "dependencies": {
     "@ogre-tools/fp": "^1.0.2",
-    "@ogre-tools/injectable": "^1.0.2",
+    "@ogre-tools/injectable": "^1.1.0",
     "lodash": "^4.17.21"
   },
   "peerDependencies": {
