@@ -15,65 +15,29 @@ export { DiContextProvider };
 export default ({
   Component,
   injectableKey = Component,
-  instantiationParameter,
   getPlaceholder = constant(null),
   ...props
 }) => (
   <DiContextConsumer>
     {({ di }) => {
-      const MaybeAsyncComponent = di.inject(
-        injectableKey,
-        instantiationParameter,
+      const maybeAsyncJsx = di.inject(injectableKey, props);
 
-        instantiate => (dependencies, instantiationParameter) => {
-          const componentWithoutDependencies = dependencies === di;
-
-          if (componentWithoutDependencies) {
-            return instantiate(di, instantiationParameter);
-          }
-
-          return props => {
-            if (isClassComponent(instantiate)) {
-              const ClassComponent = instantiate;
-
-              return (
-                <ClassComponent
-                  {...dependencies}
-                  {...props}
-                  {...instantiationParameter}
-                />
-              );
-            }
-
-            const ComponentJsxOrFunctionComponent = instantiate({
-              ...dependencies,
-              ...props,
-              ...instantiationParameter,
-            });
-
-            return isFunction(ComponentJsxOrFunctionComponent)
-              ? ComponentJsxOrFunctionComponent(props)
-              : ComponentJsxOrFunctionComponent;
-          };
-        },
-      );
-
-      if (!isPromise(MaybeAsyncComponent)) {
-        return <MaybeAsyncComponent {...props} />;
+      if (!isPromise(maybeAsyncJsx)) {
+        return maybeAsyncJsx;
       }
 
-      const observablePromise = getObservablePromise(MaybeAsyncComponent);
+      const observablePromise = getObservablePromise(maybeAsyncJsx);
 
       return (
         <Observer>
           {() => {
-            const SyncComponent = observablePromise.value;
+            const syncJsx = observablePromise.value;
 
-            if (!SyncComponent) {
+            if (!syncJsx) {
               return getPlaceholder();
             }
 
-            return <SyncComponent {...props} />;
+            return syncJsx;
           }}
         </Observer>
       );

@@ -1,12 +1,7 @@
 import { mapValuesDeep, pipeline } from '../../../fp/src/index';
 import identity from 'lodash/fp/identity';
 
-const getInstance = ({
-  di,
-  injectable,
-  instantiationParameter,
-  instantiationDecorator,
-}) => {
+const getInstance = ({ di, injectable, instantiationParameter }) => {
   if (!injectable.instantiate && !injectable.Model) {
     throw new Error(
       `Tried to inject "${injectable.id}" when instantiation is not defined.`,
@@ -20,26 +15,19 @@ const getInstance = ({
       syncDependencies =>
         injectable.Model
           ? new injectable.Model(syncDependencies, instantiationParameter)
-          : instantiationDecorator(injectable.instantiate)(
-              syncDependencies,
-              instantiationParameter,
-            ),
+          : injectable.instantiate(syncDependencies, instantiationParameter),
     );
   }
 
   return injectable.Model
     ? new injectable.Model(instantiationParameter)
-    : instantiationDecorator(injectable.instantiate)(
-        di,
-        instantiationParameter,
-      );
+    : injectable.instantiate(di, instantiationParameter);
 };
 
 export default {
   singleton: {
     getInstance: ({
       injectable,
-      instantiationDecorator,
       instantiationParameter,
       di,
       singletonInstanceMap,
@@ -54,7 +42,6 @@ export default {
         injectable,
         instantiationParameter,
         di,
-        instantiationDecorator,
       });
 
       singletonInstanceMap.set(injectable, newInstance);
@@ -72,7 +59,6 @@ export default {
       di,
       injectable,
       instantiationParameter,
-      instantiationDecorator,
       scopedTransientMap,
     }) => {
       const scope = getScope(di);
@@ -92,7 +78,6 @@ export default {
         injectable,
         instantiationParameter,
         di,
-        instantiationDecorator,
       });
 
       scopesForInjectable.clear();

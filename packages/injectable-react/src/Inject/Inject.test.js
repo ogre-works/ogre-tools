@@ -32,314 +32,182 @@ describe('Inject', () => {
     mount = mountFor(di);
   });
 
-  it('given a Component is registered, when Inject is rendered for the Component, renders with dependencies', () => {
+  it('given component, when rendering Inject, renders component with injected dependencies', () => {
     const TestComponent = ({ someDependency, ...props }) => (
       <div {...props}>Some content: "{someDependency}"</div>
     );
 
-    const di = createContainer();
-
-    di.register({
-      id: 'some-id',
-      getDependencies: () => ({ someDependency: 'some-value' }),
-      instantiate: TestComponent,
-    });
-
-    const actual = mount(
-      <DiContextProvider value={{ di }}>
-        <Inject Component={TestComponent} />
-      </DiContextProvider>,
-    );
-
-    expect(actual).toHaveText('Some content: "some-value"');
-  });
-
-  it('given two level function component with synchronous dependencies, works', () => {
-    const SyncComponent = () => props =>
-      <div {...props}>Some sync component content</div>;
-
     di.register({
       id: 'irrelevant',
-      getDependencies: () => ({}),
-      instantiate: SyncComponent,
+
+      getDependencies: () => ({
+        someDependency: 'some-synchronous-dependency-value',
+      }),
+
+      instantiate: (dependencies, props) => (
+        <TestComponent {...dependencies} {...props} />
+      ),
+
+      aliases: [TestComponent],
     });
 
     const component = mount(
-      <Inject Component={SyncComponent} data-some-prop-test />,
+      <Inject Component={TestComponent} data-some-prop-test />,
     );
 
     expect(component).toMatchHtmlSnapshot();
   });
 
-  describe('given two level function component with asynchronous dependencies without placeholder', () => {
-    let component;
-    let someMock;
+  it('given nested Injects, renders', () => {
+    const RootTestComponent = ({ someDependency, ...props }) => (
+      <div {...props}>
+        Some root content: "{someDependency}"
+        <Inject
+          injectableKey={NestedTestComponent}
+          data-some-nested-prop-test
+        />
+      </div>
+    );
 
-    beforeEach(() => {
-      const AsyncComponent =
-        ({ someDependency }) =>
-        props =>
-          <div {...props}>{someDependency}</div>;
+    di.register({
+      id: 'irrelevant',
 
-      someMock = asyncFn();
+      getDependencies: () => ({
+        someDependency: 'some-root-dependency-value',
+      }),
 
-      di.register({
-        id: 'irrelevant',
-        getDependencies: () => ({ someDependency: someMock() }),
-        instantiate: AsyncComponent,
-      });
+      instantiate: (dependencies, props) => (
+        <RootTestComponent {...dependencies} {...props} />
+      ),
 
-      component = mount(
-        <Inject Component={AsyncComponent} data-some-prop-test />,
-      );
+      aliases: [RootTestComponent],
     });
 
-    it('does not render component yet', () => {
+    const NestedTestComponent = ({ someDependency, ...props }) => (
+      <div {...props}>Some nested content: "{someDependency}"</div>
+    );
+
+    di.register({
+      id: 'irrelevant',
+
+      getDependencies: () => ({
+        someDependency: 'some-nested-dependency-value',
+      }),
+
+      instantiate: (dependencies, props) => (
+        <NestedTestComponent {...dependencies} {...props} />
+      ),
+
+      aliases: [NestedTestComponent],
+    });
+
+    const component = mount(
+      <Inject Component={RootTestComponent} data-some-root-prop-test />,
+    );
+
+    expect(component).toMatchHtmlSnapshot();
+  });
+
+  describe('given no placeholder and nested Injects with an async dependency', () => {
+    let component;
+    let asyncDependencyMock;
+
+    beforeEach(() => {
+      asyncDependencyMock = asyncFn();
+
+      component = getAsyncComponent({
+        di,
+        asyncDependencyMock,
+        placeholder: undefined,
+      });
+    });
+
+    it('renders with default placeholder', () => {
       expect(component).toMatchHtmlSnapshot();
     });
 
-    it('when async thing resolves, renders component', async () => {
-      await someMock.resolve('some-dependency-value');
-
+    it('when the async dependency resolves, renders', async () => {
+      await asyncDependencyMock.resolve('some-async-dependency-value');
       await enzymeUpdate(component);
 
       expect(component).toMatchHtmlSnapshot();
     });
   });
 
-  it('given class component with a synchronous dependency, renders', () => {
-    class SomeClassComponent extends React.Component {
-      render() {
-        const { someDependency, ...props } = this.props;
+  describe('given placeholder and nested Injects with an async dependency', () => {
+    let component;
+    let asyncDependencyMock;
 
-        return <div {...props}>{someDependency}</div>;
-      }
-    }
+    beforeEach(() => {
+      asyncDependencyMock = asyncFn();
 
-    di.register({
-      id: 'irrelevant',
-      getDependencies: () => ({
-        someDependency: 'some-synchronous-dependency-value',
-      }),
-      instantiate: SomeClassComponent,
+      component = getAsyncComponent({
+        di,
+        asyncDependencyMock,
+        placeholder: 'some-placeholder',
+      });
     });
 
-    const component = mount(
-      <Inject Component={SomeClassComponent} data-some-prop-test />,
-    );
-
-    expect(component).toMatchHtmlSnapshot();
-  });
-
-  it('given class component with an asynchronous dependency, renders', async () => {
-    class SomeClassComponent extends React.Component {
-      render() {
-        const { someDependency, ...props } = this.props;
-
-        return <div {...props}>{someDependency}</div>;
-      }
-    }
-
-    di.register({
-      id: 'irrelevant',
-      getDependencies: () => ({
-        someDependency: Promise.resolve('some-asynchronous-dependency-value'),
-      }),
-      instantiate: SomeClassComponent,
+    it('renders with the placeholder', () => {
+      expect(component).toMatchHtmlSnapshot();
     });
 
-    const component = mount(
-      <Inject Component={SomeClassComponent} data-some-prop-test />,
-    );
+    it('when the async dependency resolves, renders', async () => {
+      await asyncDependencyMock.resolve('some-async-dependency-value');
+      await enzymeUpdate(component);
 
-    await enzymeUpdate(component);
-
-    expect(component).toMatchHtmlSnapshot();
-  });
-
-  it('given two level function component with asynchronous dependencies with placeholder, when dependency has not resolved yet, renders placeholder', () => {
-    const AsyncComponent =
-      ({ someDependency }) =>
-      props =>
-        <div {...props}>{someDependency}</div>;
-
-    di.register({
-      id: 'irrelevant',
-      getDependencies: () => ({
-        someDependency: new Promise(() => {}),
-      }),
-      instantiate: AsyncComponent,
+      expect(component).toMatchHtmlSnapshot();
     });
-
-    const component = mount(
-      <Inject
-        Component={AsyncComponent}
-        getPlaceholder={() => <div data-placeholder-test>some-placeholder</div>}
-        data-some-prop-test
-      />,
-    );
-
-    expect(component.find('[data-placeholder-test]')).toExist();
-  });
-
-  it('given instantiation parameter and one level function component with synchronous dependencies, works', () => {
-    const SyncComponent = ({
-      dependencyValue,
-      someInstantiation,
-      ...props
-    }) => (
-      <div
-        data-dependency-value={dependencyValue}
-        data-instantiation-parameter={someInstantiation}
-        {...props}
-      >
-        Some sync component content
-      </div>
-    );
-
-    di.register({
-      id: 'irrelevant',
-      getDependencies: () => ({
-        dependencyValue: 'some-synchronous-value',
-      }),
-
-      instantiate: SyncComponent,
-    });
-
-    const component = mount(
-      <Inject
-        Component={SyncComponent}
-        instantiationParameter={{ someInstantiation: 'parameter' }}
-        data-some-prop-test
-      />,
-    );
-
-    expect(component).toMatchHtmlSnapshot();
-  });
-
-  it('given instantiation parameter and one level function component with asynchronous dependencies, works', () => {
-    const SyncComponent = ({
-      dependencyValue,
-      someInstantiation,
-      ...props
-    }) => (
-      <div
-        data-dependency-value={dependencyValue}
-        data-instantiation-parameter={someInstantiation}
-        {...props}
-      >
-        Some sync component content
-      </div>
-    );
-
-    di.register({
-      id: 'irrelevant',
-      getDependencies: () => ({
-        dependencyValue: Promise.resolve('some-asynchronous-value'),
-      }),
-
-      instantiate: SyncComponent,
-    });
-
-    const component = mount(
-      <Inject
-        Component={SyncComponent}
-        instantiationParameter={{ someInstantiation: 'parameter' }}
-        data-some-prop-test
-      />,
-    );
-
-    expect(component).toMatchHtmlSnapshot();
-  });
-
-  it('given no instantiation parameter and one level function component with synchronous dependencies, works', () => {
-    const SyncComponent = ({ dependencyValue, ...props }) => (
-      <div data-dependency-value={dependencyValue} {...props}>
-        Some sync component content
-      </div>
-    );
-
-    di.register({
-      id: 'irrelevant',
-      getDependencies: () => ({
-        dependencyValue: 'some-synchronous-value',
-      }),
-
-      instantiate: SyncComponent,
-    });
-
-    const component = mount(
-      <Inject Component={SyncComponent} data-some-prop-test />,
-    );
-
-    expect(component).toMatchHtmlSnapshot();
-  });
-
-  it('given no instantiation parameter and one level function component with asynchronous dependencies, works', () => {
-    const SyncComponent = ({ dependencyValue, ...props }) => (
-      <div data-dependency-value={dependencyValue} {...props}>
-        Some sync component content
-      </div>
-    );
-
-    di.register({
-      id: 'irrelevant',
-      getDependencies: () => ({
-        dependencyValue: Promise.resolve('some-asynchronous-value'),
-      }),
-
-      instantiate: SyncComponent,
-    });
-
-    const component = mount(
-      <Inject Component={SyncComponent} data-some-prop-test />,
-    );
-
-    expect(component).toMatchHtmlSnapshot();
-  });
-
-  it('given anonymous function as instantiate, works', () => {
-    const SyncComponentFor =
-      ({ dependencyValue, instantiationParameter }) =>
-      ({ ...props }) =>
-        (
-          <div
-            data-dependency-value={dependencyValue}
-            data-instantiation-parameter={instantiationParameter.some}
-            {...props}
-          >
-            Some sync component content
-          </div>
-        );
-
-    di.register({
-      id: 'irrelevant',
-
-      instantiate: (di, instantiationParameter) =>
-        SyncComponentFor({
-          dependencyValue: di.inject('some-dependency-alias'),
-          instantiationParameter,
-        }),
-
-      aliases: [SyncComponentFor],
-    });
-
-    di.register({
-      id: 'irrelevant',
-
-      instantiate: () => 'some-dependency-value',
-
-      aliases: ['some-dependency-alias'],
-    });
-
-    const component = mount(
-      <Inject
-        Component={SyncComponentFor}
-        instantiationParameter={{ some: 'instantiation-value' }}
-        data-some-prop-test
-      />,
-    );
-
-    expect(component).toMatchHtmlSnapshot();
   });
 });
+
+const getAsyncComponent = ({ di, asyncDependencyMock, placeholder }) => {
+  const RootTestComponent = ({ someDependency, ...props }) => (
+    <div {...props}>
+      Some root content: "{someDependency}"
+      <Inject
+        {...(placeholder ? { getPlaceholder: () => placeholder } : {})}
+        injectableKey={NestedAsyncTestComponent}
+        data-some-nested-prop-test
+      />
+    </div>
+  );
+
+  di.register({
+    id: 'irrelevant',
+
+    getDependencies: () => ({
+      someDependency: 'some-root-dependency-value',
+    }),
+
+    instantiate: (dependencies, props) => (
+      <RootTestComponent {...dependencies} {...props} />
+    ),
+
+    aliases: [RootTestComponent],
+  });
+
+  const NestedAsyncTestComponent = ({ someDependency, ...props }) => (
+    <div {...props}>Some async content: "{someDependency}"</div>
+  );
+
+  di.register({
+    id: 'irrelevant',
+
+    getDependencies: () => ({
+      someDependency: asyncDependencyMock(),
+    }),
+
+    instantiate: (dependencies, props) => (
+      <NestedAsyncTestComponent {...dependencies} {...props} />
+    ),
+
+    aliases: [NestedAsyncTestComponent],
+  });
+
+  const mount = mountFor(di);
+
+  return mount(
+    <Inject Component={RootTestComponent} data-some-root-prop-test />,
+  );
+};

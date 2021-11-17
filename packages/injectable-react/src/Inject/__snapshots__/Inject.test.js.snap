@@ -1,68 +1,64 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`Inject given anonymous function as instantiate, works 1`] = `
+exports[`Inject given component, when rendering Inject, renders component with injected dependencies 1`] = `
 <div
-  data-dependency-value="some-dependency-value"
-  data-instantiation-parameter="instantiation-value"
   data-some-prop-test="true"
 >
-  Some sync component content
+  Some content: "some-synchronous-dependency-value"
 </div>
 `;
 
-exports[`Inject given class component with a synchronous dependency, renders 1`] = `
+exports[`Inject given nested Injects, renders 1`] = `
 <div
-  data-some-prop-test="true"
+  data-some-root-prop-test="true"
 >
-  some-synchronous-dependency-value
+  Some root content: "some-root-dependency-value"
+  <div
+    data-some-nested-prop-test="true"
+  >
+    Some nested content: "some-nested-dependency-value"
+  </div>
 </div>
 `;
 
-exports[`Inject given class component with an asynchronous dependency, renders 1`] = `
+exports[`Inject given no placeholder and nested Injects with an async dependency renders with default placeholder 1`] = `
 <div
-  data-some-prop-test="true"
+  data-some-root-prop-test="true"
 >
-  some-asynchronous-dependency-value
+  Some root content: "some-root-dependency-value"
 </div>
 `;
 
-exports[`Inject given instantiation parameter and one level function component with asynchronous dependencies, works 1`] = `null`;
-
-exports[`Inject given instantiation parameter and one level function component with synchronous dependencies, works 1`] = `
+exports[`Inject given no placeholder and nested Injects with an async dependency when the async dependency resolves, renders 1`] = `
 <div
-  data-dependency-value="some-synchronous-value"
-  data-instantiation-parameter="parameter"
-  data-some-prop-test="true"
+  data-some-root-prop-test="true"
 >
-  Some sync component content
+  Some root content: "some-root-dependency-value"
+  <div
+    data-some-nested-prop-test="true"
+  >
+    Some async content: "some-async-dependency-value"
+  </div>
 </div>
 `;
 
-exports[`Inject given no instantiation parameter and one level function component with asynchronous dependencies, works 1`] = `null`;
-
-exports[`Inject given no instantiation parameter and one level function component with synchronous dependencies, works 1`] = `
+exports[`Inject given placeholder and nested Injects with an async dependency renders with the placeholder 1`] = `
 <div
-  data-dependency-value="some-synchronous-value"
-  data-some-prop-test="true"
+  data-some-root-prop-test="true"
 >
-  Some sync component content
+  Some root content: "some-root-dependency-value"some-placeholder
 </div>
 `;
 
-exports[`Inject given two level function component with asynchronous dependencies without placeholder does not render component yet 1`] = `null`;
-
-exports[`Inject given two level function component with asynchronous dependencies without placeholder when async thing resolves, renders component 1`] = `
+exports[`Inject given placeholder and nested Injects with an async dependency when the async dependency resolves, renders 1`] = `
 <div
-  data-some-prop-test="true"
+  data-some-root-prop-test="true"
 >
-  some-dependency-value
-</div>
-`;
-
-exports[`Inject given two level function component with synchronous dependencies, works 1`] = `
-<div
-  data-some-prop-test="true"
->
-  Some sync component content
+  Some root content: "some-root-dependency-value"
+  <div
+    data-some-nested-prop-test="true"
+  >
+    Some async content: "some-async-dependency-value"
+  </div>
 </div>
 `;

@@ -6,7 +6,6 @@ import findLast from 'lodash/fp/findLast';
 import first from 'lodash/fp/first';
 import forEach from 'lodash/fp/forEach';
 import get from 'lodash/fp/get';
-import identity from 'lodash/fp/identity';
 import includes from 'lodash/fp/includes';
 import invoke from 'lodash/fp/invoke';
 import map from 'lodash/fp/map';
@@ -23,11 +22,7 @@ export default (...listOfGetRequireContexts) => {
   const scopedTransientMap = new Map();
 
   const di = {
-    inject: (
-      alias,
-      instantiationParameter,
-      instantiationDecorator = identity,
-    ) => {
+    inject: (alias, instantiationParameter) => {
       const originalInjectable = getInjectable({
         injectables,
         alias,
@@ -59,7 +54,6 @@ export default (...listOfGetRequireContexts) => {
 
       return injectable.lifecycle.getInstance({
         injectable,
-        instantiationDecorator,
         instantiationParameter,
         di,
         singletonInstanceMap,
