@@ -9,6 +9,9 @@ module.exports = {
     filename: 'index.js',
     libraryTarget: 'commonjs2',
   },
+
+  externals: ['mobx', 'mobx-react', 'react'],
+
   node: {
     __dirname: true,
     __filename: true,
