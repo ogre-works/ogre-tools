@@ -2,8 +2,6 @@ import { action, observable } from 'mobx';
 import { Observer } from 'mobx-react';
 import React from 'react';
 import constant from 'lodash/fp/constant';
-import isFunction from 'lodash/fp/isFunction';
-import get from 'lodash/fp/get';
 
 import { isPromise } from '@ogre-tools/fp';
 
@@ -58,5 +56,3 @@ const getObservablePromise = asyncValue => {
 
   return observableObject;
 };
-
-const isClassComponent = get('prototype.isReactComponent');
