@@ -1,7 +1,7 @@
 {
   "name": "@ogre-tools/injectable",
   "private": false,
-  "version": "1.1.0",
+  "version": "1.2.1",
   "description": "A brutal dependency injection container",
   "repository": {
     "type": "git",
