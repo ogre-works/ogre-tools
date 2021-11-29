@@ -70,10 +70,7 @@ describe('createContainer', () => {
 
     const di = getDi(asyncChildInjectable, parentInjectable);
 
-    const actual = await di.inject(
-      parentInjectable,
-      'some-instantiation-parameter',
-    );
+    const actual = await di.inject(parentInjectable);
 
     expect(actual).toBe('some-child-instance');
   });
@@ -86,6 +83,8 @@ describe('createContainer', () => {
 
       instantiate: (dependencies, instantiationParameter) =>
         `${dependencies.someDependency}/${instantiationParameter}-from-instantiate`,
+
+      lifecycle: lifecycleEnum.transient,
     };
 
     const di = getDi(someInjectable);
@@ -131,6 +130,7 @@ describe('createContainer', () => {
     const someInjectable = {
       instantiate: (_, instantiationParameter) => instantiationParameter,
       aliases: ['some-alias'],
+      lifecycle: lifecycleEnum.transient,
     };
 
     const di = getDi(someInjectable);
@@ -212,6 +212,7 @@ describe('createContainer', () => {
       id: 'some-injectable-id',
       getDependencies: () => ({ someDependency: 'some-value' }),
       Model: SomeClass,
+      lifecycle: lifecycleEnum.transient,
     };
 
     const di = getDi(someInjectable);
@@ -236,6 +237,7 @@ describe('createContainer', () => {
     const someInjectable = {
       id: 'some-injectable-id',
       Model: SomeClass,
+      lifecycle: lifecycleEnum.transient,
     };
 
     const di = getDi(someInjectable);
@@ -838,6 +840,22 @@ describe('createContainer', () => {
 
       expect(actual).not.toBe(actual2);
     });
+  });
+
+  it('given singleton, when injecting with instantiation parameter, throws', () => {
+    const someInjectable = {
+      id: 'some-id',
+      instantiate: () => ({}),
+      lifecycle: lifecycleEnum.singleton,
+    };
+
+    const di = getDi(someInjectable);
+
+    expect(() => {
+      di.inject('some-id', { some: 'instantiation parameter' });
+    }).toThrow(
+      'Tried to inject singleton "some-id" with instantiation parameters.',
+    );
   });
 });
 

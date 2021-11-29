@@ -32,6 +32,12 @@ export default {
       di,
       singletonInstanceMap,
     }) => {
+      if (instantiationParameter) {
+        throw new Error(
+          `Tried to inject singleton "${injectable.id}" with instantiation parameters.`,
+        );
+      }
+
       const existingInstance = singletonInstanceMap.get(injectable);
 
       if (existingInstance) {
