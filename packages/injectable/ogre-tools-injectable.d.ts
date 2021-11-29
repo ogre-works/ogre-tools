@@ -65,7 +65,6 @@ declare module '@ogre-tools/injectable' {
   export enum lifecycleEnum {
     singleton,
     transient,
-    scopedTransient,
   }
 
   export function createContainer(
