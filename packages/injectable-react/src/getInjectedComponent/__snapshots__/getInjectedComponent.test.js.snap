@@ -1,0 +1,23 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`getInjectedComponent given async dependency, a placeholder and injected component, when rendered renders 1`] = `
+<div
+  data-placeholder-test="true"
+/>
+`;
+
+exports[`getInjectedComponent given async dependency, a placeholder and injected component, when rendered when the dependency resolves renders 1`] = `
+<div
+  data-some-prop-test="true"
+>
+  Some content: "some-async-value"
+</div>
+`;
+
+exports[`getInjectedComponent given injected component, when rendered, renders with dependencies 1`] = `
+<div
+  data-some-prop-test="true"
+>
+  Some content: "some-dependency-value"
+</div>
+`;

@@ -27,4 +27,18 @@ declare module '@ogre-tools/injectable-react' {
     injectableKey: TInjectable;
     getPlaceholder?: () => JSX.Element | null;
   }) => JSX.Element;
+
+  interface InjectedComponentOptions {
+    getPlaceholder: () => JSX.Element;
+  }
+
+  export function getInjectedComponent<
+    TInjectable extends Injectable<TInstance, TDependencies, TProps>,
+    TInstance,
+    TDependencies extends object,
+    TProps,
+  >(
+    injectableKey: TInjectable,
+    options?: InjectedComponentOptions,
+  ): React.FC<Parameters<TInjectable['instantiate']>[1]>;
 }
