@@ -18,6 +18,13 @@ export default ({
 }) => (
   <DiContextConsumer>
     {({ di }) => {
+      const lifecycleIsTransient =
+        di.getLifecycle(injectableKey).key === 'transient';
+
+      if (!lifecycleIsTransient) {
+        throw new Error('Tried to inject non-transient injectable in UI');
+      }
+
       const maybeAsyncJsx = di.inject(injectableKey, props);
 
       if (!isPromise(maybeAsyncJsx)) {

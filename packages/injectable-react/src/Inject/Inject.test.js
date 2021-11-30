@@ -3,7 +3,7 @@ import asyncFn from '@async-fn/jest';
 import Inject, { DiContextProvider } from './Inject';
 import enzyme from 'enzyme';
 import { setImmediate as flushMicroTasks } from 'timers';
-import { createContainer } from '@ogre-tools/injectable';
+import { createContainer, lifecycleEnum } from '@ogre-tools/injectable';
 
 const flushPromises = () => new Promise(flushMicroTasks);
 
@@ -40,6 +40,8 @@ describe('Inject', () => {
     di.register({
       id: 'irrelevant',
 
+      lifecycle: lifecycleEnum.transient,
+
       getDependencies: () => ({
         someDependency: 'some-synchronous-dependency-value',
       }),
@@ -72,6 +74,8 @@ describe('Inject', () => {
     di.register({
       id: 'irrelevant',
 
+      lifecycle: lifecycleEnum.transient,
+
       getDependencies: () => ({
         someDependency: 'some-root-dependency-value',
       }),
@@ -89,6 +93,8 @@ describe('Inject', () => {
 
     di.register({
       id: 'irrelevant',
+
+      lifecycle: lifecycleEnum.transient,
 
       getDependencies: () => ({
         someDependency: 'some-nested-dependency-value',
@@ -159,6 +165,33 @@ describe('Inject', () => {
       expect(component).toMatchHtmlSnapshot();
     });
   });
+
+  it('given non-transient injectable, when rendering, throws', () => {
+    const TestComponent = () => 'irrelevant';
+
+    di.register({
+      id: 'irrelevant',
+
+      lifecycle: lifecycleEnum.singleton,
+
+      getDependencies: () => ({}),
+
+      instantiate: (dependencies, props) => (
+        <TestComponent {...dependencies} {...props} />
+      ),
+
+      aliases: [TestComponent],
+    });
+
+    jest
+      .spyOn(console, 'error')
+      .mockImplementationOnce(() => {})
+      .mockImplementationOnce(() => {});
+
+    expect(() => {
+      mount(<Inject Component={TestComponent} />);
+    }).toThrow('Tried to inject non-transient injectable in UI');
+  });
 });
 
 const getAsyncComponent = ({ di, asyncDependencyMock, placeholder }) => {
@@ -175,6 +208,8 @@ const getAsyncComponent = ({ di, asyncDependencyMock, placeholder }) => {
 
   di.register({
     id: 'irrelevant',
+
+    lifecycle: lifecycleEnum.transient,
 
     getDependencies: () => ({
       someDependency: 'some-root-dependency-value',
@@ -193,6 +228,8 @@ const getAsyncComponent = ({ di, asyncDependencyMock, placeholder }) => {
 
   di.register({
     id: 'irrelevant',
+
+    lifecycle: lifecycleEnum.transient,
 
     getDependencies: () => ({
       someDependency: asyncDependencyMock(),

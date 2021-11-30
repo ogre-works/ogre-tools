@@ -28,6 +28,8 @@ const getInstance = ({ di, injectable, instantiationParameter }) => {
 
 export default {
   singleton: {
+    key: 'singleton',
+
     getInstance: ({
       injectable,
       instantiationParameter,
@@ -59,10 +61,13 @@ export default {
   },
 
   transient: {
+    key: 'transient',
     getInstance,
   },
 
   scopedTransient: getScope => ({
+    key: 'scoped-transient',
+
     getInstance: ({
       di,
       injectable,

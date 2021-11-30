@@ -148,6 +148,13 @@ export default (...listOfGetRequireContexts) => {
     permitSideEffects: alias => {
       getInjectable({ injectables, alias, di }).permitSideEffects();
     },
+
+    getLifecycle: injectableKey =>
+      getInjectable({
+        injectables,
+        alias: injectableKey,
+        di,
+      }).lifecycle,
   };
 
   listOfGetRequireContexts.forEach(getRequireContextForInjectables => {

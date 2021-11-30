@@ -857,6 +857,20 @@ describe('createContainer', () => {
       'Tried to inject singleton "some-id" with instantiation parameters.',
     );
   });
+
+  it('given injectable, when DI is asked for lifecycle, returns lifecycle', () => {
+    const someInjectable = {
+      id: 'some-id',
+      instantiate: () => ({}),
+      lifecycle: { some: 'lifecycle' },
+    };
+
+    const di = getDi(someInjectable);
+
+    const lifecycle = di.getLifecycle(someInjectable);
+
+    expect(lifecycle).toEqual({ some: 'lifecycle' });
+  });
 });
 
 const getDi = (...injectables) => {
