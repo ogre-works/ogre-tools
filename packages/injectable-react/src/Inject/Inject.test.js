@@ -150,19 +150,31 @@ describe('Inject', () => {
       component = getAsyncComponent({
         di,
         asyncDependencyMock,
-        placeholder: 'some-placeholder',
+        placeholder: <div data-placeholder-test />,
       });
     });
 
-    it('renders with the placeholder', () => {
+    it('renders', () => {
       expect(component).toMatchHtmlSnapshot();
     });
 
-    it('when the async dependency resolves, renders', async () => {
-      await asyncDependencyMock.resolve('some-async-dependency-value');
-      await enzymeUpdate(component);
+    it('has placeholder', () => {
+      expect(component.find('[data-placeholder-test]')).toExist();
+    });
 
-      expect(component).toMatchHtmlSnapshot();
+    describe('when the async dependency resolves', () => {
+      beforeEach(async () => {
+        await asyncDependencyMock.resolve('some-async-dependency-value');
+        await enzymeUpdate(component);
+      });
+
+      it('renders', async () => {
+        expect(component).toMatchHtmlSnapshot();
+      });
+
+      it('has no placeholder', () => {
+        expect(component.find('[data-placeholder-test]')).not.toExist();
+      });
     });
   });
 

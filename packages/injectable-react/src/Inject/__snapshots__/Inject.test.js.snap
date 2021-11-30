@@ -42,15 +42,18 @@ exports[`Inject given no placeholder and nested Injects with an async dependency
 </div>
 `;
 
-exports[`Inject given placeholder and nested Injects with an async dependency renders with the placeholder 1`] = `
+exports[`Inject given placeholder and nested Injects with an async dependency renders 1`] = `
 <div
   data-some-root-prop-test="true"
 >
-  Some root content: "some-root-dependency-value"some-placeholder
+  Some root content: "some-root-dependency-value"
+  <div
+    data-placeholder-test="true"
+  />
 </div>
 `;
 
-exports[`Inject given placeholder and nested Injects with an async dependency when the async dependency resolves, renders 1`] = `
+exports[`Inject given placeholder and nested Injects with an async dependency when the async dependency resolves renders 1`] = `
 <div
   data-some-root-prop-test="true"
 >
