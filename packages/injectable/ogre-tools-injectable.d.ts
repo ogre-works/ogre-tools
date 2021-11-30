@@ -1,3 +1,4 @@
+/// <reference types="jest" />
 declare module '@ogre-tools/injectable' {
   type Awaited<TMaybePromise> = TMaybePromise extends PromiseLike<infer TValue>
     ? TValue
