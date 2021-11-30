@@ -1,5 +1,7 @@
-import { mapValuesDeep, pipeline } from '../../../fp/src/index';
-import identity from 'lodash/fp/identity';
+import toPairs from 'lodash/fp/toPairs';
+import fromPairs from 'lodash/fp/fromPairs';
+import map from 'lodash/fp/map';
+import { isPromise, pipeline } from '../../../fp/src/index';
 
 const getInstance = ({ di, injectable, instantiationParameter }) => {
   if (!injectable.instantiate && !injectable.Model) {
@@ -94,4 +96,16 @@ export default {
   }),
 };
 
-const synchronize = mapValuesDeep(identity);
+const synchronize = maybeAsyncDependencies =>
+  pipeline(
+    maybeAsyncDependencies,
+    toPairs,
+
+    map(([key, maybeAsyncDependency]) =>
+      isPromise(maybeAsyncDependency)
+        ? maybeAsyncDependency.then(syncDependency => [key, syncDependency])
+        : [key, maybeAsyncDependency],
+    ),
+
+    fromPairs,
+  );
