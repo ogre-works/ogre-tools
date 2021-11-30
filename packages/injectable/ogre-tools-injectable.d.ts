@@ -53,7 +53,7 @@ declare module '@ogre-tools/injectable' {
       instantiationParameter?: TInstantiationParameter,
     ) => TDependencies | Promise<TDependencies>;
 
-    lifecycle?: lifecycleEnum;
+    lifecycle: lifecycleEnum;
 
     instantiate: (
       dependencies: TDependencies,
