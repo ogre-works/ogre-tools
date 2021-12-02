@@ -23,6 +23,10 @@ declare module '@ogre-tools/injectable' {
     ) => TMaybePromiseInstance extends PromiseLike<any>
       ? Awaited<TMaybePromiseInstance>
       : TMaybePromiseInstance;
+
+    purge: <TInjectable extends Injectable<any, any, any>>(
+      injectableKey: TInjectable,
+    ) => void;
   }
 
   export interface ConfigurableDependencyInjectionContainer

@@ -875,6 +875,100 @@ describe('createContainer', () => {
 
     expect(lifecycle).toEqual({ some: 'lifecycle' });
   });
+
+  it('given an injectable is singleton and injected but purged, when injected, injects new instance', () => {
+    const singletonInjectable = {
+      instantiate: () => ({}),
+      lifecycle: lifecycleEnum.singleton,
+    };
+
+    const di = getDi(singletonInjectable);
+
+    const actual1 = di.inject(singletonInjectable);
+
+    di.purge(singletonInjectable);
+
+    const actual2 = di.inject(singletonInjectable);
+
+    expect(actual1).not.toBe(actual2);
+  });
+
+  it('given an injectable is singleton and injected but unrelated singleton is purged, when injected, injects singleton', () => {
+    const singletonInjectable = {
+      instantiate: () => ({}),
+      lifecycle: lifecycleEnum.singleton,
+    };
+
+    const unrelatedSingletonInjectable = {
+      instantiate: () => ({}),
+      lifecycle: lifecycleEnum.singleton,
+    };
+
+    const di = getDi(singletonInjectable, unrelatedSingletonInjectable);
+
+    const actual1 = di.inject(singletonInjectable);
+
+    di.purge(unrelatedSingletonInjectable);
+
+    const actual2 = di.inject(singletonInjectable);
+
+    expect(actual1).toBe(actual2);
+  });
+
+  it('given an injectable is transient, when purged, throws', () => {
+    const transientInjectable = {
+      instantiate: () => ({}),
+      lifecycle: lifecycleEnum.transient,
+    };
+
+    const di = getDi(transientInjectable);
+
+    expect(() => {
+      di.purge(transientInjectable);
+    }).toThrow('Tried to purge injectable with transient lifecycle.');
+  });
+
+  it('given an injectable is scoped transient and injected but purged, when injected, injects new instance', () => {
+    const scopedTransientInjectable = {
+      instantiate: () => ({}),
+      lifecycle: lifecycleEnum.scopedTransient(() => 'some-scope'),
+    };
+
+    const di = getDi(scopedTransientInjectable);
+
+    const actual1 = di.inject(scopedTransientInjectable);
+
+    di.purge(scopedTransientInjectable);
+
+    const actual2 = di.inject(scopedTransientInjectable);
+
+    expect(actual1).not.toBe(actual2);
+  });
+
+  it('given an injectable is scoped transient and injected but unrelated scoped transient is purged, when injected, injects same instance', () => {
+    const scopedTransientInjectable = {
+      instantiate: () => ({}),
+      lifecycle: lifecycleEnum.scopedTransient(() => 'some-scope'),
+    };
+
+    const unrelatedScopedTransientInjectable = {
+      instantiate: () => ({}),
+      lifecycle: lifecycleEnum.scopedTransient(() => 'some-scope'),
+    };
+
+    const di = getDi(
+      scopedTransientInjectable,
+      unrelatedScopedTransientInjectable,
+    );
+
+    const actual1 = di.inject(scopedTransientInjectable);
+
+    di.purge(unrelatedScopedTransientInjectable);
+
+    const actual2 = di.inject(scopedTransientInjectable);
+
+    expect(actual1).toBe(actual2);
+  });
 });
 
 const getDi = (...injectables) => {

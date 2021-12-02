@@ -19,8 +19,13 @@ export default (...listOfGetRequireContexts) => {
   let overridingInjectables = [];
   let sideEffectsArePrevented = false;
   let setupsHaveBeenRan = false;
-  const singletonInstanceMap = new Map();
-  const scopedTransientMap = new Map();
+
+  const getLifecycle = injectableKey =>
+    getInjectable({
+      injectables,
+      alias: injectableKey,
+      di,
+    }).lifecycle;
 
   const di = {
     inject: (alias, instantiationParameter) => {
@@ -57,8 +62,6 @@ export default (...listOfGetRequireContexts) => {
         injectable,
         instantiationParameter,
         di,
-        singletonInstanceMap,
-        scopedTransientMap,
       });
     },
 
@@ -151,12 +154,17 @@ export default (...listOfGetRequireContexts) => {
       getInjectable({ injectables, alias, di }).permitSideEffects();
     },
 
-    getLifecycle: injectableKey =>
-      getInjectable({
+    getLifecycle,
+
+    purge: injectableKey => {
+      const injectable = getInjectable({
         injectables,
-        alias: injectableKey,
         di,
-      }).lifecycle,
+        alias: injectableKey,
+      });
+
+      getLifecycle(injectableKey).purge(injectable);
+    },
   };
 
   listOfGetRequireContexts.forEach(getRequireContextForInjectables => {

@@ -26,79 +26,88 @@ const getInstance = ({ di, injectable, instantiationParameter }) => {
     : injectable.instantiate(di, instantiationParameter);
 };
 
+const iife = callback => callback();
+
 export default {
-  singleton: {
-    key: 'singleton',
+  singleton: iife(() => {
+    const singletonInstanceMap = new Map();
 
-    getInstance: ({
-      injectable,
-      instantiationParameter,
-      di,
-      singletonInstanceMap,
-    }) => {
-      if (instantiationParameter) {
-        throw new Error(
-          `Tried to inject singleton "${injectable.id}" with instantiation parameters.`,
-        );
-      }
+    return {
+      key: 'singleton',
 
-      const existingInstance = singletonInstanceMap.get(injectable);
+      getInstance: ({ injectable, instantiationParameter, di }) => {
+        if (instantiationParameter) {
+          throw new Error(
+            `Tried to inject singleton "${injectable.id}" with instantiation parameters.`,
+          );
+        }
 
-      if (existingInstance) {
-        return existingInstance;
-      }
+        const existingInstance = singletonInstanceMap.get(injectable);
 
-      const newInstance = getInstance({
-        injectable,
-        instantiationParameter,
-        di,
-      });
+        if (existingInstance) {
+          return existingInstance;
+        }
 
-      singletonInstanceMap.set(injectable, newInstance);
+        const newInstance = getInstance({
+          injectable,
+          instantiationParameter,
+          di,
+        });
 
-      return newInstance;
-    },
-  },
+        singletonInstanceMap.set(injectable, newInstance);
+
+        return newInstance;
+      },
+
+      purge: injectable => singletonInstanceMap.delete(injectable),
+    };
+  }),
 
   transient: {
     key: 'transient',
     getInstance,
+
+    purge: () => {
+      throw new Error('Tried to purge injectable with transient lifecycle.');
+    },
   },
 
-  scopedTransient: getScope => ({
-    key: 'scoped-transient',
+  scopedTransient: getScope =>
+    iife(() => {
+      const scopedTransientMap = new Map();
 
-    getInstance: ({
-      di,
-      injectable,
-      instantiationParameter,
-      scopedTransientMap,
-    }) => {
-      const scope = getScope(di);
+      return {
+        key: 'scoped-transient',
 
-      const scopesForInjectable =
-        scopedTransientMap.get(injectable) || new Map();
+        getInstance: ({ di, injectable, instantiationParameter }) => {
+          const scope = getScope(di);
 
-      scopedTransientMap.set(injectable, scopesForInjectable);
+          const scopesForInjectable =
+            scopedTransientMap.get(injectable) || new Map();
 
-      const existingInstance = scopesForInjectable.get(scope);
+          scopedTransientMap.set(injectable, scopesForInjectable);
 
-      if (existingInstance) {
-        return existingInstance;
-      }
+          const existingInstance = scopesForInjectable.get(scope);
 
-      const newInstance = getInstance({
-        injectable,
-        instantiationParameter,
-        di,
-      });
+          if (existingInstance) {
+            return existingInstance;
+          }
 
-      scopesForInjectable.clear();
-      scopesForInjectable.set(scope, newInstance);
+          const newInstance = getInstance({
+            injectable,
+            instantiationParameter,
+            di,
+          });
 
-      return newInstance;
-    },
-  }),
+          scopesForInjectable.clear();
+          scopesForInjectable.set(scope, newInstance);
+
+          return newInstance;
+        },
+
+        purge: injectable => scopedTransientMap.delete(injectable),
+      };
+    }),
 };
 
 const synchronize = maybeAsyncDependencies =>
