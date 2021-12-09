@@ -1,12 +1,14 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`getInjectedComponent given async dependency, a placeholder and injected component, when rendered renders 1`] = `
+exports[`getInjectedComponent given component and sync dependencies, when rendered, renders with dependencies 1`] = `
 <div
-  data-placeholder-test="true"
-/>
+  data-some-prop-test="true"
+>
+  Some content: "some-injectable-value"
+</div>
 `;
 
-exports[`getInjectedComponent given async dependency, a placeholder and injected component, when rendered when the dependency resolves renders 1`] = `
+exports[`getInjectedComponent given component, no placeholder and async dependencies, when rendered when the dependency resolves renders 1`] = `
 <div
   data-some-prop-test="true"
 >
@@ -14,10 +16,16 @@ exports[`getInjectedComponent given async dependency, a placeholder and injected
 </div>
 `;
 
-exports[`getInjectedComponent given injected component, when rendered, renders with dependencies 1`] = `
+exports[`getInjectedComponent given component, placeholder and async dependencies, when rendered renders as placeholder 1`] = `
+<div
+  data-placeholder-test="true"
+/>
+`;
+
+exports[`getInjectedComponent given component, placeholder and async dependencies, when rendered when the dependency resolves renders 1`] = `
 <div
   data-some-prop-test="true"
 >
-  Some content: "some-dependency-value"
+  Some content: "some-async-value"
 </div>
 `;

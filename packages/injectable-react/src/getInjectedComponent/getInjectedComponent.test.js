@@ -33,33 +33,31 @@ describe('getInjectedComponent', () => {
     mount = mountFor(di);
   });
 
-  it('given injected component, when rendered, renders with dependencies', () => {
+  it('given component and sync dependencies, when rendered, renders with dependencies', () => {
     di.register({
       id: 'some-injectable-id',
 
       lifecycle: lifecycleEnum.transient,
 
-      getDependencies: () => ({
-        someDependency: 'some-dependency-value',
-      }),
-
-      instantiate: (dependencies, props) => (
-        <DumbTestComponent {...dependencies} {...props} />
-      ),
+      instantiate: () => 'some-injectable-value',
     });
 
     const DumbTestComponent = ({ someDependency, ...props }) => (
       <div {...props}>Some content: "{someDependency}"</div>
     );
 
-    const SmartTestComponent = getInjectedComponent('some-injectable-id');
+    const SmartTestComponent = getInjectedComponent(DumbTestComponent, {
+      getDependencies: di => ({
+        someDependency: di.inject('some-injectable-id'),
+      }),
+    });
 
     const component = mount(<SmartTestComponent data-some-prop-test />);
 
     expect(component).toMatchHtmlSnapshot();
   });
 
-  describe('given async dependency, a placeholder and injected component, when rendered', () => {
+  describe('given component, placeholder and async dependencies, when rendered', () => {
     let component;
     let asyncDependencyMock;
 
@@ -71,28 +69,30 @@ describe('getInjectedComponent', () => {
 
         lifecycle: lifecycleEnum.transient,
 
-        getDependencies: () => ({
-          someDependency: asyncDependencyMock(),
-        }),
-
-        instantiate: (dependencies, props) => (
-          <DumbTestComponent {...dependencies} {...props} />
-        ),
+        instantiate: () => asyncDependencyMock(),
       });
 
       const DumbTestComponent = ({ someDependency, ...props }) => (
         <div {...props}>Some content: "{someDependency}"</div>
       );
 
-      const SmartTestComponent = getInjectedComponent('some-injectable-id', {
+      const SmartTestComponent = getInjectedComponent(DumbTestComponent, {
+        getDependencies: di => ({
+          someDependency: di.inject('some-injectable-id'),
+        }),
+
         getPlaceholder: () => <div data-placeholder-test />,
       });
 
       component = mount(<SmartTestComponent data-some-prop-test />);
     });
 
-    it('renders', () => {
+    it('renders as placeholder', () => {
       expect(component).toMatchHtmlSnapshot();
+    });
+
+    it('does not render component yet', () => {
+      expect(component.find('DumbTestComponent')).not.toExist();
     });
 
     it('has placeholder', () => {
@@ -109,8 +109,64 @@ describe('getInjectedComponent', () => {
         expect(component).toMatchHtmlSnapshot();
       });
 
-      it('has no placeholder', () => {
+      it('has component with async content', () => {
+        expect(component).toHaveText('Some content: "some-async-value"');
+      });
+
+      it('has component', () => {
+        expect(component.find('DumbTestComponent')).toExist();
+      });
+
+      it('no longer has placeholder', () => {
         expect(component.find('[data-placeholder-test]')).not.toExist();
+      });
+    });
+  });
+
+  describe('given component, no placeholder and async dependencies, when rendered', () => {
+    let component;
+    let asyncDependencyMock;
+
+    beforeEach(async () => {
+      asyncDependencyMock = asyncFn();
+
+      di.register({
+        id: 'some-injectable-id',
+
+        lifecycle: lifecycleEnum.transient,
+
+        instantiate: () => asyncDependencyMock(),
+      });
+
+      const DumbTestComponent = ({ someDependency, ...props }) => (
+        <div {...props}>Some content: "{someDependency}"</div>
+      );
+
+      const SmartTestComponent = getInjectedComponent(DumbTestComponent, {
+        getDependencies: di => ({
+          someDependency: di.inject('some-injectable-id'),
+        }),
+      });
+
+      component = mount(<SmartTestComponent data-some-prop-test />);
+    });
+
+    it('renders as null', () => {
+      expect(component).toBeEmptyRender();
+    });
+
+    describe('when the dependency resolves', () => {
+      beforeEach(async () => {
+        await asyncDependencyMock.resolve('some-async-value');
+        await enzymeUpdate(component);
+      });
+
+      it('renders', () => {
+        expect(component).toMatchHtmlSnapshot();
+      });
+
+      it('has component with async content', () => {
+        expect(component).toHaveText('Some content: "some-async-value"');
       });
     });
   });

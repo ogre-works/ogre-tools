@@ -1,4 +1,7 @@
-import Inject, { DiContextProvider } from './Inject/Inject';
-import getInjectedComponent from './getInjectedComponent/getInjectedComponent';
+import Inject from './Inject/Inject';
+
+import getInjectedComponent, {
+  DiContextProvider,
+} from './getInjectedComponent/getInjectedComponent';
 
 export { Inject, getInjectedComponent, DiContextProvider };
