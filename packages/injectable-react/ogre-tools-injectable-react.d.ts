@@ -28,7 +28,7 @@ declare module '@ogre-tools/injectable-react' {
     getPlaceholder?: () => JSX.Element | null;
   }) => JSX.Element;
 
-  export const getInjectedComponent: <
+  export const withInjectables: <
     TComponent extends React.ElementType<{ dependencies: object }> = any,
     TComponentProps extends {
       dependencies: object;

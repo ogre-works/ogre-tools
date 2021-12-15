@@ -1,7 +1,7 @@
 import Inject from './Inject/Inject';
 
-import getInjectedComponent, {
+import withInjectables, {
   DiContextProvider,
-} from './getInjectedComponent/getInjectedComponent';
+} from './withInjectables/withInjectables';
 
-export { Inject, getInjectedComponent, DiContextProvider };
+export { Inject, withInjectables, DiContextProvider };

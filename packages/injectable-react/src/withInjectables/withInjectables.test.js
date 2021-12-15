@@ -2,7 +2,7 @@ import React from 'react';
 import enzyme from 'enzyme';
 import { setImmediate as flushMicroTasks } from 'timers';
 import { createContainer, lifecycleEnum } from '@ogre-tools/injectable';
-import getInjectedComponent from './getInjectedComponent';
+import withInjectables from './withInjectables';
 import { DiContextProvider } from '../index';
 import asyncFn from '@async-fn/jest';
 
@@ -23,7 +23,7 @@ const mountFor =
       ...rest,
     });
 
-describe('getInjectedComponent', () => {
+describe('withInjectables', () => {
   let di;
   let mount;
 
@@ -46,7 +46,7 @@ describe('getInjectedComponent', () => {
       <div {...props}>Some content: "{someDependency}"</div>
     );
 
-    const SmartTestComponent = getInjectedComponent(DumbTestComponent, {
+    const SmartTestComponent = withInjectables(DumbTestComponent, {
       getProps: (di, props) => ({
         someDependency: di.inject('some-injectable-id'),
         ...props,
@@ -77,7 +77,7 @@ describe('getInjectedComponent', () => {
         <div {...props}>Some content: "{someDependency}"</div>
       );
 
-      const SmartTestComponent = getInjectedComponent(DumbTestComponent, {
+      const SmartTestComponent = withInjectables(DumbTestComponent, {
         getProps: (di, props) => ({
           someDependency: di.inject('some-injectable-id'),
           ...props,
@@ -144,7 +144,7 @@ describe('getInjectedComponent', () => {
         <div {...props}>Some content: "{someDependency}"</div>
       );
 
-      const SmartTestComponent = getInjectedComponent(DumbTestComponent, {
+      const SmartTestComponent = withInjectables(DumbTestComponent, {
         getProps: (di, props) => ({
           someDependency: di.inject('some-injectable-id'),
           ...props,
@@ -188,7 +188,7 @@ describe('getInjectedComponent', () => {
       <div {...props}>Some content: "{someDependency}"</div>
     );
 
-    const SmartTestComponent = getInjectedComponent(DumbTestComponent, {
+    const SmartTestComponent = withInjectables(DumbTestComponent, {
       getProps: (di, { someInstantiationParameter, ...props }) => ({
         someDependency: di.inject(
           'some-injectable-id',
