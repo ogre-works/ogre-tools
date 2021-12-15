@@ -47,8 +47,9 @@ describe('getInjectedComponent', () => {
     );
 
     const SmartTestComponent = getInjectedComponent(DumbTestComponent, {
-      getDependencies: di => ({
+      getProps: (di, props) => ({
         someDependency: di.inject('some-injectable-id'),
+        ...props,
       }),
     });
 
@@ -77,8 +78,9 @@ describe('getInjectedComponent', () => {
       );
 
       const SmartTestComponent = getInjectedComponent(DumbTestComponent, {
-        getDependencies: di => ({
+        getProps: (di, props) => ({
           someDependency: di.inject('some-injectable-id'),
+          ...props,
         }),
 
         getPlaceholder: () => <div data-placeholder-test />,
@@ -143,8 +145,9 @@ describe('getInjectedComponent', () => {
       );
 
       const SmartTestComponent = getInjectedComponent(DumbTestComponent, {
-        getDependencies: di => ({
+        getProps: (di, props) => ({
           someDependency: di.inject('some-injectable-id'),
+          ...props,
         }),
       });
 
@@ -169,5 +172,40 @@ describe('getInjectedComponent', () => {
         expect(component).toHaveText('Some content: "some-async-value"');
       });
     });
+  });
+
+  it('given component, props and a dependency using instantiation parameter, when rendered, renders with the dependency having props as instantiation parameter', () => {
+    di.register({
+      id: 'some-injectable-id',
+
+      lifecycle: lifecycleEnum.transient,
+
+      instantiate: (_, instantiationParameter) =>
+        `some-injectable-value: ${instantiationParameter}`,
+    });
+
+    const DumbTestComponent = ({ someDependency, ...props }) => (
+      <div {...props}>Some content: "{someDependency}"</div>
+    );
+
+    const SmartTestComponent = getInjectedComponent(DumbTestComponent, {
+      getProps: (di, { someInstantiationParameter, ...props }) => ({
+        someDependency: di.inject(
+          'some-injectable-id',
+          someInstantiationParameter,
+        ),
+
+        ...props,
+      }),
+    });
+
+    const component = mount(
+      <SmartTestComponent
+        data-some-prop-test
+        someInstantiationParameter="some-instantiation-parameter-value"
+      />,
+    );
+
+    expect(component).toMatchHtmlSnapshot();
   });
 });

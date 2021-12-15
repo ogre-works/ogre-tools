@@ -4,7 +4,6 @@ declare module '@ogre-tools/injectable-react' {
     DependencyInjectionContainer,
     Injectable,
   } from '@ogre-tools/injectable';
-  import * as React from 'react';
 
   interface DependencyInjectionContainerProviderProps {
     di: DependencyInjectionContainer;
@@ -29,17 +28,22 @@ declare module '@ogre-tools/injectable-react' {
     getPlaceholder?: () => JSX.Element | null;
   }) => JSX.Element;
 
-  export function getInjectedComponent<
-    TDependencies,
-    TProps,
-    TComponent extends React.ElementType<TDependencies & TProps>,
+  export const getInjectedComponent: <
+    TComponent extends React.ElementType<{ dependencies: object }> = any,
+    TComponentProps extends {
+      dependencies: object;
+    } = React.ComponentProps<TComponent>,
+    TProps extends object = Omit<TComponentProps, 'dependencies'>,
   >(
     Component: TComponent,
 
     options: {
       getPlaceholder?: () => JSX.Element;
 
-      getDependencies: (di?: DependencyInjectionContainer) => TDependencies;
+      getProps: (
+        di: DependencyInjectionContainer,
+        props: TProps,
+      ) => React.ComponentProps<TComponent>;
     },
-  ): React.FC<TProps>;
+  ) => React.FC<TProps>;
 }

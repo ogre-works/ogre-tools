@@ -14,38 +14,29 @@ const { Provider: DiContextProvider, Consumer: DiContextConsumer } =
 
 export { DiContextProvider };
 
-export default (
-    Component,
-    { getPlaceholder = constant(null), getDependencies },
-  ) =>
+export default (Component, { getPlaceholder = constant(null), getProps }) =>
   props =>
     (
       <DiContextConsumer>
         {({ di }) => {
-          const maybeAsyncDependencies = pipeline(
-            di,
-            getDependencies,
-            synchronize,
-          );
+          const maybeAsyncProps = pipeline(getProps(di, props), synchronize);
 
-          if (!isPromise(maybeAsyncDependencies)) {
-            return <Component {...maybeAsyncDependencies} {...props} />;
+          if (!isPromise(maybeAsyncProps)) {
+            return <Component {...maybeAsyncProps} />;
           }
 
-          const observableDependencyPromise = getObservablePromise(
-            maybeAsyncDependencies,
-          );
+          const observablePropsPromise = getObservablePromise(maybeAsyncProps);
 
           return (
             <Observer>
               {() => {
-                const dependencies = observableDependencyPromise.value;
+                const syncProps = observablePropsPromise.value;
 
-                if (!dependencies) {
+                if (!syncProps) {
                   return getPlaceholder();
                 }
 
-                return <Component {...dependencies} {...props} />;
+                return <Component {...syncProps} />;
               }}
             </Observer>
           );

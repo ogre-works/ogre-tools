@@ -29,3 +29,11 @@ exports[`getInjectedComponent given component, placeholder and async dependencie
   Some content: "some-async-value"
 </div>
 `;
+
+exports[`getInjectedComponent given component, props and a dependency using instantiation parameter, when rendered, renders with the dependency having props as instantiation parameter 1`] = `
+<div
+  data-some-prop-test="true"
+>
+  Some content: "some-injectable-value: some-instantiation-parameter-value"
+</div>
+`;
