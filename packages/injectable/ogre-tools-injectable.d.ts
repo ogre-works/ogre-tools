@@ -1,9 +1,5 @@
 /// <reference types="jest" />
 declare module '@ogre-tools/injectable' {
-  type Awaited<TMaybePromise> = TMaybePromise extends PromiseLike<infer TValue>
-    ? TValue
-    : TMaybePromise;
-
   export interface DependencyInjectionContainer {
     inject: <
       TInjectable extends Injectable<
@@ -27,6 +23,8 @@ declare module '@ogre-tools/injectable' {
     purge: <TInjectable extends Injectable<any, any, any>>(
       injectableKey: TInjectable,
     ) => void;
+
+    runSetups: () => void;
   }
 
   export interface ConfigurableDependencyInjectionContainer
@@ -51,6 +49,8 @@ declare module '@ogre-tools/injectable' {
     TInstantiationParameter = void,
   > {
     id?: string;
+
+    setup?: (di: DependencyInjectionContainer) => void;
 
     getDependencies: (
       di?: DependencyInjectionContainer,
