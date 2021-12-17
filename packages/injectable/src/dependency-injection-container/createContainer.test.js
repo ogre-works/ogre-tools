@@ -157,6 +157,10 @@ describe('createContainer', () => {
 
   it('given an injectable is overridden, injects the overridden injectable', () => {
     const childInjectable = {
+      getDependencies: () => {
+        throw Error('Should not come here');
+      },
+
       instantiate: () => 'irrelevant',
     };
 

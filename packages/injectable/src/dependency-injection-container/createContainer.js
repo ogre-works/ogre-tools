@@ -8,10 +8,11 @@ import forEach from 'lodash/fp/forEach';
 import get from 'lodash/fp/get';
 import includes from 'lodash/fp/includes';
 import invoke from 'lodash/fp/invoke';
-import map from 'lodash/fp/map';
-import { pipeline } from '@ogre-tools/fp';
-import reject from 'lodash/fp/reject';
 import lifecycleEnum from './lifecycleEnum';
+import map from 'lodash/fp/map';
+import noop from 'lodash/fp/noop';
+import reject from 'lodash/fp/reject';
+import { pipeline } from '@ogre-tools/fp';
 
 export default (...listOfGetRequireContexts) => {
   let injectables = [];
@@ -99,6 +100,7 @@ export default (...listOfGetRequireContexts) => {
 
       overridingInjectables.push({
         ...originalInjectable,
+        getDependencies: noop,
         causesSideEffects: false,
         instantiate: () => overrideValue,
       });
