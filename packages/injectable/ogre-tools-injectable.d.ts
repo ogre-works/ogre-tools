@@ -1,71 +1,98 @@
 /// <reference types="jest" />
 declare module '@ogre-tools/injectable' {
-  export interface DependencyInjectionContainer {
-    inject: <
-      TInjectable extends Injectable<
-        TInstance,
-        TDependencies,
-        TInstantiationParameter
-      >,
-      TInstance,
-      TDependencies extends object,
-      TInstantiationParameter,
-      TMaybePromiseInstance = ReturnType<TInjectable['instantiate']>,
-    >(
-      injectableKey: TInjectable,
-      ...instantiationParameter: TInstantiationParameter extends object
-        ? [TInstantiationParameter]
-        : [undefined?]
-    ) => TMaybePromiseInstance extends PromiseLike<any>
-      ? Awaited<TMaybePromiseInstance>
-      : TMaybePromiseInstance;
+  type InferFromInjectable<T> = T extends Injectable<
+    unknown,
+    infer TInstance,
+    infer TInstantiationParameter
+  >
+    ? [TInstance, TInstantiationParameter]
+    : never;
 
-    purge: <TInjectable extends Injectable<any, any, any>>(
+  type TentativeTuple<T> = T extends object ? [T] : [undefined?];
+
+  export interface DependencyInjectionContainer {
+    inject<TInjectable extends Injectable<unknown, unknown, unknown>>(
       injectableKey: TInjectable,
-    ) => void;
+      ...instantiationParameter: TentativeTuple<
+        InferFromInjectable<TInjectable>[1]
+      >
+    ): InferFromInjectable<TInjectable>[0];
+
+    inject<TInjectionToken extends InjectionToken<unknown, unknown>>(
+      injectionToken: TInjectionToken,
+      ...instantiationParameter: TentativeTuple<
+        TInjectionToken['instantiationParameter']
+      >
+    ): TInjectionToken['template'];
+
+    purge: (injectableKey: Injectable<any, any, any>) => void;
 
     runSetups: () => void;
+
+    override<TInjectable extends Injectable<unknown, unknown, unknown>>(
+      injectable: TInjectable,
+      instantiateStub: (
+        di: DependencyInjectionContainer,
+        ...instantiationParameter: TentativeTuple<
+          InferFromInjectable<TInjectable>[1]
+        >
+      ) => InferFromInjectable<TInjectable>[0],
+    ): void;
   }
 
   export interface ConfigurableDependencyInjectionContainer
     extends DependencyInjectionContainer {
-    register: (injectable: Injectable<any>) => void;
+    register(injectable: Injectable<any, any, any>): void;
     preventSideEffects: () => void;
-
-    override: <TInjectable extends Injectable<TInstance, any>, TInstance>(
-      injectable: TInjectable,
-      overrider:
-        | ReturnType<TInjectable['instantiate']>
-        | jest.MockInstance<
-            ReturnType<TInjectable['instantiate']>,
-            ReturnType<TInjectable['getDependencies']>
-          >,
-    ) => void;
   }
 
-  export interface Injectable<
+  type InjectionToken<TInstance, TInstantiationParameter> = {
+    template: TInstance;
+    instantiationParameter: TInstantiationParameter;
+    key: Symbol;
+  };
+
+  export function getInjectionToken<
     TInstance,
-    TDependencies extends object = {},
     TInstantiationParameter = void,
+  >(): InjectionToken<TInstance, TInstantiationParameter>;
+
+  export interface Injectable<
+    TInjectionToken,
+    TInstance,
+    TInstantiationParameter,
   > {
     id?: string;
-
     setup?: (di: DependencyInjectionContainer) => void;
-
-    getDependencies: (
-      di?: DependencyInjectionContainer,
-      instantiationParameter?: TInstantiationParameter,
-    ) => TDependencies | Promise<TDependencies>;
-
+    causesSideEffects?: boolean;
     lifecycle: lifecycleEnum;
 
     instantiate: (
-      dependencies: TDependencies,
+      di: DependencyInjectionContainer,
       instantiationParameter: TInstantiationParameter,
-    ) => Promise<TInstance> | TInstance;
+    ) => TInstance;
 
-    causesSideEffects?: boolean;
+    injectionToken?: TInjectionToken;
   }
+
+  type InferFromToken<T> = T extends InjectionToken<
+    infer TInstance,
+    infer TInstantiationParameter
+  >
+    ? [TInstance, TInstantiationParameter]
+    : never;
+
+  export function getInjectable<
+    TInjectionToken extends InjectionToken<TInstance, TInstantiationParameter>,
+    TInstance = TInjectionToken extends InjectionToken<any, any>
+      ? InferFromToken<TInjectionToken>[0]
+      : unknown,
+    TInstantiationParameter = TInjectionToken extends InjectionToken<any, any>
+      ? InferFromToken<TInjectionToken>[1]
+      : unknown,
+  >(
+    options: Injectable<TInjectionToken, TInstance, TInstantiationParameter>,
+  ): Injectable<TInjectionToken, TInstance, TInstantiationParameter>;
 
   export enum lifecycleEnum {
     singleton,
