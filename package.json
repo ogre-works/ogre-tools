@@ -9,7 +9,8 @@
   "scripts": {
     "verify-code-style": "prettier --list-different \"packages/**/src/**/*.{js,jsx,css,scss,json}\"",
     "fix-code-style": "prettier --write \"packages/*/src/**/*.{js,jsx,css,scss,json}\"",
-    "install-all-packages": "lerna bootstrap && lerna exec --parallel -- npm i --package-lock-only",
+    "install-all-packages": "lerna bootstrap",
+    "update-package-locks-for-lerna": "lerna exec --parallel -- npm i --package-lock-only",
     "reinstall-all-dependencies": "./npm-scripts/reinstall-all-dependencies.sh",
     "build-all-packages": "lerna run build",
     "build-and-publish-major-version": "npm run build-all-packages && npm test && lerna publish major --yes --no-push && git push && git push --tags",
