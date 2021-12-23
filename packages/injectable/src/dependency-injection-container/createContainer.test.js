@@ -62,11 +62,11 @@ describe('createContainer', () => {
     };
 
     const parentInjectable = {
-      getDependencies: di => ({
-        syncChild: di.inject(asyncChildInjectable),
-      }),
+      instantiate: async di => {
+        const childInjectable = await di.inject(asyncChildInjectable);
 
-      instantiate: dependencies => dependencies.syncChild.someProperty,
+        return childInjectable.someProperty;
+      },
     };
 
     const di = getDi(asyncChildInjectable, parentInjectable);
@@ -74,30 +74,6 @@ describe('createContainer', () => {
     const actual = await di.inject(parentInjectable);
 
     expect(actual).toBe('some-child-instance');
-  });
-
-  it('given injectable with dependencies, when injected, injectable receives instantiation parameter for both getting dependencies and instantiation', async () => {
-    const someInjectable = {
-      getDependencies: (di, instantiationParameter) => ({
-        someDependency: `some-instance/${instantiationParameter}-from-getDependencies`,
-      }),
-
-      instantiate: (dependencies, instantiationParameter) =>
-        `${dependencies.someDependency}/${instantiationParameter}-from-instantiate`,
-
-      lifecycle: lifecycleEnum.transient,
-    };
-
-    const di = getDi(someInjectable);
-
-    const actual = await di.inject(
-      someInjectable,
-      'some-instantiation-parameter',
-    );
-
-    expect(actual).toBe(
-      'some-instance/some-instantiation-parameter-from-getDependencies/some-instantiation-parameter-from-instantiate',
-    );
   });
 
   it('given an alias for injectable, injects', () => {
@@ -158,11 +134,9 @@ describe('createContainer', () => {
 
   it('given an injectable is overridden, injects the overridden injectable', () => {
     const childInjectable = {
-      getDependencies: () => {
+      instantiate: () => {
         throw Error('Should not come here');
       },
-
-      instantiate: () => 'irrelevant',
     };
 
     const parentInjectable = {
@@ -204,54 +178,6 @@ describe('createContainer', () => {
     di.runSetups();
 
     expect(someInjectableOverride.setupped).toBe(true);
-  });
-
-  it('given an injectable instantiates a class and dependencies, when injected, instantiates a "new" instance of the class with dependencies and instantiation parameter"', () => {
-    class SomeClass {
-      constructor(...args) {
-        this.constructorArgs = args;
-      }
-    }
-
-    const someInjectable = {
-      id: 'some-injectable-id',
-      getDependencies: () => ({ someDependency: 'some-value' }),
-      Model: SomeClass,
-      lifecycle: lifecycleEnum.transient,
-    };
-
-    const di = getDi(someInjectable);
-
-    const actual = di.inject(SomeClass, 'some-instantiation-parameter');
-
-    expect(actual).toEqual({
-      constructorArgs: [
-        { someDependency: 'some-value' },
-        'some-instantiation-parameter',
-      ],
-    });
-  });
-
-  it('given an injectable instantiates a class without dependencies, when injected, instantiates a "new" instance of the class with just the instantiation parameter"', () => {
-    class SomeClass {
-      constructor(...args) {
-        this.constructorArgs = args;
-      }
-    }
-
-    const someInjectable = {
-      id: 'some-injectable-id',
-      Model: SomeClass,
-      lifecycle: lifecycleEnum.transient,
-    };
-
-    const di = getDi(someInjectable);
-
-    const actual = di.inject(SomeClass, 'some-instantiation-parameter');
-
-    expect(actual).toEqual({
-      constructorArgs: ['some-instantiation-parameter'],
-    });
   });
 
   it('given an injectable does not specify ID, when manually registered, throws', () => {
@@ -445,22 +371,6 @@ describe('createContainer', () => {
     const actual2 = di.inject(singletonInjectable);
 
     expect(actual1).toBe(actual2);
-  });
-
-  it('given an injectable is transient, when injected with instantiation parameter, instantiates using the parameter', () => {
-    const transientInjectable = {
-      instantiate: (_, instantiationParameter) => instantiationParameter,
-      lifecycle: lifecycleEnum.transient,
-    };
-
-    const di = getDi(transientInjectable);
-
-    const actual = di.inject(
-      transientInjectable,
-      'some-instantiation-parameter',
-    );
-
-    expect(actual).toBe('some-instantiation-parameter');
   });
 
   it('given setup for injectable, when setups are ran, runs the setup with the DI', () => {

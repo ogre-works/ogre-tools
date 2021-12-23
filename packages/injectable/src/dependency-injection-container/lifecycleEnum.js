@@ -1,8 +1,3 @@
-import toPairs from 'lodash/fp/toPairs';
-import fromPairs from 'lodash/fp/fromPairs';
-import map from 'lodash/fp/map';
-import { isPromise, pipeline } from '../../../fp/src/index';
-
 const getInstance = ({ di, injectable, instantiationParameter }) => {
   if (!injectable.instantiate && !injectable.Model) {
     throw new Error(
@@ -10,20 +5,7 @@ const getInstance = ({ di, injectable, instantiationParameter }) => {
     );
   }
 
-  if (injectable.getDependencies) {
-    return pipeline(
-      injectable.getDependencies(di, instantiationParameter),
-      synchronize,
-      syncDependencies =>
-        injectable.Model
-          ? new injectable.Model(syncDependencies, instantiationParameter)
-          : injectable.instantiate(syncDependencies, instantiationParameter),
-    );
-  }
-
-  return injectable.Model
-    ? new injectable.Model(instantiationParameter)
-    : injectable.instantiate(di, instantiationParameter);
+  return injectable.instantiate(di, instantiationParameter);
 };
 
 const iife = callback => callback();
@@ -109,17 +91,3 @@ export default {
       };
     }),
 };
-
-const synchronize = maybeAsyncDependencies =>
-  pipeline(
-    maybeAsyncDependencies,
-    toPairs,
-
-    map(([key, maybeAsyncDependency]) =>
-      isPromise(maybeAsyncDependency)
-        ? maybeAsyncDependency.then(syncDependency => [key, syncDependency])
-        : [key, maybeAsyncDependency],
-    ),
-
-    fromPairs,
-  );
