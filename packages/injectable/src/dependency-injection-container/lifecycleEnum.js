@@ -1,11 +1,16 @@
+import isUndefined from 'lodash/fp/isUndefined';
+
 const getInstance = ({ di, injectable, instantiationParameter }) => {
-  if (!injectable.instantiate && !injectable.Model) {
+  if (!injectable.instantiate) {
     throw new Error(
       `Tried to inject "${injectable.id}" when instantiation is not defined.`,
     );
   }
 
-  return injectable.instantiate(di, instantiationParameter);
+  return injectable.instantiate(
+    di,
+    ...(isUndefined(instantiationParameter) ? [] : [instantiationParameter]),
+  );
 };
 
 const iife = callback => callback();

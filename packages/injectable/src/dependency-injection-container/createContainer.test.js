@@ -145,11 +145,48 @@ describe('createContainer', () => {
 
     const di = getDi(childInjectable, parentInjectable);
 
-    di.override(childInjectable, 'some-overridden-value');
+    di.override(childInjectable, () => 'some-overridden-value');
 
     const actual = di.inject(parentInjectable);
 
     expect(actual).toBe('some-overridden-value');
+  });
+
+  it('given transient and overridden, when injected with instantiation parameter, provides override with DI and instantiation parameter', () => {
+    const someInjectable = {
+      instantiate: () => 'irrelevant',
+      lifecycle: lifecycleEnum.transient,
+    };
+
+    const di = getDi(someInjectable);
+
+    const instantiateMock = jest.fn(() => 'some-override');
+
+    di.override(someInjectable, instantiateMock);
+
+    di.inject(someInjectable, 'some-instantiation-parameter');
+
+    expect(instantiateMock).toHaveBeenCalledWith(
+      di,
+      'some-instantiation-parameter',
+    );
+  });
+
+  it('given singleton and overridden, when injected, provides override with DI', () => {
+    const someInjectable = {
+      instantiate: () => 'irrelevant',
+      lifecycle: lifecycleEnum.singleton,
+    };
+
+    const di = getDi(someInjectable);
+
+    const instantiateMock = jest.fn(() => 'some-override');
+
+    di.override(someInjectable, instantiateMock);
+
+    di.inject(someInjectable);
+
+    expect(instantiateMock).toHaveBeenCalledWith(di);
   });
 
   it('given an injectable with self-injecting setup is overridden, when setups are ran, injects the override in setup', () => {
@@ -173,7 +210,7 @@ describe('createContainer', () => {
 
     const someInjectableOverride = {};
 
-    di.override('some-alias', someInjectableOverride);
+    di.override('some-alias', () => someInjectableOverride);
 
     di.runSetups();
 
@@ -204,8 +241,8 @@ describe('createContainer', () => {
 
     const di = getDi(childInjectable, parentInjectable);
 
-    di.override(childInjectable, 'irrelevant');
-    di.override(childInjectable, 'some-reoverridden-value');
+    di.override(childInjectable, () => 'irrelevant');
+    di.override(childInjectable, () => 'some-reoverridden-value');
 
     const actual = di.inject(parentInjectable);
 
@@ -224,7 +261,7 @@ describe('createContainer', () => {
 
     const di = getDi(childInjectable, parentInjectable);
 
-    di.override('some-alias', 'some-overridden-value');
+    di.override('some-alias', () => 'some-overridden-value');
 
     const actual = di.inject(parentInjectable);
 
@@ -242,11 +279,7 @@ describe('createContainer', () => {
 
     const di = getDi(childInjectable, parentInjectable);
 
-    const overridingChildInjectable = {
-      instantiate: () => 'irrelevant',
-    };
-
-    di.override(childInjectable, overridingChildInjectable);
+    di.override(childInjectable, () => 'irrelevant');
 
     di.reset();
 
@@ -262,7 +295,7 @@ describe('createContainer', () => {
 
     const di = getDi(someInjectable);
 
-    di.override(someInjectable, 'irrelevant');
+    di.override(someInjectable, () => 'irrelevant');
 
     di.unoverride(someInjectable);
 
@@ -279,7 +312,7 @@ describe('createContainer', () => {
 
     const di = getDi(someInjectable);
 
-    di.override('some-alias', 'irrelevant');
+    di.override('some-alias', () => 'irrelevant');
 
     di.unoverride('some-alias');
 
@@ -545,7 +578,7 @@ describe('createContainer', () => {
 
     const di = getDi(someInjectable, someOtherInjectable);
 
-    di.override('some-alias', 'overridden-instance');
+    di.override('some-alias', () => 'overridden-instance');
 
     const actual = di.inject('some-alias');
 
@@ -727,7 +760,7 @@ describe('createContainer', () => {
     it('given one scope and injected and given other scope, when injected again, returns different instance', () => {
       const actual = di.inject('some-alias');
 
-      di.override('some-alias-for-scope', 'some-other-scope');
+      di.override('some-alias-for-scope', () => 'some-other-scope');
 
       const actual2 = di.inject('some-alias');
 
@@ -737,11 +770,11 @@ describe('createContainer', () => {
     it('given an original scope and injected and given other scope and injected, given the original scope again, when injected, returns different instance', () => {
       const actual = di.inject('some-alias');
 
-      di.override('some-alias-for-scope', 'some-other-scope');
+      di.override('some-alias-for-scope', () => 'some-other-scope');
 
       di.inject('some-alias');
 
-      di.override('some-alias-for-scope', 'some-scope');
+      di.override('some-alias-for-scope', () => 'some-scope');
 
       const actual2 = di.inject('some-alias');
 
