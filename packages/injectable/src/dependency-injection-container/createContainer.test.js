@@ -5,6 +5,7 @@ import fromPairs from 'lodash/fp/fromPairs';
 import keys from 'lodash/fp/keys';
 import map from 'lodash/fp/map';
 import { pipeline } from '@ogre-tools/fp';
+import getInjectionToken from '../getInjectionToken/getInjectionToken';
 
 const nonCappedMap = map.convert({ cap: false });
 
@@ -968,6 +969,19 @@ describe('createContainer', () => {
     const actual2 = di.inject(scopedTransientInjectable);
 
     expect(actual1).toBe(actual2);
+  });
+
+  it('given injectable with injection token, when injected using injection token, injects', () => {
+    const injectionToken = getInjectionToken();
+
+    const someInjectable = {
+      instantiate: () => 'some-instance',
+      injectionToken: injectionToken,
+    };
+
+    const di = getDi(someInjectable);
+
+    expect(di.inject(injectionToken)).toBe('some-instance');
   });
 });
 

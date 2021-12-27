@@ -10,7 +10,6 @@ import includes from 'lodash/fp/includes';
 import invoke from 'lodash/fp/invoke';
 import lifecycleEnum from './lifecycleEnum';
 import map from 'lodash/fp/map';
-import noop from 'lodash/fp/noop';
 import reject from 'lodash/fp/reject';
 import { pipeline } from '@ogre-tools/fp';
 
@@ -76,8 +75,8 @@ export default (...listOfGetRequireContexts) => {
         aliases: [
           injectable,
           injectable.id,
-          ...(injectable.Model ? [injectable.Model] : []),
-          ...(injectable.instantiate ? [injectable.instantiate] : []),
+          injectable.instantiate,
+          ...(injectable.injectionToken ? [injectable.injectionToken] : []),
           ...(injectable.aliases || []),
         ],
 
@@ -89,7 +88,7 @@ export default (...listOfGetRequireContexts) => {
       });
     },
 
-    override: (alias, overrideValue) => {
+    override: (alias, instantiateStub) => {
       const originalInjectable = pipeline(
         injectables,
         find(getRelatedInjectables(alias)),
@@ -103,9 +102,8 @@ export default (...listOfGetRequireContexts) => {
 
       overridingInjectables.push({
         ...originalInjectable,
-        getDependencies: noop,
         causesSideEffects: false,
-        instantiate: () => overrideValue,
+        instantiate: instantiateStub,
       });
     },
 
