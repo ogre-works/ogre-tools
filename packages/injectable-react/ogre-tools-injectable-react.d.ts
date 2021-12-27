@@ -8,16 +8,25 @@ declare module '@ogre-tools/injectable-react' {
 
   export const DiContextProvider: React.Provider<DependencyInjectionContainerProviderProps>;
 
-  export const withInjectables: <Dependencies, Props = {}>(
+  export function withInjectables<Dependencies, Props = {}>(
     Component: React.ComponentType<Dependencies & Props>,
-
     options: {
-      getPlaceholder?: () => JSX.Element;
-
       getProps: (
         di: DependencyInjectionContainer,
         props: Props,
       ) => Props & Dependencies;
     },
-  ) => React.FC<Props>;
+  ): React.FC<Props>;
+
+  export function withInjectables<Dependencies, Props = {}>(
+    Component: React.ComponentType<Dependencies & Props>,
+    options: {
+      getProps: (
+        di: DependencyInjectionContainer,
+        props: Props,
+      ) => PromiseLike<Props & Dependencies>;
+
+      getPlaceholder: () => JSX.Element;
+    },
+  ): React.FC<Props>;
 }
