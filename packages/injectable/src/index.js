@@ -1,7 +1,6 @@
-import createContainer from './dependency-injection-container/createContainer';
+import getInjectionToken from './getInjectionToken/getInjectionToken';
+import getInjectable from './getInjectable/getInjectable';
 import lifecycleEnum from './dependency-injection-container/lifecycleEnum';
+import createContainer from './dependency-injection-container/createContainer';
 
-const getInjectionToken = () => ({});
-const getInjectable = injectable => injectable;
-
-export { createContainer, lifecycleEnum, getInjectionToken, getInjectable };
+export { getInjectionToken, getInjectable, lifecycleEnum, createContainer };
