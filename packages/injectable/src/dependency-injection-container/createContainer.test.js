@@ -6,14 +6,15 @@ import keys from 'lodash/fp/keys';
 import map from 'lodash/fp/map';
 import { pipeline } from '@ogre-tools/fp';
 import getInjectionToken from '../getInjectionToken/getInjectionToken';
+import getInjectable from '../getInjectable/getInjectable';
 
 const nonCappedMap = map.convert({ cap: false });
 
 describe('createContainer', () => {
   it('injects auto-registered injectable without sub-injectables', () => {
-    const injectableStub = {
+    const injectableStub = getInjectable({
       instantiate: () => 'some-injected-instance',
-    };
+    });
 
     const di = getDi(injectableStub);
 
@@ -27,10 +28,12 @@ describe('createContainer', () => {
 
     const di = getDi();
 
-    di.register({
+    const someInjectable = getInjectable({
       id: 'irrelevant',
       instantiate: instantiateStub,
     });
+
+    di.register(someInjectable);
 
     const actual = di.inject(instantiateStub);
 
@@ -38,13 +41,13 @@ describe('createContainer', () => {
   });
 
   it('injects auto-registered injectable with a another auto-registered child-injectable', () => {
-    const childInjectable = {
+    const childInjectable = getInjectable({
       instantiate: () => 'some-child-instance',
-    };
+    });
 
-    const parentInjectable = {
+    const parentInjectable = getInjectable({
       instantiate: di => di.inject(childInjectable),
-    };
+    });
 
     const di = getDi(childInjectable, parentInjectable);
 
@@ -54,20 +57,20 @@ describe('createContainer', () => {
   });
 
   it('given async child-injectable as dependency, when injected, parent-injectable receives child as sync', async () => {
-    const asyncChildInjectable = {
+    const asyncChildInjectable = getInjectable({
       instantiate: () =>
         Promise.resolve({
           someProperty: `some-child-instance`,
         }),
-    };
+    });
 
-    const parentInjectable = {
+    const parentInjectable = getInjectable({
       instantiate: async di => {
         const childInjectable = await di.inject(asyncChildInjectable);
 
         return childInjectable.someProperty;
       },
-    };
+    });
 
     const di = getDi(asyncChildInjectable, parentInjectable);
 
@@ -77,10 +80,10 @@ describe('createContainer', () => {
   });
 
   it('given an alias for injectable, injects', () => {
-    const someInjectable = {
+    const someInjectable = getInjectable({
       instantiate: () => 'some-instance',
       aliases: ['some-alias'],
-    };
+    });
 
     const di = getDi(someInjectable);
 
@@ -92,9 +95,9 @@ describe('createContainer', () => {
   it('given instantiate-function as alias for injectable, injects', () => {
     const someInstantiate = () => 'some-instance';
 
-    const someInjectable = {
+    const someInjectable = getInjectable({
       instantiate: someInstantiate,
-    };
+    });
 
     const di = getDi(someInjectable);
 
@@ -104,11 +107,11 @@ describe('createContainer', () => {
   });
 
   it('when injecting with a parameter, injects using the parameter', () => {
-    const someInjectable = {
+    const someInjectable = getInjectable({
       instantiate: (_, instantiationParameter) => instantiationParameter,
       aliases: ['some-alias'],
       lifecycle: lifecycleEnum.transient,
-    };
+    });
 
     const di = getDi(someInjectable);
 
@@ -118,11 +121,11 @@ describe('createContainer', () => {
   });
 
   it('given multiple aliases for singleton injectable, injects same instance using all keys', () => {
-    const someInjectable = {
+    const someInjectable = getInjectable({
       instantiate: () => ({}),
       aliases: ['some-alias', 'some-other-alias'],
       lifecycle: lifecycleEnum.singleton,
-    };
+    });
 
     const di = getDi(someInjectable);
 
@@ -133,15 +136,15 @@ describe('createContainer', () => {
   });
 
   it('given an injectable is overridden, injects the overridden injectable', () => {
-    const childInjectable = {
+    const childInjectable = getInjectable({
       instantiate: () => {
         throw Error('Should not come here');
       },
-    };
+    });
 
-    const parentInjectable = {
+    const parentInjectable = getInjectable({
       instantiate: di => di.inject(childInjectable),
-    };
+    });
 
     const di = getDi(childInjectable, parentInjectable);
 
@@ -153,10 +156,10 @@ describe('createContainer', () => {
   });
 
   it('given transient and overridden, when injected with instantiation parameter, provides override with DI and instantiation parameter', () => {
-    const someInjectable = {
+    const someInjectable = getInjectable({
       instantiate: () => 'irrelevant',
       lifecycle: lifecycleEnum.transient,
-    };
+    });
 
     const di = getDi(someInjectable);
 
@@ -173,10 +176,10 @@ describe('createContainer', () => {
   });
 
   it('given singleton and overridden, when injected, provides override with DI', () => {
-    const someInjectable = {
+    const someInjectable = getInjectable({
       instantiate: () => 'irrelevant',
       lifecycle: lifecycleEnum.singleton,
-    };
+    });
 
     const di = getDi(someInjectable);
 
@@ -190,7 +193,7 @@ describe('createContainer', () => {
   });
 
   it('given an injectable with self-injecting setup is overridden, when setups are ran, injects the override in setup', () => {
-    const someInjectable = {
+    const someInjectable = getInjectable({
       id: 'some-injectable-id',
 
       setup: di => {
@@ -204,11 +207,11 @@ describe('createContainer', () => {
       },
 
       aliases: ['some-alias'],
-    };
+    });
 
     const di = getDi(someInjectable);
 
-    const someInjectableOverride = {};
+    const someInjectableOverride = getInjectable({});
 
     di.override('some-alias', () => someInjectableOverride);
 
@@ -220,10 +223,10 @@ describe('createContainer', () => {
   it('given an injectable does not specify ID, when manually registered, throws', () => {
     const di = getDi();
 
-    const someInjectable = {
+    const someInjectable = getInjectable({
       id: undefined,
       instantiate: () => 'irrelevant',
-    };
+    });
 
     expect(() => {
       di.register(someInjectable);
@@ -231,13 +234,13 @@ describe('createContainer', () => {
   });
 
   it('given an injectable is overridden twice, injects the last overridden injectable', () => {
-    const childInjectable = {
+    const childInjectable = getInjectable({
       instantiate: () => 'irrelevant',
-    };
+    });
 
-    const parentInjectable = {
+    const parentInjectable = getInjectable({
       instantiate: di => di.inject(childInjectable),
-    };
+    });
 
     const di = getDi(childInjectable, parentInjectable);
 
@@ -250,14 +253,14 @@ describe('createContainer', () => {
   });
 
   it('given an injectable with alias is overridden, when injecting using alias, injects the overridden injectable', () => {
-    const childInjectable = {
+    const childInjectable = getInjectable({
       instantiate: () => 'irrelevant',
       aliases: ['some-alias'],
-    };
+    });
 
-    const parentInjectable = {
+    const parentInjectable = getInjectable({
       instantiate: di => di.inject(childInjectable),
-    };
+    });
 
     const di = getDi(childInjectable, parentInjectable);
 
@@ -269,13 +272,13 @@ describe('createContainer', () => {
   });
 
   it('given an injectable is overridden, but overrides are reset, injects the original injectable', () => {
-    const childInjectable = {
+    const childInjectable = getInjectable({
       instantiate: () => 'some-original-value',
-    };
+    });
 
-    const parentInjectable = {
+    const parentInjectable = getInjectable({
       instantiate: di => di.inject(childInjectable),
-    };
+    });
 
     const di = getDi(childInjectable, parentInjectable);
 
@@ -289,9 +292,9 @@ describe('createContainer', () => {
   });
 
   it('given an injectable is overridden, but then unoverriden, injects the original injectable', () => {
-    const someInjectable = {
+    const someInjectable = getInjectable({
       instantiate: () => 'some-original-value',
-    };
+    });
 
     const di = getDi(someInjectable);
 
@@ -305,10 +308,10 @@ describe('createContainer', () => {
   });
 
   it('given an injectable is overridden using an alias, but then unoverriden, injects the original injectable', () => {
-    const someInjectable = {
+    const someInjectable = getInjectable({
       instantiate: () => 'some-original-value',
       aliases: ['some-alias'],
-    };
+    });
 
     const di = getDi(someInjectable);
 
@@ -365,10 +368,10 @@ describe('createContainer', () => {
   });
 
   it('given an injectable is singleton, when injected multiple times, injects singleton', () => {
-    const singletonInjectable = {
+    const singletonInjectable = getInjectable({
       instantiate: () => ({}),
       lifecycle: lifecycleEnum.singleton,
-    };
+    });
 
     const di = getDi(singletonInjectable);
 
@@ -379,10 +382,10 @@ describe('createContainer', () => {
   });
 
   it('given an injectable is not singleton, when injected multiple times, injects as transient', () => {
-    const transientInjectable = {
+    const transientInjectable = getInjectable({
       instantiate: () => ({}),
       lifecycle: lifecycleEnum.transient,
-    };
+    });
 
     const di = getDi(transientInjectable);
 
@@ -393,10 +396,10 @@ describe('createContainer', () => {
   });
 
   it('given lifecycle is not specified, when injected multiple times, injects as singleton as default', () => {
-    const singletonInjectable = {
+    const singletonInjectable = getInjectable({
       instantiate: () => ({}),
       lifecycle: undefined,
-    };
+    });
 
     const di = getDi(singletonInjectable);
 
@@ -409,11 +412,11 @@ describe('createContainer', () => {
   it('given setup for injectable, when setups are ran, runs the setup with the DI', () => {
     const setupMock = jest.fn();
 
-    const someInjectable = {
+    const someInjectable = getInjectable({
       setup: setupMock,
-    };
+    });
 
-    const someInjectableWithoutSetup = {};
+    const someInjectableWithoutSetup = getInjectable({});
 
     const di = getDi(someInjectable, someInjectableWithoutSetup);
 
@@ -425,10 +428,10 @@ describe('createContainer', () => {
   it('given setup for injectable with aliases but no way to instantiate, when setups are ran, runs setup only once', () => {
     const setupMock = jest.fn();
 
-    const someInjectable = {
+    const someInjectable = getInjectable({
       setup: setupMock,
       aliases: ['some-alias', 'some-other-alias'],
-    };
+    });
 
     const di = getDi(someInjectable);
 
@@ -438,10 +441,10 @@ describe('createContainer', () => {
   });
 
   it('given injectable with setup but no way to instantiate, when injected, throws', () => {
-    const someInjectable = {
+    const someInjectable = getInjectable({
       setup: () => {},
       aliases: ['some-alias'],
-    };
+    });
 
     const di = getDi(someInjectable);
 
@@ -455,12 +458,12 @@ describe('createContainer', () => {
   });
 
   it('given injectable with setup but setups have not been ran, when injected, throws', () => {
-    const someInjectable = {
+    const someInjectable = getInjectable({
       id: 'some-injectable-id',
       setup: () => {},
       instantiate: () => {},
       aliases: ['some-alias'],
-    };
+    });
 
     const di = getDi(someInjectable);
 
@@ -472,7 +475,7 @@ describe('createContainer', () => {
   });
 
   it('given injectable with setup that injects itself, when running setups, does not throw', () => {
-    const someInjectable = {
+    const someInjectable = getInjectable({
       id: 'some-injectable-id',
 
       setup: di => {
@@ -483,7 +486,7 @@ describe('createContainer', () => {
 
       instantiate: () => ({}),
       aliases: ['some-alias'],
-    };
+    });
 
     const di = getDi(someInjectable);
 
@@ -495,20 +498,20 @@ describe('createContainer', () => {
   });
 
   it('given injectable with setup that injects other injectable with setup, when running setups, throws', () => {
-    const someInjectable = {
+    const someInjectable = getInjectable({
       id: 'some-injectable-id',
       setup: di => {
         di.inject(someOtherInjectable);
       },
 
       instantiate: () => {},
-    };
+    });
 
-    const someOtherInjectable = {
+    const someOtherInjectable = getInjectable({
       id: 'some-other-injectable-id',
       setup: () => {},
       instantiate: () => {},
-    };
+    });
 
     const di = getDi(someInjectable, someOtherInjectable);
 
@@ -520,19 +523,19 @@ describe('createContainer', () => {
   });
 
   it('given multiple injectables with same alias, but no way to demonstrate viability, when injected, throws', () => {
-    const someInjectable = {
+    const someInjectable = getInjectable({
       id: 'some-injectable-id',
       aliases: ['some-alias'],
       viability: undefined,
       instantiate: () => 'irrelevant',
-    };
+    });
 
-    const someOtherInjectable = {
+    const someOtherInjectable = getInjectable({
       id: 'some-other-injectable-id',
       aliases: ['some-alias'],
       viability: () => {},
       instantiate: () => 'irrelevant',
-    };
+    });
 
     const di = getDi(someInjectable, someOtherInjectable);
 
@@ -544,17 +547,17 @@ describe('createContainer', () => {
   });
 
   it('given multiple injectables with same alias, one of which is viable, when injected, injects viable instance', () => {
-    const someInjectable = {
+    const someInjectable = getInjectable({
       aliases: ['some-alias'],
       viability: () => false,
       instantiate: () => 'irrelevant',
-    };
+    });
 
-    const someOtherInjectable = {
+    const someOtherInjectable = getInjectable({
       aliases: ['some-alias'],
       viability: () => true,
       instantiate: () => 'viable-instance',
-    };
+    });
 
     const di = getDi(someInjectable, someOtherInjectable);
 
@@ -564,17 +567,17 @@ describe('createContainer', () => {
   });
 
   it('given multiple injectables with same alias, one of which is viable, given overridden, when injected, injects overridden instance', () => {
-    const someInjectable = {
+    const someInjectable = getInjectable({
       aliases: ['some-alias'],
       viability: () => false,
       instantiate: () => 'irrelevant',
-    };
+    });
 
-    const someOtherInjectable = {
+    const someOtherInjectable = getInjectable({
       aliases: ['some-alias'],
       viability: () => true,
       instantiate: () => 'irrelevant',
-    };
+    });
 
     const di = getDi(someInjectable, someOtherInjectable);
 
@@ -586,24 +589,24 @@ describe('createContainer', () => {
   });
 
   it('given multiple injectables with same alias, one of which is viable by considering a third injectable, injects viable instance', () => {
-    const someThirdInjectable = {
+    const someThirdInjectable = getInjectable({
       aliases: ['third-injectable-alias'],
       instantiate: () => 'third-injectable-instance',
-    };
+    });
 
-    const someInjectable = {
+    const someInjectable = getInjectable({
       aliases: ['some-alias'],
       viability: di =>
         di.inject('third-injectable-alias') !== 'third-injectable-instance',
       instantiate: () => 'irrelevant',
-    };
+    });
 
-    const someOtherInjectable = {
+    const someOtherInjectable = getInjectable({
       aliases: ['some-alias'],
       viability: di =>
         di.inject('third-injectable-alias') === 'third-injectable-instance',
       instantiate: () => 'viable-instance',
-    };
+    });
 
     const di = getDi(someInjectable, someOtherInjectable, someThirdInjectable);
 
@@ -613,19 +616,19 @@ describe('createContainer', () => {
   });
 
   it('given multiple injectables with same alias, all of which are unviable, when injected, throws', () => {
-    const someInjectable = {
+    const someInjectable = getInjectable({
       id: 'some-injectable-id',
       aliases: ['some-alias'],
       viability: () => false,
       instantiate: () => 'irrelevant',
-    };
+    });
 
-    const someOtherInjectable = {
+    const someOtherInjectable = getInjectable({
       id: 'some-other-injectable-id',
       aliases: ['some-alias'],
       viability: () => false,
       instantiate: () => 'irrelevant',
-    };
+    });
 
     const di = getDi(someInjectable, someOtherInjectable);
 
@@ -637,19 +640,19 @@ describe('createContainer', () => {
   });
 
   it('given multiple injectables with same alias, all of which are viable, when injected, throws', () => {
-    const someInjectable = {
+    const someInjectable = getInjectable({
       id: 'some-injectable-id',
       aliases: ['some-alias'],
       viability: () => true,
       instantiate: () => 'irrelevant',
-    };
+    });
 
-    const someOtherInjectable = {
+    const someOtherInjectable = getInjectable({
       id: 'some-other-injectable-id',
       aliases: ['some-alias'],
       viability: () => true,
       instantiate: () => 'irrelevant',
-    };
+    });
 
     const di = getDi(someInjectable, someOtherInjectable);
 
@@ -661,12 +664,12 @@ describe('createContainer', () => {
   });
 
   it('given single injectable, but unviable, when injected, throws', () => {
-    const someInjectable = {
+    const someInjectable = getInjectable({
       id: 'some-injectable-id',
       aliases: ['some-alias'],
       viability: () => false,
       instantiate: () => 'irrelevant',
-    };
+    });
 
     const di = getDi(someInjectable);
 
@@ -678,11 +681,13 @@ describe('createContainer', () => {
   });
 
   it('given in side effects are not prevented, when injecting injectable which causes side effects, does not throw', () => {
-    const di = getDi({
+    const someInjectable = getInjectable({
       aliases: ['some-alias'],
       causesSideEffects: true,
       instantiate: () => 'some-instance',
     });
+
+    const di = getDi(someInjectable);
 
     const actual = di.inject('some-alias');
 
@@ -690,12 +695,14 @@ describe('createContainer', () => {
   });
 
   it('given side effects are prevented, when injecting, throws', () => {
-    const di = getDi({
+    const someInjectable = getInjectable({
       id: 'some-injectable-id',
       aliases: ['some-alias'],
       causesSideEffects: true,
       instantiate: () => 'irrelevant',
     });
+
+    const di = getDi(someInjectable);
 
     di.preventSideEffects();
 
@@ -707,11 +714,13 @@ describe('createContainer', () => {
   });
 
   it('given side effects are prevented, but then permitted for an injectable, when injecting, does not throw', () => {
-    const di = getDi({
+    const someInjectable = getInjectable({
       aliases: ['some-alias'],
       causesSideEffects: true,
       instantiate: () => 'irrelevant',
     });
+
+    const di = getDi(someInjectable);
 
     di.preventSideEffects();
 
@@ -726,26 +735,26 @@ describe('createContainer', () => {
     let di;
 
     beforeEach(() => {
-      const someInjectableForScope = {
+      const someInjectableForScope = getInjectable({
         aliases: ['some-alias-for-scope'],
         instantiate: () => 'some-scope',
-      };
+      });
 
-      const someInjectable = {
+      const someInjectable = getInjectable({
         aliases: ['some-alias'],
         instantiate: () => ({}),
         lifecycle: lifecycleEnum.scopedTransient(di =>
           di.inject('some-alias-for-scope'),
         ),
-      };
+      });
 
-      const someOtherInjectable = {
+      const someOtherInjectable = getInjectable({
         aliases: ['some-other-alias'],
         instantiate: () => ({}),
         lifecycle: lifecycleEnum.scopedTransient(di =>
           di.inject('some-alias-for-scope'),
         ),
-      };
+      });
 
       di = getDi(someInjectable, someInjectableForScope, someOtherInjectable);
     });
@@ -791,11 +800,11 @@ describe('createContainer', () => {
   });
 
   it('given singleton, when injecting with instantiation parameter, throws', () => {
-    const someInjectable = {
+    const someInjectable = getInjectable({
       id: 'some-id',
       instantiate: () => ({}),
       lifecycle: lifecycleEnum.singleton,
-    };
+    });
 
     const di = getDi(someInjectable);
 
@@ -807,11 +816,11 @@ describe('createContainer', () => {
   });
 
   it('given injectable, when DI is asked for lifecycle, returns lifecycle', () => {
-    const someInjectable = {
+    const someInjectable = getInjectable({
       id: 'some-id',
       instantiate: () => ({}),
       lifecycle: { some: 'lifecycle' },
-    };
+    });
 
     const di = getDi(someInjectable);
 
@@ -821,10 +830,10 @@ describe('createContainer', () => {
   });
 
   it('given an injectable is singleton and injected but purged, when injected, injects new instance', () => {
-    const singletonInjectable = {
+    const singletonInjectable = getInjectable({
       instantiate: () => ({}),
       lifecycle: lifecycleEnum.singleton,
-    };
+    });
 
     const di = getDi(singletonInjectable);
 
@@ -838,15 +847,15 @@ describe('createContainer', () => {
   });
 
   it('given an injectable is singleton and injected but unrelated singleton is purged, when injected, injects singleton', () => {
-    const singletonInjectable = {
+    const singletonInjectable = getInjectable({
       instantiate: () => ({}),
       lifecycle: lifecycleEnum.singleton,
-    };
+    });
 
-    const unrelatedSingletonInjectable = {
+    const unrelatedSingletonInjectable = getInjectable({
       instantiate: () => ({}),
       lifecycle: lifecycleEnum.singleton,
-    };
+    });
 
     const di = getDi(singletonInjectable, unrelatedSingletonInjectable);
 
@@ -860,10 +869,10 @@ describe('createContainer', () => {
   });
 
   it('given an injectable is transient, when purged, throws', () => {
-    const transientInjectable = {
+    const transientInjectable = getInjectable({
       instantiate: () => ({}),
       lifecycle: lifecycleEnum.transient,
-    };
+    });
 
     const di = getDi(transientInjectable);
 
@@ -873,10 +882,10 @@ describe('createContainer', () => {
   });
 
   it('given an injectable is scoped transient and injected but purged, when injected, injects new instance', () => {
-    const scopedTransientInjectable = {
+    const scopedTransientInjectable = getInjectable({
       instantiate: () => ({}),
       lifecycle: lifecycleEnum.scopedTransient(() => 'some-scope'),
-    };
+    });
 
     const di = getDi(scopedTransientInjectable);
 
@@ -890,15 +899,15 @@ describe('createContainer', () => {
   });
 
   it('given an injectable is scoped transient and injected but unrelated scoped transient is purged, when injected, injects same instance', () => {
-    const scopedTransientInjectable = {
+    const scopedTransientInjectable = getInjectable({
       instantiate: () => ({}),
       lifecycle: lifecycleEnum.scopedTransient(() => 'some-scope'),
-    };
+    });
 
-    const unrelatedScopedTransientInjectable = {
+    const unrelatedScopedTransientInjectable = getInjectable({
       instantiate: () => ({}),
       lifecycle: lifecycleEnum.scopedTransient(() => 'some-scope'),
-    };
+    });
 
     const di = getDi(
       scopedTransientInjectable,
@@ -917,10 +926,10 @@ describe('createContainer', () => {
   it('given injectable with injection token, when injected using injection token, injects', () => {
     const injectionToken = getInjectionToken();
 
-    const someInjectable = {
+    const someInjectable = getInjectable({
       instantiate: () => 'some-instance',
       injectionToken: injectionToken,
-    };
+    });
 
     const di = getDi(someInjectable);
 
