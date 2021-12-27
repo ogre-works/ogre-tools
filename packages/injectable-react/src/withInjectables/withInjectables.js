@@ -4,10 +4,6 @@ import { Observer } from 'mobx-react';
 import { action, observable } from 'mobx';
 
 import { isPromise } from '@ogre-tools/fp';
-import { pipeline } from '../../../fp/src/index';
-import toPairs from 'lodash/fp/toPairs';
-import map from 'lodash/fp/map';
-import fromPairs from 'lodash/fp/fromPairs';
 
 const { Provider: DiContextProvider, Consumer: DiContextConsumer } =
   React.createContext();
@@ -19,7 +15,7 @@ export default (Component, { getPlaceholder = constant(null), getProps }) =>
     (
       <DiContextConsumer>
         {({ di }) => {
-          const maybeAsyncProps = pipeline(getProps(di, props), synchronize);
+          const maybeAsyncProps = getProps(di, props);
 
           if (!isPromise(maybeAsyncProps)) {
             return <Component {...maybeAsyncProps} />;
@@ -57,17 +53,3 @@ const getObservablePromise = asyncValue => {
 
   return observableObject;
 };
-
-const synchronize = maybeAsyncDependencies =>
-  pipeline(
-    maybeAsyncDependencies,
-    toPairs,
-
-    map(([key, maybeAsyncDependency]) =>
-      isPromise(maybeAsyncDependency)
-        ? maybeAsyncDependency.then(syncDependency => [key, syncDependency])
-        : [key, maybeAsyncDependency],
-    ),
-
-    fromPairs,
-  );

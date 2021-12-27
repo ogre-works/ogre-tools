@@ -78,8 +78,8 @@ describe('withInjectables', () => {
       );
 
       const SmartTestComponent = withInjectables(DumbTestComponent, {
-        getProps: (di, props) => ({
-          someDependency: di.inject('some-injectable-id'),
+        getProps: async (di, props) => ({
+          someDependency: await di.inject('some-injectable-id'),
           ...props,
         }),
 
@@ -145,8 +145,8 @@ describe('withInjectables', () => {
       );
 
       const SmartTestComponent = withInjectables(DumbTestComponent, {
-        getProps: (di, props) => ({
-          someDependency: di.inject('some-injectable-id'),
+        getProps: async (di, props) => ({
+          someDependency: await di.inject('some-injectable-id'),
           ...props,
         }),
       });
