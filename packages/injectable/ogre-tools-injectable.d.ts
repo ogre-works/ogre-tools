@@ -27,7 +27,7 @@ declare module '@ogre-tools/injectable' {
 
     purge: (injectableKey: Injectable<any, any, any>) => void;
 
-    runSetups: () => void;
+    runSetups: () => Promise<void>;
 
     override<TInjectable extends Injectable<unknown, unknown, unknown>>(
       injectable: TInjectable,
@@ -63,7 +63,7 @@ declare module '@ogre-tools/injectable' {
     TInstantiationParameter,
   > {
     id?: string;
-    setup?: (di: DependencyInjectionContainer) => void;
+    setup?: (di: DependencyInjectionContainer) => void | Promise<void>;
     causesSideEffects?: boolean;
     lifecycle: lifecycleEnum;
 

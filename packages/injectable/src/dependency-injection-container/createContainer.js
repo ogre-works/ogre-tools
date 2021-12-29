@@ -1,3 +1,4 @@
+import tap from 'lodash/fp/tap';
 import conforms from 'lodash/fp/conforms';
 import every from 'lodash/fp/every';
 import filter from 'lodash/fp/filter';
@@ -119,7 +120,7 @@ export default (...listOfGetRequireContexts) => {
       overridingInjectables = [];
     },
 
-    runSetups: () => {
+    runSetups: async () =>
       pipeline(
         injectables,
 
@@ -135,15 +136,17 @@ export default (...listOfGetRequireContexts) => {
         }),
 
         filter('setup'),
-        forEach(injectable => {
+
+        map(async injectable => {
           injectable.isBeingSetupped = true;
-          injectable.setup(di);
+          await injectable.setup(di);
           injectable.isBeingSetupped = false;
         }),
-      );
 
-      setupsHaveBeenRan = true;
-    },
+        tap(() => {
+          setupsHaveBeenRan = true;
+        }),
+      ),
 
     preventSideEffects: () => {
       sideEffectsArePrevented = true;

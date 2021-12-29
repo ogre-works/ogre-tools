@@ -1,12 +1,14 @@
-import createContainer from './createContainer';
-import lifecycleEnum from './lifecycleEnum';
+import asyncFn from '@async-fn/jest';
 import castArray from 'lodash/fp/castArray';
+import createContainer from './createContainer';
 import fromPairs from 'lodash/fp/fromPairs';
 import keys from 'lodash/fp/keys';
+import lifecycleEnum from './lifecycleEnum';
 import map from 'lodash/fp/map';
 import { pipeline } from '@ogre-tools/fp';
 import getInjectionToken from '../getInjectionToken/getInjectionToken';
 import getInjectable from '../getInjectable/getInjectable';
+import getPromiseStatus from '../test-utils/getPromiseStatus/getPromiseStatus';
 
 const nonCappedMap = map.convert({ cap: false });
 
@@ -192,7 +194,7 @@ describe('createContainer', () => {
     expect(instantiateMock).toHaveBeenCalledWith(di);
   });
 
-  it('given an injectable with self-injecting setup is overridden, when setups are ran, injects the override in setup', () => {
+  it('given an injectable with self-injecting setup is overridden, when setups are ran, injects the override in setup', async () => {
     const someInjectable = getInjectable({
       id: 'some-injectable-id',
 
@@ -215,7 +217,7 @@ describe('createContainer', () => {
 
     di.override('some-alias', () => someInjectableOverride);
 
-    di.runSetups();
+    await di.runSetups();
 
     expect(someInjectableOverride.setupped).toBe(true);
   });
@@ -409,7 +411,7 @@ describe('createContainer', () => {
     expect(actual1).toBe(actual2);
   });
 
-  it('given setup for injectable, when setups are ran, runs the setup with the DI', () => {
+  it('given setup for injectable, when setups are ran, runs the setup with the DI', async () => {
     const setupMock = jest.fn();
 
     const someInjectable = getInjectable({
@@ -420,12 +422,53 @@ describe('createContainer', () => {
 
     const di = getDi(someInjectable, someInjectableWithoutSetup);
 
-    di.runSetups();
+    await di.runSetups();
 
     expect(setupMock).toHaveBeenCalledWith(di);
   });
 
-  it('given setup for injectable with aliases but no way to instantiate, when setups are ran, runs setup only once', () => {
+  it('given multiple async setuppables and DI-setups are ran, when setups resolve, DI-setup resolves', async () => {
+    const someSetuppable = {
+      setup: asyncFn(),
+    };
+
+    const someOtherSetuppable = {
+      setup: asyncFn(),
+    };
+
+    const di = getDi(someSetuppable, someOtherSetuppable);
+
+    const runSetupsPromise = di.runSetups();
+
+    someSetuppable.setup.resolve();
+    someOtherSetuppable.setup.resolve();
+
+    const promiseStatus = await getPromiseStatus(runSetupsPromise);
+
+    expect(promiseStatus.fulfilled).toBe(true);
+  });
+
+  it('given multiple async setuppables and DI-setups are ran, when only some of the setups resolve, DI-setup does not resolve', async () => {
+    const someSetuppable = {
+      setup: asyncFn(),
+    };
+
+    const someOtherSetuppable = {
+      setup: asyncFn(),
+    };
+
+    const di = getDi(someSetuppable, someOtherSetuppable);
+
+    const runSetupsPromise = di.runSetups();
+
+    someSetuppable.setup.resolve();
+
+    const promiseStatus = await getPromiseStatus(runSetupsPromise);
+
+    expect(promiseStatus.fulfilled).toBe(false);
+  });
+
+  it('given setup for injectable with aliases but no way to instantiate, when setups are ran, runs setup only once', async () => {
     const setupMock = jest.fn();
 
     const someInjectable = getInjectable({
@@ -435,12 +478,12 @@ describe('createContainer', () => {
 
     const di = getDi(someInjectable);
 
-    di.runSetups();
+    await di.runSetups();
 
     expect(setupMock).toHaveBeenCalledTimes(1);
   });
 
-  it('given injectable with setup but no way to instantiate, when injected, throws', () => {
+  it('given injectable with setup but no way to instantiate, when injected, throws', async () => {
     const someInjectable = getInjectable({
       setup: () => {},
       aliases: ['some-alias'],
@@ -448,7 +491,7 @@ describe('createContainer', () => {
 
     const di = getDi(someInjectable);
 
-    di.runSetups();
+    await di.runSetups();
 
     expect(() => {
       di.inject('some-alias');
@@ -474,7 +517,7 @@ describe('createContainer', () => {
     );
   });
 
-  it('given injectable with setup that injects itself, when running setups, does not throw', () => {
+  it('given injectable with setup that injects itself, when running setups, does not throw', async () => {
     const someInjectable = getInjectable({
       id: 'some-injectable-id',
 
@@ -490,7 +533,7 @@ describe('createContainer', () => {
 
     const di = getDi(someInjectable);
 
-    di.runSetups();
+    await di.runSetups();
 
     const actual = di.inject('some-alias');
 
@@ -515,9 +558,7 @@ describe('createContainer', () => {
 
     const di = getDi(someInjectable, someOtherInjectable);
 
-    expect(() => {
-      di.runSetups();
-    }).toThrow(
+    return expect(di.runSetups()).rejects.toThrow(
       'Tried to inject setuppable "some-other-injectable-id" before setups are ran.',
     );
   });
