@@ -156,7 +156,7 @@ describe('createContainer', () => {
     expect(actual).toBe('some-overridden-value');
   });
 
-  it('given transient and overridden, when injected with instantiation parameter, provides override with DI and instantiation parameter', () => {
+  it('given transient and overridden, when injected with instantiation parameter, provides override with way to inject using instantiation parameter', () => {
     const someInjectable = getInjectable({
       instantiate: () => 'irrelevant',
       lifecycle: lifecycleEnum.transient,
@@ -171,12 +171,12 @@ describe('createContainer', () => {
     di.inject(someInjectable, 'some-instantiation-parameter');
 
     expect(instantiateMock).toHaveBeenCalledWith(
-      di,
+      { inject: di.inject },
       'some-instantiation-parameter',
     );
   });
 
-  it('given singleton and overridden, when injected, provides override with DI', () => {
+  it('given singleton and overridden, when injected, provides override with way to inject', () => {
     const someInjectable = getInjectable({
       instantiate: () => 'irrelevant',
       lifecycle: lifecycleEnum.singleton,
@@ -190,7 +190,9 @@ describe('createContainer', () => {
 
     di.inject(someInjectable);
 
-    expect(instantiateMock).toHaveBeenCalledWith(di);
+    expect(instantiateMock).toHaveBeenCalledWith({
+      inject: di.inject,
+    });
   });
 
   it('given an injectable with self-injecting setup is overridden, when setups are ran, injects the override in setup', async () => {

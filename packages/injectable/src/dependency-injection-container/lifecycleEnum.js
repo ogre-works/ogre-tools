@@ -8,7 +8,10 @@ const getInstance = ({ di, injectable, instantiationParameter }) => {
   }
 
   return injectable.instantiate(
-    di,
+    {
+      inject: di.inject,
+    },
+
     ...(isUndefined(instantiationParameter) ? [] : [instantiationParameter]),
   );
 };

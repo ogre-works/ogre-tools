@@ -11,7 +11,6 @@ import includes from 'lodash/fp/includes';
 import invoke from 'lodash/fp/invoke';
 import lifecycleEnum from './lifecycleEnum';
 import map from 'lodash/fp/map';
-import noop from 'lodash/fp/noop';
 import reject from 'lodash/fp/reject';
 import { pipeline } from '@ogre-tools/fp';
 
