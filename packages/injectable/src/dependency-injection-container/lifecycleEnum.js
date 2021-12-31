@@ -1,17 +1,33 @@
 import isUndefined from 'lodash/fp/isUndefined';
+import includes from 'lodash/fp/includes';
+import { pipeline } from '@ogre-tools/fp';
 
-const getInstance = ({ di, injectable, instantiationParameter }) => {
+const getInstance = ({
+  di,
+  injectable,
+  instantiationParameter,
+  context: oldContext,
+}) => {
   if (!injectable.instantiate) {
     throw new Error(
       `Tried to inject "${injectable.id}" when instantiation is not defined.`,
     );
   }
 
-  return injectable.instantiate(
-    {
-      inject: di.inject,
-    },
+  const newContext = [...oldContext, injectable.id];
 
+  if (pipeline(oldContext, includes(injectable.id))) {
+    throw new Error(
+      `Cycle of injectables encountered: "${newContext.join('" -> "')}"`,
+    );
+  }
+
+  const minimalDi = {
+    inject: (alias, parameter) => di.inject(alias, parameter, newContext),
+  };
+
+  return injectable.instantiate(
+    minimalDi,
     ...(isUndefined(instantiationParameter) ? [] : [instantiationParameter]),
   );
 };
@@ -20,7 +36,13 @@ export default {
   singleton: {
     key: 'singleton',
 
-    getInstance: ({ injectable, instantiationParameter, di, instanceMap }) => {
+    getInstance: ({
+      injectable,
+      instantiationParameter,
+      di,
+      instanceMap,
+      context,
+    }) => {
       if (instantiationParameter) {
         throw new Error(
           `Tried to inject singleton "${injectable.id}" with instantiation parameters.`,
@@ -43,6 +65,7 @@ export default {
         injectable,
         instantiationParameter,
         di,
+        context,
       });
 
       singletonInstanceMap.set(injectable, newInstance);
@@ -69,7 +92,13 @@ export default {
   scopedTransient: getScope => ({
     key: 'scoped-transient',
 
-    getInstance: ({ di, injectable, instantiationParameter, instanceMap }) => {
+    getInstance: ({
+      di,
+      injectable,
+      instantiationParameter,
+      instanceMap,
+      context,
+    }) => {
       const scope = getScope(di);
 
       if (!instanceMap.has('scoped-transient')) {
@@ -93,6 +122,7 @@ export default {
         injectable,
         instantiationParameter,
         di,
+        context,
       });
 
       scopesForInjectable.clear();

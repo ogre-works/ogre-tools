@@ -166,6 +166,46 @@ describe('createContainer', () => {
     expect(actual1).not.toBe(actual2);
   });
 
+  it('given sync injectables with a dependency cycle, when injected, throws', () => {
+    const childInjectable = getInjectable({
+      id: 'some-child-id',
+      instantiate: di => di.inject(parentInjectable),
+    });
+
+    const parentInjectable = getInjectable({
+      id: 'some-parent-id',
+      instantiate: di => di.inject(childInjectable),
+    });
+
+    const di = getDi(parentInjectable, childInjectable);
+
+    expect(() => {
+      di.inject(parentInjectable);
+    }).toThrow(
+      'Cycle of injectables encountered: "some-parent-id" -> "some-child-id" -> "some-parent-id"',
+    );
+  });
+
+  it('given async injectables with a dependency cycle, when injected, throws', () => {
+    const childInjectable = getInjectable({
+      id: 'some-child-id',
+      instantiate: async di => await di.inject(parentInjectable),
+    });
+
+    const parentInjectable = getInjectable({
+      id: 'some-parent-id',
+      instantiate: async di => await di.inject(childInjectable),
+    });
+
+    const di = getDi(parentInjectable, childInjectable);
+
+    const actualPromise = di.inject(parentInjectable);
+
+    return expect(actualPromise).rejects.toThrow(
+      'Cycle of injectables encountered: "some-parent-id" -> "some-child-id" -> "some-parent-id"',
+    );
+  });
+
   it('given an injectable is overridden, injects the overridden injectable', () => {
     const childInjectable = getInjectable({
       instantiate: () => {
@@ -192,37 +232,40 @@ describe('createContainer', () => {
       lifecycle: lifecycleEnum.transient,
     });
 
-    const di = getDi(someInjectable);
+    const someOtherInjectable = getInjectable({
+      instantiate: (_, instantiationParameter) => instantiationParameter,
+      lifecycle: lifecycleEnum.transient,
+    });
 
-    const instantiateMock = jest.fn(() => 'some-override');
+    const di = getDi(someInjectable, someOtherInjectable);
 
-    di.override(someInjectable, instantiateMock);
-
-    di.inject(someInjectable, 'some-instantiation-parameter');
-
-    expect(instantiateMock).toHaveBeenCalledWith(
-      { inject: di.inject },
-      'some-instantiation-parameter',
+    di.override(someInjectable, (di, instantiationParameter) =>
+      di.inject(someOtherInjectable, instantiationParameter),
     );
+
+    const actual = di.inject(someInjectable, 'some-instantiation-parameter');
+
+    expect(actual).toBe('some-instantiation-parameter');
   });
 
   it('given singleton and overridden, when injected, provides override with way to inject', () => {
     const someInjectable = getInjectable({
-      instantiate: () => 'irrelevant',
-      lifecycle: lifecycleEnum.singleton,
+      instantiate: () => 'some-instance',
+      lifecycle: lifecycleEnum.transient,
     });
 
-    const di = getDi(someInjectable);
-
-    const instantiateMock = jest.fn(() => 'some-override');
-
-    di.override(someInjectable, instantiateMock);
-
-    di.inject(someInjectable);
-
-    expect(instantiateMock).toHaveBeenCalledWith({
-      inject: di.inject,
+    const someOtherInjectable = getInjectable({
+      instantiate: () => 'some-other-instance',
+      lifecycle: lifecycleEnum.transient,
     });
+
+    const di = getDi(someInjectable, someOtherInjectable);
+
+    di.override(someInjectable, di => di.inject(someOtherInjectable));
+
+    const actual = di.inject(someInjectable, 'some-other-instance');
+
+    expect(actual).toBe('some-other-instance');
   });
 
   it('given an injectable with self-injecting setup is overridden, when setups are ran, injects the override in setup', async () => {

@@ -30,7 +30,7 @@ export default (...listOfGetRequireContexts) => {
     }).lifecycle;
 
   const di = {
-    inject: (alias, instantiationParameter) => {
+    inject: (alias, instantiationParameter, context = []) => {
       const originalInjectable = getInjectable({
         injectables,
         alias,
@@ -65,6 +65,7 @@ export default (...listOfGetRequireContexts) => {
         instantiationParameter,
         di,
         instanceMap,
+        context,
       });
     },
 
