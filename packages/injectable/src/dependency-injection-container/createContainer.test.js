@@ -1,5 +1,4 @@
 import asyncFn from '@async-fn/jest';
-import castArray from 'lodash/fp/castArray';
 import createContainer from './createContainer';
 import fromPairs from 'lodash/fp/fromPairs';
 import keys from 'lodash/fp/keys';
@@ -979,16 +978,15 @@ describe('createContainer', () => {
 });
 
 const getDi = (...injectables) => {
-  const listOfGetRequireContexts = injectables.map(getRequireContextStub);
+  const requireContextStub = getRequireContextStub(...injectables);
 
-  return createContainer(...listOfGetRequireContexts);
+  return createContainer(requireContextStub);
 };
 
-const getRequireContextStub = files => {
+const getRequireContextStub = (...injectables) => {
   const contextDictionary = pipeline(
-    files,
-    castArray,
-    map(file => ({ default: file })),
+    injectables,
+    map(injectable => ({ default: injectable })),
     nonCappedMap((file, index) => [
       `stubbed-require-context-key-${index}`,
       file,
