@@ -44,10 +44,15 @@ export default (...listOfGetRequireContexts) => {
 
       const injectable = overriddenInjectable || originalInjectable;
 
+      const injectableIsBeingSetupped = pipeline(
+        context,
+        includes(`setup(${injectable.id})`),
+      );
+
       if (
         !setupsHaveBeenRan &&
         injectable.setup &&
-        !injectable.isBeingSetupped
+        !injectableIsBeingSetupped
       ) {
         throw new Error(
           `Tried to inject setuppable "${injectable.id}" before setups are ran.`,
@@ -141,9 +146,10 @@ export default (...listOfGetRequireContexts) => {
         filter('setup'),
 
         map(async injectable => {
-          injectable.isBeingSetupped = true;
-          await injectable.setup(di);
-          injectable.isBeingSetupped = false;
+          await injectable.setup({
+            inject: (alias, parameter) =>
+              di.inject(alias, parameter, [`setup(${injectable.id})`]),
+          });
         }),
 
         tap(() => {

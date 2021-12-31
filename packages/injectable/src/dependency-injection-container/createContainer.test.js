@@ -485,20 +485,29 @@ describe('createContainer', () => {
     expect(actual1).toBe(actual2);
   });
 
-  it('given setup for injectable, when setups are ran, runs the setup with the DI', async () => {
-    const setupMock = jest.fn();
+  it('given setup for injectable, when setups are ran, runs the setup with a way to inject', async () => {
+    let instanceFromSetup;
 
-    const someInjectable = getInjectable({
-      setup: setupMock,
+    const someSetuppable = getInjectable({
+      setup: di => {
+        instanceFromSetup = di.inject(
+          someInjectable,
+          'some-parameter',
+          'irrelevant',
+        );
+      },
     });
 
-    const someInjectableWithoutSetup = getInjectable({});
+    const someInjectable = getInjectable({
+      lifecycle: lifecycleEnum.transient,
+      instantiate: (di, parameter) => `some-instance: "${parameter}"`,
+    });
 
-    const di = getDi(someInjectable, someInjectableWithoutSetup);
+    const di = getDi(someSetuppable, someInjectable);
 
     await di.runSetups();
 
-    expect(setupMock).toHaveBeenCalledWith(di);
+    expect(instanceFromSetup).toBe('some-instance: "some-parameter"');
   });
 
   it('given multiple async setuppables and DI-setups are ran, when setups resolve, DI-setup resolves', async () => {
