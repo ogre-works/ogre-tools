@@ -16,42 +16,46 @@ const getInstance = ({ di, injectable, instantiationParameter }) => {
   );
 };
 
-const iife = callback => callback();
-
 export default {
-  singleton: iife(() => {
-    const singletonInstanceMap = new Map();
+  singleton: {
+    key: 'singleton',
 
-    return {
-      key: 'singleton',
+    getInstance: ({ injectable, instantiationParameter, di, instanceMap }) => {
+      if (instantiationParameter) {
+        throw new Error(
+          `Tried to inject singleton "${injectable.id}" with instantiation parameters.`,
+        );
+      }
 
-      getInstance: ({ injectable, instantiationParameter, di }) => {
-        if (instantiationParameter) {
-          throw new Error(
-            `Tried to inject singleton "${injectable.id}" with instantiation parameters.`,
-          );
-        }
+      if (!instanceMap.has('singleton')) {
+        instanceMap.set('singleton', new Map());
+      }
 
-        const existingInstance = singletonInstanceMap.get(injectable);
+      const singletonInstanceMap = instanceMap.get('singleton');
 
-        if (existingInstance) {
-          return existingInstance;
-        }
+      const existingInstance = singletonInstanceMap.get(injectable);
 
-        const newInstance = getInstance({
-          injectable,
-          instantiationParameter,
-          di,
-        });
+      if (existingInstance) {
+        return existingInstance;
+      }
 
-        singletonInstanceMap.set(injectable, newInstance);
+      const newInstance = getInstance({
+        injectable,
+        instantiationParameter,
+        di,
+      });
 
-        return newInstance;
-      },
+      singletonInstanceMap.set(injectable, newInstance);
 
-      purge: injectable => singletonInstanceMap.delete(injectable),
-    };
-  }),
+      return newInstance;
+    },
+
+    purge: ({ injectable, instanceMap }) => {
+      const singletonMap = instanceMap.get('singleton');
+
+      return singletonMap.delete(injectable);
+    },
+  },
 
   transient: {
     key: 'transient',
@@ -62,40 +66,45 @@ export default {
     },
   },
 
-  scopedTransient: getScope =>
-    iife(() => {
-      const scopedTransientMap = new Map();
+  scopedTransient: getScope => ({
+    key: 'scoped-transient',
 
-      return {
-        key: 'scoped-transient',
+    getInstance: ({ di, injectable, instantiationParameter, instanceMap }) => {
+      const scope = getScope(di);
 
-        getInstance: ({ di, injectable, instantiationParameter }) => {
-          const scope = getScope(di);
+      if (!instanceMap.has('scoped-transient')) {
+        instanceMap.set('scoped-transient', new Map());
+      }
 
-          const scopesForInjectable =
-            scopedTransientMap.get(injectable) || new Map();
+      const scopedTransientMap = instanceMap.get('scoped-transient');
 
-          scopedTransientMap.set(injectable, scopesForInjectable);
+      const scopesForInjectable =
+        scopedTransientMap.get(injectable) || new Map();
 
-          const existingInstance = scopesForInjectable.get(scope);
+      scopedTransientMap.set(injectable, scopesForInjectable);
 
-          if (existingInstance) {
-            return existingInstance;
-          }
+      const existingInstance = scopesForInjectable.get(scope);
 
-          const newInstance = getInstance({
-            injectable,
-            instantiationParameter,
-            di,
-          });
+      if (existingInstance) {
+        return existingInstance;
+      }
 
-          scopesForInjectable.clear();
-          scopesForInjectable.set(scope, newInstance);
+      const newInstance = getInstance({
+        injectable,
+        instantiationParameter,
+        di,
+      });
 
-          return newInstance;
-        },
+      scopesForInjectable.clear();
+      scopesForInjectable.set(scope, newInstance);
 
-        purge: injectable => scopedTransientMap.delete(injectable),
-      };
-    }),
+      return newInstance;
+    },
+
+    purge: ({ injectable, instanceMap }) => {
+      const scopedTransientMap = instanceMap.get('scoped-transient');
+
+      return scopedTransientMap.delete(injectable);
+    },
+  }),
 };

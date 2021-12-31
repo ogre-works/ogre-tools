@@ -20,6 +20,8 @@ export default (...listOfGetRequireContexts) => {
   let sideEffectsArePrevented = false;
   let setupsHaveBeenRan = false;
 
+  const instanceMap = new Map();
+
   const getLifecycle = injectableKey =>
     getInjectable({
       injectables,
@@ -62,6 +64,7 @@ export default (...listOfGetRequireContexts) => {
         injectable,
         instantiationParameter,
         di,
+        instanceMap,
       });
     },
 
@@ -164,7 +167,7 @@ export default (...listOfGetRequireContexts) => {
         alias: injectableKey,
       });
 
-      getLifecycle(injectableKey).purge(injectable);
+      getLifecycle(injectableKey).purge({ injectable, instanceMap });
     },
   };
 

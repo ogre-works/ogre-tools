@@ -136,6 +136,36 @@ describe('createContainer', () => {
     expect(actual1).toBe(actual2);
   });
 
+  it('given multiple containers and shared singleton, when injected from different containers, injects different instance', () => {
+    const someInjectable = getInjectable({
+      instantiate: () => ({}),
+      lifecycle: lifecycleEnum.singleton,
+    });
+
+    const di1 = getDi(someInjectable);
+    const di2 = getDi(someInjectable);
+
+    const actual1 = di1.inject(someInjectable);
+    const actual2 = di2.inject(someInjectable);
+
+    expect(actual1).not.toBe(actual2);
+  });
+
+  it('given multiple containers and shared scoped-transient, when injected from different containers using same scope, injects different instance', () => {
+    const someInjectable = getInjectable({
+      instantiate: () => ({}),
+      lifecycle: lifecycleEnum.scopedTransient(() => 'some-scope'),
+    });
+
+    const di1 = getDi(someInjectable);
+    const di2 = getDi(someInjectable);
+
+    const actual1 = di1.inject(someInjectable);
+    const actual2 = di2.inject(someInjectable);
+
+    expect(actual1).not.toBe(actual2);
+  });
+
   it('given an injectable is overridden, injects the overridden injectable', () => {
     const childInjectable = getInjectable({
       instantiate: () => {
