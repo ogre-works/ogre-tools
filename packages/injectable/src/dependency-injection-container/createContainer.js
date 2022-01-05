@@ -1,12 +1,10 @@
 import tap from 'lodash/fp/tap';
 import conforms from 'lodash/fp/conforms';
-import every from 'lodash/fp/every';
 import filter from 'lodash/fp/filter';
 import find from 'lodash/fp/find';
 import findLast from 'lodash/fp/findLast';
 import first from 'lodash/fp/first';
 import forEach from 'lodash/fp/forEach';
-import get from 'lodash/fp/get';
 import includes from 'lodash/fp/includes';
 import invoke from 'lodash/fp/invoke';
 import lifecycleEnum from './lifecycleEnum';
@@ -22,11 +20,10 @@ export default (...listOfGetRequireContexts) => {
 
   const instanceMap = new Map();
 
-  const getLifecycle = injectableKey =>
+  const getLifecycle = alias =>
     getInjectable({
       injectables,
-      alias: injectableKey,
-      di: privateDi,
+      alias,
     }).lifecycle;
 
   const privateDi = {
@@ -34,7 +31,6 @@ export default (...listOfGetRequireContexts) => {
       const originalInjectable = getInjectable({
         injectables,
         alias,
-        di: privateDi,
       });
 
       const overriddenInjectable = getOverridingInjectable({
@@ -162,7 +158,7 @@ export default (...listOfGetRequireContexts) => {
     },
 
     permitSideEffects: alias => {
-      getInjectable({ injectables, alias, di: privateDi }).permitSideEffects();
+      getInjectable({ injectables, alias }).permitSideEffects();
     },
 
     getLifecycle,
@@ -170,7 +166,6 @@ export default (...listOfGetRequireContexts) => {
     purge: injectableKey => {
       const injectable = getInjectable({
         injectables,
-        di: privateDi,
         alias: injectableKey,
       });
 
@@ -212,7 +207,7 @@ const autoRegisterInjectables = ({ getRequireContextForInjectables, di }) => {
   );
 };
 
-const getInjectable = ({ injectables, alias, di }) => {
+const getInjectable = ({ injectables, alias }) => {
   const relatedInjectables = pipeline(
     injectables,
     filter(getRelatedInjectables(alias)),
@@ -224,47 +219,14 @@ const getInjectable = ({ injectables, alias, di }) => {
     );
   }
 
-  if (relatedInjectables.length > 1 && !viabilityIsOk(relatedInjectables)) {
+  if (relatedInjectables.length > 1) {
     throw new Error(
-      `Tried to inject one of multiple injectables with no way to demonstrate viability for "${relatedInjectables
-        .map(get('id'))
-        .join('", "')}"`,
+      `Tried to inject injectable with ambiguous alias: "${alias.toString()}".`,
     );
   }
 
-  const viableInjectables = pipeline(
-    relatedInjectables,
-    filter(injectable =>
-      injectable.viability ? injectable.viability(di) : true,
-    ),
-  );
-
-  if (relatedInjectables.length === 1 && viableInjectables.length === 0) {
-    throw new Error(
-      `Tried to inject injectable with no viability for "${relatedInjectables[0].id}"`,
-    );
-  }
-
-  if (viableInjectables.length === 0) {
-    throw new Error(
-      `Tried to inject one of multiple injectables with no viability within "${relatedInjectables
-        .map(get('id'))
-        .join('", "')}"`,
-    );
-  }
-
-  if (viableInjectables.length !== 1) {
-    throw new Error(
-      `Tried to inject one of multiple injectables with non-singular viability within "${relatedInjectables
-        .map(get('id'))
-        .join('", "')}"`,
-    );
-  }
-
-  return first(viableInjectables);
+  return first(relatedInjectables);
 };
-
-const viabilityIsOk = every('viability');
 
 const getOverridingInjectable = ({ overridingInjectables, alias }) =>
   pipeline(overridingInjectables, findLast(getRelatedInjectables(alias)));
