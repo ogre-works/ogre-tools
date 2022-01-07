@@ -16,7 +16,7 @@ declare module '@ogre-tools/injectable-react' {
         props: Props,
       ) => Props & Dependencies;
     },
-  ): React.FC<Props>;
+  ): React.ForwardRefExoticComponent<Props & React.RefAttributes<any>>;
 
   export function withInjectables<Dependencies, Props = {}>(
     Component: React.ComponentType<Dependencies & Props>,
@@ -28,5 +28,5 @@ declare module '@ogre-tools/injectable-react' {
 
       getPlaceholder: () => JSX.Element;
     },
-  ): React.FC<Props>;
+  ): React.ForwardRefExoticComponent<Props & React.RefAttributes<any>>;
 }

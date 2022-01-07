@@ -11,34 +11,34 @@ const { Provider: DiContextProvider, Consumer: DiContextConsumer } =
 export { DiContextProvider };
 
 export default (Component, { getPlaceholder = constant(null), getProps }) =>
-  props =>
-    (
-      <DiContextConsumer>
-        {({ di }) => {
-          const maybeAsyncProps = getProps(di, props);
+  React.forwardRef((props, ref) => (
+    <DiContextConsumer>
+      {({ di }) => {
+        const maybeAsyncProps = getProps(di, props);
+        const refProps = ref ? { ref } : {};
 
-          if (!isPromise(maybeAsyncProps)) {
-            return <Component {...maybeAsyncProps} />;
-          }
+        if (!isPromise(maybeAsyncProps)) {
+          return <Component {...refProps} {...maybeAsyncProps} />;
+        }
 
-          const observablePropsPromise = getObservablePromise(maybeAsyncProps);
+        const observablePropsPromise = getObservablePromise(maybeAsyncProps);
 
-          return (
-            <Observer>
-              {() => {
-                const syncProps = observablePropsPromise.value;
+        return (
+          <Observer>
+            {() => {
+              const syncProps = observablePropsPromise.value;
 
-                if (!syncProps) {
-                  return getPlaceholder();
-                }
+              if (!syncProps) {
+                return getPlaceholder();
+              }
 
-                return <Component {...syncProps} />;
-              }}
-            </Observer>
-          );
-        }}
-      </DiContextConsumer>
-    );
+              return <Component {...refProps} {...syncProps} />;
+            }}
+          </Observer>
+        );
+      }}
+    </DiContextConsumer>
+  ));
 
 const getObservablePromise = asyncValue => {
   const observableObject = observable({ value: null }, null, {

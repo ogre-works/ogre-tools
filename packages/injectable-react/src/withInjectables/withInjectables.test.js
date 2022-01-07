@@ -174,6 +174,79 @@ describe('withInjectables', () => {
     });
   });
 
+  it('given class component with sync dependencies, when rendered with ref, forwards ref', () => {
+    di.register({
+      id: 'some-injectable-id',
+
+      lifecycle: lifecycleEnum.transient,
+
+      instantiate: () => 'some-injectable-value',
+    });
+
+    class DumbTestComponent extends React.Component {
+      someProperty = 'some-property-accessed-with-ref';
+
+      render() {
+        const { someDependency, ...props } = this.props;
+
+        return <div {...props}>Some content: "{someDependency}"</div>;
+      }
+    }
+
+    const SmartTestComponent = withInjectables(DumbTestComponent, {
+      getProps: (di, props) => ({
+        someDependency: di.inject('some-injectable-id'),
+        ...props,
+      }),
+    });
+
+    const ref = React.createRef();
+
+    mount(<SmartTestComponent ref={ref} data-some-prop-test />);
+
+    expect(ref.current.someProperty).toBe('some-property-accessed-with-ref');
+  });
+
+  it('given class component and async dependencies, when rendered with ref', async () => {
+    const asyncDependencyMock = asyncFn();
+
+    di.register({
+      id: 'some-injectable-id',
+
+      lifecycle: lifecycleEnum.transient,
+
+      instantiate: () => asyncDependencyMock(),
+    });
+
+    class DumbTestComponent extends React.Component {
+      someProperty = 'some-property-accessed-with-ref';
+
+      render() {
+        const { someDependency, ...props } = this.props;
+
+        return <div {...props}>Some content: "{someDependency}"</div>;
+      }
+    }
+
+    const SmartTestComponent = withInjectables(DumbTestComponent, {
+      getProps: async (di, props) => ({
+        someDependency: await di.inject('some-injectable-id'),
+        ...props,
+      }),
+    });
+
+    const ref = React.createRef();
+
+    const component = mount(
+      <SmartTestComponent ref={ref} data-some-prop-test />,
+    );
+
+    await asyncDependencyMock.resolve('some-async-value');
+    await enzymeUpdate(component);
+
+    expect(ref.current.someProperty).toBe('some-property-accessed-with-ref');
+  });
+
   it('given component, props and a dependency using instantiation parameter, when rendered, renders with the dependency having props as instantiation parameter', () => {
     di.register({
       id: 'some-injectable-id',
