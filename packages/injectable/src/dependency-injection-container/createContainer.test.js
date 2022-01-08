@@ -413,6 +413,20 @@ describe('createContainer', () => {
     expect(actual1).toBe(actual2);
   });
 
+  it('given an injectable is does not specify lifecycle, when injected multiple times, defaults to injecting singleton', () => {
+    const injectable = getInjectable({
+      module: { filename: 'irrelevant' },
+      instantiate: () => ({}),
+    });
+
+    const di = getDi(injectable);
+
+    const actual1 = di.inject(injectable);
+    const actual2 = di.inject(injectable);
+
+    expect(actual1).toBe(actual2);
+  });
+
   it('given an injectable is not singleton, when injected multiple times, injects as transient', () => {
     const transientInjectable = getInjectable({
       module: { filename: 'irrelevant' },
