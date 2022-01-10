@@ -390,6 +390,26 @@ describe('createContainer', () => {
     );
   });
 
+  it('when injecting nested non-registered injectable, throws with chain of injectables', () => {
+    const someNonRegisteredInjectable = getInjectable({
+      module: { filename: 'some-non-registered-injectable-filename' },
+      instantiate: () => 'irrelevant',
+    });
+
+    const someRegisteredInjectable = getInjectable({
+      module: { filename: 'some-registered-injectable-filename' },
+      instantiate: di => di.inject(someNonRegisteredInjectable),
+    });
+
+    const di = getDi(someRegisteredInjectable);
+
+    expect(() => {
+      di.inject(someRegisteredInjectable);
+    }).toThrow(
+      'Tried to inject non-registered injectable "some-registered-injectable-filename" -> "some-non-registered-injectable-filename".',
+    );
+  });
+
   it('given an injectable is singleton, when injected multiple times, injects singleton', () => {
     const singletonInjectable = getInjectable({
       module: { filename: 'irrelevant' },
