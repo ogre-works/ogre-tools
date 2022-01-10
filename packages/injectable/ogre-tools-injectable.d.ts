@@ -65,7 +65,7 @@ declare module '@ogre-tools/injectable' {
     id?: string;
     setup?: (di: DependencyInjectionContainer) => void | Promise<void>;
     causesSideEffects?: boolean;
-    lifecycle: lifecycleEnum;
+    lifecycle?: lifecycleEnum;
 
     instantiate: (
       di: DependencyInjectionContainer,
