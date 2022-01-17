@@ -52,16 +52,17 @@ declare module '@ogre-tools/injectable' {
     key: Symbol;
   };
 
-  export function getInjectionToken<TInstance, TInstantiationParameter = void>({
-    module: NodeModule,
-  }): InjectionToken<TInstance, TInstantiationParameter>;
+  export function getInjectionToken<
+    TInstance,
+    TInstantiationParameter = void,
+  >(): InjectionToken<TInstance, TInstantiationParameter>;
 
   export interface Injectable<
     TInjectionToken,
     TInstance,
     TInstantiationParameter,
   > {
-    module: NodeModule;
+    id?: string;
     setup?: (di: DependencyInjectionContainer) => void | Promise<void>;
     causesSideEffects?: boolean;
     lifecycle?: lifecycleEnum;
