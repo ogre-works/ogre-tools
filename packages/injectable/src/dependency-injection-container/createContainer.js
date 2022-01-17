@@ -26,15 +26,15 @@ export default (...listOfGetRequireContexts) => {
     getInjectable({
       injectables,
       alias: injectableKey,
-      di: privateDi,
+      di,
     }).lifecycle;
 
-  const privateDi = {
+  const di = {
     inject: (alias, instantiationParameter, context = []) => {
       const originalInjectable = getInjectable({
         injectables,
         alias,
-        di: privateDi,
+        di,
       });
 
       const overriddenInjectable = getOverridingInjectable({
@@ -68,7 +68,7 @@ export default (...listOfGetRequireContexts) => {
       return injectable.lifecycle.getInstance({
         injectable,
         instantiationParameter,
-        di: privateDi,
+        di,
         instanceMap,
         context,
       });
@@ -148,7 +148,7 @@ export default (...listOfGetRequireContexts) => {
         map(async injectable => {
           await injectable.setup({
             inject: (alias, parameter) =>
-              privateDi.inject(alias, parameter, [`setup(${injectable.id})`]),
+              di.inject(alias, parameter, [`setup(${injectable.id})`]),
           });
         }),
 
@@ -162,7 +162,7 @@ export default (...listOfGetRequireContexts) => {
     },
 
     permitSideEffects: alias => {
-      getInjectable({ injectables, alias, di: privateDi }).permitSideEffects();
+      getInjectable({ injectables, alias, di }).permitSideEffects();
     },
 
     getLifecycle,
@@ -170,7 +170,7 @@ export default (...listOfGetRequireContexts) => {
     purge: injectableKey => {
       const injectable = getInjectable({
         injectables,
-        di: privateDi,
+        di,
         alias: injectableKey,
       });
 
@@ -179,15 +179,10 @@ export default (...listOfGetRequireContexts) => {
   };
 
   listOfGetRequireContexts.forEach(getRequireContextForInjectables => {
-    autoRegisterInjectables({ getRequireContextForInjectables, di: privateDi });
+    autoRegisterInjectables({ getRequireContextForInjectables, di });
   });
 
-  const publicDi = {
-    ...privateDi,
-    inject: (alias, parameter) => privateDi.inject(alias, parameter),
-  };
-
-  return publicDi;
+  return di;
 };
 
 const getRelatedInjectables = alias => conforms({ aliases: includes(alias) });

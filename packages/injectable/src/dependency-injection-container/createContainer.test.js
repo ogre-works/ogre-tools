@@ -206,26 +206,6 @@ describe('createContainer', () => {
     );
   });
 
-  it('given injectables with a dependency cycle, when injected with bogus context, throws error without bogus context', () => {
-    const childInjectable = getInjectable({
-      id: 'some-child-id',
-      instantiate: di => di.inject(parentInjectable),
-    });
-
-    const parentInjectable = getInjectable({
-      id: 'some-parent-id',
-      instantiate: di => di.inject(childInjectable),
-    });
-
-    const di = getDi(parentInjectable, childInjectable);
-
-    expect(() => {
-      di.inject(parentInjectable, undefined, ['some-bogus-context']);
-    }).toThrow(
-      'Cycle of injectables encountered: "some-parent-id" -> "some-child-id" -> "some-parent-id"',
-    );
-  });
-
   it('given an injectable is overridden, injects the overridden injectable', () => {
     const childInjectable = getInjectable({
       instantiate: () => {
