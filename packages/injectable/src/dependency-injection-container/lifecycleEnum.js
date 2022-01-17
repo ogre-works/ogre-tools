@@ -24,9 +24,6 @@ const getInstance = ({
 
   const minimalDi = {
     inject: (alias, parameter) => di.inject(alias, parameter, newContext),
-
-    injectMany: (alias, parameter) =>
-      di.injectMany(alias, parameter, newContext),
   };
 
   return injectable.instantiate(

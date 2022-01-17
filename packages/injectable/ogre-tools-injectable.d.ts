@@ -25,13 +25,6 @@ declare module '@ogre-tools/injectable' {
       >
     ): TInjectionToken['template'];
 
-    injectMany<TInjectionToken extends InjectionToken<unknown, unknown>>(
-      injectionToken: TInjectionToken,
-      ...instantiationParameter: TentativeTuple<
-        TInjectionToken['instantiationParameter']
-      >
-    ): TInjectionToken['template'][];
-
     purge: (injectableKey: Injectable<any, any, any>) => void;
 
     runSetups: () => Promise<void>;

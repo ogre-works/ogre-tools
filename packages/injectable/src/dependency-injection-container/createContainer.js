@@ -1,4 +1,5 @@
 import tap from 'lodash/fp/tap';
+import conforms from 'lodash/fp/conforms';
 import filter from 'lodash/fp/filter';
 import find from 'lodash/fp/find';
 import findLast from 'lodash/fp/findLast';
@@ -20,14 +21,14 @@ export default (...listOfGetRequireContexts) => {
   const instanceMap = new Map();
 
   const getLifecycle = alias =>
-    getRelatedInjectable({
+    getInjectable({
       injectables,
       alias,
     }).lifecycle;
 
   const privateDi = {
     inject: (alias, instantiationParameter, context = []) => {
-      const originalInjectable = getRelatedInjectable({
+      const originalInjectable = getInjectable({
         injectables,
         alias,
       });
@@ -69,15 +70,6 @@ export default (...listOfGetRequireContexts) => {
       });
     },
 
-    injectMany: (alias, instantiationParameter, context = []) =>
-      pipeline(
-        getRelatedInjectables({ injectables, alias }),
-
-        map(injectable =>
-          privateDi.inject(injectable, instantiationParameter, context),
-        ),
-      ),
-
     register: injectable => {
       if (!injectable.module) {
         throw new Error('Tried to register injectable without module.');
@@ -85,6 +77,12 @@ export default (...listOfGetRequireContexts) => {
 
       injectables.push({
         ...injectable,
+
+        aliases: [
+          injectable,
+          ...(injectable.injectionToken ? [injectable.injectionToken] : []),
+          ...(injectable.aliases || []),
+        ],
 
         lifecycle: injectable.lifecycle || lifecycleEnum.singleton,
 
@@ -97,12 +95,12 @@ export default (...listOfGetRequireContexts) => {
     override: (alias, instantiateStub) => {
       const originalInjectable = pipeline(
         injectables,
-        find(isRelatedTo(alias)),
+        find(getRelatedInjectables(alias)),
       );
 
       if (!originalInjectable) {
         throw new Error(
-          `Tried to override "${alias.module.filename}" which is not registered.`,
+          `Tried to override "${alias.toString()}" which is not registered.`,
         );
       }
 
@@ -116,7 +114,7 @@ export default (...listOfGetRequireContexts) => {
     unoverride: alias => {
       overridingInjectables = pipeline(
         overridingInjectables,
-        reject(isRelatedTo(alias)),
+        reject(getRelatedInjectables(alias)),
       );
     },
 
@@ -160,18 +158,18 @@ export default (...listOfGetRequireContexts) => {
     },
 
     permitSideEffects: alias => {
-      getRelatedInjectable({ injectables, alias }).permitSideEffects();
+      getInjectable({ injectables, alias }).permitSideEffects();
     },
 
     getLifecycle,
 
-    purge: alias => {
-      const injectable = getRelatedInjectable({
+    purge: injectableKey => {
+      const injectable = getInjectable({
         injectables,
-        alias,
+        alias: injectableKey,
       });
 
-      getLifecycle(alias).purge({ injectable, instanceMap });
+      getLifecycle(injectableKey).purge({ injectable, instanceMap });
     },
   };
 
@@ -182,11 +180,12 @@ export default (...listOfGetRequireContexts) => {
   const publicDi = {
     ...privateDi,
     inject: (alias, parameter) => privateDi.inject(alias, parameter),
-    injectMany: (alias, parameter) => privateDi.injectMany(alias, parameter),
   };
 
   return publicDi;
 };
+
+const getRelatedInjectables = alias => conforms({ aliases: includes(alias) });
 
 const autoRegisterInjectables = ({ getRequireContextForInjectables, di }) => {
   const requireContextForInjectables = getRequireContextForInjectables();
@@ -194,25 +193,31 @@ const autoRegisterInjectables = ({ getRequireContextForInjectables, di }) => {
   pipeline(
     requireContextForInjectables,
     invoke('keys'),
-    map(requireContextForInjectables),
-    map('default'),
-    forEach(di.register),
+    map(key => {
+      const injectableExport = requireContextForInjectables(key).default;
+
+      return {
+        id: key,
+        ...injectableExport,
+        aliases: [injectableExport],
+      };
+    }),
+
+    forEach(injectable => di.register(injectable)),
   );
 };
 
-const isRelatedTo = alias => injectable =>
-  injectable.module === alias.module ||
-  (injectable.injectionToken && injectable.injectionToken === alias);
-
-const getRelatedInjectable = ({ injectables, alias }) => {
-  const relatedInjectables = getRelatedInjectables({ injectables, alias });
+const getInjectable = ({ injectables, alias }) => {
+  const relatedInjectables = pipeline(
+    injectables,
+    filter(getRelatedInjectables(alias)),
+  );
 
   if (relatedInjectables.length === 0) {
     throw new Error(
       `Tried to inject non-registered injectable "${alias.module.filename}".`,
     );
   }
-
   if (relatedInjectables.length > 1) {
     throw new Error(
       `Tried to inject single injectable for injection token "${
@@ -226,8 +231,5 @@ const getRelatedInjectable = ({ injectables, alias }) => {
   return first(relatedInjectables);
 };
 
-const getRelatedInjectables = ({ injectables, alias }) =>
-  pipeline(injectables, filter(isRelatedTo(alias)));
-
 const getOverridingInjectable = ({ overridingInjectables, alias }) =>
-  pipeline(overridingInjectables, findLast(isRelatedTo(alias)));
+  pipeline(overridingInjectables, findLast(getRelatedInjectables(alias)));
