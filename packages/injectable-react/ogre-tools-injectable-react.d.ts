@@ -1,6 +1,7 @@
 /// <reference types="react" />
 declare module '@ogre-tools/injectable-react' {
   import type { DependencyInjectionContainer } from '@ogre-tools/injectable';
+  import { IComputedValue } from 'mobx';
 
   interface DependencyInjectionContainerProviderProps {
     di: DependencyInjectionContainer;
@@ -33,4 +34,10 @@ declare module '@ogre-tools/injectable-react' {
   ): React.ForwardRefExoticComponent<
     Props & React.RefAttributes<any> & { children?: React.ReactNode }
   >;
+
+  export function asyncComputed<T>(getObservablePromise: () => Promise<T>): {
+    value: IComputedValue<T>;
+    pending: IComputedValue<boolean>;
+    invalidate: () => void;
+  };
 }
