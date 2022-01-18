@@ -43,5 +43,6 @@ declare module '@ogre-tools/injectable-react' {
 
   export function asyncComputed<T>(
     getObservablePromise: () => Promise<T>,
+    pendingValue?: T,
   ): IAsyncComputed<T>;
 }

@@ -17,7 +17,7 @@ describe('asyncComputed', () => {
         const someObservedValue = someObservable.get();
 
         return someMock(someObservedValue);
-      });
+      }, 'some-pending-value');
     });
 
     describe('when only status is observed but not value', () => {
@@ -83,8 +83,8 @@ describe('asyncComputed', () => {
       });
 
       describe('when observed promise has not resolved yet', () => {
-        it('observed value is undefined', async () => {
-          expect(observedValue).toBe(undefined);
+        it('observed value is pending value', async () => {
+          expect(observedValue).toBe('some-pending-value');
         });
 
         it('observes as pending', () => {
@@ -106,8 +106,8 @@ describe('asyncComputed', () => {
             expect(someMock).toHaveBeenCalledWith('some-other-changed-value');
           });
 
-          it('observed value is undefined', async () => {
-            expect(observedValue).toBe(undefined);
+          it('observed value is pending value', async () => {
+            expect(observedValue).toBe('some-pending-value');
           });
 
           it('observes as pending', () => {
@@ -124,8 +124,8 @@ describe('asyncComputed', () => {
               );
             });
 
-            it('still observes value as undefined', async () => {
-              expect(observedValue).toBe(undefined);
+            it('still observes value as pending value', async () => {
+              expect(observedValue).toBe('some-pending-value');
             });
 
             it('still observes as pending', () => {
@@ -200,8 +200,8 @@ describe('asyncComputed', () => {
             expect(pendingStatus).toBe(true);
           });
 
-          it('observed value is undefined', () => {
-            expect(observedValue).toBe(undefined);
+          it('observed value is pending value', () => {
+            expect(observedValue).toBe('some-pending-value');
           });
 
           it('recomputes', () => {
@@ -222,8 +222,8 @@ describe('asyncComputed', () => {
             expect(pendingStatus).toBe(true);
           });
 
-          it('observed value is undefined', () => {
-            expect(observedValue).toBe(undefined);
+          it('observed value is pending value', () => {
+            expect(observedValue).toBe('some-pending-value');
           });
 
           it('recomputes', () => {
