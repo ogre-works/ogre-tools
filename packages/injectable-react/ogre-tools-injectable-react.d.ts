@@ -35,9 +35,13 @@ declare module '@ogre-tools/injectable-react' {
     Props & React.RefAttributes<any> & { children?: React.ReactNode }
   >;
 
-  export function asyncComputed<T>(getObservablePromise: () => Promise<T>): {
+  export type IasyncComputed<T> = {
     value: IComputedValue<T>;
     pending: IComputedValue<boolean>;
     invalidate: () => void;
   };
+
+  export function asyncComputed<T>(
+    getObservablePromise: () => Promise<T>,
+  ): IasyncComputed<T>;
 }
