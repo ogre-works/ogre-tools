@@ -11,6 +11,11 @@ export default getObservedPromise => {
 
   let neutralizeObsoletePromise;
 
+  const syncValueBox = observable.box(undefined, {
+    name: 'sync-value-box-for-async-computed',
+    deep: false,
+  });
+
   const computedPromise = computed(
     () => {
       if (untracked(() => pendingBox.get()) === true) {
@@ -37,11 +42,6 @@ export default getObservedPromise => {
       name: 'computed-promise-for-async-computed',
     },
   );
-
-  const syncValueBox = observable.box(undefined, {
-    name: 'sync-value-box-for-async-computed',
-    deep: false,
-  });
 
   const originalComputed = computed(
     () => {
@@ -74,6 +74,10 @@ export default getObservedPromise => {
       });
     },
 
-    pending: computed(() => pendingBox.get()),
+    pending: computed(() => {
+      originalComputed.get();
+
+      return pendingBox.get();
+    }),
   };
 };
