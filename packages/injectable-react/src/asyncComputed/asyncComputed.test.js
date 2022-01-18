@@ -215,14 +215,6 @@ describe('asyncComputed', () => {
     it('when not observed, does not call callback', () => {
       expect(someMock).not.toHaveBeenCalled();
     });
-
-    xit('when accessed outside of reactive context, throws', () => {
-      expect(() => {
-        someAsyncComputed.value.get();
-      }).toThrow(
-        'Tried to access asyncComputed outside of computing derivation.',
-      );
-    });
   });
 });
 
