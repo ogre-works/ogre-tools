@@ -42,7 +42,7 @@ export default (...listOfGetRequireContexts) => {
 
       const injectableIsBeingSetupped = pipeline(
         context,
-        includes(`setup(${injectable.module.filename})`),
+        includes(`setup(${injectable.id})`),
       );
 
       if (
@@ -51,13 +51,13 @@ export default (...listOfGetRequireContexts) => {
         !injectableIsBeingSetupped
       ) {
         throw new Error(
-          `Tried to inject setuppable "${injectable.module.filename}" before setups are ran.`,
+          `Tried to inject setuppable "${injectable.id}" before setups are ran.`,
         );
       }
 
       if (sideEffectsArePrevented && injectable.causesSideEffects) {
         throw new Error(
-          `Tried to inject "${injectable.module.filename}" when side-effects are prevented.`,
+          `Tried to inject "${injectable.id}" when side-effects are prevented.`,
         );
       }
 
@@ -80,8 +80,8 @@ export default (...listOfGetRequireContexts) => {
       ),
 
     register: injectable => {
-      if (!injectable.module) {
-        throw new Error('Tried to register injectable without module.');
+      if (!injectable.id) {
+        throw new Error('Tried to register injectable without ID.');
       }
 
       injectables.push({
@@ -103,7 +103,7 @@ export default (...listOfGetRequireContexts) => {
 
       if (!originalInjectable) {
         throw new Error(
-          `Tried to override "${alias.module.filename}" which is not registered.`,
+          `Tried to override "${alias.id}" which is not registered.`,
         );
       }
 
@@ -132,7 +132,7 @@ export default (...listOfGetRequireContexts) => {
         map(originalInjectable => {
           const overridingInjectable = getOverridingInjectable({
             overridingInjectables,
-            alias: originalInjectable.module.filename,
+            alias: originalInjectable.id,
           });
 
           return overridingInjectable
@@ -145,9 +145,7 @@ export default (...listOfGetRequireContexts) => {
         map(async injectable => {
           await injectable.setup({
             inject: (alias, parameter) =>
-              privateDi.inject(alias, parameter, [
-                `setup(${injectable.module.filename})`,
-              ]),
+              privateDi.inject(alias, parameter, [`setup(${injectable.id})`]),
           });
         }),
 
@@ -202,16 +200,14 @@ const autoRegisterInjectables = ({ getRequireContextForInjectables, di }) => {
 };
 
 const isRelatedTo = alias => injectable =>
-  injectable.module === alias.module ||
+  injectable.id === alias.id ||
   (injectable.injectionToken && injectable.injectionToken === alias);
 
 const getRelatedInjectable = ({ injectables, alias, context }) => {
   const relatedInjectables = getRelatedInjectables({ injectables, alias });
 
   if (relatedInjectables.length === 0) {
-    const errorContextString = [...context, alias.module.filename].join(
-      '" -> "',
-    );
+    const errorContextString = [...context, alias.id].join('" -> "');
 
     throw new Error(
       `Tried to inject non-registered injectable "${errorContextString}".`,
@@ -221,9 +217,9 @@ const getRelatedInjectable = ({ injectables, alias, context }) => {
   if (relatedInjectables.length > 1) {
     throw new Error(
       `Tried to inject single injectable for injection token "${
-        alias.module.filename
+        alias.id
       }" but found multiple injectables: "${relatedInjectables
-        .map(relatedInjectable => relatedInjectable.module.filename)
+        .map(relatedInjectable => relatedInjectable.id)
         .join('", "')}"`,
     );
   }

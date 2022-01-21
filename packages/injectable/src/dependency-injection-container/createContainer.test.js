@@ -14,7 +14,7 @@ const nonCappedMap = map.convert({ cap: false });
 describe('createContainer', () => {
   it('injects auto-registered injectable without sub-injectables', () => {
     const injectableStub = getInjectable({
-      module: { filename: 'irrelevant' },
+      id: 'irrelevant',
       instantiate: () => 'some-injected-instance',
     });
 
@@ -29,7 +29,7 @@ describe('createContainer', () => {
     const di = getDi();
 
     const someInjectable = getInjectable({
-      module: { filename: 'irrelevant' },
+      id: 'irrelevant',
       instantiate: () => 'some-instance',
     });
 
@@ -42,12 +42,12 @@ describe('createContainer', () => {
 
   it('injects auto-registered injectable with a another auto-registered child-injectable', () => {
     const childInjectable = getInjectable({
-      module: { filename: 'some-injectable-filename' },
+      id: 'some-injectable',
       instantiate: () => 'some-child-instance',
     });
 
     const parentInjectable = getInjectable({
-      module: { filename: 'some-other-injectable-filename' },
+      id: 'some-other-injectable',
       instantiate: di => di.inject(childInjectable),
     });
 
@@ -60,7 +60,7 @@ describe('createContainer', () => {
 
   it('given async child-injectable as dependency, when injected, parent-injectable receives child as sync', async () => {
     const asyncChildInjectable = getInjectable({
-      module: { filename: 'some-child-injectable-filename' },
+      id: 'some-child-injectable',
 
       instantiate: () =>
         Promise.resolve({
@@ -69,7 +69,7 @@ describe('createContainer', () => {
     });
 
     const parentInjectable = getInjectable({
-      module: { filename: 'some-parent-injectable-filename' },
+      id: 'some-parent-injectable',
 
       instantiate: async di => {
         const childInjectable = await di.inject(asyncChildInjectable);
@@ -87,7 +87,7 @@ describe('createContainer', () => {
 
   it('when injecting with a parameter, injects using the parameter', () => {
     const someInjectable = getInjectable({
-      module: { filename: 'irrelevant' },
+      id: 'irrelevant',
       instantiate: (_, instantiationParameter) => instantiationParameter,
       lifecycle: lifecycleEnum.transient,
     });
@@ -101,7 +101,7 @@ describe('createContainer', () => {
 
   it('given multiple containers and shared singleton, when injected from different containers, injects different instance', () => {
     const someInjectable = getInjectable({
-      module: { filename: 'irrelevant' },
+      id: 'irrelevant',
       instantiate: () => ({}),
       lifecycle: lifecycleEnum.singleton,
     });
@@ -117,7 +117,7 @@ describe('createContainer', () => {
 
   it('given multiple containers and shared scoped-transient, when injected from different containers using same scope, injects different instance', () => {
     const someInjectable = getInjectable({
-      module: { filename: 'irrelevant' },
+      id: 'irrelevant',
       instantiate: () => ({}),
       lifecycle: lifecycleEnum.scopedTransient(() => 'some-scope'),
     });
@@ -133,12 +133,12 @@ describe('createContainer', () => {
 
   it('given sync injectables with a dependency cycle, when injected, throws', () => {
     const childInjectable = getInjectable({
-      module: { filename: 'some-child-injectable' },
+      id: 'some-child-injectable',
       instantiate: di => di.inject(parentInjectable),
     });
 
     const parentInjectable = getInjectable({
-      module: { filename: 'some-parent-injectable' },
+      id: 'some-parent-injectable',
       instantiate: di => di.inject(childInjectable),
     });
 
@@ -153,12 +153,12 @@ describe('createContainer', () => {
 
   it('given async injectables with a dependency cycle, when injected, throws', () => {
     const childInjectable = getInjectable({
-      module: { filename: 'some-child-injectable' },
+      id: 'some-child-injectable',
       instantiate: async di => await di.inject(parentInjectable),
     });
 
     const parentInjectable = getInjectable({
-      module: { filename: 'some-parent-injectable' },
+      id: 'some-parent-injectable',
       instantiate: async di => await di.inject(childInjectable),
     });
 
@@ -173,12 +173,12 @@ describe('createContainer', () => {
 
   it('given injectables with a dependency cycle, when injected with bogus context, throws error without bogus context', () => {
     const childInjectable = getInjectable({
-      module: { filename: 'some-child-injectable' },
+      id: 'some-child-injectable',
       instantiate: di => di.inject(parentInjectable),
     });
 
     const parentInjectable = getInjectable({
-      module: { filename: 'some-parent-injectable' },
+      id: 'some-parent-injectable',
       instantiate: di => di.inject(childInjectable),
     });
 
@@ -193,7 +193,7 @@ describe('createContainer', () => {
 
   it('given an injectable is overridden, injects the overridden injectable', () => {
     const childInjectable = getInjectable({
-      module: { filename: 'some-injectable-filename' },
+      id: 'some-injectable',
 
       instantiate: () => {
         throw Error('Should not come here');
@@ -201,7 +201,7 @@ describe('createContainer', () => {
     });
 
     const parentInjectable = getInjectable({
-      module: { filename: 'some-other-injectable-filename' },
+      id: 'some-other-injectable',
 
       instantiate: di => di.inject(childInjectable),
     });
@@ -217,13 +217,13 @@ describe('createContainer', () => {
 
   it('given transient and overridden, when injected with instantiation parameter, provides override with way to inject using instantiation parameter', () => {
     const someInjectable = getInjectable({
-      module: { filename: 'some-injectable-filename' },
+      id: 'some-injectable',
       instantiate: () => 'irrelevant',
       lifecycle: lifecycleEnum.transient,
     });
 
     const someOtherInjectable = getInjectable({
-      module: { filename: 'some-other-injectable-filename' },
+      id: 'some-other-injectable',
       instantiate: (_, instantiationParameter) => instantiationParameter,
       lifecycle: lifecycleEnum.transient,
     });
@@ -241,13 +241,13 @@ describe('createContainer', () => {
 
   it('given singleton and overridden, when injected, provides override with way to inject', () => {
     const someInjectable = getInjectable({
-      module: { filename: 'some-injectable-filename' },
+      id: 'some-injectable',
       instantiate: () => 'some-instance',
       lifecycle: lifecycleEnum.transient,
     });
 
     const someOtherInjectable = getInjectable({
-      module: { filename: 'some-other-injectable-filename' },
+      id: 'some-other-injectable',
       instantiate: () => 'some-other-instance',
       lifecycle: lifecycleEnum.transient,
     });
@@ -263,7 +263,7 @@ describe('createContainer', () => {
 
   it('given an injectable with self-injecting setup is overridden, when setups are ran, injects the override in setup', async () => {
     const someInjectable = getInjectable({
-      module: { filename: 'irrelevant' },
+      id: 'irrelevant',
 
       setup: di => {
         const self = di.inject(someInjectable);
@@ -279,7 +279,7 @@ describe('createContainer', () => {
     const di = getDi(someInjectable);
 
     const someInjectableOverride = getInjectable({
-      module: { filename: 'irrelevant' },
+      id: 'irrelevant',
     });
 
     di.override(someInjectable, () => someInjectableOverride);
@@ -289,27 +289,27 @@ describe('createContainer', () => {
     expect(someInjectableOverride.setupped).toBe(true);
   });
 
-  it('given an injectable does not specify module, when manually registered, throws', () => {
+  it('given an injectable does not specify id, when manually registered, throws', () => {
     const di = getDi();
 
     const someInjectable = getInjectable({
-      module: undefined,
+      id: undefined,
       instantiate: () => 'irrelevant',
     });
 
     expect(() => {
       di.register(someInjectable);
-    }).toThrow('Tried to register injectable without module.');
+    }).toThrow('Tried to register injectable without ID.');
   });
 
   it('given an injectable is overridden twice, injects the last overridden injectable', () => {
     const childInjectable = getInjectable({
-      module: { filename: 'some-injectable-filename' },
+      id: 'some-injectable',
       instantiate: () => 'irrelevant',
     });
 
     const parentInjectable = getInjectable({
-      module: { filename: 'some-other-injectable-filename' },
+      id: 'some-other-injectable',
       instantiate: di => di.inject(childInjectable),
     });
 
@@ -325,12 +325,12 @@ describe('createContainer', () => {
 
   it('given an injectable is overridden, but overrides are reset, injects the original injectable', () => {
     const childInjectable = getInjectable({
-      module: { filename: 'some-injectable-filename' },
+      id: 'some-injectable',
       instantiate: () => 'some-original-value',
     });
 
     const parentInjectable = getInjectable({
-      module: { filename: 'some-other-injectable-filename' },
+      id: 'some-other-injectable',
       instantiate: di => di.inject(childInjectable),
     });
 
@@ -347,7 +347,7 @@ describe('createContainer', () => {
 
   it('given an injectable is overridden, but then unoverriden, injects the original injectable', () => {
     const someInjectable = getInjectable({
-      module: { filename: 'irrelevant' },
+      id: 'irrelevant',
       instantiate: () => 'some-original-value',
     });
 
@@ -366,19 +366,19 @@ describe('createContainer', () => {
     const di = getDi();
 
     const injectable = getInjectable({
-      module: { filename: 'some-non-registered-injectable-filename' },
+      id: 'some-non-registered-injectable',
     });
 
     expect(() => {
       di.override(injectable, () => 'irrelevant');
     }).toThrow(
-      'Tried to override "some-non-registered-injectable-filename" which is not registered.',
+      'Tried to override "some-non-registered-injectable" which is not registered.',
     );
   });
 
   it('when injecting non-registered injectable, throws', () => {
     const someNonRegisteredInjectable = getInjectable({
-      module: { filename: 'some-non-registered-injectable-filename' },
+      id: 'some-non-registered-injectable',
     });
 
     const di = getDi();
@@ -386,18 +386,18 @@ describe('createContainer', () => {
     expect(() => {
       di.inject(someNonRegisteredInjectable);
     }).toThrow(
-      'Tried to inject non-registered injectable "some-non-registered-injectable-filename".',
+      'Tried to inject non-registered injectable "some-non-registered-injectable".',
     );
   });
 
   it('when injecting nested non-registered injectable, throws with chain of injectables', () => {
     const someNonRegisteredInjectable = getInjectable({
-      module: { filename: 'some-non-registered-injectable-filename' },
+      id: 'some-non-registered-injectable',
       instantiate: () => 'irrelevant',
     });
 
     const someRegisteredInjectable = getInjectable({
-      module: { filename: 'some-registered-injectable-filename' },
+      id: 'some-registered-injectable',
       instantiate: di => di.inject(someNonRegisteredInjectable),
     });
 
@@ -406,13 +406,13 @@ describe('createContainer', () => {
     expect(() => {
       di.inject(someRegisteredInjectable);
     }).toThrow(
-      'Tried to inject non-registered injectable "some-registered-injectable-filename" -> "some-non-registered-injectable-filename".',
+      'Tried to inject non-registered injectable "some-registered-injectable" -> "some-non-registered-injectable".',
     );
   });
 
   it('given an injectable is singleton, when injected multiple times, injects singleton', () => {
     const singletonInjectable = getInjectable({
-      module: { filename: 'irrelevant' },
+      id: 'irrelevant',
       instantiate: () => ({}),
       lifecycle: lifecycleEnum.singleton,
     });
@@ -427,7 +427,7 @@ describe('createContainer', () => {
 
   it('given an injectable is does not specify lifecycle, when injected multiple times, defaults to injecting singleton', () => {
     const injectable = getInjectable({
-      module: { filename: 'irrelevant' },
+      id: 'irrelevant',
       instantiate: () => ({}),
     });
 
@@ -441,7 +441,7 @@ describe('createContainer', () => {
 
   it('given an injectable is not singleton, when injected multiple times, injects as transient', () => {
     const transientInjectable = getInjectable({
-      module: { filename: 'irrelevant' },
+      id: 'irrelevant',
       instantiate: () => ({}),
       lifecycle: lifecycleEnum.transient,
     });
@@ -456,7 +456,7 @@ describe('createContainer', () => {
 
   it('given lifecycle is not specified, when injected multiple times, injects as singleton as default', () => {
     const singletonInjectable = getInjectable({
-      module: { filename: 'irrelevant' },
+      id: 'irrelevant',
       instantiate: () => ({}),
       lifecycle: undefined,
     });
@@ -473,7 +473,7 @@ describe('createContainer', () => {
     let instanceFromSetup;
 
     const someSetuppable = getInjectable({
-      module: { filename: 'some-setuppable-filename' },
+      id: 'some-setuppable',
 
       setup: di => {
         instanceFromSetup = di.inject(someInjectable, 'some-parameter');
@@ -481,7 +481,7 @@ describe('createContainer', () => {
     });
 
     const someInjectable = getInjectable({
-      module: { filename: 'some-injectable-filename' },
+      id: 'some-injectable',
       lifecycle: lifecycleEnum.transient,
       instantiate: (di, parameter) => `some-instance: "${parameter}"`,
     });
@@ -495,12 +495,12 @@ describe('createContainer', () => {
 
   it('given multiple async setuppables and setups are ran, when setups resolve, setup resolves', async () => {
     const someSetuppable = getInjectable({
-      module: { filename: 'some-injectable-filename' },
+      id: 'some-injectable',
       setup: asyncFn(),
     });
 
     const someOtherSetuppable = getInjectable({
-      module: { filename: 'some-other-injectable-filename' },
+      id: 'some-other-injectable',
       setup: asyncFn(),
     });
 
@@ -518,12 +518,12 @@ describe('createContainer', () => {
 
   it('given multiple async setuppables and DI-setups are ran, when only some of the setups resolve, DI-setup does not resolve', async () => {
     const someSetuppable = getInjectable({
-      module: { filename: 'some-injectable-filename' },
+      id: 'some-injectable',
       setup: asyncFn(),
     });
 
     const someOtherSetuppable = {
-      module: { filename: 'some-other-injectable-filename' },
+      id: 'some-other-injectable',
       setup: asyncFn(),
     };
 
@@ -540,7 +540,7 @@ describe('createContainer', () => {
 
   it('given injectable with setup but no way to instantiate, when injected, throws', async () => {
     const someInjectable = getInjectable({
-      module: { filename: 'some-injectable-filename' },
+      id: 'some-injectable',
       setup: () => {},
     });
 
@@ -551,13 +551,13 @@ describe('createContainer', () => {
     expect(() => {
       di.inject(someInjectable);
     }).toThrow(
-      'Tried to inject "some-injectable-filename" when instantiation is not defined.',
+      'Tried to inject "some-injectable" when instantiation is not defined.',
     );
   });
 
   it('given injectable with setup but setups have not been ran, when injected, throws', () => {
     const someInjectable = getInjectable({
-      module: { filename: 'some-injectable-filename' },
+      id: 'some-injectable',
       setup: () => {},
       instantiate: () => {},
     });
@@ -567,13 +567,13 @@ describe('createContainer', () => {
     expect(() => {
       di.inject(someInjectable);
     }).toThrow(
-      'Tried to inject setuppable "some-injectable-filename" before setups are ran.',
+      'Tried to inject setuppable "some-injectable" before setups are ran.',
     );
   });
 
   it('given injectable with setup that injects itself, when running setups, does not throw', async () => {
     const someInjectable = getInjectable({
-      module: { filename: 'irrelevant' },
+      id: 'irrelevant',
 
       setup: di => {
         const instance = di.inject(someInjectable);
@@ -595,7 +595,7 @@ describe('createContainer', () => {
 
   it('given injectable with setup that injects other injectable with setup, when running setups, throws', () => {
     const someInjectable = getInjectable({
-      module: { filename: 'some-setuppable-filename' },
+      id: 'some-setuppable',
 
       setup: di => {
         di.inject(someOtherInjectable);
@@ -605,7 +605,7 @@ describe('createContainer', () => {
     });
 
     const someOtherInjectable = getInjectable({
-      module: { filename: 'some-other-setuppable-filename' },
+      id: 'some-other-setuppable',
       setup: () => {},
       instantiate: () => {},
     });
@@ -613,23 +613,23 @@ describe('createContainer', () => {
     const di = getDi(someInjectable, someOtherInjectable);
 
     return expect(di.runSetups()).rejects.toThrow(
-      'Tried to inject setuppable "some-other-setuppable-filename" before setups are ran.',
+      'Tried to inject setuppable "some-other-setuppable" before setups are ran.',
     );
   });
 
   it('given multiple injectables with shared injection token, when injecting using the token, throws', () => {
     const someSharedInjectionToken = getInjectionToken({
-      module: { filename: 'some-injection-token-filename' },
+      id: 'some-injection-token',
     });
 
     const someInjectable = getInjectable({
-      module: { filename: 'some-injectable-filename' },
+      id: 'some-injectable',
       injectionToken: someSharedInjectionToken,
       instantiate: () => 'irrelevant',
     });
 
     const someOtherInjectable = getInjectable({
-      module: { filename: 'some-other-injectable-filename' },
+      id: 'some-other-injectable',
       injectionToken: someSharedInjectionToken,
       instantiate: () => 'irrelevant',
     });
@@ -639,29 +639,29 @@ describe('createContainer', () => {
     expect(() => {
       di.inject(someSharedInjectionToken);
     }).toThrow(
-      `Tried to inject single injectable for injection token "some-injection-token-filename" but found multiple injectables: "some-injectable-filename", "some-other-injectable-filename"`,
+      `Tried to inject single injectable for injection token "some-injection-token" but found multiple injectables: "some-injectable", "some-other-injectable"`,
     );
   });
 
   it('given multiple sync injectables with shared injection token, when injecting many using the token, injects all injectables with the shared token', () => {
     const someSharedInjectionToken = getInjectionToken({
-      module: { filename: 'some-injection-token-filename' },
+      id: 'some-injection-token',
     });
 
     const someInjectable = getInjectable({
-      module: { filename: 'some-injectable-filename' },
+      id: 'some-injectable',
       injectionToken: someSharedInjectionToken,
       instantiate: () => 'some-instance',
     });
 
     const someOtherInjectable = getInjectable({
-      module: { filename: 'some-other-injectable-filename' },
+      id: 'some-other-injectable',
       injectionToken: someSharedInjectionToken,
       instantiate: () => 'some-other-instance',
     });
 
     const someUnrelatedInjectable = getInjectable({
-      module: { filename: 'some-unrelated-injectable-filename' },
+      id: 'some-unrelated-injectable',
       instantiate: () => 'some-other-instance',
     });
 
@@ -678,23 +678,23 @@ describe('createContainer', () => {
 
   it('given multiple sync and async injectables with shared injection token, when injecting many using the token, injects all injectables with the shared token', async () => {
     const someSharedInjectionToken = getInjectionToken({
-      module: { filename: 'some-injection-token-filename' },
+      id: 'some-injection-token',
     });
 
     const someSyncInjectable = getInjectable({
-      module: { filename: 'some-injectable-filename' },
+      id: 'some-injectable',
       injectionToken: someSharedInjectionToken,
       instantiate: () => 'some-instance',
     });
 
     const someAsyncInjectable = getInjectable({
-      module: { filename: 'some-other-injectable-filename' },
+      id: 'some-other-injectable',
       injectionToken: someSharedInjectionToken,
       instantiate: async () => 'some-other-instance',
     });
 
     const someUnrelatedInjectable = getInjectable({
-      module: { filename: 'some-other-injectable-filename' },
+      id: 'some-unrelated-injectable',
       instantiate: () => 'some-other-instance',
     });
 
@@ -711,11 +711,11 @@ describe('createContainer', () => {
 
   it('given multiple transient injectables, when injecting many with an instantiation parameter, injects the injectables using the instantiation parameter', () => {
     const someSharedInjectionToken = getInjectionToken({
-      module: { filename: 'some-injection-token-filename' },
+      id: 'some-injection-token',
     });
 
     const someInjectable = getInjectable({
-      module: { filename: 'some-injectable-filename' },
+      id: 'some-injectable',
       injectionToken: someSharedInjectionToken,
       lifecycle: lifecycleEnum.transient,
 
@@ -735,7 +735,7 @@ describe('createContainer', () => {
 
   it('given no injectables, when injecting many, injects no instances', async () => {
     const someSharedInjectionToken = getInjectionToken({
-      module: { filename: 'some-injection-token-filename' },
+      id: 'some-injection-token',
     });
 
     const di = getDi();
@@ -750,21 +750,21 @@ describe('createContainer', () => {
 
   it('given injectables with a dependency cycle, when injecting many, throws', () => {
     const someInjectionToken = getInjectionToken({
-      module: { filename: 'some-injection-token-filename' },
+      id: 'some-injection-token',
     });
 
     const someOtherInjectionToken = getInjectionToken({
-      module: { filename: 'some-injection-token-filename' },
+      id: 'some-injection-token',
     });
 
     const childInjectable = getInjectable({
-      module: { filename: 'some-child-injectable' },
+      id: 'some-child-injectable',
       injectionToken: someOtherInjectionToken,
       instantiate: di => di.injectMany(parentInjectable),
     });
 
     const parentInjectable = getInjectable({
-      module: { filename: 'some-parent-injectable' },
+      id: 'some-parent-injectable',
       injectionToken: someInjectionToken,
       instantiate: di => di.injectMany(childInjectable),
     });
@@ -780,7 +780,7 @@ describe('createContainer', () => {
 
   it('given in side effects are not prevented, when injecting injectable which causes side effects, does not throw', () => {
     const someInjectable = getInjectable({
-      module: { filename: 'irrelevant' },
+      id: 'irrelevant',
       causesSideEffects: true,
       instantiate: () => 'some-instance',
     });
@@ -794,7 +794,7 @@ describe('createContainer', () => {
 
   it('given side effects are prevented, when injecting, throws', () => {
     const someInjectable = getInjectable({
-      module: { filename: 'some-injectable-filename' },
+      id: 'some-injectable',
       causesSideEffects: true,
       instantiate: () => 'irrelevant',
     });
@@ -806,13 +806,13 @@ describe('createContainer', () => {
     expect(() => {
       di.inject(someInjectable);
     }).toThrow(
-      'Tried to inject "some-injectable-filename" when side-effects are prevented.',
+      'Tried to inject "some-injectable" when side-effects are prevented.',
     );
   });
 
   it('given side effects are prevented, but then permitted for an injectable, when injecting, does not throw', () => {
     const someInjectable = getInjectable({
-      module: { filename: 'irrelevant' },
+      id: 'irrelevant',
       causesSideEffects: true,
       instantiate: () => 'irrelevant',
     });
@@ -836,12 +836,12 @@ describe('createContainer', () => {
 
     beforeEach(() => {
       someInjectableForScope = getInjectable({
-        module: { filename: 'irrelevant' },
+        id: 'some-injectable-for-scope',
         instantiate: () => 'some-scope',
       });
 
       someInjectable = getInjectable({
-        module: { filename: 'irrelevant' },
+        id: 'some-injectable',
         instantiate: () => ({}),
 
         lifecycle: lifecycleEnum.scopedTransient(di =>
@@ -850,7 +850,7 @@ describe('createContainer', () => {
       });
 
       someOtherInjectable = getInjectable({
-        module: { filename: 'irrelevant' },
+        id: 'some-other-injectable',
         instantiate: () => ({}),
 
         lifecycle: lifecycleEnum.scopedTransient(di =>
@@ -903,7 +903,7 @@ describe('createContainer', () => {
 
   it('given singleton, when injecting with instantiation parameter, throws', () => {
     const someInjectable = getInjectable({
-      module: { filename: 'some-injectable-filename' },
+      id: 'some-injectable',
       instantiate: () => ({}),
       lifecycle: lifecycleEnum.singleton,
     });
@@ -913,13 +913,13 @@ describe('createContainer', () => {
     expect(() => {
       di.inject(someInjectable, { some: 'instantiation parameter' });
     }).toThrow(
-      'Tried to inject singleton "some-injectable-filename" with instantiation parameters.',
+      'Tried to inject singleton "some-injectable" with instantiation parameters.',
     );
   });
 
   it('given injectable, when DI is asked for lifecycle, returns lifecycle', () => {
     const someInjectable = getInjectable({
-      module: { filename: 'irrelevant' },
+      id: 'irrelevant',
       instantiate: () => ({}),
       lifecycle: { some: 'lifecycle' },
     });
@@ -933,7 +933,7 @@ describe('createContainer', () => {
 
   it('given an injectable is singleton and injected but purged, when injected, injects new instance', () => {
     const singletonInjectable = getInjectable({
-      module: { filename: 'irrelevant' },
+      id: 'irrelevant',
       instantiate: () => ({}),
       lifecycle: lifecycleEnum.singleton,
     });
@@ -951,13 +951,13 @@ describe('createContainer', () => {
 
   it('given an injectable is singleton and injected but unrelated singleton is purged, when injected, injects singleton', () => {
     const singletonInjectable = getInjectable({
-      module: { filename: 'irrelevant' },
+      id: 'some-injectable',
       instantiate: () => ({}),
       lifecycle: lifecycleEnum.singleton,
     });
 
     const unrelatedSingletonInjectable = getInjectable({
-      module: { filename: 'irrelevant' },
+      id: 'some-other-injectable',
       instantiate: () => ({}),
       lifecycle: lifecycleEnum.singleton,
     });
@@ -975,7 +975,7 @@ describe('createContainer', () => {
 
   it('given an injectable is transient, when purged, throws', () => {
     const transientInjectable = getInjectable({
-      module: { filename: 'irrelevant' },
+      id: 'irrelevant',
       instantiate: () => ({}),
       lifecycle: lifecycleEnum.transient,
     });
@@ -989,7 +989,7 @@ describe('createContainer', () => {
 
   it('given an injectable is scoped transient and injected but purged, when injected, injects new instance', () => {
     const scopedTransientInjectable = getInjectable({
-      module: { filename: 'irrelevant' },
+      id: 'irrelevant',
       instantiate: () => ({}),
       lifecycle: lifecycleEnum.scopedTransient(() => 'some-scope'),
     });
@@ -1007,13 +1007,13 @@ describe('createContainer', () => {
 
   it('given an injectable is scoped transient and injected but unrelated scoped transient is purged, when injected, injects same instance', () => {
     const scopedTransientInjectable = getInjectable({
-      module: { filename: 'irrelevant' },
+      id: 'some-injectable',
       instantiate: () => ({}),
       lifecycle: lifecycleEnum.scopedTransient(() => 'some-scope'),
     });
 
     const unrelatedScopedTransientInjectable = getInjectable({
-      module: { filename: 'irrelevant' },
+      id: 'some-unrelated-injectable',
       instantiate: () => ({}),
       lifecycle: lifecycleEnum.scopedTransient(() => 'some-scope'),
     });
@@ -1033,10 +1033,10 @@ describe('createContainer', () => {
   });
 
   it('given injectable with injection token, when injected using injection token, injects', () => {
-    const injectionToken = getInjectionToken({ module });
+    const injectionToken = getInjectionToken({ id: 'some-injection-token' });
 
     const someInjectable = getInjectable({
-      module: { filename: 'irrelevant' },
+      id: 'some-injectable',
       instantiate: () => 'some-instance',
       injectionToken: injectionToken,
     });

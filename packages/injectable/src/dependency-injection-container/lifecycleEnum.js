@@ -10,13 +10,13 @@ const getInstance = ({
 }) => {
   if (!injectable.instantiate) {
     throw new Error(
-      `Tried to inject "${injectable.module.filename}" when instantiation is not defined.`,
+      `Tried to inject "${injectable.id}" when instantiation is not defined.`,
     );
   }
 
-  const newContext = [...oldContext, injectable.module.filename];
+  const newContext = [...oldContext, injectable.id];
 
-  if (pipeline(oldContext, includes(injectable.module.filename))) {
+  if (pipeline(oldContext, includes(injectable.id))) {
     throw new Error(
       `Cycle of injectables encountered: "${newContext.join('" -> "')}"`,
     );
@@ -48,7 +48,7 @@ export default {
     }) => {
       if (instantiationParameter) {
         throw new Error(
-          `Tried to inject singleton "${injectable.module.filename}" with instantiation parameters.`,
+          `Tried to inject singleton "${injectable.id}" with instantiation parameters.`,
         );
       }
 

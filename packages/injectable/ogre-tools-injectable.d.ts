@@ -60,7 +60,7 @@ declare module '@ogre-tools/injectable' {
   };
 
   export function getInjectionToken<TInstance, TInstantiationParameter = void>({
-    module: NodeModule,
+    id: string,
   }): InjectionToken<TInstance, TInstantiationParameter>;
 
   export interface Injectable<
@@ -68,7 +68,7 @@ declare module '@ogre-tools/injectable' {
     TInstance,
     TInstantiationParameter,
   > {
-    module: NodeModule;
+    id: string;
     setup?: (di: DependencyInjectionContainer) => void | Promise<void>;
     causesSideEffects?: boolean;
     lifecycle?: lifecycleEnum;
