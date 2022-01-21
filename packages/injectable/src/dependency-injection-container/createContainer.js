@@ -30,6 +30,7 @@ export default (...listOfGetRequireContexts) => {
       const originalInjectable = getRelatedInjectable({
         injectables,
         alias,
+        context,
       });
 
       const overriddenInjectable = getOverridingInjectable({
@@ -204,12 +205,16 @@ const isRelatedTo = alias => injectable =>
   injectable.module === alias.module ||
   (injectable.injectionToken && injectable.injectionToken === alias);
 
-const getRelatedInjectable = ({ injectables, alias }) => {
+const getRelatedInjectable = ({ injectables, alias, context }) => {
   const relatedInjectables = getRelatedInjectables({ injectables, alias });
 
   if (relatedInjectables.length === 0) {
+    const errorContextString = [...context, alias.module.filename].join(
+      '" -> "',
+    );
+
     throw new Error(
-      `Tried to inject non-registered injectable "${alias.module.filename}".`,
+      `Tried to inject non-registered injectable "${errorContextString}".`,
     );
   }
 
