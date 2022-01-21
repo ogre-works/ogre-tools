@@ -1,3 +1,4 @@
+import matches from 'lodash/fp/matches';
 import tap from 'lodash/fp/tap';
 import filter from 'lodash/fp/filter';
 import find from 'lodash/fp/find';
@@ -82,6 +83,12 @@ export default (...listOfGetRequireContexts) => {
     register: injectable => {
       if (!injectable.id) {
         throw new Error('Tried to register injectable without ID.');
+      }
+
+      if (injectables.find(matches({ id: injectable.id }))) {
+        throw new Error(
+          `Tried to register multiple injectables for ID "${injectable.id}"`,
+        );
       }
 
       injectables.push({

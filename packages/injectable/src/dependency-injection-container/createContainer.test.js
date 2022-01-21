@@ -40,6 +40,26 @@ describe('createContainer', () => {
     expect(actual).toBe('some-instance');
   });
 
+  it('given injectables with same ID, when registering, throws', () => {
+    const di = getDi();
+
+    const someInjectable = getInjectable({
+      id: 'some-id',
+      instantiate: () => 'irrelevant',
+    });
+
+    const someOtherInjectable = getInjectable({
+      id: 'some-id',
+      instantiate: () => 'irrelevant',
+    });
+
+    di.register(someInjectable);
+
+    expect(() => {
+      di.register(someOtherInjectable);
+    }).toThrow('Tried to register multiple injectables for ID "some-id"');
+  });
+
   it('injects auto-registered injectable with a another auto-registered child-injectable', () => {
     const childInjectable = getInjectable({
       id: 'some-injectable',
