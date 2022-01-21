@@ -128,18 +128,6 @@ export default (...listOfGetRequireContexts) => {
     runSetups: async () =>
       pipeline(
         injectables,
-
-        map(originalInjectable => {
-          const overridingInjectable = getOverridingInjectable({
-            overridingInjectables,
-            alias: originalInjectable.id,
-          });
-
-          return overridingInjectable
-            ? overridingInjectable
-            : originalInjectable;
-        }),
-
         filter('setup'),
 
         map(async injectable => {
