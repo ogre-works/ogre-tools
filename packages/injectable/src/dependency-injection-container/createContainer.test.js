@@ -680,161 +680,23 @@ describe('createContainer', () => {
     );
   });
 
-  it('given multiple injectables with same alias, but no way to demonstrate viability, when injected, throws', () => {
+  it('when injecting ambiguous injectable, throws', () => {
     const someInjectable = getInjectable({
-      id: 'some-injectable-id',
-      aliases: ['some-alias'],
-      viability: undefined,
+      id: 'some-ambiguous-injectable-id',
       instantiate: () => 'irrelevant',
     });
 
     const someOtherInjectable = getInjectable({
-      id: 'some-other-injectable-id',
-      aliases: ['some-alias'],
-      viability: () => {},
+      id: 'some-ambiguous-injectable-id',
       instantiate: () => 'irrelevant',
     });
 
     const di = getDi(someInjectable, someOtherInjectable);
 
     expect(() => {
-      di.inject('some-alias');
+      di.inject('some-ambiguous-injectable-id');
     }).toThrow(
-      'Tried to inject one of multiple injectables with no way to demonstrate viability for "some-injectable-id", "some-other-injectable-id"',
-    );
-  });
-
-  it('given multiple injectables with same alias, one of which is viable, when injected, injects viable instance', () => {
-    const someInjectable = getInjectable({
-      aliases: ['some-alias'],
-      viability: () => false,
-      instantiate: () => 'irrelevant',
-    });
-
-    const someOtherInjectable = getInjectable({
-      aliases: ['some-alias'],
-      viability: () => true,
-      instantiate: () => 'viable-instance',
-    });
-
-    const di = getDi(someInjectable, someOtherInjectable);
-
-    const actual = di.inject('some-alias');
-
-    expect(actual).toBe('viable-instance');
-  });
-
-  it('given multiple injectables with same alias, one of which is viable, given overridden, when injected, injects overridden instance', () => {
-    const someInjectable = getInjectable({
-      aliases: ['some-alias'],
-      viability: () => false,
-      instantiate: () => 'irrelevant',
-    });
-
-    const someOtherInjectable = getInjectable({
-      aliases: ['some-alias'],
-      viability: () => true,
-      instantiate: () => 'irrelevant',
-    });
-
-    const di = getDi(someInjectable, someOtherInjectable);
-
-    di.override('some-alias', () => 'overridden-instance');
-
-    const actual = di.inject('some-alias');
-
-    expect(actual).toBe('overridden-instance');
-  });
-
-  it('given multiple injectables with same alias, one of which is viable by considering a third injectable, injects viable instance', () => {
-    const someThirdInjectable = getInjectable({
-      aliases: ['third-injectable-alias'],
-      instantiate: () => 'third-injectable-instance',
-    });
-
-    const someInjectable = getInjectable({
-      aliases: ['some-alias'],
-      viability: di =>
-        di.inject('third-injectable-alias') !== 'third-injectable-instance',
-      instantiate: () => 'irrelevant',
-    });
-
-    const someOtherInjectable = getInjectable({
-      aliases: ['some-alias'],
-      viability: di =>
-        di.inject('third-injectable-alias') === 'third-injectable-instance',
-      instantiate: () => 'viable-instance',
-    });
-
-    const di = getDi(someInjectable, someOtherInjectable, someThirdInjectable);
-
-    const actual = di.inject('some-alias');
-
-    expect(actual).toBe('viable-instance');
-  });
-
-  it('given multiple injectables with same alias, all of which are unviable, when injected, throws', () => {
-    const someInjectable = getInjectable({
-      id: 'some-injectable-id',
-      aliases: ['some-alias'],
-      viability: () => false,
-      instantiate: () => 'irrelevant',
-    });
-
-    const someOtherInjectable = getInjectable({
-      id: 'some-other-injectable-id',
-      aliases: ['some-alias'],
-      viability: () => false,
-      instantiate: () => 'irrelevant',
-    });
-
-    const di = getDi(someInjectable, someOtherInjectable);
-
-    expect(() => {
-      di.inject('some-alias');
-    }).toThrow(
-      'Tried to inject one of multiple injectables with no viability within "some-injectable-id", "some-other-injectable-id"',
-    );
-  });
-
-  it('given multiple injectables with same alias, all of which are viable, when injected, throws', () => {
-    const someInjectable = getInjectable({
-      id: 'some-injectable-id',
-      aliases: ['some-alias'],
-      viability: () => true,
-      instantiate: () => 'irrelevant',
-    });
-
-    const someOtherInjectable = getInjectable({
-      id: 'some-other-injectable-id',
-      aliases: ['some-alias'],
-      viability: () => true,
-      instantiate: () => 'irrelevant',
-    });
-
-    const di = getDi(someInjectable, someOtherInjectable);
-
-    expect(() => {
-      di.inject('some-alias');
-    }).toThrow(
-      'Tried to inject one of multiple injectables with non-singular viability within "some-injectable-id", "some-other-injectable-id"',
-    );
-  });
-
-  it('given single injectable, but unviable, when injected, throws', () => {
-    const someInjectable = getInjectable({
-      id: 'some-injectable-id',
-      aliases: ['some-alias'],
-      viability: () => false,
-      instantiate: () => 'irrelevant',
-    });
-
-    const di = getDi(someInjectable);
-
-    expect(() => {
-      di.inject('some-alias');
-    }).toThrow(
-      'Tried to inject injectable with no viability for "some-injectable-id"',
+      `Tried to inject injectable with ambiguous alias: "some-ambiguous-injectable-id"`,
     );
   });
 
