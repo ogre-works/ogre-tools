@@ -171,6 +171,29 @@ describe('createContainer', () => {
     );
   });
 
+  xit('given setuppables with a dependency cycle, when setupped, throws', () => {
+    const someSetuppable = getInjectable({
+      id: 'some-setuppable',
+      setup: async di => await di.inject(someOtherSetuppable),
+
+      instantiate: () => 'irrelevant1',
+    });
+
+    const someOtherSetuppable = getInjectable({
+      id: 'some-other-setuppable',
+      setup: async di => await di.inject(someSetuppable),
+      instantiate: () => 'irrelevant2',
+    });
+
+    const di = getDi(someSetuppable, someOtherSetuppable);
+
+    expect(async () => {
+      await di.runSetups();
+    }).toThrow(
+      'Cycle of injectables encountered: "some-parent-injectable" -> "some-child-injectable" -> "some-parent-injectable"',
+    );
+  });
+
   it('given async injectables with a dependency cycle, when injected, throws', () => {
     const childInjectable = getInjectable({
       id: 'some-child-injectable',
@@ -285,8 +308,8 @@ describe('createContainer', () => {
     const someInjectable = getInjectable({
       id: 'irrelevant',
 
-      setup: di => {
-        const self = di.inject(someInjectable);
+      setup: async di => {
+        const self = await di.inject(someInjectable);
 
         self.setupped = true;
       },
@@ -495,8 +518,8 @@ describe('createContainer', () => {
     const someSetuppable = getInjectable({
       id: 'some-setuppable',
 
-      setup: di => {
-        instanceFromSetup = di.inject(someInjectable, 'some-parameter');
+      setup: async di => {
+        instanceFromSetup = await di.inject(someInjectable, 'some-parameter');
       },
     });
 
@@ -595,8 +618,8 @@ describe('createContainer', () => {
     const someInjectable = getInjectable({
       id: 'irrelevant',
 
-      setup: di => {
-        const instance = di.inject(someInjectable);
+      setup: async di => {
+        const instance = await di.inject(someInjectable);
 
         instance.someProperty = 'some-value';
       },
@@ -613,28 +636,103 @@ describe('createContainer', () => {
     expect(actual).toEqual({ someProperty: 'some-value' });
   });
 
-  it('given injectable with setup that injects other injectable with setup, when running setups, throws', () => {
-    const someInjectable = getInjectable({
-      id: 'some-setuppable',
+  it('given setuppable that injects other setuppable that injects itself, when running setups, does not throw', async () => {
+    let instanceFromChildSetup;
 
-      setup: di => {
-        di.inject(someOtherInjectable);
+    const someInjectable = getInjectable({
+      id: 'some-injectable',
+
+      setup: async di => {
+        await di.inject(someChildInjectable);
       },
 
-      instantiate: () => {},
+      instantiate: () => ({}),
     });
 
-    const someOtherInjectable = getInjectable({
-      id: 'some-other-setuppable',
-      setup: () => {},
-      instantiate: () => {},
+    const someChildInjectable = getInjectable({
+      id: 'some-child-injectable',
+
+      setup: async di => {
+        instanceFromChildSetup = await di.inject(someChildInjectable);
+      },
+
+      instantiate: () => 'some-value',
     });
 
-    const di = getDi(someInjectable, someOtherInjectable);
+    const di = getDi(someInjectable, someChildInjectable);
 
-    return expect(di.runSetups()).rejects.toThrow(
-      'Tried to inject setuppable "some-other-setuppable" before setups are ran.',
-    );
+    await di.runSetups();
+
+    expect(instanceFromChildSetup).toBe('some-value');
+  });
+
+  describe('given setuppables that inject other setuppable, when running setups', () => {
+    let runSetupsPromise;
+    let setupMock;
+    let parentSetupPromise;
+
+    beforeEach(() => {
+      setupMock = asyncFn();
+
+      const someSetuppable = getInjectable({
+        id: 'some-setuppable',
+
+        setup: async di => {
+          parentSetupPromise = di.inject(someChildSetuppable);
+          await parentSetupPromise;
+        },
+
+        instantiate: () => {},
+      });
+
+      const someOtherSetuppable = getInjectable({
+        id: 'some-other-setuppable',
+
+        setup: async di => {
+          await di.inject(someChildSetuppable);
+        },
+
+        instantiate: () => {},
+      });
+
+      const someChildSetuppable = getInjectable({
+        id: 'some-child-setuppable',
+        setup: setupMock,
+        instantiate: () => {},
+      });
+
+      const di = getDi(
+        someSetuppable,
+        someOtherSetuppable,
+        someChildSetuppable,
+      );
+
+      runSetupsPromise = di.runSetups();
+    });
+
+    it('runs setup only once', async () => {
+      expect(setupMock).toHaveBeenCalledTimes(1);
+    });
+
+    it('given the setup for the child resolves, setups resolves', async () => {
+      await setupMock.resolve();
+
+      const actual = await runSetupsPromise;
+
+      expect(actual).toBeUndefined();
+    });
+
+    it('given the setup for the child has not resolved yet, setups do not resolve', async () => {
+      const promiseStatus = await getPromiseStatus(runSetupsPromise);
+
+      expect(promiseStatus.fulfilled).toBe(false);
+    });
+
+    it('given the setup for the child has not resolved yet, setup for parent does not resolve', async () => {
+      const promiseStatus = await getPromiseStatus(parentSetupPromise);
+
+      expect(promiseStatus.fulfilled).toBe(false);
+    });
   });
 
   it('given multiple injectables with shared injection token, when injecting using the token, throws', () => {

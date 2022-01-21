@@ -1,5 +1,6 @@
+import find from 'lodash/fp/find';
+import get from 'lodash/fp/get';
 import isUndefined from 'lodash/fp/isUndefined';
-import includes from 'lodash/fp/includes';
 import { pipeline } from '@ogre-tools/fp';
 
 const getInstance = ({
@@ -14,11 +15,18 @@ const getInstance = ({
     );
   }
 
-  const newContext = [...oldContext, injectable.id];
+  const newContext = [...oldContext, { id: injectable.id }];
 
-  if (pipeline(oldContext, includes(injectable.id))) {
+  const injectableCausingCycle = pipeline(
+    oldContext,
+    find({ id: injectable.id }),
+  );
+
+  if (injectableCausingCycle && !injectableCausingCycle.setupping) {
     throw new Error(
-      `Cycle of injectables encountered: "${newContext.join('" -> "')}"`,
+      `Cycle of injectables encountered: "${newContext
+        .map(get('id'))
+        .join('" -> "')}"`,
     );
   }
 

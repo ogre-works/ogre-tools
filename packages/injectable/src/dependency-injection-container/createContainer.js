@@ -1,15 +1,18 @@
-import matches from 'lodash/fp/matches';
-import tap from 'lodash/fp/tap';
+import get from 'lodash/fp/get';
+import conforms from 'lodash/fp/conforms';
 import filter from 'lodash/fp/filter';
 import find from 'lodash/fp/find';
 import findLast from 'lodash/fp/findLast';
 import first from 'lodash/fp/first';
 import forEach from 'lodash/fp/forEach';
-import includes from 'lodash/fp/includes';
 import invoke from 'lodash/fp/invoke';
+import isFunction from 'lodash/fp/isFunction';
 import lifecycleEnum from './lifecycleEnum';
 import map from 'lodash/fp/map';
+import matches from 'lodash/fp/matches';
+import once from 'lodash/fp/once';
 import reject from 'lodash/fp/reject';
+import tap from 'lodash/fp/tap';
 import { pipeline } from '@ogre-tools/fp';
 
 export default (...listOfGetRequireContexts) => {
@@ -43,7 +46,7 @@ export default (...listOfGetRequireContexts) => {
 
       const injectableIsBeingSetupped = pipeline(
         context,
-        includes(`setup(${injectable.id})`),
+        find({ setupping: true }),
       );
 
       if (
@@ -96,6 +99,8 @@ export default (...listOfGetRequireContexts) => {
 
         lifecycle: injectable.lifecycle || lifecycleEnum.singleton,
 
+        setup: injectable.setup ? once(injectable.setup) : undefined,
+
         permitSideEffects: function () {
           this.causesSideEffects = false;
         },
@@ -132,22 +137,44 @@ export default (...listOfGetRequireContexts) => {
       overridingInjectables = [];
     },
 
-    runSetups: async () =>
-      pipeline(
+    runSetups: async () => {
+      const diForSetupsFor = setuppable => {
+        const diForSetups = {
+          inject: async (alias, parameter) => {
+            const targetSetuppable = injectables.find(
+              conforms({ id: x => x === alias.id, setup: isFunction }),
+            );
+
+            if (targetSetuppable) {
+              await targetSetuppable.setup(diForSetups);
+            }
+
+            return privateDi.inject(alias, parameter, [
+              {
+                id: setuppable.id,
+                setupping: true,
+              },
+            ]);
+          },
+        };
+
+        return diForSetups;
+      };
+
+      await pipeline(
         injectables,
         filter('setup'),
 
         map(async injectable => {
-          await injectable.setup({
-            inject: (alias, parameter) =>
-              privateDi.inject(alias, parameter, [`setup(${injectable.id})`]),
-          });
+          const diForSetups = diForSetupsFor(injectable);
+          await injectable.setup(diForSetups);
         }),
 
         tap(() => {
           setupsHaveBeenRan = true;
         }),
-      ),
+      );
+    },
 
     preventSideEffects: () => {
       sideEffectsArePrevented = true;
@@ -202,7 +229,9 @@ const getRelatedInjectable = ({ injectables, alias, context }) => {
   const relatedInjectables = getRelatedInjectables({ injectables, alias });
 
   if (relatedInjectables.length === 0) {
-    const errorContextString = [...context, alias.id].join('" -> "');
+    const errorContextString = [...context, { id: alias.id }]
+      .map(get('id'))
+      .join('" -> "');
 
     throw new Error(
       `Tried to inject non-registered injectable "${errorContextString}".`,
