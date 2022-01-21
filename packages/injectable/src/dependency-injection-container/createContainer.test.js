@@ -365,22 +365,14 @@ describe('createContainer', () => {
   it('when overriding non-registered injectable, throws', () => {
     const di = getDi();
 
-    expect(() => {
-      di.override('some-non-existing-injectable', () => 'irrelevant');
-    }).toThrow(
-      'Tried to override "some-non-existing-injectable" which is not registered.',
-    );
-  });
-
-  it('when overriding non-registered injectable using a symbol, throws', () => {
-    const di = getDi();
-
-    const symbol = Symbol('some-symbol');
+    const injectable = getInjectable({
+      module: { filename: 'some-non-registered-injectable-filename' },
+    });
 
     expect(() => {
-      di.override(symbol, () => 'irrelevant');
+      di.override(injectable, () => 'irrelevant');
     }).toThrow(
-      'Tried to override "Symbol(some-symbol)" which is not registered.',
+      'Tried to override "some-non-registered-injectable-filename" which is not registered.',
     );
   });
 
@@ -461,19 +453,15 @@ describe('createContainer', () => {
     let instanceFromSetup;
 
     const someSetuppable = getInjectable({
-      module: { filename: 'irrelevant' },
+      module: { filename: 'some-setuppable-filename' },
 
       setup: di => {
-        instanceFromSetup = di.inject(
-          someInjectable,
-          'some-parameter',
-          'irrelevant',
-        );
+        instanceFromSetup = di.inject(someInjectable, 'some-parameter');
       },
     });
 
     const someInjectable = getInjectable({
-      module: { filename: 'irrelevant' },
+      module: { filename: 'some-injectable-filename' },
       lifecycle: lifecycleEnum.transient,
       instantiate: (di, parameter) => `some-instance: "${parameter}"`,
     });
@@ -632,6 +620,141 @@ describe('createContainer', () => {
       di.inject(someSharedInjectionToken);
     }).toThrow(
       `Tried to inject single injectable for injection token "some-injection-token-filename" but found multiple injectables: "some-injectable-filename", "some-other-injectable-filename"`,
+    );
+  });
+
+  it('given multiple sync injectables with shared injection token, when injecting many using the token, injects all injectables with the shared token', () => {
+    const someSharedInjectionToken = getInjectionToken({
+      module: { filename: 'some-injection-token-filename' },
+    });
+
+    const someInjectable = getInjectable({
+      module: { filename: 'some-injectable-filename' },
+      injectionToken: someSharedInjectionToken,
+      instantiate: () => 'some-instance',
+    });
+
+    const someOtherInjectable = getInjectable({
+      module: { filename: 'some-other-injectable-filename' },
+      injectionToken: someSharedInjectionToken,
+      instantiate: () => 'some-other-instance',
+    });
+
+    const someUnrelatedInjectable = getInjectable({
+      module: { filename: 'some-unrelated-injectable-filename' },
+      instantiate: () => 'some-other-instance',
+    });
+
+    const di = getDi(
+      someInjectable,
+      someOtherInjectable,
+      someUnrelatedInjectable,
+    );
+
+    const actual = di.injectMany(someSharedInjectionToken);
+
+    expect(actual).toEqual(['some-instance', 'some-other-instance']);
+  });
+
+  it('given multiple sync and async injectables with shared injection token, when injecting many using the token, injects all injectables with the shared token', async () => {
+    const someSharedInjectionToken = getInjectionToken({
+      module: { filename: 'some-injection-token-filename' },
+    });
+
+    const someSyncInjectable = getInjectable({
+      module: { filename: 'some-injectable-filename' },
+      injectionToken: someSharedInjectionToken,
+      instantiate: () => 'some-instance',
+    });
+
+    const someAsyncInjectable = getInjectable({
+      module: { filename: 'some-other-injectable-filename' },
+      injectionToken: someSharedInjectionToken,
+      instantiate: async () => 'some-other-instance',
+    });
+
+    const someUnrelatedInjectable = getInjectable({
+      module: { filename: 'some-other-injectable-filename' },
+      instantiate: () => 'some-other-instance',
+    });
+
+    const di = getDi(
+      someSyncInjectable,
+      someAsyncInjectable,
+      someUnrelatedInjectable,
+    );
+
+    const actual = await di.injectMany(someSharedInjectionToken);
+
+    expect(actual).toEqual(['some-instance', 'some-other-instance']);
+  });
+
+  it('given multiple transient injectables, when injecting many with an instantiation parameter, injects the injectables using the instantiation parameter', () => {
+    const someSharedInjectionToken = getInjectionToken({
+      module: { filename: 'some-injection-token-filename' },
+    });
+
+    const someInjectable = getInjectable({
+      module: { filename: 'some-injectable-filename' },
+      injectionToken: someSharedInjectionToken,
+      lifecycle: lifecycleEnum.transient,
+
+      instantiate: (di, instantiationParameter) =>
+        `some-instance: "${instantiationParameter}"`,
+    });
+
+    const di = getDi(someInjectable);
+
+    const actual = di.injectMany(
+      someSharedInjectionToken,
+      'some-instantiation-parameter',
+    );
+
+    expect(actual).toEqual(['some-instance: "some-instantiation-parameter"']);
+  });
+
+  it('given no injectables, when injecting many, injects no instances', async () => {
+    const someSharedInjectionToken = getInjectionToken({
+      module: { filename: 'some-injection-token-filename' },
+    });
+
+    const di = getDi();
+
+    const actual = await di.injectMany(
+      someSharedInjectionToken,
+      'some-instantiation-parameter',
+    );
+
+    expect(actual).toEqual([]);
+  });
+
+  it('given injectables with a dependency cycle, when injecting many, throws', () => {
+    const someInjectionToken = getInjectionToken({
+      module: { filename: 'some-injection-token-filename' },
+    });
+
+    const someOtherInjectionToken = getInjectionToken({
+      module: { filename: 'some-injection-token-filename' },
+    });
+
+    const childInjectable = getInjectable({
+      module: { filename: 'some-child-injectable' },
+      injectionToken: someOtherInjectionToken,
+      instantiate: di => di.injectMany(parentInjectable),
+    });
+
+    const parentInjectable = getInjectable({
+      module: { filename: 'some-parent-injectable' },
+      injectionToken: someInjectionToken,
+      instantiate: di => di.injectMany(childInjectable),
+    });
+
+    const di = getDi(parentInjectable, childInjectable);
+
+    expect(() => {
+      di.injectMany(parentInjectable, undefined, ['some-bogus-context']);
+    }).toThrow(
+      'Cycle of injectables encountered: "some-parent-injectable" -> "some-child-injectable" -> "some-parent-injectable"',
     );
   });
 
