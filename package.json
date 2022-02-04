@@ -12,7 +12,7 @@
   "scripts": {
     "verify-code-style": "prettier --list-different \"packages/**/src/**/*.{js,jsx,css,scss,json}\"",
     "fix-code-style": "prettier --write \"packages/*/src/**/*.{js,jsx,css,scss,json}\"",
-    "install-all-packages": "lerna bootstrap",
+    "install-all-packages": "lerna bootstrap --hoist",
     "update-package-locks-for-lerna": "lerna exec --parallel -- npm i --package-lock-only",
     "reinstall-all-dependencies": "./npm-scripts/reinstall-all-dependencies.sh",
     "build-all-packages": "lerna run build",
