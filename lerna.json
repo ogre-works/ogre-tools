@@ -3,6 +3,9 @@
   "packages": ["packages/*"],
   "useWorkspaces": true,
   "command": {
+    "bootstrap": {
+      "npmClientArgs": ["--no-package-lock"]
+    },
     "publish": {
       "ignoreChanges": ["ignored-file"],
       "message": "Publish %s"
