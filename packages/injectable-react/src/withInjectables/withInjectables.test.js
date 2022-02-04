@@ -1,7 +1,11 @@
 import React from 'react';
 import enzyme from 'enzyme';
 import { setImmediate as flushMicroTasks } from 'timers';
-import { createContainer, lifecycleEnum } from '@ogre-tools/injectable';
+import {
+  createContainer,
+  getInjectable,
+  lifecycleEnum,
+} from '@ogre-tools/injectable';
 import withInjectables from './withInjectables';
 import asyncFn from '@async-fn/jest';
 import { DiContextProvider } from '@ogre-tools/injectable-react';
@@ -34,7 +38,7 @@ describe('withInjectables', () => {
   });
 
   it('given component and sync dependencies, when rendered, renders with dependencies', () => {
-    di.register({
+    const injectable = getInjectable({
       id: 'some-injectable-id',
 
       lifecycle: lifecycleEnum.transient,
@@ -42,13 +46,15 @@ describe('withInjectables', () => {
       instantiate: () => 'some-injectable-value',
     });
 
+    di.register(injectable);
+
     const DumbTestComponent = ({ someDependency, ...props }) => (
       <div {...props}>Some content: "{someDependency}"</div>
     );
 
     const SmartTestComponent = withInjectables(DumbTestComponent, {
       getProps: (di, props) => ({
-        someDependency: di.inject('some-injectable-id'),
+        someDependency: di.inject(injectable),
         ...props,
       }),
     });
@@ -65,7 +71,7 @@ describe('withInjectables', () => {
     beforeEach(async () => {
       asyncDependencyMock = asyncFn();
 
-      di.register({
+      const injectable = getInjectable({
         id: 'some-injectable-id',
 
         lifecycle: lifecycleEnum.transient,
@@ -73,13 +79,15 @@ describe('withInjectables', () => {
         instantiate: () => asyncDependencyMock(),
       });
 
+      di.register(injectable);
+
       const DumbTestComponent = ({ someDependency, ...props }) => (
         <div {...props}>Some content: "{someDependency}"</div>
       );
 
       const SmartTestComponent = withInjectables(DumbTestComponent, {
         getProps: async (di, props) => ({
-          someDependency: await di.inject('some-injectable-id'),
+          someDependency: await di.inject(injectable),
           ...props,
         }),
 
@@ -132,7 +140,7 @@ describe('withInjectables', () => {
     beforeEach(async () => {
       asyncDependencyMock = asyncFn();
 
-      di.register({
+      const injectable = getInjectable({
         id: 'some-injectable-id',
 
         lifecycle: lifecycleEnum.transient,
@@ -140,13 +148,15 @@ describe('withInjectables', () => {
         instantiate: () => asyncDependencyMock(),
       });
 
+      di.register(injectable);
+
       const DumbTestComponent = ({ someDependency, ...props }) => (
         <div {...props}>Some content: "{someDependency}"</div>
       );
 
       const SmartTestComponent = withInjectables(DumbTestComponent, {
         getProps: async (di, props) => ({
-          someDependency: await di.inject('some-injectable-id'),
+          someDependency: await di.inject(injectable),
           ...props,
         }),
       });
@@ -175,13 +185,15 @@ describe('withInjectables', () => {
   });
 
   it('given class component with sync dependencies, when rendered with ref, forwards ref', () => {
-    di.register({
+    const injectable = getInjectable({
       id: 'some-injectable-id',
 
       lifecycle: lifecycleEnum.transient,
 
       instantiate: () => 'some-injectable-value',
     });
+
+    di.register(injectable);
 
     class DumbTestComponent extends React.Component {
       someProperty = 'some-property-accessed-with-ref';
@@ -195,7 +207,7 @@ describe('withInjectables', () => {
 
     const SmartTestComponent = withInjectables(DumbTestComponent, {
       getProps: (di, props) => ({
-        someDependency: di.inject('some-injectable-id'),
+        someDependency: di.inject(injectable),
         ...props,
       }),
     });
@@ -210,13 +222,15 @@ describe('withInjectables', () => {
   it('given class component and async dependencies, when rendered with ref', async () => {
     const asyncDependencyMock = asyncFn();
 
-    di.register({
+    const injectable = getInjectable({
       id: 'some-injectable-id',
 
       lifecycle: lifecycleEnum.transient,
 
       instantiate: () => asyncDependencyMock(),
     });
+
+    di.register(injectable);
 
     class DumbTestComponent extends React.Component {
       someProperty = 'some-property-accessed-with-ref';
@@ -230,7 +244,7 @@ describe('withInjectables', () => {
 
     const SmartTestComponent = withInjectables(DumbTestComponent, {
       getProps: async (di, props) => ({
-        someDependency: await di.inject('some-injectable-id'),
+        someDependency: await di.inject(injectable),
         ...props,
       }),
     });
@@ -248,7 +262,7 @@ describe('withInjectables', () => {
   });
 
   it('given component, props and a dependency using instantiation parameter, when rendered, renders with the dependency having props as instantiation parameter', () => {
-    di.register({
+    const injectable = getInjectable({
       id: 'some-injectable-id',
 
       lifecycle: lifecycleEnum.transient,
@@ -257,16 +271,15 @@ describe('withInjectables', () => {
         `some-injectable-value: ${instantiationParameter}`,
     });
 
+    di.register(injectable);
+
     const DumbTestComponent = ({ someDependency, ...props }) => (
       <div {...props}>Some content: "{someDependency}"</div>
     );
 
     const SmartTestComponent = withInjectables(DumbTestComponent, {
       getProps: (di, { someInstantiationParameter, ...props }) => ({
-        someDependency: di.inject(
-          'some-injectable-id',
-          someInstantiationParameter,
-        ),
+        someDependency: di.inject(injectable, someInstantiationParameter),
 
         ...props,
       }),
