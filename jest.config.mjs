@@ -3,7 +3,7 @@ import path from 'path';
 import glob from 'glob';
 import getGlobalJestConfig from './getGlobalJestConfig.mjs';
 
-const getObjectFromJsonFile = (filePath) =>
+const getObjectFromJsonFile = filePath =>
   fs.existsSync(filePath)
     ? JSON.parse(
         fs.readFileSync(filePath, {
@@ -12,7 +12,7 @@ const getObjectFromJsonFile = (filePath) =>
       )
     : null;
 
-const getProjectColor = (projectNumber) => {
+const getProjectColor = projectNumber => {
   const colors = [
     'red',
     'green',

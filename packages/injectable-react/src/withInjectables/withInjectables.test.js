@@ -3,8 +3,8 @@ import enzyme from 'enzyme';
 import { setImmediate as flushMicroTasks } from 'timers';
 import { createContainer, lifecycleEnum } from '@ogre-tools/injectable';
 import withInjectables from './withInjectables';
-import { DiContextProvider } from '../index';
 import asyncFn from '@async-fn/jest';
+import { DiContextProvider } from '@ogre-tools/injectable-react';
 
 const flushPromises = () => new Promise(flushMicroTasks);
 

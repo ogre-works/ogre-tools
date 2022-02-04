@@ -1,7 +1,7 @@
 import withInjectables, {
   DiContextProvider,
-} from './withInjectables/withInjectables';
+} from './src/withInjectables/withInjectables';
 
-import asyncComputed from './asyncComputed/asyncComputed';
+import asyncComputed from './src/asyncComputed/asyncComputed';
 
 export { withInjectables, DiContextProvider, asyncComputed };

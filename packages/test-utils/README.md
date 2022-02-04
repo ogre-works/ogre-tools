@@ -13,7 +13,7 @@ import { getPromiseStatus } from '@ogre-tools/test-utils';
 ```
 
 ## Features
-Check available functions from [index.js](./src/index.js).
+Check available functions from [index.js](index.js).
 
 ## Documentation
 Check unit tests for documentation.
