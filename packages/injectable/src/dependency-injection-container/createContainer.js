@@ -7,13 +7,14 @@ import first from 'lodash/fp/first';
 import forEach from 'lodash/fp/forEach';
 import invoke from 'lodash/fp/invoke';
 import isFunction from 'lodash/fp/isFunction';
-import lifecycleEnum from './lifecycleEnum';
 import map from 'lodash/fp/map';
 import matches from 'lodash/fp/matches';
 import once from 'lodash/fp/once';
 import reject from 'lodash/fp/reject';
 import tap from 'lodash/fp/tap';
 import { pipeline } from '@ogre-tools/fp';
+import isUndefined from 'lodash/fp/isUndefined';
+import lifecycleEnum from './lifecycleEnum';
 
 export default (...listOfGetRequireContexts) => {
   let injectables = [];
@@ -22,12 +23,6 @@ export default (...listOfGetRequireContexts) => {
   let setupsHaveBeenRan = false;
 
   const instanceMap = new Map();
-
-  const getLifecycle = alias =>
-    getRelatedInjectable({
-      injectables,
-      alias,
-    }).lifecycle;
 
   const privateDi = {
     inject: (alias, instantiationParameter, context = []) => {
@@ -65,7 +60,7 @@ export default (...listOfGetRequireContexts) => {
         );
       }
 
-      return injectable.lifecycle.getInstance({
+      return getInstance({
         injectable,
         instantiationParameter,
         di: privateDi,
@@ -83,28 +78,39 @@ export default (...listOfGetRequireContexts) => {
         ),
       ),
 
-    register: injectable => {
-      if (!injectable.id) {
+    register: externalInjectable => {
+      if (!externalInjectable.id) {
         throw new Error('Tried to register injectable without ID.');
       }
 
-      if (injectables.find(matches({ id: injectable.id }))) {
+      if (injectables.find(matches({ id: externalInjectable.id }))) {
         throw new Error(
-          `Tried to register multiple injectables for ID "${injectable.id}"`,
+          `Tried to register multiple injectables for ID "${externalInjectable.id}"`,
         );
       }
 
-      injectables.push({
-        ...injectable,
+      const lifecycle = externalInjectable.lifecycle || lifecycleEnum.singleton;
 
-        lifecycle: injectable.lifecycle || lifecycleEnum.singleton,
+      const internalInjectable = {
+        ...externalInjectable,
 
-        setup: injectable.setup ? once(injectable.setup) : undefined,
+        lifecycle,
+
+        setup: externalInjectable.setup
+          ? once(externalInjectable.setup)
+          : undefined,
+
+        getInstanceKey:
+          externalInjectable.getInstanceKey || lifecycle.getInstanceKey,
 
         permitSideEffects: function () {
           this.causesSideEffects = false;
         },
-      });
+      };
+
+      injectables.push(internalInjectable);
+
+      instanceMap.set(internalInjectable.id, new Map());
     },
 
     override: (alias, instantiateStub) => {
@@ -184,15 +190,13 @@ export default (...listOfGetRequireContexts) => {
       getRelatedInjectable({ injectables, alias }).permitSideEffects();
     },
 
-    getLifecycle,
-
     purge: alias => {
       const injectable = getRelatedInjectable({
         injectables,
         alias,
       });
 
-      getLifecycle(alias).purge({ injectable, instanceMap });
+      instanceMap.get(injectable.id).clear();
     },
   };
 
@@ -256,3 +260,60 @@ const getRelatedInjectables = ({ injectables, alias }) =>
 
 const getOverridingInjectable = ({ overridingInjectables, alias }) =>
   pipeline(overridingInjectables, findLast(isRelatedTo(alias)));
+
+const getInstance = ({
+  di,
+  injectable,
+  instantiationParameter,
+  context: oldContext,
+  instanceMap,
+}) => {
+  if (!injectable.instantiate) {
+    throw new Error(
+      `Tried to inject "${injectable.id}" when instantiation is not defined.`,
+    );
+  }
+
+  const newContext = [...oldContext, { id: injectable.id }];
+
+  const injectableCausingCycle = pipeline(
+    oldContext,
+    find({ id: injectable.id }),
+  );
+
+  if (injectableCausingCycle && !injectableCausingCycle.setupping) {
+    throw new Error(
+      `Cycle of injectables encountered: "${newContext
+        .map(get('id'))
+        .join('" -> "')}"`,
+    );
+  }
+
+  const injectableInstanceMap = instanceMap.get(injectable.id);
+
+  const injectableKey = injectable.getInstanceKey(instantiationParameter);
+
+  const existingInstance = injectableInstanceMap.get(injectableKey);
+
+  if (existingInstance) {
+    return existingInstance;
+  }
+
+  const minimalDi = {
+    inject: (alias, parameter) => di.inject(alias, parameter, newContext),
+
+    injectMany: (alias, parameter) =>
+      di.injectMany(alias, parameter, newContext),
+  };
+
+  const newInstance = injectable.instantiate(
+    minimalDi,
+    ...(isUndefined(instantiationParameter) ? [] : [instantiationParameter]),
+  );
+
+  if (injectableKey !== undefined) {
+    injectableInstanceMap.set(injectableKey, newInstance);
+  }
+
+  return newInstance;
+};

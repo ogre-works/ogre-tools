@@ -135,22 +135,6 @@ describe('createContainer', () => {
     expect(actual1).not.toBe(actual2);
   });
 
-  it('given multiple containers and shared scoped-transient, when injected from different containers using same scope, injects different instance', () => {
-    const someInjectable = getInjectable({
-      id: 'irrelevant',
-      instantiate: () => ({}),
-      lifecycle: lifecycleEnum.scopedTransient(() => 'some-scope'),
-    });
-
-    const di1 = getDi(someInjectable);
-    const di2 = getDi(someInjectable);
-
-    const actual1 = di1.inject(someInjectable);
-    const actual2 = di2.inject(someInjectable);
-
-    expect(actual1).not.toBe(actual2);
-  });
-
   it('given sync injectables with a dependency cycle, when injected, throws', () => {
     const childInjectable = getInjectable({
       id: 'some-child-injectable',
@@ -946,109 +930,6 @@ describe('createContainer', () => {
     }).not.toThrow();
   });
 
-  describe('given lifecycle is scoped transient', () => {
-    let di;
-    let someInjectable;
-    let someInjectableForScope;
-    let someOtherInjectable;
-
-    beforeEach(() => {
-      someInjectableForScope = getInjectable({
-        id: 'some-injectable-for-scope',
-        instantiate: () => 'some-scope',
-      });
-
-      someInjectable = getInjectable({
-        id: 'some-injectable',
-        instantiate: () => ({}),
-
-        lifecycle: lifecycleEnum.scopedTransient(di =>
-          di.inject(someInjectableForScope),
-        ),
-      });
-
-      someOtherInjectable = getInjectable({
-        id: 'some-other-injectable',
-        instantiate: () => ({}),
-
-        lifecycle: lifecycleEnum.scopedTransient(di =>
-          di.inject(someInjectableForScope),
-        ),
-      });
-
-      di = getDi(someInjectable, someInjectableForScope, someOtherInjectable);
-    });
-
-    it('given unchanging scope, when injected, returns same instance', () => {
-      const actual = di.inject(someInjectable);
-      const actual2 = di.inject(someInjectable);
-
-      expect(actual).toBe(actual2);
-    });
-
-    it('given one scope and injected and given other scope, when injected again, returns different instance', () => {
-      const actual = di.inject(someInjectable);
-
-      di.override(someInjectableForScope, () => 'some-other-scope');
-
-      const actual2 = di.inject(someInjectable);
-
-      expect(actual).not.toBe(actual2);
-    });
-
-    it('given an original scope and injected and given other scope and injected, given the original scope again, when injected, returns different instance', () => {
-      const actual = di.inject(someInjectable);
-
-      di.override(someInjectableForScope, () => 'some-other-scope');
-
-      di.inject(someInjectable);
-
-      di.override(someInjectableForScope, () => 'some-scope');
-
-      const actual2 = di.inject(someInjectable);
-
-      expect(actual).not.toBe(actual2);
-    });
-
-    it('given different injectables with identical scope, when injected, handles the scopes privately for the injectables', () => {
-      const actual = di.inject(someInjectable);
-
-      const actual2 = di.inject(someOtherInjectable);
-
-      expect(actual).not.toBe(actual2);
-    });
-  });
-
-  it('given singleton, when injecting with instantiation parameter, throws', () => {
-    const someInjectable = getInjectable({
-      id: 'some-injectable',
-      instantiate: () => ({}),
-      lifecycle: lifecycleEnum.singleton,
-    });
-
-    const di = getDi(someInjectable);
-
-    expect(() => {
-      di.inject(someInjectable, { some: 'instantiation parameter' });
-    }).toThrow(
-      'Tried to inject singleton "some-injectable" with instantiation parameters.',
-    );
-  });
-
-  it('given injectable, when DI is asked for lifecycle, returns lifecycle', () => {
-    const someInjectable = getInjectable({
-      id: 'irrelevant',
-      instantiate: () => ({}),
-      lifecycle: { some: 'lifecycle' },
-    });
-
-    const di = getDi(someInjectable);
-
-    const lifecycle = di.getLifecycle(someInjectable);
-
-    expect(lifecycle).toEqual({ some: 'lifecycle' });
-  });
-
   it('given an injectable is singleton and injected but purged, when injected, injects new instance', () => {
     const singletonInjectable = getInjectable({
       id: 'irrelevant',
@@ -1067,7 +948,7 @@ describe('createContainer', () => {
     expect(actual1).not.toBe(actual2);
   });
 
-  it('given an injectable is singleton and injected but unrelated singleton is purged, when injected, injects singleton', () => {
+  it('given an injectable is singleton and injected but unrelated singleton is purged, when injected again, injects same instance', () => {
     const singletonInjectable = getInjectable({
       id: 'some-injectable',
       instantiate: () => ({}),
@@ -1091,65 +972,6 @@ describe('createContainer', () => {
     expect(actual1).toBe(actual2);
   });
 
-  it('given an injectable is transient, when purged, throws', () => {
-    const transientInjectable = getInjectable({
-      id: 'irrelevant',
-      instantiate: () => ({}),
-      lifecycle: lifecycleEnum.transient,
-    });
-
-    const di = getDi(transientInjectable);
-
-    expect(() => {
-      di.purge(transientInjectable);
-    }).toThrow('Tried to purge injectable with transient lifecycle.');
-  });
-
-  it('given an injectable is scoped transient and injected but purged, when injected, injects new instance', () => {
-    const scopedTransientInjectable = getInjectable({
-      id: 'irrelevant',
-      instantiate: () => ({}),
-      lifecycle: lifecycleEnum.scopedTransient(() => 'some-scope'),
-    });
-
-    const di = getDi(scopedTransientInjectable);
-
-    const actual1 = di.inject(scopedTransientInjectable);
-
-    di.purge(scopedTransientInjectable);
-
-    const actual2 = di.inject(scopedTransientInjectable);
-
-    expect(actual1).not.toBe(actual2);
-  });
-
-  it('given an injectable is scoped transient and injected but unrelated scoped transient is purged, when injected, injects same instance', () => {
-    const scopedTransientInjectable = getInjectable({
-      id: 'some-injectable',
-      instantiate: () => ({}),
-      lifecycle: lifecycleEnum.scopedTransient(() => 'some-scope'),
-    });
-
-    const unrelatedScopedTransientInjectable = getInjectable({
-      id: 'some-unrelated-injectable',
-      instantiate: () => ({}),
-      lifecycle: lifecycleEnum.scopedTransient(() => 'some-scope'),
-    });
-
-    const di = getDi(
-      scopedTransientInjectable,
-      unrelatedScopedTransientInjectable,
-    );
-
-    const actual1 = di.inject(scopedTransientInjectable);
-
-    di.purge(unrelatedScopedTransientInjectable);
-
-    const actual2 = di.inject(scopedTransientInjectable);
-
-    expect(actual1).toBe(actual2);
-  });
-
   it('given injectable with injection token, when injected using injection token, injects', () => {
     const injectionToken = getInjectionToken({ id: 'some-injection-token' });
 
@@ -1162,6 +984,35 @@ describe('createContainer', () => {
     const di = getDi(someInjectable);
 
     expect(di.inject(injectionToken)).toBe('some-instance');
+  });
+
+  describe('given keyed injectable', () => {
+    let di;
+    let injectable;
+
+    beforeEach(() => {
+      injectable = getInjectable({
+        id: 'irrelevant',
+        instantiate: () => ({}),
+        getInstanceKey: instantiationParameter => instantiationParameter,
+      });
+
+      di = getDi(injectable);
+    });
+
+    it('when injected multiple times with same key, injects same instance', () => {
+      const actual1 = di.inject(injectable, 'some-key');
+      const actual2 = di.inject(injectable, 'some-key');
+
+      expect(actual1).toBe(actual2);
+    });
+
+    it('when injected multiple times with different key, injects same instance', () => {
+      const actual1 = di.inject(injectable, 'some-key');
+      const actual2 = di.inject(injectable, 'some-other-key');
+
+      expect(actual1).not.toBe(actual2);
+    });
   });
 });
 
