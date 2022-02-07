@@ -2,9 +2,6 @@
   "name": "ogre-tools",
   "version": "0.0.1",
   "description": "An assortment of tools for brutal software development.",
-  "workspaces": [
-    "./packages/*"
-  ],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/ogre-works/ogre-tools.git"
