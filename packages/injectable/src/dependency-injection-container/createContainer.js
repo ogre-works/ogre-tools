@@ -14,7 +14,7 @@ import reject from 'lodash/fp/reject';
 import tap from 'lodash/fp/tap';
 import { pipeline } from '@ogre-tools/fp';
 import isUndefined from 'lodash/fp/isUndefined';
-import lifecycleEnum from './lifecycleEnum';
+import lifecycleEnum, { nonStoredInstanceKey } from './lifecycleEnum';
 
 export default (...listOfGetRequireContexts) => {
   let injectables = [];
@@ -291,9 +291,9 @@ const getInstance = ({
 
   const instanceMap = injectableMap.get(injectable.id);
 
-  const injectableKey = injectable.getInstanceKey(instantiationParameter);
+  const instanceKey = injectable.getInstanceKey(instantiationParameter);
 
-  const existingInstance = instanceMap.get(injectableKey);
+  const existingInstance = instanceMap.get(instanceKey);
 
   if (existingInstance) {
     return existingInstance;
@@ -311,8 +311,8 @@ const getInstance = ({
     ...(isUndefined(instantiationParameter) ? [] : [instantiationParameter]),
   );
 
-  if (injectableKey !== undefined) {
-    instanceMap.set(injectableKey, newInstance);
+  if (instanceKey !== nonStoredInstanceKey) {
+    instanceMap.set(instanceKey, newInstance);
   }
 
   return newInstance;
