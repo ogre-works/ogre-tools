@@ -1,3 +1,4 @@
+import { noop } from 'lodash/fp';
 import { computed, createAtom, observable, runInAction, untracked } from 'mobx';
 
 const neutralizeObsoletePromiseSymbol = Symbol.for(
@@ -9,7 +10,7 @@ export default (getObservedPromise, pendingValue) => {
 
   const pendingBox = observable.box(false);
 
-  let neutralizeObsoletePromise;
+  let neutralizeObsoletePromise = noop;
 
   const syncValueBox = observable.box(pendingValue, {
     name: 'sync-value-box-for-async-computed',
