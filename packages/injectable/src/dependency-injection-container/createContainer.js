@@ -92,6 +92,7 @@ export default (...listOfGetRequireContexts) => {
 
         lifecycle,
 
+        // Todo: spread-ternary
         setup: externalInjectable.setup
           ? once(externalInjectable.setup)
           : undefined,
