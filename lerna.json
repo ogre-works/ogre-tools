@@ -1,12 +1,15 @@
 {
-  "version": "3.2.1",
-  "packages": ["packages/*"],
+  "version": "4.0.0",
+  "packages": [
+    "packages/*"
+  ],
   "command": {
     "bootstrap": {
-      "npmClientArgs": ["--no-package-lock"],
+      "npmClientArgs": [
+        "--no-package-lock"
+      ],
       "hoist": true
     },
-
     "publish": {
       "forcePublish": true,
       "conventionalCommits": true,
