@@ -11,7 +11,8 @@
       "forcePublish": true,
       "conventionalCommits": true,
       "createRelease": "github",
-      "message": "chore(release): %s"
+      "message": "chore(release): %s",
+      "changelogPreset": "conventionalcommits"
     }
   }
 }
