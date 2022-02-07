@@ -155,26 +155,37 @@ describe('createContainer', () => {
     );
   });
 
-  xit('given setuppables with a dependency cycle, when setupped, throws', () => {
-    const someSetuppable = getInjectable({
-      id: 'some-setuppable',
-      setup: async di => await di.inject(someOtherSetuppable),
+  it('given setuppables with a dependency cycle, when setupped, throws most complex cycle in system', () => {
+    const someRootSetuppable = getInjectable({
+      id: 'some-root-injectable',
+      setup: async di => {
+        await di.inject(someSetuppable);
+      },
 
-      instantiate: () => 'irrelevant1',
+      instantiate: () => 'irrelevant',
+    });
+
+    const someSetuppable = getInjectable({
+      id: 'some-parent-injectable',
+      setup: async di => {
+        await di.inject(someOtherSetuppable);
+      },
+
+      instantiate: () => 'irrelevant',
     });
 
     const someOtherSetuppable = getInjectable({
-      id: 'some-other-setuppable',
-      setup: async di => await di.inject(someSetuppable),
-      instantiate: () => 'irrelevant2',
+      id: 'some-child-injectable',
+      setup: async di => {
+        await di.inject(someSetuppable);
+      },
+      instantiate: () => 'irrelevant',
     });
 
-    const di = getDi(someSetuppable, someOtherSetuppable);
+    const di = getDi(someRootSetuppable, someSetuppable, someOtherSetuppable);
 
-    expect(async () => {
-      await di.runSetups();
-    }).toThrow(
-      'Cycle of injectables encountered: "some-parent-injectable" -> "some-child-injectable" -> "some-parent-injectable"',
+    return expect(di.runSetups()).rejects.toThrow(
+      'Cycle of setuppables encountered: "some-root-injectable" -> "some-parent-injectable" -> "some-child-injectable" -> "some-parent-injectable"',
     );
   });
 

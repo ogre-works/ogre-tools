@@ -10,17 +10,22 @@ import isFunction from 'lodash/fp/isFunction';
 import map from 'lodash/fp/map';
 import matches from 'lodash/fp/matches';
 import once from 'lodash/fp/once';
+import sortBy from 'lodash/fp/sortBy';
+import last from 'lodash/fp/last';
+import join from 'lodash/fp/join';
 import reject from 'lodash/fp/reject';
 import tap from 'lodash/fp/tap';
 import { pipeline } from '@ogre-tools/fp';
 import isUndefined from 'lodash/fp/isUndefined';
 import lifecycleEnum, { nonStoredInstanceKey } from './lifecycleEnum';
+import getCycles from './getCycles/getCycles';
 
 export default (...listOfGetRequireContexts) => {
   let injectables = [];
   let overridingInjectables = [];
   let sideEffectsArePrevented = false;
   let setupsHaveBeenRan = false;
+  let setupsAreBeingRan = false;
 
   const injectableMap = new Map();
 
@@ -39,16 +44,7 @@ export default (...listOfGetRequireContexts) => {
 
       const injectable = overriddenInjectable || originalInjectable;
 
-      const injectableIsBeingSetupped = pipeline(
-        context,
-        find({ setupping: true }),
-      );
-
-      if (
-        !setupsHaveBeenRan &&
-        injectable.setup &&
-        !injectableIsBeingSetupped
-      ) {
+      if (!setupsHaveBeenRan && !setupsAreBeingRan && injectable.setup) {
         throw new Error(
           `Tried to inject setuppable "${injectable.id}" before setups are ran.`,
         );
@@ -144,32 +140,52 @@ export default (...listOfGetRequireContexts) => {
     },
 
     runSetups: async () => {
-      const diForSetupsFor = setuppable => {
-        const diForSetups = {
-          inject: async (alias, parameter) => {
-            const targetSetuppable = injectables.find(
-              conforms({ id: x => x === alias.id, setup: isFunction }),
-            );
+      setupsAreBeingRan = true;
+      const setupContext = new Map();
 
-            if (targetSetuppable) {
-              await targetSetuppable.setup(diForSetups);
+      const diForSetupsFor = setuppable => ({
+        inject: async (alias, parameter) => {
+          const targetSetuppable = injectables.find(
+            conforms({
+              id: x => x === alias.id,
+              setup: isFunction,
+            }),
+          );
+
+          if (targetSetuppable && setuppable.id !== targetSetuppable.id) {
+            setupContext.get(setuppable.id).add(targetSetuppable.id);
+
+            const cycles = getCycles(setupContext);
+
+            if (cycles.length > 0) {
+              const mostComplexCycle = pipeline(
+                cycles,
+                sortBy('length'),
+                last,
+                join('" -> "'),
+              );
+
+              throw new Error(
+                `Cycle of setuppables encountered: "${mostComplexCycle}"`,
+              );
             }
 
-            return privateDi.inject(alias, parameter, [
-              {
-                id: setuppable.id,
-                setupping: true,
-              },
-            ]);
-          },
-        };
+            await targetSetuppable.setup(diForSetupsFor(targetSetuppable));
+          }
 
-        return diForSetups;
-      };
+          return privateDi.inject(alias, parameter);
+        },
+      });
 
       await pipeline(
         injectables,
         filter('setup'),
+
+        tap(
+          forEach(setuppable => {
+            setupContext.set(setuppable.id, new Set());
+          }),
+        ),
 
         map(async injectable => {
           const diForSetups = diForSetupsFor(injectable);
@@ -178,6 +194,7 @@ export default (...listOfGetRequireContexts) => {
 
         tap(() => {
           setupsHaveBeenRan = true;
+          setupsAreBeingRan = false;
         }),
       );
     },
@@ -281,7 +298,7 @@ const getInstance = ({
     find({ id: injectable.id }),
   );
 
-  if (injectableCausingCycle && !injectableCausingCycle.setupping) {
+  if (injectableCausingCycle) {
     throw new Error(
       `Cycle of injectables encountered: "${newContext
         .map(get('id'))
