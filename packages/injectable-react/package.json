@@ -27,7 +27,7 @@
     "react-dom": "^17.0.0"
   },
   "scripts": {
-    "build": "../../node_modules/.bin/webpack"
+    "build": "webpack"
   },
   "jest": {
     "testEnvironment": "jsdom",
