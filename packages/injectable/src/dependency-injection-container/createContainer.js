@@ -22,7 +22,7 @@ export default (...listOfGetRequireContexts) => {
   let sideEffectsArePrevented = false;
   let setupsHaveBeenRan = false;
 
-  const instanceMap = new Map();
+  const injectableMap = new Map();
 
   const privateDi = {
     inject: (alias, instantiationParameter, context = []) => {
@@ -64,7 +64,7 @@ export default (...listOfGetRequireContexts) => {
         injectable,
         instantiationParameter,
         di: privateDi,
-        instanceMap,
+        injectableMap,
         context,
       });
     },
@@ -110,7 +110,7 @@ export default (...listOfGetRequireContexts) => {
 
       injectables.push(internalInjectable);
 
-      instanceMap.set(internalInjectable.id, new Map());
+      injectableMap.set(internalInjectable.id, new Map());
     },
 
     override: (alias, instantiateStub) => {
@@ -196,7 +196,7 @@ export default (...listOfGetRequireContexts) => {
         alias,
       });
 
-      instanceMap.get(injectable.id).clear();
+      injectableMap.get(injectable.id).clear();
     },
   };
 
@@ -266,7 +266,7 @@ const getInstance = ({
   injectable,
   instantiationParameter,
   context: oldContext,
-  instanceMap,
+  injectableMap,
 }) => {
   if (!injectable.instantiate) {
     throw new Error(
@@ -289,11 +289,11 @@ const getInstance = ({
     );
   }
 
-  const injectableInstanceMap = instanceMap.get(injectable.id);
+  const instanceMap = injectableMap.get(injectable.id);
 
   const injectableKey = injectable.getInstanceKey(instantiationParameter);
 
-  const existingInstance = injectableInstanceMap.get(injectableKey);
+  const existingInstance = instanceMap.get(injectableKey);
 
   if (existingInstance) {
     return existingInstance;
@@ -312,7 +312,7 @@ const getInstance = ({
   );
 
   if (injectableKey !== undefined) {
-    injectableInstanceMap.set(injectableKey, newInstance);
+    instanceMap.set(injectableKey, newInstance);
   }
 
   return newInstance;
