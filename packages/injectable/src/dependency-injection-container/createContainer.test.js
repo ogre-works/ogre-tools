@@ -1014,6 +1014,27 @@ describe('createContainer', () => {
       expect(actual1).not.toBe(actual2);
     });
   });
+
+  it('given multiple keyed injectables, when injected with same key, injects different instances', () => {
+    const injectable1 = getInjectable({
+      id: 'some-injectable-id',
+      instantiate: () => ({}),
+      getInstanceKey: instantiationParameter => instantiationParameter,
+    });
+
+    const injectable2 = getInjectable({
+      id: 'some-other-injectable-id',
+      instantiate: () => ({}),
+      getInstanceKey: instantiationParameter => instantiationParameter,
+    });
+
+    const di = getDi(injectable1, injectable2);
+
+    const actual1 = di.inject(injectable1, 'some-instance-key');
+    const actual2 = di.inject(injectable2, 'some-instance-key');
+
+    expect(actual1).not.toBe(actual2);
+  });
 });
 
 const getDi = (...injectables) => {
