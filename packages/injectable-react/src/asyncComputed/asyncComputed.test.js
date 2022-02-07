@@ -20,6 +20,14 @@ describe('asyncComputed', () => {
       }, 'some-pending-value');
     });
 
+    it('given invalidated before observation, when observed, does not throw', () => {
+      someAsyncComputed.invalidate();
+
+      expect(() => {
+        observe(someAsyncComputed.value, () => {});
+      }).not.toThrow();
+    });
+
     describe('when only status is observed but not value', () => {
       beforeEach(() => {
         observe(someAsyncComputed.pending, () => {});
