@@ -6,9 +6,12 @@
     "bootstrap": {
       "npmClientArgs": ["--no-package-lock"]
     },
+
     "publish": {
-      "ignoreChanges": ["ignored-file"],
-      "message": "Publish %s"
+      "forcePublish": true,
+      "conventionalCommits": true,
+      "createRelease": "github",
+      "message": "chore(release): %s"
     }
   }
 }

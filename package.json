@@ -17,9 +17,7 @@
     "reinstall-all-dependencies": "./npm-scripts/reinstall-all-dependencies.sh",
     "build-all-packages": "lerna run build --parallel",
     "remove-all-package-builds": "find ./packages -name build -type d -prune -exec rm -rfv {} \\;",
-    "build-and-publish-major-version": "npm test && npm run build-all-packages && lerna publish major --yes --no-push && git push && git push --tags",
-    "build-and-publish-minor-version": "npm test && npm run build-all-packages && lerna publish minor --yes --no-push && git push && git push --tags",
-    "build-and-publish-patch-version": "npm test && npm run build-all-packages && lerna publish patch --yes --no-push && git push && git push --tags",
+    "build-and-publish": "npm test && npm run build-all-packages && lerna publish --yes",
     "test": "jest --coverage --coverageReporters=lcov --watch"
   },
   "keywords": [],
