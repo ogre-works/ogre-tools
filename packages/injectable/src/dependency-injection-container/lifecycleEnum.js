@@ -5,6 +5,8 @@ export default {
     getInstanceKey: () => 'singleton',
   },
 
+  keyedSingleton: ({ getInstanceKey }) => ({ getInstanceKey }),
+
   transient: {
     getInstanceKey: () => nonStoredInstanceKey,
   },

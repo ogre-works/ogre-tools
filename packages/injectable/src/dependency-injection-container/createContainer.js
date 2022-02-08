@@ -309,20 +309,23 @@ const getInstance = ({
 
   const instanceMap = injectableMap.get(injectable.id);
 
-  const instanceKey = injectable.getInstanceKey(instantiationParameter);
-
-  const existingInstance = instanceMap.get(instanceKey);
-
-  if (existingInstance) {
-    return existingInstance;
-  }
-
   const minimalDi = {
     inject: (alias, parameter) => di.inject(alias, parameter, newContext),
 
     injectMany: (alias, parameter) =>
       di.injectMany(alias, parameter, newContext),
   };
+
+  const instanceKey = injectable.getInstanceKey(
+    minimalDi,
+    instantiationParameter,
+  );
+
+  const existingInstance = instanceMap.get(instanceKey);
+
+  if (existingInstance) {
+    return existingInstance;
+  }
 
   const newInstance = injectable.instantiate(
     minimalDi,

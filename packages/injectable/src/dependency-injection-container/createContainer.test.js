@@ -997,7 +997,7 @@ describe('createContainer', () => {
     expect(di.inject(injectionToken)).toBe('some-instance');
   });
 
-  describe('given keyed injectable', () => {
+  describe('given keyed singleton', () => {
     let di;
     let injectable;
 
@@ -1005,7 +1005,9 @@ describe('createContainer', () => {
       injectable = getInjectable({
         id: 'irrelevant',
         instantiate: () => ({}),
-        getInstanceKey: instantiationParameter => instantiationParameter,
+        lifecycle: lifecycleEnum.keyedSingleton({
+          getInstanceKey: (_, instantiationParameter) => instantiationParameter,
+        }),
       });
 
       di = getDi(injectable);
@@ -1035,17 +1037,93 @@ describe('createContainer', () => {
     });
   });
 
-  it('given multiple keyed injectables, when injected with same key, injects different instances', () => {
+  it('given keyed singleton and keyed by another injected value, when injected multiple times with same resulting key, injects same instance', () => {
+    const mainInjectable = getInjectable({
+      id: 'some-injectable-id',
+      instantiate: () => ({}),
+
+      lifecycle: lifecycleEnum.keyedSingleton({
+        getInstanceKey: (di, instantiationParameter) =>
+          di.inject(keyInjectable, instantiationParameter),
+      }),
+    });
+
+    const keyInjectable = getInjectable({
+      id: 'some-other-injectable-id',
+
+      instantiate: (di, instantiationParameter) =>
+        `some-injected-key: ${instantiationParameter}`,
+
+      lifecycle: lifecycleEnum.transient,
+    });
+
+    const di = getDi(mainInjectable, keyInjectable);
+
+    const actual1 = di.inject(
+      mainInjectable,
+      'some-instantiation-parameter-for-injected-key',
+    );
+
+    const actual2 = di.inject(
+      mainInjectable,
+      'some-instantiation-parameter-for-injected-key',
+    );
+
+    expect(actual1).toBe(actual2);
+  });
+
+  it('given keyed singleton and keyed by another injected value, when injected multiple times with different resulting key, injects different instance', () => {
+    const mainInjectable = getInjectable({
+      id: 'some-injectable-id',
+      instantiate: () => ({}),
+
+      lifecycle: lifecycleEnum.keyedSingleton({
+        getInstanceKey: (di, instantiationParameter) =>
+          di.inject(keyInjectable, instantiationParameter),
+      }),
+    });
+
+    const keyInjectable = getInjectable({
+      id: 'some-other-injectable-id',
+
+      instantiate: (di, instantiationParameter) =>
+        `some-injected-key: ${instantiationParameter}`,
+
+      lifecycle: lifecycleEnum.transient,
+    });
+
+    const di = getDi(mainInjectable, keyInjectable);
+
+    const actual1 = di.inject(
+      mainInjectable,
+      'some-instantiation-parameter-for-injected-key',
+    );
+
+    const actual2 = di.inject(
+      mainInjectable,
+      'some-other-instantiation-parameter-for-injected-key',
+    );
+
+    expect(actual1).not.toBe(actual2);
+  });
+
+  it('given multiple keyed singletons, when injected with same key, injects different instances', () => {
     const injectable1 = getInjectable({
       id: 'some-injectable-id',
       instantiate: () => ({}),
-      getInstanceKey: instantiationParameter => instantiationParameter,
+
+      lifecycle: lifecycleEnum.keyedSingleton({
+        getInstanceKey: (_, instantiationParameter) => instantiationParameter,
+      }),
     });
 
     const injectable2 = getInjectable({
       id: 'some-other-injectable-id',
       instantiate: () => ({}),
-      getInstanceKey: instantiationParameter => instantiationParameter,
+
+      lifecycle: lifecycleEnum.keyedSingleton({
+        getInstanceKey: (_, instantiationParameter) => instantiationParameter,
+      }),
     });
 
     const di = getDi(injectable1, injectable2);
