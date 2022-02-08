@@ -63,6 +63,13 @@ declare module '@ogre-tools/injectable' {
     id: string,
   }): InjectionToken<TInstance, TInstantiationParameter>;
 
+  export interface ILifecycle<TInstantiationParameter> {
+    getInstanceKey: (
+      di: DependencyInjectionContainer,
+      param: TInstantiationParameter,
+    ) => string | number;
+  }
+
   export interface Injectable<
     TInjectionToken,
     TInstance,
@@ -71,14 +78,13 @@ declare module '@ogre-tools/injectable' {
     id: string;
     setup?: (di: DependencyInjectionContainer) => void | Promise<void>;
     causesSideEffects?: boolean;
-    lifecycle?: lifecycleEnum;
+    lifecycle?: ILifecycle<TInstantiationParameter>;
+    injectionToken?: TInjectionToken;
 
     instantiate: (
       di: DependencyInjectionContainer,
       instantiationParameter: TInstantiationParameter,
     ) => TInstance;
-
-    injectionToken?: TInjectionToken;
   }
 
   type InferFromToken<T> = T extends InjectionToken<
@@ -100,10 +106,25 @@ declare module '@ogre-tools/injectable' {
     options: Injectable<TInjectionToken, TInstance, TInstantiationParameter>,
   ): Injectable<TInjectionToken, TInstance, TInstantiationParameter>;
 
-  export enum lifecycleEnum {
-    singleton,
-    transient,
-  }
+  interface Singleton extends ILifecycle<never> {}
+
+  interface Transient extends ILifecycle<never> {}
+
+  interface KeyedSingleton<TInstantiationParameter>
+    extends ILifecycle<TInstantiationParameter> {}
+
+  export const lifecycleEnum: {
+    singleton: Singleton;
+
+    keyedSingleton: <TInstantiationParameter>(keyedSingletonOptions: {
+      getInstanceKey: (
+        di: DependencyInjectionContainer,
+        instantiationParameter: TInstantiationParameter,
+      ) => string | number;
+    }) => KeyedSingleton<TInstantiationParameter>;
+
+    transient: Transient;
+  };
 
   export function createContainer(
     ...getRequireContexts: any[]
