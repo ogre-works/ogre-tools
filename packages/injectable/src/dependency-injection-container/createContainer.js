@@ -97,9 +97,6 @@ export default (...listOfGetRequireContexts) => {
           ? once(externalInjectable.setup)
           : undefined,
 
-        getInstanceKey:
-          externalInjectable.getInstanceKey || lifecycle.getInstanceKey,
-
         permitSideEffects: function () {
           this.causesSideEffects = false;
         },
@@ -316,7 +313,7 @@ const getInstance = ({
       di.injectMany(alias, parameter, newContext),
   };
 
-  const instanceKey = injectable.getInstanceKey(
+  const instanceKey = injectable.lifecycle.getInstanceKey(
     minimalDi,
     instantiationParameter,
   );
