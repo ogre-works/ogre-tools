@@ -8,7 +8,7 @@ declare module '@ogre-tools/injectable' {
     ? [TInstance, TInstantiationParameter]
     : never;
 
-  type TentativeTuple<T> = T extends object ? [T] : [undefined?];
+  type TentativeTuple<T> = T extends undefined ? [undefined?] : [T];
 
   export interface DependencyInjectionContainer {
     inject<TInjectable extends Injectable<unknown, unknown, unknown>>(
