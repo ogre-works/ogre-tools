@@ -1024,6 +1024,15 @@ describe('createContainer', () => {
 
       expect(actual1).not.toBe(actual2);
     });
+
+    it('given injected multiple times with different key, when injected again with same key, injects same instance', () => {
+      const actual1 = di.inject(injectable, 'some-key');
+      di.inject(injectable, 'some-other-key');
+
+      const actual2 = di.inject(injectable, 'some-key');
+
+      expect(actual1).toBe(actual2);
+    });
   });
 
   it('given multiple keyed injectables, when injected with same key, injects different instances', () => {
