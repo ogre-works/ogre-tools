@@ -17,12 +17,14 @@ import { createContainer } from '@ogre-tools/injectable';
 it('given an injectable is registered, when injected, injects', () => {
   const di = createContainer();
   
-  di.register({
+  const someInjectable = getInjectable({
     id: 'some-id',
     instantiate: () => 'some-instance',
   });
+  
+  di.register(someInjectable);
 
-  const actual = di.inject('some-id');
+  const actual = di.inject(someInjectable);
 
   expect(actual).toBe('some-instance');
 });
