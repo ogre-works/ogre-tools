@@ -8,30 +8,18 @@ declare module '@ogre-tools/injectable' {
     ? [TInstance, TInstantiationParameter]
     : never;
 
-  type TentativeTuple<T> = T extends undefined ? [undefined?] : [T];
+  type ValueType =
+    | string
+    | number
+    | boolean
+    | symbol
+    | bigint
+    | object
+    | Array<any>;
 
-  export interface DependencyInjectionContainer {
-    inject<TInjectable extends Injectable<unknown, unknown, unknown>>(
-      injectableKey: TInjectable,
-      ...instantiationParameter: TentativeTuple<
-        InferFromInjectable<TInjectable>[1]
-      >
-    ): InferFromInjectable<TInjectable>[0];
+  export type TentativeTuple<T> = T extends ValueType ? [T] : [undefined?];
 
-    inject<TInjectionToken extends InjectionToken<unknown, unknown>>(
-      injectionToken: TInjectionToken,
-      ...instantiationParameter: TentativeTuple<
-        TInjectionToken['instantiationParameter']
-      >
-    ): TInjectionToken['template'];
-
-    injectMany<TInjectionToken extends InjectionToken<unknown, unknown>>(
-      injectionToken: TInjectionToken,
-      ...instantiationParameter: TentativeTuple<
-        TInjectionToken['instantiationParameter']
-      >
-    ): TInjectionToken['template'][];
-
+  export interface DiContainer extends DiContainerForInjection<false> {
     purge: (injectableKey: Injectable<any, any, any>) => void;
 
     runSetups: () => Promise<void>;
@@ -39,19 +27,21 @@ declare module '@ogre-tools/injectable' {
     override<TInjectable extends Injectable<unknown, unknown, unknown>>(
       injectable: TInjectable,
       instantiateStub: (
-        di: DependencyInjectionContainer,
+        di: DiContainerForInstantiate,
         ...instantiationParameter: TentativeTuple<
           InferFromInjectable<TInjectable>[1]
         >
       ) => InferFromInjectable<TInjectable>[0],
     ): void;
-  }
 
-  export interface ConfigurableDependencyInjectionContainer
-    extends DependencyInjectionContainer {
     register(injectable: Injectable<any, any, any>): void;
     preventSideEffects: () => void;
   }
+
+  export interface DiContainerForSetup extends DiContainerForInjection<true> {}
+
+  export interface DiContainerForInstantiate
+    extends DiContainerForInjection<false> {}
 
   type InjectionToken<TInstance, TInstantiationParameter> = {
     template: TInstance;
@@ -63,28 +53,50 @@ declare module '@ogre-tools/injectable' {
     id: string,
   }): InjectionToken<TInstance, TInstantiationParameter>;
 
-  export interface ILifecycle<TInstantiationParameter> {
-    getInstanceKey: (
-      di: DependencyInjectionContainer,
-      param: TInstantiationParameter,
-    ) => string | number;
-  }
-
   export interface Injectable<
     TInjectionToken,
     TInstance,
     TInstantiationParameter,
   > {
     id: string;
-    setup?: (di: DependencyInjectionContainer) => void | Promise<void>;
+    setup?: (di: DiContainerForSetup) => void | Promise<void>;
     causesSideEffects?: boolean;
-    lifecycle?: ILifecycle<TInstantiationParameter>;
+    lifecycle?: ILifecycle;
     injectionToken?: TInjectionToken;
 
     instantiate: (
-      di: DependencyInjectionContainer,
+      di: DiContainerForInstantiate,
       instantiationParameter: TInstantiationParameter,
     ) => TInstance;
+  }
+
+  interface DiContainerForInjection<TReturnAsPromise extends boolean> {
+    inject<TInjectable extends Injectable<unknown, unknown, unknown>>(
+      injectableKey: TInjectable,
+      ...instantiationParameter: TentativeTuple<
+        InferFromInjectable<TInjectable>[1]
+      >
+    ): TReturnAsPromise extends true
+      ? Promise<InferFromInjectable<TInjectable>[0]>
+      : InferFromInjectable<TInjectable>[0];
+
+    inject<TInjectionToken extends InjectionToken<unknown, unknown>>(
+      injectionToken: TInjectionToken,
+      ...instantiationParameter: TentativeTuple<
+        TInjectionToken['instantiationParameter']
+      >
+    ): TReturnAsPromise extends true
+      ? Promise<TInjectionToken['template']>
+      : TInjectionToken['template'];
+
+    injectMany<TInjectionToken extends InjectionToken<unknown, unknown>>(
+      injectionToken: TInjectionToken,
+      ...instantiationParameter: TentativeTuple<
+        TInjectionToken['instantiationParameter']
+      >
+    ): TReturnAsPromise extends true
+      ? Promise<TInjectionToken['template'][]>
+      : TInjectionToken['template'][];
   }
 
   type InferFromToken<T> = T extends InjectionToken<
@@ -106,27 +118,22 @@ declare module '@ogre-tools/injectable' {
     options: Injectable<TInjectionToken, TInstance, TInstantiationParameter>,
   ): Injectable<TInjectionToken, TInstance, TInstantiationParameter>;
 
-  interface Singleton extends ILifecycle<never> {}
-
-  interface Transient extends ILifecycle<never> {}
-
-  interface KeyedSingleton<TInstantiationParameter>
-    extends ILifecycle<TInstantiationParameter> {}
+  export interface ILifecycle {
+    getInstanceKey: (di: DiContainer, param: unknown) => string | number;
+  }
 
   export const lifecycleEnum: {
-    singleton: Singleton;
+    singleton: ILifecycle;
 
     keyedSingleton: <TInstantiationParameter>(keyedSingletonOptions: {
       getInstanceKey: (
-        di: DependencyInjectionContainer,
+        di: DiContainer,
         instantiationParameter: TInstantiationParameter,
       ) => string | number;
-    }) => KeyedSingleton<TInstantiationParameter>;
+    }) => ILifecycle;
 
-    transient: Transient;
+    transient: ILifecycle;
   };
 
-  export function createContainer(
-    ...getRequireContexts: any[]
-  ): ConfigurableDependencyInjectionContainer;
+  export function createContainer(...getRequireContexts: any[]): DiContainer;
 }

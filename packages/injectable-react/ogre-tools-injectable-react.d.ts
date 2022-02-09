@@ -1,21 +1,18 @@
 /// <reference types="react" />
 declare module '@ogre-tools/injectable-react' {
-  import type { DependencyInjectionContainer } from '@ogre-tools/injectable';
+  import type { DiContainer } from '@ogre-tools/injectable';
   import { IComputedValue } from 'mobx';
 
-  interface DependencyInjectionContainerProviderProps {
-    di: DependencyInjectionContainer;
+  interface DiContainerProviderProps {
+    di: DiContainer;
   }
 
-  export const DiContextProvider: React.Provider<DependencyInjectionContainerProviderProps>;
+  export const DiContextProvider: React.Provider<DiContainerProviderProps>;
 
   export function withInjectables<Dependencies, Props = {}>(
     Component: React.ElementType<Dependencies & Props>,
     options: {
-      getProps: (
-        di: DependencyInjectionContainer,
-        props: Props,
-      ) => Props & Dependencies;
+      getProps: (di: DiContainer, props: Props) => Props & Dependencies;
     },
   ): React.ForwardRefExoticComponent<
     Props & React.RefAttributes<any> & { children?: React.ReactNode }
@@ -25,7 +22,7 @@ declare module '@ogre-tools/injectable-react' {
     Component: React.ElementType<Dependencies & Props>,
     options: {
       getProps: (
-        di: DependencyInjectionContainer,
+        di: DiContainer,
         props: Props,
       ) => PromiseLike<Props & Dependencies>;
 
