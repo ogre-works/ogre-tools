@@ -1,4 +1,3 @@
-import { isEmpty } from 'lodash/fp';
 import get from 'lodash/fp/get';
 import conforms from 'lodash/fp/conforms';
 import filter from 'lodash/fp/filter';
@@ -36,7 +35,7 @@ export default (...listOfGetRequireContexts) => {
       alias,
       instantiationParameter,
       context = [],
-      reportError = reportErrorFor(privateDi),
+      withErrorMonitoringFor = withErrorMonitoringForFor(privateDi),
     ) => {
       const originalInjectable = getRelatedInjectable({
         injectables,
@@ -62,14 +61,13 @@ export default (...listOfGetRequireContexts) => {
           `Tried to inject "${injectable.id}" when side-effects are prevented.`,
         );
       }
-
       return getInstance({
         injectable,
         instantiationParameter,
         di: privateDi,
         injectableMap,
         context,
-        reportError,
+        withErrorMonitoringFor,
       });
     },
 
@@ -77,7 +75,7 @@ export default (...listOfGetRequireContexts) => {
       alias,
       instantiationParameter,
       context = [],
-      reportError = reportErrorFor(privateDi),
+      withErrorMonitoringFor = withErrorMonitoringForFor(privateDi),
     ) =>
       pipeline(
         getRelatedInjectables({ injectables, alias }),
@@ -87,7 +85,7 @@ export default (...listOfGetRequireContexts) => {
             injectable,
             instantiationParameter,
             context,
-            reportError,
+            withErrorMonitoringFor,
           ),
         ),
       ),
@@ -294,30 +292,13 @@ const getRelatedInjectables = ({ injectables, alias }) =>
 const getOverridingInjectable = ({ overridingInjectables, alias }) =>
   pipeline(overridingInjectables, findLast(isRelatedTo(alias)));
 
-const reportErrorFor = di => {
-  const reportedErrorSet = new Set();
-
-  return (error, newContext) => {
-    if (!reportedErrorSet.has(error)) {
-      di.injectMany(errorMonitorToken).forEach(errorMonitor =>
-        errorMonitor({
-          error,
-          context: newContext,
-        }),
-      );
-
-      reportedErrorSet.add(error);
-    }
-  };
-};
-
 const getInstance = ({
   di,
   injectable,
   instantiationParameter,
   context: oldContext,
   injectableMap,
-  reportError,
+  withErrorMonitoringFor,
 }) => {
   if (!injectable.instantiate) {
     throw new Error(
@@ -344,10 +325,10 @@ const getInstance = ({
 
   const minimalDi = {
     inject: (alias, parameter) =>
-      di.inject(alias, parameter, newContext, reportError),
+      di.inject(alias, parameter, newContext, withErrorMonitoringFor),
 
     injectMany: (alias, parameter) =>
-      di.injectMany(alias, parameter, newContext, reportError),
+      di.injectMany(alias, parameter, newContext, withErrorMonitoringFor),
   };
 
   const instanceKey = injectable.lifecycle.getInstanceKey(
@@ -361,29 +342,20 @@ const getInstance = ({
     return existingInstance;
   }
 
-  let newInstance;
+  const withErrorMonitoring = withErrorMonitoringFor(newContext);
 
-  try {
-    newInstance = injectable.instantiate(
-      minimalDi,
-      ...(isUndefined(instantiationParameter) ? [] : [instantiationParameter]),
-    );
-  } catch (error) {
-    reportError(error, newContext);
+  const instantiateWithErrorMonitoring = pipeline(
+    injectable.instantiate,
+    withErrorMonitoring,
+  );
 
-    throw error;
-  }
+  const newInstance = instantiateWithErrorMonitoring(
+    minimalDi,
+    ...(isUndefined(instantiationParameter) ? [] : [instantiationParameter]),
+  );
 
   if (instanceKey !== nonStoredInstanceKey) {
     instanceMap.set(instanceKey, newInstance);
-  }
-
-  if (isPromise(newInstance)) {
-    newInstance = newInstance.catch(error => {
-      reportError(error, newContext);
-
-      throw error;
-    });
   }
 
   return newInstance;
@@ -392,3 +364,49 @@ const getInstance = ({
 export const errorMonitorToken = getInjectionToken({
   id: 'error-monitor-token',
 });
+
+const withErrorMonitoringForFor = di => {
+  const reportErrorFor = reportErrorForFor(di);
+
+  return context => {
+    const reportError = reportErrorFor(context);
+
+    return toBeDecorated =>
+      (...args) => {
+        let result;
+
+        try {
+          result = toBeDecorated(...args);
+        } catch (error) {
+          reportError(error);
+
+          throw error;
+        }
+
+        if (isPromise(result)) {
+          result.catch(error => {
+            reportError(error);
+          });
+        }
+
+        return result;
+      };
+  };
+};
+
+const reportErrorForFor = di => {
+  const reportedErrorSet = new Set();
+
+  return context => error => {
+    if (!reportedErrorSet.has(error)) {
+      di.injectMany(errorMonitorToken).forEach(errorMonitor =>
+        errorMonitor({
+          error,
+          context,
+        }),
+      );
+
+      reportedErrorSet.add(error);
+    }
+  };
+};
