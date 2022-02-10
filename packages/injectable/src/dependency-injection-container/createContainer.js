@@ -352,10 +352,14 @@ const getInstance = ({
     withErrorMonitoring,
   );
 
-  const newInstance = instantiateWithErrorMonitoring(
+  let newInstance = instantiateWithErrorMonitoring(
     minimalDi,
     ...(isUndefined(instantiationParameter) ? [] : [instantiationParameter]),
   );
+
+  if (isFunction(newInstance)) {
+    newInstance = pipeline(newInstance, withErrorMonitoring);
+  }
 
   if (instanceKey !== nonStoredInstanceKey) {
     instanceMap.set(instanceKey, newInstance);
