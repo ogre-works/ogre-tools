@@ -364,7 +364,7 @@ const getInstance = ({
   return newInstance;
 };
 
-export const errorMonitorToken = getInjectionToken({
+export const errorMonitorInjectionToken = getInjectionToken({
   id: 'error-monitor-token',
 });
 
@@ -402,7 +402,7 @@ const reportErrorForFor = di => {
 
   return context => error => {
     if (!reportedErrorSet.has(error)) {
-      di.injectMany(errorMonitorToken).forEach(errorMonitor =>
+      di.injectMany(errorMonitorInjectionToken).forEach(errorMonitor =>
         errorMonitor({
           error,
           context,

@@ -2,7 +2,7 @@ import getInjectionToken from './src/getInjectionToken/getInjectionToken';
 import getInjectable from './src/getInjectable/getInjectable';
 import lifecycleEnum from './src/dependency-injection-container/lifecycleEnum';
 import createContainer, {
-  errorMonitorToken,
+  errorMonitorInjectionToken,
 } from './src/dependency-injection-container/createContainer';
 
 export {
@@ -10,5 +10,5 @@ export {
   getInjectable,
   lifecycleEnum,
   createContainer,
-  errorMonitorToken,
+  errorMonitorInjectionToken,
 };

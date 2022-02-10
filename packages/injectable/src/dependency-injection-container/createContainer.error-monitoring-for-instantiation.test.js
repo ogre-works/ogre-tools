@@ -2,7 +2,7 @@ import asyncFn from '@async-fn/jest';
 import getDi from '../test-utils/getDiForUnitTesting';
 import getInjectable from '../getInjectable/getInjectable';
 import lifecycleEnum from './lifecycleEnum';
-import { errorMonitorToken } from './createContainer';
+import { errorMonitorInjectionToken } from './createContainer';
 import { first, noop } from 'lodash/fp';
 import { pipeline } from '@ogre-tools/fp';
 
@@ -28,7 +28,7 @@ describe('createContainer.error-monitoring-for-instantiation', () => {
           errorMonitorMock = jest.fn();
           const errorMonitorInjectable = getInjectable({
             id: 'some-error-monitor',
-            injectionToken: errorMonitorToken,
+            injectionToken: errorMonitorInjectionToken,
             instantiate: () => errorMonitorMock,
           });
 
@@ -113,7 +113,7 @@ describe('createContainer.error-monitoring-for-instantiation', () => {
           errorMonitorMock = asyncFn();
           const errorMonitorInjectable = getInjectable({
             id: 'some-error-monitor',
-            injectionToken: errorMonitorToken,
+            injectionToken: errorMonitorInjectionToken,
             instantiate: () => errorMonitorMock,
           });
 
