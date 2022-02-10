@@ -306,7 +306,10 @@ const getInstance = ({
     );
   }
 
-  const newContext = [...oldContext, { id: injectable.id }];
+  const newContext = [
+    ...oldContext,
+    { id: injectable.id, instantiationParameter },
+  ];
 
   const injectableCausingCycle = pipeline(
     oldContext,

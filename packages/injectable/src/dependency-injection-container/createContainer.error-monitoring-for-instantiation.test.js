@@ -73,15 +73,24 @@ describe('createContainer.error-monitoring-for-instantiation', () => {
           }
         });
 
-        it('triggers error monitoring for child', () => {
+        it('triggers error monitoring only for child', () => {
           expect(errorMonitorMock.mock.calls).toEqual([
             [
               {
                 error: 'some-error',
 
                 context: [
-                  { id: 'some-parent-injectable' },
-                  { id: 'some-child-injectable' },
+                  {
+                    id: 'some-parent-injectable',
+                    instantiationParameter:
+                      'some-instantiation-parameter-for-parent',
+                  },
+
+                  {
+                    id: 'some-child-injectable',
+                    instantiationParameter:
+                      'some-instantiation-parameter-for-child',
+                  },
                 ],
               },
             ],
@@ -144,7 +153,7 @@ describe('createContainer.error-monitoring-for-instantiation', () => {
             instantiateChildMock.reject(new Error('some-error'));
           });
 
-          it('triggers error monitoring once for full relevant injection context', async () => {
+          it('triggers error monitoring only for child', async () => {
             await actualPromise.catch(noop);
 
             expect(errorMonitorMock.mock.calls).toEqual([
@@ -153,8 +162,17 @@ describe('createContainer.error-monitoring-for-instantiation', () => {
                   error: expect.any(Error),
 
                   context: [
-                    { id: 'some-parent-injectable' },
-                    { id: 'some-child-injectable' },
+                    {
+                      id: 'some-parent-injectable',
+                      instantiationParameter:
+                        'some-instantiation-parameter-for-parent',
+                    },
+
+                    {
+                      id: 'some-child-injectable',
+                      instantiationParameter:
+                        'some-instantiation-parameter-for-child',
+                    },
                   ],
                 },
               ],
@@ -171,7 +189,7 @@ describe('createContainer.error-monitoring-for-instantiation', () => {
             instantiateChildMock.reject('some-non-error-rejection');
           });
 
-          it('triggers error monitoring once for full relevant injection context', async () => {
+          it('triggers error monitoring only for child', async () => {
             await actualPromise.catch(noop);
 
             expect(errorMonitorMock.mock.calls).toEqual([
@@ -180,8 +198,17 @@ describe('createContainer.error-monitoring-for-instantiation', () => {
                   error: 'some-non-error-rejection',
 
                   context: [
-                    { id: 'some-parent-injectable' },
-                    { id: 'some-child-injectable' },
+                    {
+                      id: 'some-parent-injectable',
+                      instantiationParameter:
+                        'some-instantiation-parameter-for-parent',
+                    },
+
+                    {
+                      id: 'some-child-injectable',
+                      instantiationParameter:
+                        'some-instantiation-parameter-for-child',
+                    },
                   ],
                 },
               ],
@@ -214,8 +241,17 @@ describe('createContainer.error-monitoring-for-instantiation', () => {
                   error: 'some-non-error-rejection',
 
                   context: [
-                    { id: 'some-parent-injectable' },
-                    { id: 'some-child-injectable' },
+                    {
+                      id: 'some-parent-injectable',
+                      instantiationParameter:
+                        'some-instantiation-parameter-for-parent',
+                    },
+
+                    {
+                      id: 'some-child-injectable',
+                      instantiationParameter:
+                        'some-instantiation-parameter-for-child',
+                    },
                   ],
                 },
               ],
