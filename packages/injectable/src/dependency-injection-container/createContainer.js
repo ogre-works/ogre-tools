@@ -20,6 +20,7 @@ import { isPromise, pipeline } from '@ogre-tools/fp';
 import isUndefined from 'lodash/fp/isUndefined';
 import lifecycleEnum, { nonStoredInstanceKey } from './lifecycleEnum';
 import getCycles from './getCycles/getCycles';
+import getInjectionToken from '../getInjectionToken/getInjectionToken';
 
 export default (...listOfGetRequireContexts) => {
   let injectables = [];
@@ -388,6 +389,6 @@ const getInstance = ({
   return newInstance;
 };
 
-export const errorMonitorToken = {
+export const errorMonitorToken = getInjectionToken({
   id: 'error-monitor-token',
-};
+});
