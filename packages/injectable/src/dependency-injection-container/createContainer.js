@@ -1,25 +1,26 @@
-import get from 'lodash/fp/get';
 import conforms from 'lodash/fp/conforms';
 import filter from 'lodash/fp/filter';
 import find from 'lodash/fp/find';
 import findLast from 'lodash/fp/findLast';
 import first from 'lodash/fp/first';
 import forEach from 'lodash/fp/forEach';
+import get from 'lodash/fp/get';
+import getCycles from './getCycles/getCycles';
+import getInjectionToken from '../getInjectionToken/getInjectionToken';
 import invoke from 'lodash/fp/invoke';
 import isFunction from 'lodash/fp/isFunction';
+import isUndefined from 'lodash/fp/isUndefined';
+import join from 'lodash/fp/join';
+import last from 'lodash/fp/last';
+import lifecycleEnum, { nonStoredInstanceKey } from './lifecycleEnum';
 import map from 'lodash/fp/map';
 import matches from 'lodash/fp/matches';
 import once from 'lodash/fp/once';
-import sortBy from 'lodash/fp/sortBy';
-import last from 'lodash/fp/last';
-import join from 'lodash/fp/join';
 import reject from 'lodash/fp/reject';
+import sortBy from 'lodash/fp/sortBy';
 import tap from 'lodash/fp/tap';
+import { identity } from 'lodash/fp';
 import { isPromise, pipeline } from '@ogre-tools/fp';
-import isUndefined from 'lodash/fp/isUndefined';
-import lifecycleEnum, { nonStoredInstanceKey } from './lifecycleEnum';
-import getCycles from './getCycles/getCycles';
-import getInjectionToken from '../getInjectionToken/getInjectionToken';
 
 export default (...listOfGetRequireContexts) => {
   let injectables = [];
@@ -61,6 +62,7 @@ export default (...listOfGetRequireContexts) => {
           `Tried to inject "${injectable.id}" when side-effects are prevented.`,
         );
       }
+
       return getInstance({
         injectable,
         instantiationParameter,
@@ -347,12 +349,18 @@ const getInstance = ({
 
   const withErrorMonitoring = withErrorMonitoringFor(newContext);
 
-  const instantiateWithErrorMonitoring = pipeline(
+  const instantiateWithDecorators = pipeline(
     injectable.instantiate,
+
+    // Prevent recursive decoration
+    injectable.injectionToken === decorationInjectionToken
+      ? identity
+      : withGlobalDecoratorsFor(di),
+
     withErrorMonitoring,
   );
 
-  let newInstance = instantiateWithErrorMonitoring(
+  let newInstance = instantiateWithDecorators(
     minimalDi,
     ...(isUndefined(instantiationParameter) ? [] : [instantiationParameter]),
   );
@@ -370,6 +378,10 @@ const getInstance = ({
 
 export const errorMonitorInjectionToken = getInjectionToken({
   id: 'error-monitor-token',
+});
+
+export const decorationInjectionToken = getInjectionToken({
+  id: 'decoration-token',
 });
 
 const withErrorMonitoringForFor = di => {
@@ -417,3 +429,12 @@ const reportErrorForFor = di => {
     }
   };
 };
+
+const withGlobalDecoratorsFor =
+  di =>
+  toBeDecorated =>
+  (...args) => {
+    const globalDecorators = di.injectMany(decorationInjectionToken);
+
+    return pipeline(toBeDecorated, ...globalDecorators)(...args);
+  };
