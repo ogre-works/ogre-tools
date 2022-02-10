@@ -136,4 +136,9 @@ declare module '@ogre-tools/injectable' {
   };
 
   export function createContainer(...getRequireContexts: any[]): DiContainer;
+
+  export const errorMonitorToken: InjectionToken<
+    (error: any) => void | Promise<void>,
+    any
+  >;
 }
