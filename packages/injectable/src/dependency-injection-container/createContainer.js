@@ -1,3 +1,4 @@
+import { isEmpty } from 'lodash/fp';
 import get from 'lodash/fp/get';
 import conforms from 'lodash/fp/conforms';
 import filter from 'lodash/fp/filter';
@@ -15,7 +16,7 @@ import last from 'lodash/fp/last';
 import join from 'lodash/fp/join';
 import reject from 'lodash/fp/reject';
 import tap from 'lodash/fp/tap';
-import { pipeline } from '@ogre-tools/fp';
+import { isPromise, pipeline } from '@ogre-tools/fp';
 import isUndefined from 'lodash/fp/isUndefined';
 import lifecycleEnum, { nonStoredInstanceKey } from './lifecycleEnum';
 import getCycles from './getCycles/getCycles';
@@ -26,11 +27,16 @@ export default (...listOfGetRequireContexts) => {
   let sideEffectsArePrevented = false;
   let setupsHaveBeenRan = false;
   let setupsAreBeingRan = false;
+  const reportedErrorSet = new Set();
 
   const injectableMap = new Map();
 
   const privateDi = {
     inject: (alias, instantiationParameter, context = []) => {
+      if (isEmpty(context)) {
+        reportedErrorSet.clear();
+      }
+
       const originalInjectable = getRelatedInjectable({
         injectables,
         alias,
@@ -56,12 +62,15 @@ export default (...listOfGetRequireContexts) => {
         );
       }
 
+      const reportError = reportErrorFor(privateDi, reportedErrorSet);
+
       return getInstance({
         injectable,
         instantiationParameter,
         di: privateDi,
         injectableMap,
         context,
+        reportError,
       });
     },
 
@@ -276,12 +285,26 @@ const getRelatedInjectables = ({ injectables, alias }) =>
 const getOverridingInjectable = ({ overridingInjectables, alias }) =>
   pipeline(overridingInjectables, findLast(isRelatedTo(alias)));
 
+const reportErrorFor = (di, reportedErrorSet) => (error, newContext) => {
+  if (!reportedErrorSet.has(error)) {
+    di.injectMany(errorMonitorToken).forEach(errorMonitor =>
+      errorMonitor({
+        error,
+        context: newContext,
+      }),
+    );
+
+    reportedErrorSet.add(error);
+  }
+};
+
 const getInstance = ({
   di,
   injectable,
   instantiationParameter,
   context: oldContext,
   injectableMap,
+  reportError,
 }) => {
   if (!injectable.instantiate) {
     throw new Error(
@@ -324,14 +347,34 @@ const getInstance = ({
     return existingInstance;
   }
 
-  const newInstance = injectable.instantiate(
-    minimalDi,
-    ...(isUndefined(instantiationParameter) ? [] : [instantiationParameter]),
-  );
+  let newInstance;
+
+  try {
+    newInstance = injectable.instantiate(
+      minimalDi,
+      ...(isUndefined(instantiationParameter) ? [] : [instantiationParameter]),
+    );
+  } catch (error) {
+    reportError(error, newContext);
+
+    throw error;
+  }
 
   if (instanceKey !== nonStoredInstanceKey) {
     instanceMap.set(instanceKey, newInstance);
   }
 
+  if (isPromise(newInstance)) {
+    newInstance = newInstance.catch(error => {
+      reportError(error, newContext);
+
+      throw error;
+    });
+  }
+
   return newInstance;
+};
+
+export const errorMonitorToken = {
+  id: 'error-monitor-token',
 };
