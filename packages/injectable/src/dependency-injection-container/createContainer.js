@@ -27,16 +27,16 @@ export default (...listOfGetRequireContexts) => {
   let sideEffectsArePrevented = false;
   let setupsHaveBeenRan = false;
   let setupsAreBeingRan = false;
-  const reportedErrorSet = new Set();
 
   const injectableMap = new Map();
 
   const privateDi = {
-    inject: (alias, instantiationParameter, context = []) => {
-      if (isEmpty(context)) {
-        reportedErrorSet.clear();
-      }
-
+    inject: (
+      alias,
+      instantiationParameter,
+      context = [],
+      reportError = reportErrorFor(privateDi),
+    ) => {
       const originalInjectable = getRelatedInjectable({
         injectables,
         alias,
@@ -61,8 +61,6 @@ export default (...listOfGetRequireContexts) => {
           `Tried to inject "${injectable.id}" when side-effects are prevented.`,
         );
       }
-
-      const reportError = reportErrorFor(privateDi, reportedErrorSet);
 
       return getInstance({
         injectable,
@@ -285,17 +283,21 @@ const getRelatedInjectables = ({ injectables, alias }) =>
 const getOverridingInjectable = ({ overridingInjectables, alias }) =>
   pipeline(overridingInjectables, findLast(isRelatedTo(alias)));
 
-const reportErrorFor = (di, reportedErrorSet) => (error, newContext) => {
-  if (!reportedErrorSet.has(error)) {
-    di.injectMany(errorMonitorToken).forEach(errorMonitor =>
-      errorMonitor({
-        error,
-        context: newContext,
-      }),
-    );
+const reportErrorFor = di => {
+  const reportedErrorSet = new Set();
 
-    reportedErrorSet.add(error);
-  }
+  return (error, newContext) => {
+    if (!reportedErrorSet.has(error)) {
+      di.injectMany(errorMonitorToken).forEach(errorMonitor =>
+        errorMonitor({
+          error,
+          context: newContext,
+        }),
+      );
+
+      reportedErrorSet.add(error);
+    }
+  };
 };
 
 const getInstance = ({
@@ -330,7 +332,8 @@ const getInstance = ({
   const instanceMap = injectableMap.get(injectable.id);
 
   const minimalDi = {
-    inject: (alias, parameter) => di.inject(alias, parameter, newContext),
+    inject: (alias, parameter) =>
+      di.inject(alias, parameter, newContext, reportError),
 
     injectMany: (alias, parameter) =>
       di.injectMany(alias, parameter, newContext),
