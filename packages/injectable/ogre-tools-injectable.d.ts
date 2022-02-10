@@ -122,7 +122,6 @@ declare module '@ogre-tools/injectable' {
     getInstanceKey: (di: DiContainer, param: unknown) => string | number;
   }
 
-  // ASDs
   export const lifecycleEnum: {
     singleton: ILifecycle;
 
