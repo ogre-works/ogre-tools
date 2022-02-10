@@ -72,12 +72,22 @@ export default (...listOfGetRequireContexts) => {
       });
     },
 
-    injectMany: (alias, instantiationParameter, context = []) =>
+    injectMany: (
+      alias,
+      instantiationParameter,
+      context = [],
+      reportError = reportErrorFor(privateDi),
+    ) =>
       pipeline(
         getRelatedInjectables({ injectables, alias }),
 
         map(injectable =>
-          privateDi.inject(injectable, instantiationParameter, context),
+          privateDi.inject(
+            injectable,
+            instantiationParameter,
+            context,
+            reportError,
+          ),
         ),
       ),
 
@@ -336,7 +346,7 @@ const getInstance = ({
       di.inject(alias, parameter, newContext, reportError),
 
     injectMany: (alias, parameter) =>
-      di.injectMany(alias, parameter, newContext),
+      di.injectMany(alias, parameter, newContext, reportError),
   };
 
   const instanceKey = injectable.lifecycle.getInstanceKey(
