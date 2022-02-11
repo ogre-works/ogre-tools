@@ -7,12 +7,14 @@ describe('createContainer.global-decoration', () => {
     const decoratorInjectable = getInjectable({
       id: 'some-decorator',
       injectionToken: decorationInjectionToken,
-      instantiate:
-        () => instantiateToBeDecorated => (di, instantiationParameter) =>
+
+      instantiate: () => ({
+        decorate: instantiateToBeDecorated => (di, instantiationParameter) =>
           `decorated-instance(${instantiateToBeDecorated(
             di,
             `decorated-parameter(${instantiationParameter})`,
           )})`,
+      }),
     });
 
     const childInjectable = getInjectable({
@@ -46,24 +48,26 @@ describe('createContainer.global-decoration', () => {
       id: 'some-decorator-1',
       injectionToken: decorationInjectionToken,
 
-      instantiate:
-        () => instantiateToBeDecorated => (di, instantiationParameter) =>
+      instantiate: () => ({
+        decorate: instantiateToBeDecorated => (di, instantiationParameter) =>
           `decorated-instance-1(${instantiateToBeDecorated(
             di,
             `decorated-parameter-1(${instantiationParameter})`,
           )})`,
+      }),
     });
 
     const decoratorInjectable2 = getInjectable({
       id: 'some-decorator-2',
       injectionToken: decorationInjectionToken,
 
-      instantiate:
-        () => instantiateToBeDecorated => (di, instantiationParameter) =>
+      instantiate: () => ({
+        decorate: instantiateToBeDecorated => (di, instantiationParameter) =>
           `decorated-instance-2(${instantiateToBeDecorated(
             di,
             `decorated-parameter-2(${instantiationParameter})`,
           )})`,
+      }),
     });
 
     const injectable = getInjectable({

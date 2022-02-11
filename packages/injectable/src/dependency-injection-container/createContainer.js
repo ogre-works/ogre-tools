@@ -7,6 +7,7 @@ import forEach from 'lodash/fp/forEach';
 import get from 'lodash/fp/get';
 import getCycles from './getCycles/getCycles';
 import getInjectionToken from '../getInjectionToken/getInjectionToken';
+import has from 'lodash/fp/has';
 import invoke from 'lodash/fp/invoke';
 import isFunction from 'lodash/fp/isFunction';
 import isUndefined from 'lodash/fp/isUndefined';
@@ -15,12 +16,14 @@ import last from 'lodash/fp/last';
 import lifecycleEnum, { nonStoredInstanceKey } from './lifecycleEnum';
 import map from 'lodash/fp/map';
 import matches from 'lodash/fp/matches';
+import not from 'lodash/fp/negate';
 import once from 'lodash/fp/once';
 import reject from 'lodash/fp/reject';
 import sortBy from 'lodash/fp/sortBy';
 import tap from 'lodash/fp/tap';
 import { identity } from 'lodash/fp';
 import { isPromise, pipeline } from '@ogre-tools/fp';
+import { curry, overSome } from 'lodash';
 
 export default (...listOfGetRequireContexts) => {
   let injectables = [];
@@ -258,9 +261,11 @@ const autoRegisterInjectables = ({ getRequireContextForInjectables, di }) => {
   );
 };
 
-const isRelatedTo = alias => injectable =>
-  injectable.id === alias.id ||
-  (injectable.injectionToken && injectable.injectionToken === alias);
+const isRelatedTo = curry(
+  (alias, injectable) =>
+    injectable.id === alias.id ||
+    (injectable.injectionToken && injectable.injectionToken === alias),
+);
 
 const getRelatedInjectable = ({ injectables, alias, context }) => {
   const relatedInjectables = getRelatedInjectables({ injectables, alias });
@@ -355,7 +360,7 @@ const getInstance = ({
     // Prevent recursive decoration
     injectable.injectionToken === decorationInjectionToken
       ? identity
-      : withGlobalDecoratorsFor(di),
+      : withDecoratorsFor(di, injectable),
 
     withErrorMonitoring,
   );
@@ -430,11 +435,27 @@ const reportErrorForFor = di => {
   };
 };
 
-const withGlobalDecoratorsFor =
-  di =>
-  toBeDecorated =>
-  (...args) => {
-    const globalDecorators = di.injectMany(decorationInjectionToken);
+const withDecoratorsFor = (di, injectable) => {
+  const isRelevantDecorator = isRelevantDecoratorFor(injectable);
 
-    return pipeline(toBeDecorated, ...globalDecorators)(...args);
-  };
+  return toBeDecorated =>
+    (...args) => {
+      const decorators = pipeline(
+        di.injectMany(decorationInjectionToken),
+        filter(isRelevantDecorator),
+        map('decorate'),
+      );
+
+      return pipeline(toBeDecorated, ...decorators)(...args);
+    };
+};
+
+const isGlobalDecorator = not(has('target'));
+
+const isTargetedDecoratorFor = injectable =>
+  conforms({
+    target: alias => isRelatedTo(alias, injectable),
+  });
+
+const isRelevantDecoratorFor = injectable =>
+  overSome([isGlobalDecorator, isTargetedDecoratorFor(injectable)]);
