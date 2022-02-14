@@ -340,7 +340,9 @@ const getInstance = ({
     injectable.instantiate,
 
     // Prevent recursive decoration
-    injectable.injectionToken === decorationInjectionToken
+    injectable.injectionToken === decorationInjectionToken ||
+      // Todo: remove kludge by preventing decorations also from all child-dependencies of decorationInjectionToken implementations
+      injectable.decorable === false
       ? identity
       : withDecoratorsFor(di, injectable),
   );

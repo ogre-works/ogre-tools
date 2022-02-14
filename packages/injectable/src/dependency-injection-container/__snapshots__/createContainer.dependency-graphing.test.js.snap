@@ -1,0 +1,7 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`createContainer.dependency-graph given dependency graphing, dependencies and injected, creates Plant-UML graph 1`] = `
+"@startuml
+  \\"some-child-injectable\\" --up|> \\"some-parent-injectable\\"
+@enduml"
+`;
