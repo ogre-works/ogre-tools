@@ -22,7 +22,7 @@ import reject from 'lodash/fp/reject';
 import sortBy from 'lodash/fp/sortBy';
 import tap from 'lodash/fp/tap';
 import { identity } from 'lodash/fp';
-import { isPromise, pipeline } from '@ogre-tools/fp';
+import { pipeline } from '@ogre-tools/fp';
 import { curry, overSome } from 'lodash';
 
 export default (...listOfGetRequireContexts) => {
@@ -35,12 +35,7 @@ export default (...listOfGetRequireContexts) => {
   const injectableMap = new Map();
 
   const privateDi = {
-    inject: (
-      alias,
-      instantiationParameter,
-      context = [],
-      withErrorMonitoringFor = withErrorMonitoringForFor(privateDi),
-    ) => {
+    inject: (alias, instantiationParameter, context = []) => {
       const originalInjectable = getRelatedInjectable({
         injectables,
         alias,
@@ -72,26 +67,15 @@ export default (...listOfGetRequireContexts) => {
         di: privateDi,
         injectableMap,
         context,
-        withErrorMonitoringFor,
       });
     },
 
-    injectMany: (
-      alias,
-      instantiationParameter,
-      context = [],
-      withErrorMonitoringFor = withErrorMonitoringForFor(privateDi),
-    ) =>
+    injectMany: (alias, instantiationParameter, context = []) =>
       pipeline(
         getRelatedInjectables({ injectables, alias }),
 
         map(injectable =>
-          privateDi.inject(
-            injectable,
-            instantiationParameter,
-            context,
-            withErrorMonitoringFor,
-          ),
+          privateDi.inject(injectable, instantiationParameter, context),
         ),
       ),
 
@@ -305,7 +289,6 @@ const getInstance = ({
   instantiationParameter,
   context: oldContext,
   injectableMap,
-  withErrorMonitoringFor,
 }) => {
   if (!injectable.instantiate) {
     throw new Error(
@@ -334,11 +317,10 @@ const getInstance = ({
   const instanceMap = injectableMap.get(injectable.id);
 
   const minimalDi = {
-    inject: (alias, parameter) =>
-      di.inject(alias, parameter, newContext, withErrorMonitoringFor),
+    inject: (alias, parameter) => di.inject(alias, parameter, newContext),
 
     injectMany: (alias, parameter) =>
-      di.injectMany(alias, parameter, newContext, withErrorMonitoringFor),
+      di.injectMany(alias, parameter, newContext),
   };
 
   const instanceKey = injectable.lifecycle.getInstanceKey(
@@ -352,27 +334,19 @@ const getInstance = ({
     return existingInstance;
   }
 
-  const withErrorMonitoring = withErrorMonitoringFor(newContext);
-
   const instantiateWithDecorators = pipeline(
     injectable.instantiate,
 
     // Prevent recursive decoration
     injectable.injectionToken === decorationInjectionToken
       ? identity
-      : withDecoratorsFor(di, injectable),
-
-    withErrorMonitoring,
+      : withDecoratorsFor(di, injectable, newContext),
   );
 
   let newInstance = instantiateWithDecorators(
     minimalDi,
     ...(isUndefined(instantiationParameter) ? [] : [instantiationParameter]),
   );
-
-  if (isFunction(newInstance)) {
-    newInstance = pipeline(newInstance, withErrorMonitoring);
-  }
 
   if (instanceKey !== nonStoredInstanceKey) {
     instanceMap.set(instanceKey, newInstance);
@@ -381,61 +355,11 @@ const getInstance = ({
   return newInstance;
 };
 
-export const errorMonitorInjectionToken = getInjectionToken({
-  id: 'error-monitor-token',
-});
-
 export const decorationInjectionToken = getInjectionToken({
   id: 'decoration-token',
 });
 
-const withErrorMonitoringForFor = di => {
-  const reportErrorFor = reportErrorForFor(di);
-
-  return context => {
-    const reportError = reportErrorFor(context);
-
-    return toBeDecorated =>
-      (...args) => {
-        let result;
-
-        try {
-          result = toBeDecorated(...args);
-        } catch (error) {
-          reportError(error);
-
-          throw error;
-        }
-
-        if (isPromise(result)) {
-          result.catch(error => {
-            reportError(error);
-          });
-        }
-
-        return result;
-      };
-  };
-};
-
-const reportErrorForFor = di => {
-  const reportedErrorSet = new Set();
-
-  return context => error => {
-    if (!reportedErrorSet.has(error)) {
-      di.injectMany(errorMonitorInjectionToken).forEach(errorMonitor =>
-        errorMonitor({
-          error,
-          context,
-        }),
-      );
-
-      reportedErrorSet.add(error);
-    }
-  };
-};
-
-const withDecoratorsFor = (di, injectable) => {
+const withDecoratorsFor = (di, injectable, context) => {
   const isRelevantDecorator = isRelevantDecoratorFor(injectable);
 
   return toBeDecorated =>
@@ -446,7 +370,7 @@ const withDecoratorsFor = (di, injectable) => {
         map('decorate'),
       );
 
-      return pipeline(toBeDecorated, ...decorators)(...args);
+      return pipeline(toBeDecorated, ...decorators)(...args, context);
     };
 };
 
