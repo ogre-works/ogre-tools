@@ -321,6 +321,8 @@ const getInstance = ({
 
     injectMany: (alias, parameter) =>
       di.injectMany(alias, parameter, newContext),
+
+    context: newContext,
   };
 
   const instanceKey = injectable.lifecycle.getInstanceKey(
@@ -340,10 +342,10 @@ const getInstance = ({
     // Prevent recursive decoration
     injectable.injectionToken === decorationInjectionToken
       ? identity
-      : withDecoratorsFor(di, injectable, newContext),
+      : withDecoratorsFor(di, injectable),
   );
 
-  let newInstance = instantiateWithDecorators(
+  const newInstance = instantiateWithDecorators(
     minimalDi,
     ...(isUndefined(instantiationParameter) ? [] : [instantiationParameter]),
   );
@@ -359,7 +361,7 @@ export const decorationInjectionToken = getInjectionToken({
   id: 'decoration-token',
 });
 
-const withDecoratorsFor = (di, injectable, context) => {
+const withDecoratorsFor = (di, injectable) => {
   const isRelevantDecorator = isRelevantDecoratorFor(injectable);
 
   return toBeDecorated =>
@@ -370,7 +372,7 @@ const withDecoratorsFor = (di, injectable, context) => {
         map('decorate'),
       );
 
-      return pipeline(toBeDecorated, ...decorators)(...args, context);
+      return pipeline(toBeDecorated, ...decorators)(...args);
     };
 };
 

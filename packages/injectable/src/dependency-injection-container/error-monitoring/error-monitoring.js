@@ -16,19 +16,16 @@ export const registerErrorMonitoring = di => {
 const errorMonitoringDecoratorForInstantiationInjectable = getInjectable({
   id: 'error-monitoring-for-instantiation-decorator',
 
-  instantiate: di => ({
+  instantiate: () => ({
     decorate:
       instantiateToBeDecorated =>
-      (...args) => {
-        // Todo: un-kludge accessing of context.
-        const context = last(args);
-
+      (di, ...args) => {
         const decorated = pipeline(
           instantiateToBeDecorated,
-          withErrorMonitoringFor(di, context),
+          withErrorMonitoringFor(di),
         );
 
-        return decorated(...args);
+        return decorated(di, ...args);
       },
   }),
 
@@ -41,14 +38,11 @@ const errorMonitoringDecoratorForFunctionInstancesInjectable = getInjectable({
   instantiate: di => ({
     decorate:
       instantiateToBeDecorated =>
-      (...args) => {
-        const result = instantiateToBeDecorated(...args);
+      (di, ...args) => {
+        const result = instantiateToBeDecorated(di, ...args);
 
         if (isFunction(result)) {
-          // Todo: un-kludge accessing of context.
-          const context = last(args);
-
-          return pipeline(result, withErrorMonitoringFor(di, context));
+          return pipeline(result, withErrorMonitoringFor(di));
         }
 
         return result;
@@ -58,7 +52,7 @@ const errorMonitoringDecoratorForFunctionInstancesInjectable = getInjectable({
   injectionToken: decorationInjectionToken,
 });
 
-const withErrorMonitoringFor = (di, context) => {
+const withErrorMonitoringFor = di => {
   const notifyErrorMonitors = notifyErrorMonitorsFor(di);
 
   return instantiateToBeDecorated =>
@@ -68,14 +62,14 @@ const withErrorMonitoringFor = (di, context) => {
       try {
         result = instantiateToBeDecorated(...args);
       } catch (error) {
-        notifyErrorMonitors(error, context);
+        notifyErrorMonitors(error, di.context);
 
         throw error;
       }
 
       if (isPromise(result)) {
         result.catch(error => {
-          notifyErrorMonitors(error, context);
+          notifyErrorMonitors(error, di.context);
         });
       }
 
