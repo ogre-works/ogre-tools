@@ -7,7 +7,7 @@ import { noop } from 'lodash/fp';
 import {
   errorMonitorInjectionToken,
   registerErrorMonitoring,
-} from './error-monitoring/error-monitoring';
+} from './extensions/error-monitoring/error-monitoring';
 
 describe('createContainer.error-monitoring-for-injected-functions', () => {
   describe('given error monitoring and async function as child-injectable, when injected and called', () => {

@@ -7,7 +7,7 @@ import { noop } from 'lodash/fp';
 import {
   registerErrorMonitoring,
   errorMonitorInjectionToken,
-} from './error-monitoring/error-monitoring';
+} from './extensions/error-monitoring/error-monitoring';
 
 describe('createContainer.error-monitoring-for-instantiation', () => {
   describe('given error monitoring, sync child-injectable and injected, when instantiation of child throws', () => {
