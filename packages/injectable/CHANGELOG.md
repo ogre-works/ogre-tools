@@ -3,6 +3,15 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+### [5.0.1](https://github.com/ogre-works/ogre-tools/compare/v5.0.0...v5.0.1) (2022-02-16)
+
+
+### Bug Fixes
+
+* Fix typing of getting injectable for injection token ([6412b3e](https://github.com/ogre-works/ogre-tools/commit/6412b3e083b6c3db02167813628d8d0e9062b82c))
+
+
+
 ## [5.0.0](https://github.com/ogre-works/ogre-tools/compare/v4.1.0...v5.0.0) (2022-02-09)
 
 
