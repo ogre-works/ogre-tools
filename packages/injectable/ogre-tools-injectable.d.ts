@@ -89,23 +89,6 @@ declare module '@ogre-tools/injectable' {
     id: string,
   }): InjectionToken<TInstance, TInstantiationParameter>;
 
-  export interface Injectable<
-    TInjectionToken,
-    TInstance,
-    TInstantiationParameter,
-  > {
-    id: string;
-    setup?: (di: DiContainerForSetup) => void | Promise<void>;
-    causesSideEffects?: boolean;
-    lifecycle?: ILifecycle;
-    injectionToken?: TInjectionToken;
-
-    instantiate: (
-      di: DiContainerForInstantiate,
-      instantiationParameter: TInstantiationParameter,
-    ) => TInstance;
-  }
-
   interface DiContainerForInjection<TReturnAsPromise extends boolean> {
     inject<TInjectable extends NormalInjectable<unknown, unknown>>(
       injectableKey: TInjectable,
