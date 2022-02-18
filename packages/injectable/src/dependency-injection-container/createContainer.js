@@ -70,13 +70,13 @@ export default (...listOfGetRequireContexts) => {
       });
     },
 
-    injectMany: (alias, instantiationParameter, oldContext = []) => {
+    injectMany: (injectionToken, instantiationParameter, oldContext = []) => {
       const injectableCausingCycle = pipeline(
         oldContext,
-        find({ id: alias.id }),
+        find({ id: injectionToken.id }),
       );
 
-      const newContext = [...oldContext, { id: alias.id }];
+      const newContext = [...oldContext, { id: injectionToken.id }];
 
       if (injectableCausingCycle) {
         throw new Error(
@@ -89,7 +89,7 @@ export default (...listOfGetRequireContexts) => {
       return pipeline(
         getRelatedInjectables({
           injectables,
-          alias,
+          alias: injectionToken,
         }),
 
         map(injectable =>
