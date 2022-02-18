@@ -1,4 +1,3 @@
-import { reverse } from 'lodash/fp';
 import getInjectable from '../../../getInjectable/getInjectable';
 import { decorationInjectionToken } from '../../createContainer';
 import lifecycleEnum from '../../lifecycleEnum';
@@ -33,22 +32,23 @@ const plantUmlStateInjectable = getInjectable({
 const plantUmlExtractorInjectable = getInjectable({
   id: 'plant-uml-extractor',
 
-  instantiate: () => ({
-    decorate:
-      instantiateToBeDecorated =>
-      (di, ...args) => {
-        const [{ id: thisInjectableId }, { id: dependencyInjectableId } = {}] =
-          reverse(di.context);
+  instantiate: di => {
+    const plantUmlState = di.inject(plantUmlStateInjectable);
 
-        if (dependencyInjectableId) {
-          di.inject(plantUmlStateInjectable).add(
-            `  "${thisInjectableId}" --up|> "${dependencyInjectableId}"`,
-          );
-        }
+    return {
+      decorate:
+        instantiateToBeDecorated =>
+        (di, ...args) => {
+          di.context.reduce((parent, dependency) => {
+            plantUmlState.add(`"${parent.id}" --up|> "${dependency.id}"`);
 
-        return instantiateToBeDecorated(di, ...args);
-      },
-  }),
+            return dependency;
+          });
+
+          return instantiateToBeDecorated(di, ...args);
+        },
+    };
+  },
 
   injectionToken: decorationInjectionToken,
 });

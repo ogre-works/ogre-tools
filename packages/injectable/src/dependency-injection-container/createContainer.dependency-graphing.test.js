@@ -4,21 +4,29 @@ import {
   plantUmlDependencyGraphInjectable,
   registerDependencyGraphing,
 } from './extensions/dependency-graphing/dependency-graphing';
+import getInjectionToken from '../getInjectionToken/getInjectionToken';
 
 describe('createContainer.dependency-graph', () => {
   it('given dependency graphing, dependencies and injected, creates Plant-UML graph', () => {
-    const childInjectable = getInjectable({
-      id: 'some-child-injectable',
-      instantiate: () => 'irrelevant',
-    });
-
     const parentInjectable = getInjectable({
       id: 'some-parent-injectable',
 
       instantiate: di => di.inject(childInjectable),
     });
 
-    const di = getDi(parentInjectable, childInjectable);
+    const childInjectable = getInjectable({
+      id: 'some-child-injectable',
+      instantiate: di => di.injectMany(injectionToken),
+    });
+
+    const injectionToken = getInjectionToken({ id: 'some-injection-token' });
+    const tokenInjectable = getInjectable({
+      id: 'some-token-injectable',
+      instantiate: () => 'irrelevant',
+      injectionToken,
+    });
+
+    const di = getDi(parentInjectable, childInjectable, tokenInjectable);
 
     registerDependencyGraphing(di);
 
