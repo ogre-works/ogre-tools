@@ -2,8 +2,8 @@
 
 exports[`createContainer.dependency-graph given dependency graphing, dependencies and injected, creates Plant-UML graph 1`] = `
 "@startuml
-\\"some-parent-injectable\\" --up|> \\"some-child-injectable\\"
-\\"some-child-injectable\\" --up|> \\"some-injection-token\\"
-\\"some-injection-token\\" --up|> \\"some-token-injectable\\"
+\\"some-parent-injectable\\" --up* \\"some-child-injectable\\"
+\\"some-child-injectable\\" --up* \\"some-injection-token\\"
+\\"some-injection-token\\" --up* \\"some-token-injectable\\"
 @enduml"
 `;

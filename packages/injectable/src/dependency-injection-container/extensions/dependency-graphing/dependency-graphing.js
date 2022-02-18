@@ -40,7 +40,7 @@ const plantUmlExtractorInjectable = getInjectable({
         instantiateToBeDecorated =>
         (di, ...args) => {
           di.context.reduce((parent, dependency) => {
-            plantUmlState.add(`"${parent.id}" --up|> "${dependency.id}"`);
+            plantUmlState.add(`"${parent.id}" --up* "${dependency.id}"`);
 
             return dependency;
           });
