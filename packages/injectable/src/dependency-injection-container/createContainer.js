@@ -70,14 +70,33 @@ export default (...listOfGetRequireContexts) => {
       });
     },
 
-    injectMany: (alias, instantiationParameter, context = []) =>
-      pipeline(
-        getRelatedInjectables({ injectables, alias }),
+    injectMany: (alias, instantiationParameter, oldContext = []) => {
+      const injectableCausingCycle = pipeline(
+        oldContext,
+        find({ id: alias.id }),
+      );
+
+      const newContext = [...oldContext, { id: alias.id }];
+
+      if (injectableCausingCycle) {
+        throw new Error(
+          `Cycle of injectables encountered: "${newContext
+            .map(get('id'))
+            .join('" -> "')}"`,
+        );
+      }
+
+      return pipeline(
+        getRelatedInjectables({
+          injectables,
+          alias,
+        }),
 
         map(injectable =>
-          privateDi.inject(injectable, instantiationParameter, context),
+          privateDi.inject(injectable, instantiationParameter, newContext),
         ),
-      ),
+      );
+    },
 
     register: externalInjectable => {
       if (!externalInjectable.id) {

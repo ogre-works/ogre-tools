@@ -116,27 +116,27 @@ describe('createContainer.injection-token', () => {
     });
 
     const someOtherInjectionToken = getInjectionToken({
-      id: 'some-injection-token',
+      id: 'some-other-injection-token',
     });
 
     const childInjectable = getInjectable({
       id: 'some-child-injectable',
       injectionToken: someOtherInjectionToken,
-      instantiate: di => di.injectMany(parentInjectable),
+      instantiate: di => di.injectMany(someInjectionToken),
     });
 
     const parentInjectable = getInjectable({
       id: 'some-parent-injectable',
       injectionToken: someInjectionToken,
-      instantiate: di => di.injectMany(childInjectable),
+      instantiate: di => di.injectMany(someOtherInjectionToken),
     });
 
     const di = getDi(parentInjectable, childInjectable);
 
     expect(() => {
-      di.injectMany(parentInjectable, undefined, ['some-bogus-context']);
+      di.injectMany(someInjectionToken, undefined, ['some-bogus-context']);
     }).toThrow(
-      'Cycle of injectables encountered: "some-parent-injectable" -> "some-child-injectable" -> "some-parent-injectable"',
+      'Cycle of injectables encountered: "some-injection-token" -> "some-parent-injectable" -> "some-other-injection-token" -> "some-child-injectable" -> "some-injection-token"',
     );
   });
 
