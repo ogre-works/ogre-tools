@@ -14,21 +14,30 @@ export const plantUmlDependencyGraphInjectable = getInjectable({
 
   lifecycle: lifecycleEnum.transient,
 
-  instantiate: di =>
-    [
+  instantiate: di => {
+    const plantUmlState = di.inject(plantUmlStateInjectable);
+
+    return [
       '@startuml',
       'hide members',
       'hide circle',
-      ...di.inject(plantUmlStateInjectable).values(),
+      ...plantUmlState.nodes,
+      ...plantUmlState.links,
       '@enduml',
-    ].join('\n'),
+    ].join('\n');
+  },
 
   decorable: false,
 });
 
 const plantUmlStateInjectable = getInjectable({
   id: 'plant-uml-state',
-  instantiate: () => new Set(),
+
+  instantiate: () => ({
+    nodes: new Set(),
+    links: new Set(),
+  }),
+
   decorable: false,
 });
 
@@ -44,18 +53,18 @@ const plantUmlExtractorInjectable = getInjectable({
         const dependencyId = camelCase(dependency.injectable.id);
 
         if (parent.isChildOfSetup === true) {
-          plantUmlState.add(`${parentId} ..up* ${dependencyId} : Setup`);
+          plantUmlState.links.add(`${parentId} ..up* ${dependencyId} : Setup`);
 
           return { ...dependency, isChildOfSetup: true };
         }
 
         if (parent.isSetup === true) {
-          plantUmlState.add(`${parentId} ..up* ${dependencyId} : Setup`);
+          plantUmlState.links.add(`${parentId} ..up* ${dependencyId} : Setup`);
 
           return { ...dependency, isChildOfSetup: true };
         }
 
-        plantUmlState.add(`${parentId} --up* ${dependencyId}`);
+        plantUmlState.links.add(`${parentId} --up* ${dependencyId}`);
 
         return dependency;
       });
@@ -65,15 +74,11 @@ const plantUmlExtractorInjectable = getInjectable({
         const injectableId = camelCase(injetableName);
 
         if (contextItem.isInjectionToken) {
-          plantUmlState.add(
+          plantUmlState.nodes.add(
             `class "${injetableName}" as ${injectableId}<Token> #orange`,
           );
-        } else if (contextItem.isSetup === true) {
-          plantUmlState.add(
-            `class "${injetableName}" as ${injectableId}<Setup>`,
-          );
         } else {
-          plantUmlState.add(
+          plantUmlState.nodes.add(
             `class "${injetableName}" as ${injectableId}<${contextItem.injectable.lifecycle.name}>`,
           );
         }

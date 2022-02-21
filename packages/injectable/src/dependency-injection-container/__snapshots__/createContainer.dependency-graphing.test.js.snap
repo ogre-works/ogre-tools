@@ -4,16 +4,15 @@ exports[`createContainer.dependency-graph given dependency graphing, dependencie
 "@startuml
 hide members
 hide circle
-someSetuppable ..up* someChildInjectable : Setup
-class \\"some-setuppable\\" as someSetuppable<Setup>
+class \\"some-setuppable\\" as someSetuppable<Singleton>
 class \\"some-child-injectable\\" as someChildInjectable<Transient>
-someChildInjectable ..up* someInjectionToken : Setup
-someInjectionToken ..up* someTokenInjectable : Setup
 class \\"some-injection-token\\" as someInjectionToken<Token> #orange
 class \\"some-token-injectable\\" as someTokenInjectable<Singleton>
-someSetuppable ..up* someSetuppable : Setup
-class \\"some-setuppable\\" as someSetuppable<Singleton>
 class \\"some-parent-injectable\\" as someParentInjectable<Singleton>
+someSetuppable ..up* someChildInjectable : Setup
+someChildInjectable ..up* someInjectionToken : Setup
+someInjectionToken ..up* someTokenInjectable : Setup
+someSetuppable ..up* someSetuppable : Setup
 someParentInjectable --up* someChildInjectable
 someChildInjectable --up* someInjectionToken
 someInjectionToken --up* someTokenInjectable
