@@ -16,6 +16,8 @@ export const plantUmlDependencyGraphInjectable = getInjectable({
   instantiate: di =>
     [
       '@startuml',
+      'hide members',
+      'hide circle',
       ...di.inject(plantUmlStateInjectable).values(),
       '@enduml',
     ].join('\n'),
@@ -38,7 +40,7 @@ const plantUmlExtractorInjectable = getInjectable({
     return ({ context }) => {
       context.reduce((parent, dependency) => {
         if (parent.isInjectionToken) {
-          plantUmlState.add(`class "${parent.id}" << (T,#FF7700) >>`);
+          plantUmlState.add(`class "${parent.id}" #orange`);
         }
 
         if (parent.isChildOfSetup === true) {
