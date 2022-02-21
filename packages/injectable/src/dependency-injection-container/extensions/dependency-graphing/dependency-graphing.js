@@ -40,44 +40,41 @@ const plantUmlExtractorInjectable = getInjectable({
 
     return ({ context }) => {
       context.reduce((parent, dependency) => {
+        const parentId = camelCase(parent.injectable.id);
+        const dependencyId = camelCase(dependency.injectable.id);
+
         if (parent.isChildOfSetup === true) {
-          plantUmlState.add(
-            `${camelCase(parent.id)} ..up* ${camelCase(dependency.id)} : Setup`,
-          );
+          plantUmlState.add(`${parentId} ..up* ${dependencyId} : Setup`);
 
           return { ...dependency, isChildOfSetup: true };
         }
 
         if (parent.isSetup === true) {
-          plantUmlState.add(
-            `${camelCase(parent.id)} ..up* ${camelCase(dependency.id)} : Setup`,
-          );
+          plantUmlState.add(`${parentId} ..up* ${dependencyId} : Setup`);
 
           return { ...dependency, isChildOfSetup: true };
         }
 
-        plantUmlState.add(
-          `${camelCase(parent.id)} --up* ${camelCase(dependency.id)}`,
-        );
+        plantUmlState.add(`${parentId} --up* ${dependencyId}`);
+
         return dependency;
       });
 
       context.forEach(contextItem => {
+        const injetableName = contextItem.injectable.id;
+        const injectableId = camelCase(injetableName);
+
         if (contextItem.isInjectionToken) {
           plantUmlState.add(
-            `class "${contextItem.id}" as ${camelCase(
-              contextItem.id,
-            )}<Token> #orange`,
+            `class "${injetableName}" as ${injectableId}<Token> #orange`,
           );
         } else if (contextItem.isSetup === true) {
           plantUmlState.add(
-            `class "${contextItem.id}" as ${camelCase(contextItem.id)}<Setup>`,
+            `class "${injetableName}" as ${injectableId}<Setup>`,
           );
         } else {
           plantUmlState.add(
-            `class "${contextItem.id}" as ${camelCase(contextItem.id)}<${
-              contextItem.lifecycleName
-            }>`,
+            `class "${injetableName}" as ${injectableId}<${contextItem.injectable.lifecycle.name}>`,
           );
         }
       });

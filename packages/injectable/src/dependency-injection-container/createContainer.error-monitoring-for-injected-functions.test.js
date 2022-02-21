@@ -15,6 +15,7 @@ describe('createContainer.error-monitoring-for-injected-functions', () => {
     let actualPromise;
     let childCallMock;
     let parentInjectable;
+    let childInjectable;
     let di;
 
     beforeEach(async () => {
@@ -26,7 +27,7 @@ describe('createContainer.error-monitoring-for-injected-functions', () => {
       });
 
       childCallMock = asyncFn();
-      const childInjectable = getInjectable({
+      childInjectable = getInjectable({
         id: 'some-child-injectable',
         lifecycle: lifecycleEnum.transient,
         instantiate: () => childCallMock,
@@ -65,15 +66,13 @@ describe('createContainer.error-monitoring-for-injected-functions', () => {
 
           context: [
             {
-              id: 'some-parent-injectable',
+              injectable: expect.objectContaining(parentInjectable),
               instantiationParameter: 'some-instantiation-parameter-for-parent',
-              lifecycleName: 'Transient',
             },
 
             {
-              id: 'some-child-injectable',
+              injectable: expect.objectContaining(childInjectable),
               instantiationParameter: 'some-instantiation-parameter-for-child',
-              lifecycleName: 'Transient',
             },
           ],
         });
@@ -97,15 +96,13 @@ describe('createContainer.error-monitoring-for-injected-functions', () => {
 
           context: [
             {
-              id: 'some-parent-injectable',
+              injectable: expect.objectContaining(parentInjectable),
               instantiationParameter: 'some-instantiation-parameter-for-parent',
-              lifecycleName: 'Transient',
             },
 
             {
-              id: 'some-child-injectable',
+              injectable: expect.objectContaining(childInjectable),
               instantiationParameter: 'some-instantiation-parameter-for-child',
-              lifecycleName: 'Transient',
             },
           ],
         });
@@ -122,6 +119,7 @@ describe('createContainer.error-monitoring-for-injected-functions', () => {
     let thrownErrorMock;
     let childCallMock;
     let parentInjectable;
+    let childInjectable;
     let di;
 
     beforeEach(async () => {
@@ -134,7 +132,7 @@ describe('createContainer.error-monitoring-for-injected-functions', () => {
       });
 
       childCallMock = asyncFn();
-      const childInjectable = getInjectable({
+      childInjectable = getInjectable({
         id: 'some-child-injectable',
         lifecycle: lifecycleEnum.transient,
 
@@ -173,15 +171,13 @@ describe('createContainer.error-monitoring-for-injected-functions', () => {
 
         context: [
           {
-            id: 'some-parent-injectable',
+            injectable: expect.objectContaining(parentInjectable),
             instantiationParameter: 'some-instantiation-parameter-for-parent',
-            lifecycleName: 'Transient',
           },
 
           {
-            id: 'some-child-injectable',
+            injectable: expect.objectContaining(childInjectable),
             instantiationParameter: 'some-instantiation-parameter-for-child',
-            lifecycleName: 'Transient',
           },
         ],
       });

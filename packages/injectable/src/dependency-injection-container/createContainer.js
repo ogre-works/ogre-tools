@@ -73,18 +73,18 @@ export default (...listOfGetRequireContexts) => {
     injectMany: (injectionToken, instantiationParameter, oldContext = []) => {
       const injectableCausingCycle = pipeline(
         oldContext,
-        find({ id: injectionToken.id }),
+        find(contextItem => contextItem.injectable.id === injectionToken.id),
       );
 
       const newContext = [
         ...oldContext,
-        { id: injectionToken.id, isInjectionToken: true },
+        { injectable: injectionToken, isInjectionToken: true },
       ];
 
       if (injectableCausingCycle) {
         throw new Error(
           `Cycle of injectables encountered: "${newContext
-            .map(get('id'))
+            .map(get('injectable.id'))
             .join('" -> "')}"`,
         );
       }
@@ -119,10 +119,9 @@ export default (...listOfGetRequireContexts) => {
 
         lifecycle,
 
-        // Todo: spread-ternary
-        setup: externalInjectable.setup
-          ? once(externalInjectable.setup)
-          : undefined,
+        ...(externalInjectable.setup
+          ? { setup: once(externalInjectable.setup) }
+          : {}),
 
         permitSideEffects: function () {
           this.causesSideEffects = false;
@@ -200,9 +199,8 @@ export default (...listOfGetRequireContexts) => {
 
           return privateDi.inject(alias, parameter, [
             {
-              id: setuppable.id,
+              injectable: setuppable,
               isSetup: true,
-              lifecycleName: setuppable.lifecycle.name,
             },
           ]);
         },
@@ -283,8 +281,8 @@ const getRelatedInjectable = ({ injectables, alias, context }) => {
   const relatedInjectables = getRelatedInjectables({ injectables, alias });
 
   if (relatedInjectables.length === 0) {
-    const errorContextString = [...context, { id: alias.id }]
-      .map(get('id'))
+    const errorContextString = [...context, { injectable: { id: alias.id } }]
+      .map(get('injectable.id'))
       .join('" -> "');
 
     throw new Error(
@@ -326,10 +324,10 @@ const getInstance = ({
 
   const newContext = [
     ...oldContext,
+
     {
-      id: injectable.id,
+      injectable,
       instantiationParameter,
-      lifecycleName: injectable.lifecycle.name,
     },
   ];
 
@@ -337,14 +335,15 @@ const getInstance = ({
     oldContext,
     find(
       contextItem =>
-        contextItem.id === injectable.id && contextItem.isSetup !== true,
+        contextItem.injectable.id === injectable.id &&
+        contextItem.isSetup !== true,
     ),
   );
 
   if (injectableCausingCycle) {
     throw new Error(
       `Cycle of injectables encountered: "${newContext
-        .map(get('id'))
+        .map(get('injectable.id'))
         .join('" -> "')}"`,
     );
   }
