@@ -4,18 +4,18 @@ exports[`createContainer.dependency-graph given dependency graphing, dependencie
 "@startuml
 hide members
 hide circle
-\\"Setup(some-setuppable)\\" ..up* \\"some-child-injectable\\" : Setup
-class \\"Setup(some-setuppable)\\"<Setup>
-class \\"some-child-injectable\\"<Transient>
-\\"some-child-injectable\\" ..up* \\"some-injection-token\\" : Setup
-\\"some-injection-token\\" ..up* \\"some-token-injectable\\" : Setup
-class \\"some-injection-token\\"<Token> #orange
-class \\"some-token-injectable\\"<Singleton>
-\\"Setup(some-setuppable)\\" ..up* \\"some-setuppable\\" : Setup
-class \\"some-setuppable\\"<Singleton>
-class \\"some-parent-injectable\\"<Singleton>
-\\"some-parent-injectable\\" --up* \\"some-child-injectable\\"
-\\"some-child-injectable\\" --up* \\"some-injection-token\\"
-\\"some-injection-token\\" --up* \\"some-token-injectable\\"
+someSetuppable ..up* someChildInjectable : Setup
+class \\"some-setuppable\\" as someSetuppable<Setup>
+class \\"some-child-injectable\\" as someChildInjectable<Transient>
+someChildInjectable ..up* someInjectionToken : Setup
+someInjectionToken ..up* someTokenInjectable : Setup
+class \\"some-injection-token\\" as someInjectionToken<Token> #orange
+class \\"some-token-injectable\\" as someTokenInjectable<Singleton>
+someSetuppable ..up* someSetuppable : Setup
+class \\"some-setuppable\\" as someSetuppable<Singleton>
+class \\"some-parent-injectable\\" as someParentInjectable<Singleton>
+someParentInjectable --up* someChildInjectable
+someChildInjectable --up* someInjectionToken
+someInjectionToken --up* someTokenInjectable
 @enduml"
 `;

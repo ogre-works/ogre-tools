@@ -1,6 +1,7 @@
 import getInjectable from '../../../getInjectable/getInjectable';
 import { injectionSpyInjectionToken } from '../../createContainer';
 import lifecycleEnum from '../../lifecycleEnum';
+import camelCase from 'lodash/fp/camelCase';
 
 export const registerDependencyGraphing = di => {
   di.register(plantUmlDependencyGraphInjectable);
@@ -40,31 +41,43 @@ const plantUmlExtractorInjectable = getInjectable({
     return ({ context }) => {
       context.reduce((parent, dependency) => {
         if (parent.isChildOfSetup === true) {
-          plantUmlState.add(`"${parent.id}" ..up* "${dependency.id}" : Setup`);
+          plantUmlState.add(
+            `${camelCase(parent.id)} ..up* ${camelCase(dependency.id)} : Setup`,
+          );
 
           return { ...dependency, isChildOfSetup: true };
         }
 
         if (parent.isSetup === true) {
           plantUmlState.add(
-            `"Setup(${parent.id})" ..up* "${dependency.id}" : Setup`,
+            `${camelCase(parent.id)} ..up* ${camelCase(dependency.id)} : Setup`,
           );
 
           return { ...dependency, isChildOfSetup: true };
         }
 
-        plantUmlState.add(`"${parent.id}" --up* "${dependency.id}"`);
+        plantUmlState.add(
+          `${camelCase(parent.id)} --up* ${camelCase(dependency.id)}`,
+        );
         return dependency;
       });
 
       context.forEach(contextItem => {
         if (contextItem.isInjectionToken) {
-          plantUmlState.add(`class "${contextItem.id}"<Token> #orange`);
+          plantUmlState.add(
+            `class "${contextItem.id}" as ${camelCase(
+              contextItem.id,
+            )}<Token> #orange`,
+          );
         } else if (contextItem.isSetup === true) {
-          plantUmlState.add(`class "Setup(${contextItem.id})"<Setup>`);
+          plantUmlState.add(
+            `class "${contextItem.id}" as ${camelCase(contextItem.id)}<Setup>`,
+          );
         } else {
           plantUmlState.add(
-            `class "${contextItem.id}"<${contextItem.lifecycleName}>`,
+            `class "${contextItem.id}" as ${camelCase(contextItem.id)}<${
+              contextItem.lifecycleName
+            }>`,
           );
         }
       });
