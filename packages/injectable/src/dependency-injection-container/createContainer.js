@@ -71,23 +71,10 @@ export default (...listOfGetRequireContexts) => {
     },
 
     injectMany: (injectionToken, instantiationParameter, oldContext = []) => {
-      const injectableCausingCycle = pipeline(
-        oldContext,
-        find(contextItem => contextItem.injectable.id === injectionToken.id),
-      );
-
       const newContext = [
         ...oldContext,
         { injectable: injectionToken, isInjectionToken: true },
       ];
-
-      if (injectableCausingCycle) {
-        throw new Error(
-          `Cycle of injectables encountered: "${newContext
-            .map(get('injectable.id'))
-            .join('" -> "')}"`,
-        );
-      }
 
       return pipeline(
         getRelatedInjectables({
