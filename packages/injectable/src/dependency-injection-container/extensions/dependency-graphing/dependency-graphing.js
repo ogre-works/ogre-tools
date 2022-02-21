@@ -39,10 +39,6 @@ const plantUmlExtractorInjectable = getInjectable({
 
     return ({ context }) => {
       context.reduce((parent, dependency) => {
-        if (parent.isInjectionToken) {
-          plantUmlState.add(`class "${parent.id}" #orange`);
-        }
-
         if (parent.isChildOfSetup === true) {
           plantUmlState.add(`"${parent.id}" ..up* "${dependency.id}" : Setup`);
 
@@ -53,11 +49,24 @@ const plantUmlExtractorInjectable = getInjectable({
           plantUmlState.add(
             `"Setup(${parent.id})" ..up* "${dependency.id}" : Setup`,
           );
+
           return { ...dependency, isChildOfSetup: true };
         }
 
         plantUmlState.add(`"${parent.id}" --up* "${dependency.id}"`);
         return dependency;
+      });
+
+      context.forEach(contextItem => {
+        if (contextItem.isInjectionToken) {
+          plantUmlState.add(`class "${contextItem.id}"<Token> #orange`);
+        } else if (contextItem.isSetup === true) {
+          plantUmlState.add(`class "Setup(${contextItem.id})"<Setup>`);
+        } else {
+          plantUmlState.add(
+            `class "${contextItem.id}"<${contextItem.lifecycleName}>`,
+          );
+        }
       });
     };
   },

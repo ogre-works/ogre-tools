@@ -199,7 +199,11 @@ export default (...listOfGetRequireContexts) => {
           }
 
           return privateDi.inject(alias, parameter, [
-            { id: setuppable.id, isSetup: true },
+            {
+              id: setuppable.id,
+              isSetup: true,
+              lifecycleName: setuppable.lifecycle.name,
+            },
           ]);
         },
       });
@@ -322,7 +326,11 @@ const getInstance = ({
 
   const newContext = [
     ...oldContext,
-    { id: injectable.id, instantiationParameter },
+    {
+      id: injectable.id,
+      instantiationParameter,
+      lifecycleName: injectable.lifecycle.name,
+    },
   ];
 
   const injectableCausingCycle = pipeline(

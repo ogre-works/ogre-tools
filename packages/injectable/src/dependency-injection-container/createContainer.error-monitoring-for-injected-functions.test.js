@@ -67,11 +67,13 @@ describe('createContainer.error-monitoring-for-injected-functions', () => {
             {
               id: 'some-parent-injectable',
               instantiationParameter: 'some-instantiation-parameter-for-parent',
+              lifecycleName: 'Transient',
             },
 
             {
               id: 'some-child-injectable',
               instantiationParameter: 'some-instantiation-parameter-for-child',
+              lifecycleName: 'Transient',
             },
           ],
         });
@@ -97,11 +99,13 @@ describe('createContainer.error-monitoring-for-injected-functions', () => {
             {
               id: 'some-parent-injectable',
               instantiationParameter: 'some-instantiation-parameter-for-parent',
+              lifecycleName: 'Transient',
             },
 
             {
               id: 'some-child-injectable',
               instantiationParameter: 'some-instantiation-parameter-for-child',
+              lifecycleName: 'Transient',
             },
           ],
         });
@@ -171,11 +175,13 @@ describe('createContainer.error-monitoring-for-injected-functions', () => {
           {
             id: 'some-parent-injectable',
             instantiationParameter: 'some-instantiation-parameter-for-parent',
+            lifecycleName: 'Transient',
           },
 
           {
             id: 'some-child-injectable',
             instantiationParameter: 'some-instantiation-parameter-for-child',
+            lifecycleName: 'Transient',
           },
         ],
       });

@@ -1,0 +1,19 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`createContainer.dependency-graph given dependency graphing, dependencies and injected, creates Plant-UML graph 1`] = `
+"@startuml
+hide members
+hide circle
+\\"Setup(some-setuppable)\\" ..up* \\"some-child-injectable\\" : Setup
+class \\"Setup(some-setuppable)\\"<Setup>
+class \\"some-child-injectable\\"<Singleton>
+\\"some-child-injectable\\" ..up* \\"some-injection-token\\" : Setup
+\\"some-injection-token\\" ..up* \\"some-token-injectable\\" : Setup
+class \\"some-injection-token\\"<Token> #orange
+class \\"some-token-injectable\\"<Singleton>
+\\"Setup(some-setuppable)\\" ..up* \\"some-setuppable\\" : Setup
+class \\"some-setuppable\\"<Singleton>
+class \\"some-parent-injectable\\"<Singleton>
+\\"some-parent-injectable\\" --up* \\"some-child-injectable\\"
+@enduml"
+`;
