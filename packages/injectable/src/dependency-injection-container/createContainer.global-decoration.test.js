@@ -1,12 +1,12 @@
 import getDi from '../test-utils/getDiForUnitTesting';
 import getInjectable from '../getInjectable/getInjectable';
-import { decorationInjectionToken } from './createContainer';
+import { instantiateDecoratorInjectionToken } from './createContainer';
 
 describe('createContainer.global-decoration', () => {
   it('given global decorator and child injectable, when parent is injected, decorates instances and instantiation parameters of both parent and child', () => {
     const decoratorInjectable = getInjectable({
       id: 'some-decorator',
-      injectionToken: decorationInjectionToken,
+      injectionToken: instantiateDecoratorInjectionToken,
 
       instantiate: () => ({
         decorate: instantiateToBeDecorated => (di, instantiationParameter) =>
@@ -46,7 +46,7 @@ describe('createContainer.global-decoration', () => {
   it('given multiple global decorators and injectable, when injected, decorates instance and instantiation parameters', () => {
     const decoratorInjectable1 = getInjectable({
       id: 'some-decorator-1',
-      injectionToken: decorationInjectionToken,
+      injectionToken: instantiateDecoratorInjectionToken,
 
       instantiate: () => ({
         decorate: instantiateToBeDecorated => (di, instantiationParameter) =>
@@ -59,7 +59,7 @@ describe('createContainer.global-decoration', () => {
 
     const decoratorInjectable2 = getInjectable({
       id: 'some-decorator-2',
-      injectionToken: decorationInjectionToken,
+      injectionToken: instantiateDecoratorInjectionToken,
 
       instantiate: () => ({
         decorate: instantiateToBeDecorated => (di, instantiationParameter) =>

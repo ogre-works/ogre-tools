@@ -1,13 +1,13 @@
 import getDi from '../test-utils/getDiForUnitTesting';
 import getInjectable from '../getInjectable/getInjectable';
-import { decorationInjectionToken } from './createContainer';
+import { instantiateDecoratorInjectionToken } from './createContainer';
 import getInjectionToken from '../getInjectionToken/getInjectionToken';
 
 describe('createContainer.targeted-decoration', () => {
   it('given decorator targeting child, when parent is injected, decorates instance and instantiation parameter of only child', () => {
     const decoratorInjectable = getInjectable({
       id: 'some-child-decorator',
-      injectionToken: decorationInjectionToken,
+      injectionToken: instantiateDecoratorInjectionToken,
 
       instantiate: () => ({
         decorate: instantiateToBeDecorated => (di, instantiationParameter) =>
@@ -53,7 +53,7 @@ describe('createContainer.targeted-decoration', () => {
 
     const decoratorInjectable = getInjectable({
       id: 'some-injection-token-decorator',
-      injectionToken: decorationInjectionToken,
+      injectionToken: instantiateDecoratorInjectionToken,
 
       instantiate: () => ({
         decorate: instantiateToBeDecorated => (di, instantiationParameter) =>

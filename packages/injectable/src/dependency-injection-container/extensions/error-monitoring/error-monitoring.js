@@ -2,7 +2,7 @@ import { isFunction, last } from 'lodash/fp';
 import getInjectionToken from '../../../getInjectionToken/getInjectionToken';
 import { isPromise, pipeline } from '@ogre-tools/fp';
 import getInjectable from '../../../getInjectable/getInjectable';
-import { decorationInjectionToken } from '../../createContainer';
+import { instantiateDecoratorInjectionToken } from '../../createContainer';
 
 export const errorMonitorInjectionToken = getInjectionToken({
   id: 'error-monitor-token',
@@ -29,7 +29,7 @@ const errorMonitoringDecoratorForInstantiationInjectable = getInjectable({
       },
   }),
 
-  injectionToken: decorationInjectionToken,
+  injectionToken: instantiateDecoratorInjectionToken,
 });
 
 const errorMonitoringDecoratorForFunctionInstancesInjectable = getInjectable({
@@ -49,7 +49,7 @@ const errorMonitoringDecoratorForFunctionInstancesInjectable = getInjectable({
       },
   }),
 
-  injectionToken: decorationInjectionToken,
+  injectionToken: instantiateDecoratorInjectionToken,
 });
 
 const withErrorMonitoringFor = di => {

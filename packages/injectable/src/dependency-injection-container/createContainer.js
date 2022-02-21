@@ -195,7 +195,9 @@ export default (...listOfGetRequireContexts) => {
             await targetSetuppable.setup(diForSetupsFor(targetSetuppable));
           }
 
-          return privateDi.inject(alias, parameter);
+          return privateDi.inject(alias, parameter, [
+            { id: `setup(${setuppable.id})` },
+          ]);
         },
       });
 
@@ -333,6 +335,11 @@ const getInstance = ({
     );
   }
 
+  if (injectable.decorable !== false) {
+    di.injectMany(injectionSpyInjectionToken).forEach(spy =>
+      spy({ context: newContext }),
+    );
+  }
   const instanceMap = injectableMap.get(injectable.id);
 
   const minimalDi = {
@@ -359,7 +366,7 @@ const getInstance = ({
     injectable.instantiate,
 
     // Prevent recursive decoration
-    injectable.injectionToken === decorationInjectionToken ||
+    injectable.injectionToken === instantiateDecoratorInjectionToken ||
       // Todo: remove kludge by preventing decorations also from all child-dependencies of decorationInjectionToken implementations
       injectable.decorable === false
       ? identity
@@ -378,8 +385,12 @@ const getInstance = ({
   return newInstance;
 };
 
-export const decorationInjectionToken = getInjectionToken({
-  id: 'decoration-token',
+export const instantiateDecoratorInjectionToken = getInjectionToken({
+  id: 'instantiate-decorator-token',
+});
+
+export const injectionSpyInjectionToken = getInjectionToken({
+  id: 'injection-spy-token',
 });
 
 const withDecoratorsFor = (di, injectable) => {
@@ -388,7 +399,7 @@ const withDecoratorsFor = (di, injectable) => {
   return toBeDecorated =>
     (...args) => {
       const decorators = pipeline(
-        di.injectMany(decorationInjectionToken),
+        di.injectMany(instantiateDecoratorInjectionToken),
         filter(isRelevantDecorator),
         map('decorate'),
       );

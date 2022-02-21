@@ -1,5 +1,5 @@
 import getInjectable from '../../../getInjectable/getInjectable';
-import { decorationInjectionToken } from '../../createContainer';
+import { injectionSpyInjectionToken } from '../../createContainer';
 import lifecycleEnum from '../../lifecycleEnum';
 
 export const registerDependencyGraphing = di => {
@@ -35,20 +35,16 @@ const plantUmlExtractorInjectable = getInjectable({
   instantiate: di => {
     const plantUmlState = di.inject(plantUmlStateInjectable);
 
-    return {
-      decorate:
-        instantiateToBeDecorated =>
-        (di, ...args) => {
-          di.context.reduce((parent, dependency) => {
-            plantUmlState.add(`"${parent.id}" --up* "${dependency.id}"`);
+    return ({ context }) => {
+      context.reduce((parent, dependency) => {
+        plantUmlState.add(`"${parent.id}" --up* "${dependency.id}"`);
 
-            return dependency;
-          });
-
-          return instantiateToBeDecorated(di, ...args);
-        },
+        return dependency;
+      });
     };
   },
 
-  injectionToken: decorationInjectionToken,
+  decorable: false,
+
+  injectionToken: injectionSpyInjectionToken,
 });

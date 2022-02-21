@@ -7,7 +7,7 @@ import {
 import getInjectionToken from '../getInjectionToken/getInjectionToken';
 
 describe('createContainer.dependency-graph', () => {
-  it('given dependency graphing, dependencies and injected, creates Plant-UML graph', () => {
+  it('given dependency graphing, dependencies and injected, creates Plant-UML graph', async () => {
     const parentInjectable = getInjectable({
       id: 'some-parent-injectable',
 
@@ -26,14 +26,40 @@ describe('createContainer.dependency-graph', () => {
       injectionToken,
     });
 
-    const di = getDi(parentInjectable, childInjectable, tokenInjectable);
+    const setuppableInjectable = getInjectable({
+      id: 'some-setuppable',
+      instantiate: () => 'irrelevant',
+      setup: di => {
+        di.inject(childInjectable);
+        di.inject(setuppableInjectable);
+      },
+    });
+
+    const di = getDi(
+      parentInjectable,
+      childInjectable,
+      tokenInjectable,
+      setuppableInjectable,
+    );
 
     registerDependencyGraphing(di);
+
+    await di.runSetups();
 
     di.inject(parentInjectable);
 
     const graph = di.inject(plantUmlDependencyGraphInjectable);
 
-    expect(graph).toMatchSnapshot();
+    expect(graph).toBe(
+      [
+        '@startuml',
+        '"setup(some-setuppable)" --up* "some-child-injectable"',
+        '"some-child-injectable" --up* "some-injection-token"',
+        '"some-injection-token" --up* "some-token-injectable"',
+        '"setup(some-setuppable)" --up* "some-setuppable"',
+        '"some-parent-injectable" --up* "some-child-injectable"',
+        '@enduml',
+      ].join('\n'),
+    );
   });
 });
