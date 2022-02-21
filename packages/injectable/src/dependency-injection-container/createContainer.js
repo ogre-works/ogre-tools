@@ -76,7 +76,10 @@ export default (...listOfGetRequireContexts) => {
         find({ id: injectionToken.id }),
       );
 
-      const newContext = [...oldContext, { id: injectionToken.id }];
+      const newContext = [
+        ...oldContext,
+        { id: injectionToken.id, isInjectionToken: true },
+      ];
 
       if (injectableCausingCycle) {
         throw new Error(

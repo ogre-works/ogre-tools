@@ -37,6 +37,10 @@ const plantUmlExtractorInjectable = getInjectable({
 
     return ({ context }) => {
       context.reduce((parent, dependency) => {
+        if (parent.isInjectionToken) {
+          plantUmlState.add(`class "${parent.id}" << (T,#FF7700) >>`);
+        }
+
         if (parent.isChildOfSetup === true) {
           plantUmlState.add(`"${parent.id}" ..up* "${dependency.id}" : Setup`);
 

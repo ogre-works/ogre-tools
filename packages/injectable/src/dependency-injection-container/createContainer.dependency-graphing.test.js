@@ -55,6 +55,7 @@ describe('createContainer.dependency-graph', () => {
         '@startuml',
         '"Setup(some-setuppable)" ..up* "some-child-injectable" : Setup',
         '"some-child-injectable" ..up* "some-injection-token" : Setup',
+        'class "some-injection-token" << (T,#FF7700) >>',
         '"some-injection-token" ..up* "some-token-injectable" : Setup',
         '"Setup(some-setuppable)" ..up* "some-setuppable" : Setup',
         '"some-parent-injectable" --up* "some-child-injectable"',
