@@ -53,10 +53,10 @@ describe('createContainer.dependency-graph', () => {
     expect(graph).toBe(
       [
         '@startuml',
-        '"setup(some-setuppable)" --up* "some-child-injectable"',
-        '"some-child-injectable" --up* "some-injection-token"',
-        '"some-injection-token" --up* "some-token-injectable"',
-        '"setup(some-setuppable)" --up* "some-setuppable"',
+        '"Setup(some-setuppable)" ..up* "some-child-injectable" : Setup',
+        '"some-child-injectable" ..up* "some-injection-token" : Setup',
+        '"some-injection-token" ..up* "some-token-injectable" : Setup',
+        '"Setup(some-setuppable)" ..up* "some-setuppable" : Setup',
         '"some-parent-injectable" --up* "some-child-injectable"',
         '@enduml',
       ].join('\n'),

@@ -196,7 +196,7 @@ export default (...listOfGetRequireContexts) => {
           }
 
           return privateDi.inject(alias, parameter, [
-            { id: `setup(${setuppable.id})` },
+            { id: setuppable.id, isSetup: true },
           ]);
         },
       });
@@ -324,7 +324,10 @@ const getInstance = ({
 
   const injectableCausingCycle = pipeline(
     oldContext,
-    find({ id: injectable.id }),
+    find(
+      contextItem =>
+        contextItem.id === injectable.id && contextItem.isSetup !== true,
+    ),
   );
 
   if (injectableCausingCycle) {

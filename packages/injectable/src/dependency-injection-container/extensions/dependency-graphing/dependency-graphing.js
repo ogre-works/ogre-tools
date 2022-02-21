@@ -37,8 +37,20 @@ const plantUmlExtractorInjectable = getInjectable({
 
     return ({ context }) => {
       context.reduce((parent, dependency) => {
-        plantUmlState.add(`"${parent.id}" --up* "${dependency.id}"`);
+        if (parent.isChildOfSetup === true) {
+          plantUmlState.add(`"${parent.id}" ..up* "${dependency.id}" : Setup`);
 
+          return { ...dependency, isChildOfSetup: true };
+        }
+
+        if (parent.isSetup === true) {
+          plantUmlState.add(
+            `"Setup(${parent.id})" ..up* "${dependency.id}" : Setup`,
+          );
+          return { ...dependency, isChildOfSetup: true };
+        }
+
+        plantUmlState.add(`"${parent.id}" --up* "${dependency.id}"`);
         return dependency;
       });
     };
