@@ -5,6 +5,7 @@ import {
   registerDependencyGraphing,
 } from './extensions/dependency-graphing/dependency-graphing';
 import getInjectionToken from '../getInjectionToken/getInjectionToken';
+import lifecycleEnum from './lifecycleEnum';
 
 describe('createContainer.dependency-graph', () => {
   it('given dependency graphing, dependencies and injected, creates Plant-UML graph', async () => {
@@ -17,6 +18,7 @@ describe('createContainer.dependency-graph', () => {
     const childInjectable = getInjectable({
       id: 'some-child-injectable',
       instantiate: di => di.injectMany(injectionToken),
+      lifecycle: lifecycleEnum.transient,
     });
 
     const injectionToken = getInjectionToken({ id: 'some-injection-token' });

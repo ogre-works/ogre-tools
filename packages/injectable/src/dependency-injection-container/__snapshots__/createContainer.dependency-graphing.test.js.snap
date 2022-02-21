@@ -6,7 +6,7 @@ hide members
 hide circle
 \\"Setup(some-setuppable)\\" ..up* \\"some-child-injectable\\" : Setup
 class \\"Setup(some-setuppable)\\"<Setup>
-class \\"some-child-injectable\\"<Singleton>
+class \\"some-child-injectable\\"<Transient>
 \\"some-child-injectable\\" ..up* \\"some-injection-token\\" : Setup
 \\"some-injection-token\\" ..up* \\"some-token-injectable\\" : Setup
 class \\"some-injection-token\\"<Token> #orange
@@ -15,5 +15,7 @@ class \\"some-token-injectable\\"<Singleton>
 class \\"some-setuppable\\"<Singleton>
 class \\"some-parent-injectable\\"<Singleton>
 \\"some-parent-injectable\\" --up* \\"some-child-injectable\\"
+\\"some-child-injectable\\" --up* \\"some-injection-token\\"
+\\"some-injection-token\\" --up* \\"some-token-injectable\\"
 @enduml"
 `;
