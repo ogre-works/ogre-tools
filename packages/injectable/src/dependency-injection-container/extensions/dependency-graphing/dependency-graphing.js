@@ -77,11 +77,13 @@ const plantUmlExtractorInjectable = getInjectable({
           ...(parent.descendantOf || []),
           parent.injectable.id,
         ];
+
         const dependencyTags = plantUmlState.nodes.get(dependencyId).tags;
         descendantOf.forEach(x => dependencyTags.add(x));
 
         if (parent.descendantOfSetup === true) {
           plantUmlState.links.add(`${parentId} ..up* ${dependencyId} : Setup`);
+          dependencyTags.add('setup');
 
           return {
             ...dependency,
@@ -92,6 +94,7 @@ const plantUmlExtractorInjectable = getInjectable({
 
         if (parent.isSetup === true) {
           plantUmlState.links.add(`${parentId} ..up* ${dependencyId} : Setup`);
+          dependencyTags.add('setup');
 
           return {
             ...dependency,
