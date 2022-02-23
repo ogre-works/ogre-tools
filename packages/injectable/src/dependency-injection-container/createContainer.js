@@ -36,6 +36,16 @@ export default (...listOfGetRequireContexts) => {
 
   const privateDi = {
     inject: (alias, instantiationParameter, context = []) => {
+      checkForTooManyMatches(injectables, alias);
+
+      const relatedInjectables = getRelatedInjectables({ injectables, alias });
+
+      if (relatedInjectables.length === 0 && alias.adHoc === true) {
+        privateDi.register(alias);
+      } else {
+        checkForNoMatches(injectables, alias, context);
+      }
+
       const originalInjectable = getRelatedInjectable({
         injectables,
         alias,
@@ -264,31 +274,8 @@ const isRelatedTo = curry(
     (injectable.injectionToken && injectable.injectionToken === alias),
 );
 
-const getRelatedInjectable = ({ injectables, alias, context }) => {
-  const relatedInjectables = getRelatedInjectables({ injectables, alias });
-
-  if (relatedInjectables.length === 0) {
-    const errorContextString = [...context, { injectable: { id: alias.id } }]
-      .map(get('injectable.id'))
-      .join('" -> "');
-
-    throw new Error(
-      `Tried to inject non-registered injectable "${errorContextString}".`,
-    );
-  }
-
-  if (relatedInjectables.length > 1) {
-    throw new Error(
-      `Tried to inject single injectable for injection token "${
-        alias.id
-      }" but found multiple injectables: "${relatedInjectables
-        .map(relatedInjectable => relatedInjectable.id)
-        .join('", "')}"`,
-    );
-  }
-
-  return first(relatedInjectables);
-};
+const getRelatedInjectable = ({ injectables, alias }) =>
+  pipeline(getRelatedInjectables({ injectables, alias }), first);
 
 const getRelatedInjectables = ({ injectables, alias }) =>
   pipeline(injectables, filter(isRelatedTo(alias)));
@@ -417,3 +404,37 @@ const isTargetedDecoratorFor = injectable =>
 
 const isRelevantDecoratorFor = injectable =>
   overSome([isGlobalDecorator, isTargetedDecoratorFor(injectable)]);
+
+const checkForNoMatches = (injectables, alias, context) => {
+  const relatedInjectables = getRelatedInjectables({
+    injectables,
+    alias,
+  });
+
+  if (relatedInjectables.length === 0) {
+    const errorContextString = [...context, { injectable: { id: alias.id } }]
+      .map(get('injectable.id'))
+      .join('" -> "');
+
+    throw new Error(
+      `Tried to inject non-registered injectable "${errorContextString}".`,
+    );
+  }
+};
+
+const checkForTooManyMatches = (injectables, alias) => {
+  const relatedInjectables = getRelatedInjectables({
+    injectables,
+    alias,
+  });
+
+  if (relatedInjectables.length > 1) {
+    throw new Error(
+      `Tried to inject single injectable for injection token "${
+        alias.id
+      }" but found multiple injectables: "${relatedInjectables
+        .map(relatedInjectable => relatedInjectable.id)
+        .join('", "')}"`,
+    );
+  }
+};
