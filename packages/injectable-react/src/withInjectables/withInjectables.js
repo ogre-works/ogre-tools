@@ -4,17 +4,50 @@ import { Observer } from 'mobx-react';
 import { action, observable } from 'mobx';
 
 import { isPromise } from '@ogre-tools/fp';
+import { getInjectable, lifecycleEnum } from '@ogre-tools/injectable';
 
 const { Provider: DiContextProvider, Consumer: DiContextConsumer } =
   React.createContext();
 
 export { DiContextProvider };
 
+const componentNameMapInjectable = getInjectable({
+  id: 'component-name-map',
+  adHoc: true,
+  instantiate: () => new Map(),
+});
+
 export default (Component, { getPlaceholder = constant(null), getProps }) =>
   React.forwardRef((props, ref) => (
     <DiContextConsumer>
       {({ di }) => {
-        const maybeAsyncProps = getProps(di, props);
+        const componentNameMap = di.inject(componentNameMapInjectable);
+
+        if (!componentNameMap.has(Component)) {
+          componentNameMap.set(
+            Component,
+            Component.displayName ||
+              Component.name ||
+              `anonymous-component-${componentNameMap.size}`,
+          );
+        }
+
+        const componentContext = {
+          injectable: {
+            id: componentNameMap.get(Component),
+            lifecycle: lifecycleEnum.transient,
+          },
+        };
+
+        const diForComponentContext = {
+          inject: (alias, parameter) =>
+            di.inject(alias, parameter, componentContext),
+
+          injectMany: (injectionToken, parameter) =>
+            di.injectMany(injectionToken, parameter, componentContext),
+        };
+
+        const maybeAsyncProps = getProps(diForComponentContext, props);
         const refProps = ref ? { ref } : {};
 
         if (!isPromise(maybeAsyncProps)) {

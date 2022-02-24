@@ -1,11 +1,14 @@
 import React from 'react';
 import enzyme from 'enzyme';
 import { setImmediate as flushMicroTasks } from 'timers';
+
 import {
   createContainer,
   getInjectable,
+  getInjectionToken,
   lifecycleEnum,
 } from '@ogre-tools/injectable';
+
 import withInjectables from './withInjectables';
 import asyncFn from '@async-fn/jest';
 import { DiContextProvider } from '@ogre-tools/injectable-react';
@@ -62,6 +65,120 @@ describe('withInjectables', () => {
     const component = mount(<SmartTestComponent data-some-prop-test />);
 
     expect(component).toMatchHtmlSnapshot();
+  });
+
+  [
+    {
+      name: 'given anonymous component and a dependency cycle, when rendered, throws context for a uniquely generated component name and cycle',
+      getComponent: () => () => 'irrelevant',
+      injectOrInjectMany: 'inject',
+
+      expectedError:
+        'Cycle of injectables encountered: "anonymous-component-0" -> "some-injectable-id" -> "some-other-injectable-id" -> "some-injectable-id"',
+    },
+
+    {
+      name: 'given named component and a dependency cycle, when rendered, throws context for the component and cycle',
+
+      getComponent: () =>
+        function SomeNamedComponent() {
+          return 'irrelevant';
+        },
+
+      injectOrInjectMany: 'inject',
+
+      expectedError:
+        'Cycle of injectables encountered: "SomeNamedComponent" -> "some-injectable-id" -> "some-other-injectable-id" -> "some-injectable-id"',
+    },
+
+    {
+      name: 'given component with display name and a dependency cycle, when rendered, throws context for the component and cycle',
+
+      getComponent: () => {
+        const Component = () => 'irrelevant';
+        Component.displayName = 'some-component-display-name';
+        return Component;
+      },
+
+      injectOrInjectMany: 'inject',
+
+      expectedError:
+        'Cycle of injectables encountered: "some-component-display-name" -> "some-injectable-id" -> "some-other-injectable-id" -> "some-injectable-id"',
+    },
+
+    {
+      name: 'given class component and a dependency cycle, when rendered, throws context for the component and cycle',
+
+      getComponent: () =>
+        class SomeClassComponent extends React.Component {
+          render() {
+            return 'irrelevant';
+          }
+        },
+
+      injectOrInjectMany: 'inject',
+
+      expectedError:
+        'Cycle of injectables encountered: "SomeClassComponent" -> "some-injectable-id" -> "some-other-injectable-id" -> "some-injectable-id"',
+    },
+
+    {
+      name: 'given component, a dependency cycle and injecting a token, when rendered, throws context for the component and cycle',
+
+      getComponent: () => () => 'irrelevant',
+
+      injectUsing: 'injectionToken',
+
+      expectedError:
+        'Cycle of injectables encountered: "anonymous-component-0" -> "some-injection-token" -> "some-injectable-id" -> "some-other-injectable-id" -> "some-injectable-id"',
+    },
+  ].forEach(scenario => {
+    it(scenario.name, () => {
+      const someInjectionToken = getInjectionToken({
+        id: 'some-injection-token',
+      });
+
+      const injectable = getInjectable({
+        id: 'some-injectable-id',
+        instantiate: di => di.inject(otherInjectable),
+        injectionToken: someInjectionToken,
+      });
+
+      const otherInjectable = getInjectable({
+        id: 'some-other-injectable-id',
+        instantiate: di => di.inject(injectable),
+      });
+
+      di.register(injectable);
+      di.register(otherInjectable);
+
+      const DumbTestComponent = scenario.getComponent();
+
+      const SmartTestComponent = withInjectables(DumbTestComponent, {
+        getProps: (di, props) => ({
+          someDependency:
+            scenario.injectUsing === 'injectionToken'
+              ? di.injectMany(someInjectionToken)
+              : di.inject(injectable),
+          ...props,
+        }),
+      });
+
+      const onErrorMock = jest.fn();
+
+      const storedConsoleError = console.error;
+      console.error = () => {};
+
+      mount(
+        <ErrorBoundary onError={onErrorMock}>
+          <SmartTestComponent data-some-prop-test />
+        </ErrorBoundary>,
+      );
+
+      console.error = storedConsoleError;
+
+      expect(onErrorMock).toHaveBeenCalledWith(scenario.expectedError);
+    });
   });
 
   describe('given component, placeholder and async dependencies, when rendered', () => {
@@ -295,3 +412,26 @@ describe('withInjectables', () => {
     expect(component).toMatchHtmlSnapshot();
   });
 });
+
+class ErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError() {
+    return { hasError: true };
+  }
+
+  componentDidCatch(error, errorInfo) {
+    this.props.onError(error.message);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return null;
+    }
+
+    return this.props.children;
+  }
+}

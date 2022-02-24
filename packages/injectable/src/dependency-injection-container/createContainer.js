@@ -1,3 +1,4 @@
+import { identity } from 'lodash/fp';
 import conforms from 'lodash/fp/conforms';
 import filter from 'lodash/fp/filter';
 import find from 'lodash/fp/find';
@@ -21,7 +22,6 @@ import once from 'lodash/fp/once';
 import reject from 'lodash/fp/reject';
 import sortBy from 'lodash/fp/sortBy';
 import tap from 'lodash/fp/tap';
-import { identity } from 'lodash/fp';
 import { pipeline } from '@ogre-tools/fp';
 import { curry, overSome } from 'lodash';
 
@@ -249,8 +249,19 @@ export default (...listOfGetRequireContexts) => {
 
   const publicDi = {
     ...privateDi,
-    inject: (alias, parameter) => privateDi.inject(alias, parameter),
-    injectMany: (alias, parameter) => privateDi.injectMany(alias, parameter),
+    inject: (alias, parameter, customContextItem) =>
+      privateDi.inject(
+        alias,
+        parameter,
+        customContextItem ? [customContextItem] : undefined,
+      ),
+
+    injectMany: (alias, parameter, customContextItem) =>
+      privateDi.injectMany(
+        alias,
+        parameter,
+        customContextItem ? [customContextItem] : undefined,
+      ),
   };
 
   return publicDi;

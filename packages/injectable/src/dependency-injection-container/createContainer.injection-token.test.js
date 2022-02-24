@@ -134,7 +134,7 @@ describe('createContainer.injection-token', () => {
     const di = getDi(parentInjectable, childInjectable);
 
     expect(() => {
-      di.injectMany(someInjectionToken, undefined, ['some-bogus-context']);
+      di.injectMany(someInjectionToken);
     }).toThrow(
       'Cycle of injectables encountered: "some-injection-token" -> "some-parent-injectable" -> "some-other-injection-token" -> "some-child-injectable" -> "some-injection-token"',
     );
