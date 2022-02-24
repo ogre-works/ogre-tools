@@ -1,6 +1,7 @@
 import getInjectionToken from '../getInjectionToken/getInjectionToken';
 import getInjectable from '../getInjectable/getInjectable';
 import getDi from '../test-utils/getDiForUnitTesting';
+import lifecycleEnum from './lifecycleEnum';
 
 describe('createContainer.injection-token', () => {
   it('given multiple injectables with shared injection token, when injecting using the token, throws', () => {
@@ -152,5 +153,33 @@ describe('createContainer.injection-token', () => {
     const di = getDi(someInjectable);
 
     expect(di.inject(injectionToken)).toBe('some-instance');
+  });
+
+  it('given injectables with a dependency cycle, when injecting many with custom root context, throws error with the custom context', () => {
+    const injectionToken = getInjectionToken({ id: 'some-injection-token' });
+
+    const childInjectable = getInjectable({
+      id: 'some-child-injectable',
+      instantiate: di => di.inject(parentInjectable),
+    });
+
+    const parentInjectable = getInjectable({
+      id: 'some-parent-injectable',
+      instantiate: di => di.inject(childInjectable),
+      injectionToken,
+    });
+
+    const di = getDi(parentInjectable, childInjectable);
+
+    expect(() => {
+      di.injectMany(injectionToken, undefined, {
+        injectable: {
+          id: 'some-custom-context-id',
+          lifecycle: lifecycleEnum.transient,
+        },
+      });
+    }).toThrow(
+      'Cycle of injectables encountered: "some-custom-context-id" -> "some-injection-token" -> "some-parent-injectable" -> "some-child-injectable" -> "some-parent-injectable"',
+    );
   });
 });
