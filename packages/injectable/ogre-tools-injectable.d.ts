@@ -116,6 +116,9 @@ declare module '@ogre-tools/injectable' {
     ): TReturnAsPromise extends true
       ? Promise<TInjectionToken['template'][]>
       : TInjectionToken['template'][];
+
+    register(injectable: NormalInjectable<any, any>): void;
+    register(injectable: InjectionTokenInjectable<any>): void;
   }
 
   type InferFromToken<T> = T extends InjectionToken<
