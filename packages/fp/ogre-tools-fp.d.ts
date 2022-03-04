@@ -1,4 +1,6 @@
 declare module '@ogre-tools/fp' {
+  import { Get } from 'type-fest';
+
   interface Pipeline {
     <A, R1, R2, R3, R4, R5, R6, R7, R8, R9>(
       arg: A,
@@ -76,4 +78,18 @@ declare module '@ogre-tools/fp' {
   }
 
   export const pipeline: Pipeline;
+
+  interface GetFrom {
+    <TDictionary, TPropertyPath extends string>(
+      dictionary: TDictionary,
+      propertyPath: TPropertyPath,
+    ): Get<TDictionary, TPropertyPath>;
+
+    <TDictionary>(dictionary: TDictionary): <TPropertyPath extends string>(
+      propertyPath: TPropertyPath,
+    ) => Get<TDictionary, TPropertyPath>;
+  }
+
+  export const getFrom: GetFrom;
+  export const getSafeFrom: GetFrom;
 }
