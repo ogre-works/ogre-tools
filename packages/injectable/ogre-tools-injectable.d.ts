@@ -41,35 +41,40 @@ declare module '@ogre-tools/injectable' {
     key: Symbol;
   }
 
-  export type Injectable<
+  export interface Injectable<
     Instance extends InjectionInstance,
     InjectionInstance,
     InstantiationParam,
-  > = {
+  > {
     id: string;
     setup?: (di: DiContainerForSetup) => void | Promise<void>;
     causesSideEffects?: boolean;
     injectionToken?: InjectionToken<InjectionInstance, InstantiationParam>;
     instantiate: Instantiate<Instance, InstantiationParam>;
-  } & (
-    InstantiationParam extends void
-      ? ({
-        lifecycle?: typeof lifecycleEnum.singleton;
-      } | {
-        lifecycle: typeof lifecycleEnum.singleton | typeof lifecycleEnum.transient;
-      })
-      : {
-        lifecycle: ILifecycle<InstantiationParam, string | number | symbol>;
-      }
-  );
+    lifecycle: ILifecycle<
+      InstantiationParam,
+      string | number | symbol
+    >;
+  }
 
   export function getInjectable<
     Instance extends InjectionInstance,
     InjectionInstance,
     InstantiationParam = void
   >(
-    options: Injectable<Instance, InjectionInstance, InstantiationParam>,
-  ): typeof options;
+    options: Omit<
+      Injectable<Instance, InjectionInstance, InstantiationParam>,
+      "lifecycle"
+    > & (
+      InstantiationParam extends void
+        ? {
+          lifecycle?: ILifecycle<void, string | number | symbol>
+        }
+        : {
+          lifecycle: ILifecycle<InstantiationParam, string | number | symbol>
+        }
+    ),
+  ): Injectable<Instance, InjectionInstance, InstantiationParam>;
 
   export function getInjectionToken<
     Instance,
@@ -115,7 +120,9 @@ declare module '@ogre-tools/injectable' {
       options: ILifecycle<InstantiationParam, string | number | symbol>,
     ): typeof options;
 
-    transient: ILifecycle<unknown, typeof nonStoredInstanceKey>;
+    transient: {
+      getInstanceKey: (di: DiContainer) => typeof nonStoredInstanceKey,
+    };
   };
 
   export function createContainer(...getRequireContexts: any[]): DiContainer;
