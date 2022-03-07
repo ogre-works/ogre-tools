@@ -34,7 +34,7 @@ declare module '@ogre-tools/injectable' {
 
   export interface InjectionToken<
     Instance,
-    InstantiationParam = void,
+    InstantiationParam,
   > {
     template: Instance;
     instantiationParameter: InstantiationParam;
@@ -56,10 +56,10 @@ declare module '@ogre-tools/injectable' {
       ? ({
         lifecycle?: typeof lifecycleEnum.singleton;
       } | {
-        lifecycle: typeof lifecycleEnum.transient | KeyedSingleton;
+        lifecycle: typeof lifecycleEnum.singleton | typeof lifecycleEnum.transient;
       })
       : {
-        lifecycle: typeof lifecycleEnum.transient | KeyedSingleton;
+        lifecycle: ILifecycle<InstantiationParam, string | number | symbol>;
       }
   );
 
@@ -101,25 +101,21 @@ declare module '@ogre-tools/injectable' {
     ): AsyncReturnable<TReturnAsPromise, Instance[]>;
   }
 
-  export interface ILifecycle<InstantiationParam = void, Key extends string | number | symbol = string | number | symbol> {
+  export interface ILifecycle<InstantiationParam, Key extends string | number | symbol> {
     getInstanceKey: (di: DiContainer, params: InstantiationParam) => Key;
   }
-
-  export interface KeyedSingletonOptions<InstantiationParam = void> {
-    getInstanceKey: (di: DiContainer, params: InstantiationParam) => string | number | symbol;
-  }
-
-  export type KeyedSingleton = <InstantiationParam = void>(keyedSingletonOptions: KeyedSingletonOptions<InstantiationParam>) => ILifecycle<InstantiationParam>;
 
   const storedInstanceKey: unique symbol;
   const nonStoredInstanceKey: unique symbol;
 
   export const lifecycleEnum: {
-    singleton: ILifecycle<[], typeof storedInstanceKey>;
+    singleton: ILifecycle<void, typeof storedInstanceKey>;
 
-    keyedSingleton: KeyedSingleton;
+    keyedSingleton<InstantiationParam>(
+      options: ILifecycle<InstantiationParam, string | number | symbol>,
+    ): typeof options;
 
-    transient: ILifecycle<[], typeof nonStoredInstanceKey>;
+    transient: ILifecycle<unknown, typeof nonStoredInstanceKey>;
   };
 
   export function createContainer(...getRequireContexts: any[]): DiContainer;
@@ -130,7 +126,8 @@ declare module '@ogre-tools/injectable' {
     (error: {
       context: { id: string; instantiationParameter: any }[];
       error: any;
-    }) => void | Promise<void>
+    }) => void | Promise<void>,
+    void
   >;
 
   export function registerDependencyGraphing(di: DiContainer): void;
