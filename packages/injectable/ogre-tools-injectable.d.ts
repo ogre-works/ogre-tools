@@ -182,5 +182,5 @@ declare module '@ogre-tools/injectable' {
 
   export function registerDependencyGraphing(di: DiContainer): void;
 
-  export const plantUmlDependencyGraphInjectable: InjectionToken<string, []>;
+  export const plantUmlDependencyGraphInjectable: InjectionToken<string, void>;
 }
