@@ -8,34 +8,41 @@ declare module '@ogre-tools/injectable' {
     override<
       InjectionInstance extends InjectionTokenInstance,
       InjectionTokenInstance,
-      InstantiationParam
+      InstantiationParam,
     >(
-      injectable: Injectable<InjectionInstance, InjectionTokenInstance, InstantiationParam>,
+      injectable: Injectable<
+        InjectionInstance,
+        InjectionTokenInstance,
+        InstantiationParam
+      >,
       instantiateStub: Instantiate<InjectionInstance, InstantiationParam>,
     ): void;
 
     register<
       InjectionInstance extends InjectionTokenInstance,
       InjectionTokenInstance,
-      InstantiationParam
-    >(injectable: Injectable<InjectionInstance, InjectionTokenInstance, InstantiationParam>): void;
+      InstantiationParam,
+    >(
+      injectable: Injectable<
+        InjectionInstance,
+        InjectionTokenInstance,
+        InstantiationParam
+      >,
+    ): void;
     preventSideEffects: () => void;
   }
 
   export type Instantiate<InjectionInstance, InstantiationParam> = {
-    (di: DiContainerForInstantiate, param: InstantiationParam extends void
-      ? void
-      : InstantiationParam
+    (
+      di: DiContainerForInstantiate,
+      param: InstantiationParam extends void ? void : InstantiationParam,
     ): InjectionInstance;
   };
 
   export type DiContainerForSetup = DiContainerForInjection<true>;
   export type DiContainerForInstantiate = DiContainerForInjection<false>;
 
-  export interface InjectionToken<
-    InjectionInstance,
-    InstantiationParam,
-  > {
+  export interface InjectionToken<InjectionInstance, InstantiationParam> {
     template: InjectionInstance;
     instantiationParameter: InstantiationParam;
     key: Symbol;
@@ -56,57 +63,68 @@ declare module '@ogre-tools/injectable' {
 
   type InjectableLifecycle<InstantiationParam> = InstantiationParam extends void
     ? {
-      lifecycle?: ILifecycle<void>
-    }
+        lifecycle?: ILifecycle<void>;
+      }
     : {
-      lifecycle: ILifecycle<InstantiationParam>
-    };
+        lifecycle: ILifecycle<InstantiationParam>;
+      };
 
   type GetInjectableOptions<
     InjectionInstance extends InjectionTokenInstance,
     InjectionTokenInstance,
-    InstantiationParam
-  > = InjectableLifecycle<InstantiationParam>
-    & Omit<
+    InstantiationParam,
+  > = InjectableLifecycle<InstantiationParam> &
+    Omit<
       Injectable<InjectionInstance, InjectionTokenInstance, InstantiationParam>,
-      "lifecycle"
-    >
+      'lifecycle'
+    >;
 
   export function getInjectable<
     InjectionInstance extends InjectionTokenInstance,
     InjectionTokenInstance,
-    InstantiationParam = void
+    InstantiationParam = void,
   >(
-    options: GetInjectableOptions<InjectionInstance, InjectionTokenInstance, InstantiationParam>,
+    options: GetInjectableOptions<
+      InjectionInstance,
+      InjectionTokenInstance,
+      InstantiationParam
+    >,
   ): Injectable<InjectionInstance, InjectionTokenInstance, InstantiationParam>;
 
   export function getInjectionToken<
     InjectionInstance,
     InstantiationParam = void,
-  >({
-    id: string,
-  }): InjectionToken<InjectionInstance, InstantiationParam>;
+  >({ id: string }): InjectionToken<InjectionInstance, InstantiationParam>;
 
-  type AsyncReturnable<IsAsync extends boolean, InjectionInstance> = IsAsync extends true
-    ? Promise<InjectionInstance>
-    : InjectionInstance;
+  type AsyncReturnable<
+    IsAsync extends boolean,
+    InjectionInstance,
+  > = IsAsync extends true ? Promise<InjectionInstance> : InjectionInstance;
 
   interface Inject<IsAsync extends boolean> {
     <InjectionInstance>(
-      key: Injectable<InjectionInstance, unknown, void> | InjectionToken<InjectionInstance, void>,
+      key:
+        | Injectable<InjectionInstance, unknown, void>
+        | InjectionToken<InjectionInstance, void>,
     ): AsyncReturnable<IsAsync, InjectionInstance>;
     <InjectionInstance, InstantiationParam>(
-      key: Injectable<InjectionInstance, unknown, InstantiationParam> | InjectionToken<InjectionInstance, InstantiationParam>,
+      key:
+        | Injectable<InjectionInstance, unknown, InstantiationParam>
+        | InjectionToken<InjectionInstance, InstantiationParam>,
       param: InstantiationParam,
     ): AsyncReturnable<IsAsync, InjectionInstance>;
   }
 
   interface InjectMany<IsAsync extends boolean> {
     <InjectionInstance>(
-      key: Injectable<InjectionInstance, unknown, void> | InjectionToken<InjectionInstance, void>,
+      key:
+        | Injectable<InjectionInstance, unknown, void>
+        | InjectionToken<InjectionInstance, void>,
     ): AsyncReturnable<IsAsync, InjectionInstance[]>;
     <InjectionInstance, InstantiationParam>(
-      key: Injectable<InjectionInstance, unknown, InstantiationParam> | InjectionToken<InjectionInstance, InstantiationParam>,
+      key:
+        | Injectable<InjectionInstance, unknown, InstantiationParam>
+        | InjectionToken<InjectionInstance, InstantiationParam>,
       param: InstantiationParam,
     ): AsyncReturnable<IsAsync, InjectionInstance[]>;
   }
@@ -118,12 +136,21 @@ declare module '@ogre-tools/injectable' {
     register<
       InjectionInstance extends InjectionTokenInstance,
       InjectionTokenInstance,
-      InstantiationParam
-    >(injectable: Injectable<InjectionInstance, InjectionTokenInstance, InstantiationParam>): void;
+      InstantiationParam,
+    >(
+      injectable: Injectable<
+        InjectionInstance,
+        InjectionTokenInstance,
+        InstantiationParam
+      >,
+    ): void;
   }
 
   export interface ILifecycle<InstantiationParam> {
-    getInstanceKey: (di: DiContainer, params: InstantiationParam) => string | number | symbol | object | bigint;
+    getInstanceKey: (
+      di: DiContainer,
+      params: InstantiationParam,
+    ) => string | number | symbol | object | bigint;
   }
 
   const storedInstanceKey: unique symbol;
@@ -137,7 +164,7 @@ declare module '@ogre-tools/injectable' {
     ): typeof options;
 
     transient: {
-      getInstanceKey: (di: DiContainer) => typeof nonStoredInstanceKey,
+      getInstanceKey: (di: DiContainer) => typeof nonStoredInstanceKey;
     };
   };
 
