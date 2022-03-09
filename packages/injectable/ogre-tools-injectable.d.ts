@@ -96,7 +96,7 @@ declare module '@ogre-tools/injectable' {
     InstantiationParam = void,
   >({ id: string }): InjectionToken<InjectionInstance, InstantiationParam>;
 
-  type AsyncReturnable<
+  type SelectiveAsync<
     IsAsync extends boolean,
     InjectionInstance,
   > = IsAsync extends true ? Promise<InjectionInstance> : InjectionInstance;
@@ -106,13 +106,13 @@ declare module '@ogre-tools/injectable' {
       key:
         | Injectable<InjectionInstance, unknown, void>
         | InjectionToken<InjectionInstance, void>,
-    ): AsyncReturnable<IsAsync, InjectionInstance>;
+    ): SelectiveAsync<IsAsync, InjectionInstance>;
     <InjectionInstance, InstantiationParam>(
       key:
         | Injectable<InjectionInstance, unknown, InstantiationParam>
         | InjectionToken<InjectionInstance, InstantiationParam>,
       param: InstantiationParam,
-    ): AsyncReturnable<IsAsync, InjectionInstance>;
+    ): SelectiveAsync<IsAsync, InjectionInstance>;
   }
 
   interface InjectMany<IsAsync extends boolean> {
@@ -120,13 +120,13 @@ declare module '@ogre-tools/injectable' {
       key:
         | Injectable<InjectionInstance, unknown, void>
         | InjectionToken<InjectionInstance, void>,
-    ): AsyncReturnable<IsAsync, InjectionInstance[]>;
+    ): SelectiveAsync<IsAsync, InjectionInstance[]>;
     <InjectionInstance, InstantiationParam>(
       key:
         | Injectable<InjectionInstance, unknown, InstantiationParam>
         | InjectionToken<InjectionInstance, InstantiationParam>,
       param: InstantiationParam,
-    ): AsyncReturnable<IsAsync, InjectionInstance[]>;
+    ): SelectiveAsync<IsAsync, InjectionInstance[]>;
   }
 
   interface DiContainerForInjection<TReturnAsPromise extends boolean> {
