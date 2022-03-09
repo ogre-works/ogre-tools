@@ -19,19 +19,33 @@ declare module '@ogre-tools/injectable-react' {
   }
 
   export interface WithInjectables {
-    <Dependencies extends object, Props extends object = {}>(
+    <
+      Dependencies extends object,
+      Props extends object = {},
+    >(
       Component: React.ElementType<Dependencies & Props>,
       options: WithInjectablesSyncOptions<Dependencies, Props>,
     ): React.FunctionComponent<Props>;
-    <Dependencies extends object, Props extends object, Ref extends object>(
+    <
+      Dependencies extends object,
+      Props extends object,
+      Ref extends object,
+    >(
       Component: React.ForwardRefExoticComponent<Dependencies & Props & React.RefAttributes<Ref>>,
       options: WithInjectablesSyncOptions<Dependencies, Props>,
     ): React.ForwardRefExoticComponent<Props & React.RefAttributes<Ref>>;
-    <Dependencies extends object, Props extends object = {}>(
+    <
+      Dependencies extends object,
+      Props extends object = {},
+    >(
       Component: React.ElementType<Dependencies & Props>,
       options: WithInjectablesAsyncOptions<Dependencies, Props>,
     ): React.FunctionComponent<Props>;
-    <Dependencies extends object, Props extends object, Ref extends object>(
+    <
+      Dependencies extends object,
+      Props extends object,
+      Ref extends object,
+    >(
       Component: React.ForwardRefExoticComponent<Dependencies & Props & React.RefAttributes<Ref>>,
       options: WithInjectablesAsyncOptions<Dependencies, Props>,
     ): React.ForwardRefExoticComponent<Props & React.RefAttributes<Ref>>;
