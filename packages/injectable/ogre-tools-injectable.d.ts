@@ -1,153 +1,149 @@
 /// <reference types="jest" />
 declare module '@ogre-tools/injectable' {
-  type InferFromInjectable<T> = T extends NormalInjectable<
-    infer TInstance,
-    infer TInstantiationParameter
-  >
-    ? [TInstance, TInstantiationParameter]
-    : never;
-
-  type ValueType =
-    | string
-    | number
-    | boolean
-    | symbol
-    | bigint
-    | object
-    | Array<any>;
-
-  export type TentativeTuple<T> = T extends ValueType ? [T] : [undefined?];
-
   export interface DiContainer extends DiContainerForInjection<false> {
-    purge: (injectableKey: NormalInjectable<any, any>) => void;
+    purge: (injectableKey: Injectable<any, any, any>) => void;
 
     runSetups: () => Promise<void>;
 
-    override<TInjectable extends NormalInjectable<unknown, unknown>>(
-      injectable: TInjectable,
-      instantiateStub: (
-        di: DiContainerForInstantiate,
-        ...instantiationParameter: TentativeTuple<
-          InferFromInjectable<TInjectable>[1]
-        >
-      ) => InferFromInjectable<TInjectable>[0],
+    override<
+      InjectionInstance extends InjectionTokenInstance,
+      InjectionTokenInstance,
+      InstantiationParam
+    >(
+      injectable: Injectable<InjectionInstance, InjectionTokenInstance, InstantiationParam>,
+      instantiateStub: Instantiate<InjectionInstance, InstantiationParam>,
     ): void;
 
-    register(injectable: NormalInjectable<any, any>): void;
-    register(injectable: InjectionTokenInjectable<any>): void;
+    register<
+      InjectionInstance extends InjectionTokenInstance,
+      InjectionTokenInstance,
+      InstantiationParam
+    >(injectable: Injectable<InjectionInstance, InjectionTokenInstance, InstantiationParam>): void;
     preventSideEffects: () => void;
   }
 
-  export interface DiContainerForSetup extends DiContainerForInjection<true> {}
-
-  export interface DiContainerForInstantiate
-    extends DiContainerForInjection<false> {}
-
-  type InjectionToken<TInstance, TInstantiationParameter> = {
-    template: TInstance;
-    instantiationParameter: TInstantiationParameter;
-    key: Symbol;
+  export type Instantiate<InjectionInstance, InstantiationParam> = {
+    (di: DiContainerForInstantiate, param: InstantiationParam extends void
+      ? void
+      : InstantiationParam
+    ): InjectionInstance;
   };
 
-  interface CommonInjectable {
+  export type DiContainerForSetup = DiContainerForInjection<true>;
+  export type DiContainerForInstantiate = DiContainerForInjection<false>;
+
+  export interface InjectionToken<
+    InjectionInstance,
+    InstantiationParam,
+  > {
+    template: InjectionInstance;
+    instantiationParameter: InstantiationParam;
+    key: Symbol;
+  }
+
+  export interface Injectable<
+    InjectionInstance extends InjectionTokenInstance,
+    InjectionTokenInstance,
+    InstantiationParam,
+  > {
     id: string;
     setup?: (di: DiContainerForSetup) => void | Promise<void>;
     causesSideEffects?: boolean;
-    lifecycle?: ILifecycle;
+    injectionToken?: InjectionToken<InjectionTokenInstance, InstantiationParam>;
+    instantiate: Instantiate<InjectionInstance, InstantiationParam>;
+    lifecycle: ILifecycle<InstantiationParam>;
   }
 
-  interface InjectionTokenInjectable<
-    TInjectionToken extends InjectionToken<unknown, unknown>,
-  > extends CommonInjectable {
-    injectionToken: TInjectionToken;
+  type InjectableLifecycle<InstantiationParam> = InstantiationParam extends void
+    ? {
+      lifecycle?: ILifecycle<void>
+    }
+    : {
+      lifecycle: ILifecycle<InstantiationParam>
+    };
 
-    instantiate: (
-      di: DiContainerForInstantiate,
-      instantiationParameter: InferFromToken<TInjectionToken>[1],
-    ) => InferFromToken<TInjectionToken>[0];
-  }
-
-  interface NormalInjectable<TInstance, TInstantiationParameter>
-    extends CommonInjectable {
-    instantiate: (
-      di: DiContainerForInstantiate,
-      instantiationParameter: TInstantiationParameter,
-    ) => TInstance;
-  }
+  type GetInjectableOptions<
+    InjectionInstance extends InjectionTokenInstance,
+    InjectionTokenInstance,
+    InstantiationParam
+  > = InjectableLifecycle<InstantiationParam>
+    & Omit<
+      Injectable<InjectionInstance, InjectionTokenInstance, InstantiationParam>,
+      "lifecycle"
+    >
 
   export function getInjectable<
-    TInjectionToken extends InjectionToken<unknown, unknown>,
+    InjectionInstance extends InjectionTokenInstance,
+    InjectionTokenInstance,
+    InstantiationParam = void
   >(
-    options: InjectionTokenInjectable<TInjectionToken>,
-  ): InjectionTokenInjectable<TInjectionToken>;
+    options: GetInjectableOptions<InjectionInstance, InjectionTokenInstance, InstantiationParam>,
+  ): Injectable<InjectionInstance, InjectionTokenInstance, InstantiationParam>;
 
-  export function getInjectable<TInstance, TInstantiationParameter>(
-    options: NormalInjectable<TInstance, TInstantiationParameter>,
-  ): NormalInjectable<TInstance, TInstantiationParameter>;
-
-  export function getInjectionToken<TInstance, TInstantiationParameter = void>({
+  export function getInjectionToken<
+    InjectionInstance,
+    InstantiationParam = void,
+  >({
     id: string,
-  }): InjectionToken<TInstance, TInstantiationParameter>;
+  }): InjectionToken<InjectionInstance, InstantiationParam>;
+
+  type AsyncReturnable<IsAsync extends boolean, InjectionInstance> = IsAsync extends true
+    ? Promise<InjectionInstance>
+    : InjectionInstance;
+
+  interface Inject<IsAsync extends boolean> {
+    <InjectionInstance>(
+      key: Injectable<InjectionInstance, unknown, void> | InjectionToken<InjectionInstance, void>,
+    ): AsyncReturnable<IsAsync, InjectionInstance>;
+    <InjectionInstance, InstantiationParam>(
+      key: Injectable<InjectionInstance, unknown, InstantiationParam> | InjectionToken<InjectionInstance, InstantiationParam>,
+      param: InstantiationParam,
+    ): AsyncReturnable<IsAsync, InjectionInstance>;
+  }
+
+  interface InjectMany<IsAsync extends boolean> {
+    <InjectionInstance>(
+      key: Injectable<InjectionInstance, unknown, void> | InjectionToken<InjectionInstance, void>,
+    ): AsyncReturnable<IsAsync, InjectionInstance[]>;
+    <InjectionInstance, InstantiationParam>(
+      key: Injectable<InjectionInstance, unknown, InstantiationParam> | InjectionToken<InjectionInstance, InstantiationParam>,
+      param: InstantiationParam,
+    ): AsyncReturnable<IsAsync, InjectionInstance[]>;
+  }
 
   interface DiContainerForInjection<TReturnAsPromise extends boolean> {
-    inject<TInjectable extends NormalInjectable<unknown, unknown>>(
-      injectableKey: TInjectable,
-      ...instantiationParameter: TentativeTuple<
-        InferFromInjectable<TInjectable>[1]
-      >
-    ): TReturnAsPromise extends true
-      ? Promise<InferFromInjectable<TInjectable>[0]>
-      : InferFromInjectable<TInjectable>[0];
+    inject: Inject<TReturnAsPromise>;
+    injectMany: InjectMany<TReturnAsPromise>;
 
-    inject<TInjectionToken extends InjectionToken<unknown, unknown>>(
-      injectionToken: TInjectionToken,
-      ...instantiationParameter: TentativeTuple<
-        TInjectionToken['instantiationParameter']
-      >
-    ): TReturnAsPromise extends true
-      ? Promise<TInjectionToken['template']>
-      : TInjectionToken['template'];
-
-    injectMany<TInjectionToken extends InjectionToken<unknown, unknown>>(
-      injectionToken: TInjectionToken,
-      ...instantiationParameter: TentativeTuple<
-        TInjectionToken['instantiationParameter']
-      >
-    ): TReturnAsPromise extends true
-      ? Promise<TInjectionToken['template'][]>
-      : TInjectionToken['template'][];
-
-    register(injectable: NormalInjectable<any, any>): void;
-    register(injectable: InjectionTokenInjectable<any>): void;
+    register<
+      InjectionInstance extends InjectionTokenInstance,
+      InjectionTokenInstance,
+      InstantiationParam
+    >(injectable: Injectable<InjectionInstance, InjectionTokenInstance, InstantiationParam>): void;
   }
 
-  type InferFromToken<T> = T extends InjectionToken<
-    infer TInstance,
-    infer TInstantiationParameter
-  >
-    ? [TInstance, TInstantiationParameter]
-    : never;
-
-  export interface ILifecycle {
-    getInstanceKey: (di: DiContainer, param: unknown) => string | number;
+  export interface ILifecycle<InstantiationParam> {
+    getInstanceKey: (di: DiContainer, params: InstantiationParam) => string | number | symbol | object | bigint;
   }
+
+  const storedInstanceKey: unique symbol;
+  const nonStoredInstanceKey: unique symbol;
 
   export const lifecycleEnum: {
-    singleton: ILifecycle;
+    singleton: (di: DiContainer, param: void) => typeof storedInstanceKey;
 
-    keyedSingleton: <TInstantiationParameter>(keyedSingletonOptions: {
-      getInstanceKey: (
-        di: DiContainer,
-        instantiationParameter: TInstantiationParameter,
-      ) => string | number;
-    }) => ILifecycle;
+    keyedSingleton<InstantiationParam>(
+      options: ILifecycle<InstantiationParam>,
+    ): typeof options;
 
-    transient: ILifecycle;
+    transient: {
+      getInstanceKey: (di: DiContainer) => typeof nonStoredInstanceKey,
+    };
   };
 
   export function createContainer(...getRequireContexts: any[]): DiContainer;
 
-  export function registerErrorMonitoring(di: DiContainer);
+  export function registerErrorMonitoring(di: DiContainer): void;
 
   export const errorMonitorInjectionToken: InjectionToken<
     (error: {
@@ -157,7 +153,7 @@ declare module '@ogre-tools/injectable' {
     void
   >;
 
-  export function registerDependencyGraphing(di: DiContainer);
+  export function registerDependencyGraphing(di: DiContainer): void;
 
-  export const plantUmlDependencyGraphInjectable: InjectionToken<string, void>;
+  export const plantUmlDependencyGraphInjectable: InjectionToken<string, []>;
 }
