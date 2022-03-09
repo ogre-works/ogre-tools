@@ -99,6 +99,18 @@ export default (...listOfGetRequireContexts) => {
     },
 
     register: externalInjectable => {
+      if (setupsHaveBeenRan && !!externalInjectable.setup) {
+        throw new Error(
+          `Tried to register setuppable "${externalInjectable.id}" after setups have already ran.`,
+        );
+      }
+
+      if (setupsAreBeingRan && !!externalInjectable.setup) {
+        throw new Error(
+          `Tried to register setuppable "${externalInjectable.id}" during setup.`,
+        );
+      }
+
       if (!externalInjectable.id) {
         throw new Error('Tried to register injectable without ID.');
       }
@@ -201,6 +213,8 @@ export default (...listOfGetRequireContexts) => {
             },
           ]);
         },
+
+        register: privateDi.register,
       });
 
       await pipeline(
@@ -347,6 +361,8 @@ const getInstance = ({
       di.injectMany(alias, parameter, newContext),
 
     context: newContext,
+
+    register: di.register,
   };
 
   const instanceKey = injectable.lifecycle.getInstanceKey(

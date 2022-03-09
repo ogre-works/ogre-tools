@@ -114,6 +114,12 @@ declare module '@ogre-tools/injectable' {
   interface DiContainerForInjection<TReturnAsPromise extends boolean> {
     inject: Inject<TReturnAsPromise>;
     injectMany: InjectMany<TReturnAsPromise>;
+
+    register<
+      InjectionInstance extends InjectionTokenInstance,
+      InjectionTokenInstance,
+      InstantiationParam
+    >(injectable: Injectable<InjectionInstance, InjectionTokenInstance, InstantiationParam>): void;
   }
 
   export interface ILifecycle<InstantiationParam> {
