@@ -1,5 +1,6 @@
 import getInjectable from '../getInjectable/getInjectable';
 import getDi from '../test-utils/getDiForUnitTesting';
+import createContainer from './createContainer';
 
 describe('createContainer.registration', () => {
   it('injects auto-registered injectable without sub-injectables', () => {
@@ -13,6 +14,24 @@ describe('createContainer.registration', () => {
     const actual = di.inject(injectableStub);
 
     expect(actual).toBe('some-injected-instance');
+  });
+
+  it('throws an error with the key if the value behind has no default export', () => {
+    const context = new Map();
+
+    context.set("./foobar.injectable.ts", {
+      notDefault: getInjectable({
+        id: 'irrelevant',
+        instantiate: () => 'some-injected-instance',
+      }),
+    });
+
+    expect(() => createContainer(() => Object.assign(
+      (key) => context.get(key),
+      {
+        keys: () => context.keys(),
+      }
+    ))).toThrowError(/\.\/foobar\.injectable\.ts/);
   });
 
   it('given manually registered injectable, when injecting, injects', () => {

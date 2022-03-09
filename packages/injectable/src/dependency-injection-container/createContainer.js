@@ -1,4 +1,4 @@
-import { identity } from 'lodash/fp';
+import { identity, zip } from 'lodash/fp';
 import conforms from 'lodash/fp/conforms';
 import filter from 'lodash/fp/filter';
 import find from 'lodash/fp/find';
@@ -282,15 +282,17 @@ export default (...listOfGetRequireContexts) => {
 };
 
 const autoRegisterInjectables = ({ getRequireContextForInjectables, di }) => {
-  const requireContextForInjectables = getRequireContextForInjectables();
+  const context = getRequireContextForInjectables();
 
-  pipeline(
-    requireContextForInjectables,
-    invoke('keys'),
-    map(requireContextForInjectables),
-    map('default'),
-    forEach(di.register),
-  );
+  for (const key of context.keys()) {
+    const injectable = context(key).default;
+
+    if (!injectable) {
+      throw new Error(`File ${key} does not have a default export.`)
+    }
+
+    di.register(injectable);
+  }
 };
 
 const isRelatedTo = curry(
@@ -457,8 +459,7 @@ const checkForTooManyMatches = (injectables, alias) => {
 
   if (relatedInjectables.length > 1) {
     throw new Error(
-      `Tried to inject single injectable for injection token "${
-        alias.id
+      `Tried to inject single injectable for injection token "${alias.id
       }" but found multiple injectables: "${relatedInjectables
         .map(relatedInjectable => relatedInjectable.id)
         .join('", "')}"`,
