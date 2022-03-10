@@ -50,22 +50,13 @@ describe('createContainer.dependency-graph', () => {
       injectionToken,
     });
 
-    const syncSetuppable = getInjectable({
-      id: 'some-sync-setuppable',
-      instantiate: () => 'irrelevant',
-
-      setup: di => {
-        di.inject(syncChildInjectable);
-        di.inject(syncSetuppable);
-      },
-    });
-
-    const asyncSetuppable = getInjectable({
-      id: 'some-async-setuppable',
+    const setuppable = getInjectable({
+      id: 'some-setuppable',
       instantiate: () => 'irrelevant',
 
       setup: async di => {
-        await di.inject(asyncChildInjectable);
+        await di.inject(syncChildInjectable);
+        await di.inject(setuppable);
       },
     });
 
@@ -74,8 +65,7 @@ describe('createContainer.dependency-graph', () => {
       syncChildInjectable,
       asyncChildInjectable,
       tokenInjectable,
-      syncSetuppable,
-      asyncSetuppable,
+      setuppable,
       keyedInjectable,
     );
 
