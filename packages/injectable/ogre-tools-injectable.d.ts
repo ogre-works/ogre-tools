@@ -147,10 +147,7 @@ declare module '@ogre-tools/injectable' {
   }
 
   export interface ILifecycle<InstantiationParam> {
-    getInstanceKey: (
-      di: DiContainer,
-      params: InstantiationParam,
-    ) => string | number | symbol | object | bigint;
+    getInstanceKey: (di: DiContainer, params: InstantiationParam) => any;
   }
 
   const storedInstanceKey: unique symbol;
