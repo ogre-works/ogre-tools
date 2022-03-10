@@ -72,6 +72,7 @@ const plantUmlExtractorInjectable = getInjectable({
       if (alias.aliasType === injectionTokenSymbol) {
         node.isInjectionToken = true;
         node.lifecycleName = lifecycleEnum.transient.name;
+        node.infos.add('Token');
       } else {
         node.lifecycleName = alias.lifecycle.name;
       }
@@ -139,12 +140,12 @@ const toPlantUmlNode = ({
   infos,
 }) => {
   const infosString = [lifecycleName, ...infos.values()].join('\\n');
+  const classPuml = `class "${name}" as ${id}<${infosString}>`;
+  const tagPuml = [...tags].map(tag => `$${tag}`).join(' ');
+  const borderColor = isInjectionToken ? 'orange' : 'darkRed';
+  const stylePuml = `#line:${borderColor}`;
 
-  const mainPuml = `class "${name}" as ${id}<${infosString}>`;
-
-  const tagPuml = [...tags].map(tag => ` $${tag}`).join('');
-
-  return mainPuml + tagPuml;
+  return `${classPuml} ${tagPuml} ${stylePuml}`;
 };
 
 const toPlantUmlLink = ({

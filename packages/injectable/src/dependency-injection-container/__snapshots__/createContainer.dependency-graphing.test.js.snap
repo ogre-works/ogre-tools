@@ -4,12 +4,12 @@ exports[`createContainer.dependency-graph given dependency graphing, dependencie
 "@startuml
 hide members
 hide circle
-class \\"some-token-injectable\\" as someTokenInjectable<Singleton> $some-token-injectable $some-sync-setuppable $some-sync-child-injectable $some-injection-token $setup $some-parent-injectable
-class \\"some-injection-token\\" as someInjectionToken<Transient> $some-injection-token $some-sync-setuppable $some-sync-child-injectable $setup $some-parent-injectable
-class \\"some-sync-child-injectable\\" as someSyncChildInjectable<Transient> $some-sync-child-injectable $some-sync-setuppable $setup $some-parent-injectable
-class \\"some-sync-setuppable\\" as someSyncSetuppable<Singleton> $some-sync-setuppable $setup
-class \\"some-async-child-injectable\\" as someAsyncChildInjectable<Singleton\\\\nAsync> $some-async-child-injectable $some-async-setuppable $setup $some-parent-injectable
-class \\"some-parent-injectable\\" as someParentInjectable<Singleton\\\\nAsync> $some-parent-injectable
+class \\"some-token-injectable\\" as someTokenInjectable<Singleton> $some-token-injectable $some-sync-setuppable $some-sync-child-injectable $some-injection-token $setup $some-parent-injectable #line:darkRed
+class \\"some-injection-token\\" as someInjectionToken<Transient\\\\nToken> $some-injection-token $some-sync-setuppable $some-sync-child-injectable $setup $some-parent-injectable #line:orange
+class \\"some-sync-child-injectable\\" as someSyncChildInjectable<Transient> $some-sync-child-injectable $some-sync-setuppable $setup $some-parent-injectable #line:darkRed
+class \\"some-sync-setuppable\\" as someSyncSetuppable<Singleton> $some-sync-setuppable $setup #line:darkRed
+class \\"some-async-child-injectable\\" as someAsyncChildInjectable<Singleton\\\\nAsync> $some-async-child-injectable $some-async-setuppable $setup $some-parent-injectable #line:darkRed
+class \\"some-parent-injectable\\" as someParentInjectable<Singleton\\\\nAsync> $some-parent-injectable #line:darkRed
 someInjectionToken --[#black,dashed,thickness=1]up* someTokenInjectable : Setup
 someSyncChildInjectable --[#black,dashed,thickness=1]up* someInjectionToken : Setup
 someSyncSetuppable --[#black,dashed,thickness=1]up* someSyncChildInjectable : Setup
