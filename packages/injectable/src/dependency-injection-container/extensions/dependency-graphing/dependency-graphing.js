@@ -7,6 +7,7 @@ import last from 'lodash/fp/last';
 import get from 'lodash/fp/get';
 import some from 'lodash/fp/some';
 import { pipeline } from '@ogre-tools/fp';
+import { isPromise } from '@ogre-tools/fp';
 
 export const registerDependencyGraphing = di => {
   di.register(plantUmlDependencyGraphInjectable);
@@ -51,6 +52,8 @@ const plantUmlExtractorInjectable = getInjectable({
 
   instantiate: di => ({
     decorate: toBeDecorated => (alias, instantiationParameter, context) => {
+      const instance = toBeDecorated(alias, instantiationParameter, context);
+
       const graphState = di.inject(dependencyGraphStateInjectable);
       const injectableName = alias.id;
       const injectableId = camelCase(injectableName);
@@ -60,6 +63,7 @@ const plantUmlExtractorInjectable = getInjectable({
           id: injectableId,
           name: injectableName,
           tags: new Set([injectableName]),
+          infos: new Set(),
         });
       }
 
@@ -67,8 +71,16 @@ const plantUmlExtractorInjectable = getInjectable({
 
       if (alias.aliasType === injectionTokenSymbol) {
         node.isInjectionToken = true;
+        node.lifecycleName = lifecycleEnum.transient.name;
       } else {
         node.lifecycleName = alias.lifecycle.name;
+      }
+
+      const instanceIsAsync = isPromise(instance);
+
+      if (instanceIsAsync) {
+        node.isAsync = true;
+        node.infos.add('Async');
       }
 
       const parentContext = last(context);
@@ -91,6 +103,7 @@ const plantUmlExtractorInjectable = getInjectable({
           graphState.links.set(linkId, {
             parentId,
             dependencyId,
+            infos: new Set(),
           });
         }
 
@@ -98,12 +111,17 @@ const plantUmlExtractorInjectable = getInjectable({
 
         if (linkIsRelatedToSetup) {
           link.isRelatedToSetup = true;
-
+          link.infos.add('Setup');
           node.tags.add('setup');
+        }
+
+        if (instanceIsAsync) {
+          link.isAsync = true;
+          link.infos.add('Async');
         }
       }
 
-      return toBeDecorated(alias, instantiationParameter, context);
+      return instance;
     },
   }),
 
@@ -118,18 +136,31 @@ const toPlantUmlNode = ({
   lifecycleName,
   tags,
   isInjectionToken,
+  infos,
 }) => {
-  const mainPuml = isInjectionToken
-    ? `class "${name}" as ${id}<Token>`
-    : `class "${name}" as ${id}<${lifecycleName}>`;
+  const infosString = [lifecycleName, ...infos.values()].join('\\n');
+
+  const mainPuml = `class "${name}" as ${id}<${infosString}>`;
 
   const tagPuml = [...tags].map(tag => ` $${tag}`).join('');
 
   return mainPuml + tagPuml;
 };
 
-const toPlantUmlLink = ({ parentId, dependencyId, isRelatedToSetup }) => {
-  return isRelatedToSetup
-    ? `${parentId} ..up* ${dependencyId} : Setup`
-    : `${parentId} --up* ${dependencyId}`;
+const toPlantUmlLink = ({
+  parentId,
+  dependencyId,
+  isRelatedToSetup,
+  isAsync,
+  infos,
+}) => {
+  const lineColor = 'black';
+  const lineType = isRelatedToSetup ? 'dashed' : 'plain';
+  const lineThickness = isAsync ? 4 : 1;
+
+  const lineStyle = `[#${lineColor},${lineType},thickness=${lineThickness}]`;
+
+  const infosString = infos.size ? ` : ${[...infos.values()].join('\\n')}` : '';
+
+  return `${parentId} --${lineStyle}up* ${dependencyId}${infosString}`;
 };

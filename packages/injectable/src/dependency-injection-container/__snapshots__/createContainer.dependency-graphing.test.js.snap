@@ -4,17 +4,20 @@ exports[`createContainer.dependency-graph given dependency graphing, dependencie
 "@startuml
 hide members
 hide circle
-class \\"some-child-injectable\\" as someChildInjectable<Transient> $some-child-injectable $some-setuppable $setup $some-parent-injectable
-class \\"some-injection-token\\" as someInjectionToken<Token> $some-injection-token $some-setuppable $some-child-injectable $setup $some-parent-injectable
-class \\"some-token-injectable\\" as someTokenInjectable<Singleton> $some-token-injectable $some-setuppable $some-child-injectable $some-injection-token $setup $some-parent-injectable
-class \\"some-setuppable\\" as someSetuppable<Singleton> $some-setuppable $setup
-class \\"some-parent-injectable\\" as someParentInjectable<Singleton> $some-parent-injectable
-someSetuppable ..up* someChildInjectable : Setup
-someChildInjectable ..up* someInjectionToken : Setup
-someInjectionToken ..up* someTokenInjectable : Setup
-someSetuppable ..up* someSetuppable : Setup
-someParentInjectable --up* someChildInjectable
-someChildInjectable --up* someInjectionToken
-someInjectionToken --up* someTokenInjectable
+class \\"some-token-injectable\\" as someTokenInjectable<Singleton> $some-token-injectable $some-sync-setuppable $some-sync-child-injectable $some-injection-token $setup $some-parent-injectable
+class \\"some-injection-token\\" as someInjectionToken<Transient> $some-injection-token $some-sync-setuppable $some-sync-child-injectable $setup $some-parent-injectable
+class \\"some-sync-child-injectable\\" as someSyncChildInjectable<Transient> $some-sync-child-injectable $some-sync-setuppable $setup $some-parent-injectable
+class \\"some-sync-setuppable\\" as someSyncSetuppable<Singleton> $some-sync-setuppable $setup
+class \\"some-async-child-injectable\\" as someAsyncChildInjectable<Singleton\\\\nAsync> $some-async-child-injectable $some-async-setuppable $setup $some-parent-injectable
+class \\"some-parent-injectable\\" as someParentInjectable<Singleton\\\\nAsync> $some-parent-injectable
+someInjectionToken --[#black,dashed,thickness=1]up* someTokenInjectable : Setup
+someSyncChildInjectable --[#black,dashed,thickness=1]up* someInjectionToken : Setup
+someSyncSetuppable --[#black,dashed,thickness=1]up* someSyncChildInjectable : Setup
+someSyncSetuppable --[#black,dashed,thickness=1]up* someSyncSetuppable : Setup
+someAsyncSetuppable --[#black,dashed,thickness=4]up* someAsyncChildInjectable : Setup\\\\nAsync
+someInjectionToken --[#black,plain,thickness=1]up* someTokenInjectable
+someSyncChildInjectable --[#black,plain,thickness=1]up* someInjectionToken
+someParentInjectable --[#black,plain,thickness=1]up* someSyncChildInjectable
+someParentInjectable --[#black,plain,thickness=4]up* someAsyncChildInjectable : Async
 @enduml"
 `;
