@@ -121,6 +121,7 @@ declare module '@ogre-tools/injectable' {
         | Injectable<InjectionInstance, unknown, void>
         | InjectionToken<InjectionInstance, void>,
     ): SelectiveAsync<IsAsync, InjectionInstance[]>;
+
     <InjectionInstance, InstantiationParam>(
       key:
         | Injectable<InjectionInstance, unknown, InstantiationParam>
