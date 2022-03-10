@@ -27,7 +27,7 @@ describe('createContainer.registration', () => {
     );
 
     expect(() => createContainer(() => requireContextStub)).toThrowError(
-      /\.\/some\.injectable\.js/,
+      'tried to register injectable from ./some.injectable.js, but no default export',
     );
   });
 
@@ -42,7 +42,7 @@ describe('createContainer.registration', () => {
     );
 
     expect(() => createContainer(() => requireContextStub)).toThrowError(
-      /\.\/some\.injectable\.js/,
+      'tried to register injectable from ./some.injectable.js, but default export is of wrong shape',
     );
   });
 
@@ -50,7 +50,7 @@ describe('createContainer.registration', () => {
     const requireContextStub = Object.assign(
       () => ({
         default: {
-          id: 'foobar',
+          id: 'irrelevant',
         },
       }),
       {
@@ -59,7 +59,7 @@ describe('createContainer.registration', () => {
     );
 
     expect(() => createContainer(() => requireContextStub)).toThrowError(
-      /\.\/some\.injectable\.js/,
+      'tried to register injectable from ./some.injectable.js, but default export is of wrong shape',
     );
   });
 
@@ -67,8 +67,8 @@ describe('createContainer.registration', () => {
     const requireContextStub = Object.assign(
       () => ({
         default: {
-          id: 'foobar',
-          instantiate: () => {},
+          id: 'some-injectable-id',
+          instantiate: () => { },
         },
       }),
       {

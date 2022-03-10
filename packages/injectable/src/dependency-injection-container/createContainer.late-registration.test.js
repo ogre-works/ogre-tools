@@ -38,7 +38,7 @@ describe('createContainer.late-registration', () => {
         di.register(someInjectableToBeRegisteredLate);
       },
 
-      instantiate: () => undefined,
+      instantiate: () => 'irrelavent',
     });
 
     const someInjectableToBeRegisteredLate = getInjectable({
@@ -66,7 +66,7 @@ describe('createContainer.late-registration', () => {
 
       setup: () => {},
 
-      instantiate: () => undefined,
+      instantiate: () => 'irrelavent',
     });
 
     const di = getDi();
@@ -88,7 +88,7 @@ describe('createContainer.late-registration', () => {
         di.register(someSetuppableToBeRegisteredLate);
       },
 
-      instantiate: () => undefined,
+      instantiate: () => 'irrelavent',
     });
 
     const someSetuppableToBeRegisteredLate = getInjectable({

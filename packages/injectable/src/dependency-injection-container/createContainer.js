@@ -290,11 +290,15 @@ const autoRegisterInjectables = ({ getRequireContextForInjectables, di }) => {
     const injectable = context(key).default;
 
     if (!injectable) {
-      throw new Error(`${key} does not have a default export`);
+      throw new Error(
+        `tried to register injectable from ${key}, but no default export`,
+      );
     }
 
     if (!verifyInjectable(injectable)) {
-      throw new Error(`${key} does not conform to the shape of an injectable`);
+      throw new Error(
+        `tried to register injectable from ${key}, but default export is of wrong shape`,
+      );
     }
 
     return injectable;
@@ -465,7 +469,8 @@ const checkForTooManyMatches = (injectables, alias) => {
 
   if (relatedInjectables.length > 1) {
     throw new Error(
-      `Tried to inject single injectable for injection token "${alias.id
+      `Tried to inject single injectable for injection token "${
+        alias.id
       }" but found multiple injectables: "${relatedInjectables
         .map(relatedInjectable => relatedInjectable.id)
         .join('", "')}"`,

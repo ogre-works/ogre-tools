@@ -49,7 +49,7 @@ describe('createContainer.setuppable', () => {
         instanceFromSetup = await di.inject(someInjectable, 'some-parameter');
       },
 
-      instantiate: () => undefined,
+      instantiate: () => 'irrelavent',
     });
 
     const someInjectable = getInjectable({
@@ -70,14 +70,14 @@ describe('createContainer.setuppable', () => {
       id: 'some-injectable',
       setup: asyncFn(),
 
-      instantiate: () => undefined,
+      instantiate: () => 'irrelavent',
     });
 
     const someOtherSetuppable = getInjectable({
       id: 'some-other-injectable',
       setup: asyncFn(),
 
-      instantiate: () => undefined,
+      instantiate: () => 'irrelavent',
     });
 
     const di = getDi(someSetuppable, someOtherSetuppable);
@@ -97,14 +97,14 @@ describe('createContainer.setuppable', () => {
       id: 'some-injectable',
       setup: asyncFn(),
 
-      instantiate: () => undefined,
+      instantiate: () => 'irrelavent',
     });
 
     const someOtherSetuppable = {
       id: 'some-other-injectable',
       setup: asyncFn(),
 
-      instantiate: () => undefined,
+      instantiate: () => 'irrelavent',
     };
 
     const di = getDi(someSetuppable, someOtherSetuppable);
