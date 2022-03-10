@@ -180,16 +180,14 @@ const toPlantUmlLink = ({
   isRelatedToSetup,
   isAsync,
   infos,
+  color = 'black',
 }) => {
-  const lineColor = 'black';
   const lineType = isRelatedToSetup ? 'dashed' : 'plain';
   const lineThickness = isAsync ? 4 : 1;
-
-  const lineStyle = `[#${lineColor},${lineType},thickness=${lineThickness}]`;
-
+  const lineStyle = `[#${color},${lineType},thickness=${lineThickness}]`;
   const infosString = infos.size ? ` : ${[...infos.values()].join('\\n')}` : '';
 
-  return `${parentId} --${lineStyle}up* ${dependencyId}${infosString}`;
+  return `${parentId} --${lineStyle}up* ${dependencyId} #text:${color} ${infosString} `;
 };
 
 const tokenLifecycle = {

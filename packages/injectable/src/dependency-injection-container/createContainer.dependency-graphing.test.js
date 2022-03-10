@@ -72,8 +72,15 @@ describe('createContainer.dependency-graph', () => {
 
       instantiate: () => ({
         shouldCustomize: isEqual('some-customizable-instance'),
-        customizeLink: link => link.infos.add('some-custom-link-info'),
-        customizeNode: node => node.infos.add('some-custom-node-info'),
+
+        customizeLink: link => {
+          link.infos.add('some-custom-link-info');
+          link.color = 'orange';
+        },
+
+        customizeNode: node => {
+          node.infos.add('some-custom-node-info');
+        },
       }),
 
       decorable: false,
