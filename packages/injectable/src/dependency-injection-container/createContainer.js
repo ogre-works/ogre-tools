@@ -23,7 +23,7 @@ import reject from 'lodash/fp/reject';
 import sortBy from 'lodash/fp/sortBy';
 import tap from 'lodash/fp/tap';
 import { pipeline } from '@ogre-tools/fp';
-import { curry, overSome } from 'lodash';
+import { curry, isString, overSome } from 'lodash';
 
 export default (...listOfGetRequireContexts) => {
   let injectables = [];
@@ -281,18 +281,31 @@ export default (...listOfGetRequireContexts) => {
   return publicDi;
 };
 
+const verifyInjectable = conforms({ id: isString, instantiate: isFunction });
+
 const autoRegisterInjectables = ({ getRequireContextForInjectables, di }) => {
   const context = getRequireContextForInjectables();
 
-  for (const key of context.keys()) {
+  const getAndVerifyInjectable = key => {
     const injectable = context(key).default;
 
     if (!injectable) {
-      throw new Error(`File ${key} does not have a default export.`)
+      throw new Error(`${key} does not have a default export`);
     }
 
-    di.register(injectable);
-  }
+    if (!verifyInjectable(injectable)) {
+      throw new Error(`${key} does not conform to the shape of an injectable`);
+    }
+
+    return injectable;
+  };
+
+  pipeline(
+    context,
+    invoke('keys'),
+    map(getAndVerifyInjectable),
+    forEach(di.register),
+  );
 };
 
 const isRelatedTo = curry(
@@ -317,15 +330,8 @@ const getInstance = ({
   context: oldContext,
   injectableMap,
 }) => {
-  if (!injectable.instantiate) {
-    throw new Error(
-      `Tried to inject "${injectable.id}" when instantiation is not defined.`,
-    );
-  }
-
   const newContext = [
     ...oldContext,
-
     {
       injectable,
       instantiationParameter,

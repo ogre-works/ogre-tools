@@ -16,22 +16,67 @@ describe('createContainer.registration', () => {
     expect(actual).toBe('some-injected-instance');
   });
 
-  it('throws an error with the key if the value behind has no default export', () => {
-    const context = new Map();
-
-    context.set("./foobar.injectable.ts", {
-      notDefault: getInjectable({
-        id: 'irrelevant',
-        instantiate: () => 'some-injected-instance',
+  it('given injectable file with no default export, when auto-registering, throws with name of faulty file', () => {
+    const requireContextStub = Object.assign(
+      () => ({
+        notDefault: 'irrelevant',
       }),
-    });
-
-    expect(() => createContainer(() => Object.assign(
-      (key) => context.get(key),
       {
-        keys: () => context.keys(),
-      }
-    ))).toThrowError(/\.\/foobar\.injectable\.ts/);
+        keys: () => ['./some.injectable.js'],
+      },
+    );
+
+    expect(() => createContainer(() => requireContextStub)).toThrowError(
+      /\.\/some\.injectable\.js/,
+    );
+  });
+
+  it('given injectable file with default export without id, when auto-registering, throws with name of faulty file', () => {
+    const requireContextStub = Object.assign(
+      () => ({
+        default: 'irrelevant',
+      }),
+      {
+        keys: () => ['./some.injectable.js'],
+      },
+    );
+
+    expect(() => createContainer(() => requireContextStub)).toThrowError(
+      /\.\/some\.injectable\.js/,
+    );
+  });
+
+  it('given injectable file with default export with in but without instantiate, when auto-registering, throws with name of faulty file', () => {
+    const requireContextStub = Object.assign(
+      () => ({
+        default: {
+          id: 'foobar',
+        },
+      }),
+      {
+        keys: () => ['./some.injectable.js'],
+      },
+    );
+
+    expect(() => createContainer(() => requireContextStub)).toThrowError(
+      /\.\/some\.injectable\.js/,
+    );
+  });
+
+  it('given injectable file with default export of correct shape, when auto-registering, does not throw', () => {
+    const requireContextStub = Object.assign(
+      () => ({
+        default: {
+          id: 'foobar',
+          instantiate: () => {},
+        },
+      }),
+      {
+        keys: () => ['./some.injectable.js'],
+      },
+    );
+
+    expect(() => createContainer(() => requireContextStub)).not.toThrow();
   });
 
   it('given manually registered injectable, when injecting, injects', () => {

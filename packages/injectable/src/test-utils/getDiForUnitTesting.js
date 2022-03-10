@@ -23,9 +23,8 @@ const getRequireContextStub = (...injectables) => {
     fromPairs,
   );
 
-  const contextStub = contextKey => contextDictionary[contextKey];
-
-  contextStub.keys = () => keys(contextDictionary);
-
-  return () => contextStub;
+  return () =>
+    Object.assign(contextKey => contextDictionary[contextKey], {
+      keys: () => keys(contextDictionary),
+    });
 };

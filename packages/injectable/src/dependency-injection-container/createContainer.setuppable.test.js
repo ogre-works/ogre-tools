@@ -48,6 +48,8 @@ describe('createContainer.setuppable', () => {
       setup: async di => {
         instanceFromSetup = await di.inject(someInjectable, 'some-parameter');
       },
+
+      instantiate: () => undefined,
     });
 
     const someInjectable = getInjectable({
@@ -67,11 +69,15 @@ describe('createContainer.setuppable', () => {
     const someSetuppable = getInjectable({
       id: 'some-injectable',
       setup: asyncFn(),
+
+      instantiate: () => undefined,
     });
 
     const someOtherSetuppable = getInjectable({
       id: 'some-other-injectable',
       setup: asyncFn(),
+
+      instantiate: () => undefined,
     });
 
     const di = getDi(someSetuppable, someOtherSetuppable);
@@ -90,11 +96,15 @@ describe('createContainer.setuppable', () => {
     const someSetuppable = getInjectable({
       id: 'some-injectable',
       setup: asyncFn(),
+
+      instantiate: () => undefined,
     });
 
     const someOtherSetuppable = {
       id: 'some-other-injectable',
       setup: asyncFn(),
+
+      instantiate: () => undefined,
     };
 
     const di = getDi(someSetuppable, someOtherSetuppable);
@@ -106,23 +116,6 @@ describe('createContainer.setuppable', () => {
     const promiseStatus = await getPromiseStatus(runSetupsPromise);
 
     expect(promiseStatus.fulfilled).toBe(false);
-  });
-
-  it('given injectable with setup but no way to instantiate, when injected, throws', async () => {
-    const someInjectable = getInjectable({
-      id: 'some-injectable',
-      setup: () => {},
-    });
-
-    const di = getDi(someInjectable);
-
-    await di.runSetups();
-
-    expect(() => {
-      di.inject(someInjectable);
-    }).toThrow(
-      'Tried to inject "some-injectable" when instantiation is not defined.',
-    );
   });
 
   it('given injectable with setup but setups have not been ran, when injected, throws', () => {
