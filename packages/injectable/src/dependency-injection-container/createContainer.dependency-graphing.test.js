@@ -19,6 +19,7 @@ describe('createContainer.dependency-graph', () => {
         di.inject(syncChildInjectable);
         di.inject(syncChildInjectable);
         await di.inject(asyncChildInjectable);
+        di.inject(keyedInjectable);
       },
     });
 
@@ -31,6 +32,14 @@ describe('createContainer.dependency-graph', () => {
     const asyncChildInjectable = getInjectable({
       id: 'some-async-child-injectable',
       instantiate: async () => 'irrelevant',
+    });
+
+    const keyedInjectable = getInjectable({
+      id: 'some-keyed-injectable',
+      instantiate: () => 'irrelevant',
+      lifecycle: lifecycleEnum.keyedSingleton({
+        getInstanceKey: () => 'irrelevant',
+      }),
     });
 
     const injectionToken = getInjectionToken({ id: 'some-injection-token' });
@@ -67,6 +76,7 @@ describe('createContainer.dependency-graph', () => {
       tokenInjectable,
       syncSetuppable,
       asyncSetuppable,
+      keyedInjectable,
     );
 
     registerDependencyGraphing(di);

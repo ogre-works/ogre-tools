@@ -6,8 +6,7 @@ import { injectionTokenSymbol } from '../../../getInjectionToken/getInjectionTok
 import last from 'lodash/fp/last';
 import get from 'lodash/fp/get';
 import some from 'lodash/fp/some';
-import { pipeline } from '@ogre-tools/fp';
-import { isPromise } from '@ogre-tools/fp';
+import { isPromise, pipeline } from '@ogre-tools/fp';
 
 export const registerDependencyGraphing = di => {
   di.register(plantUmlDependencyGraphInjectable);
@@ -26,7 +25,6 @@ export const plantUmlDependencyGraphInjectable = getInjectable({
     return [
       '@startuml',
       'hide members',
-      'hide circle',
       ...[...nodes.values()].map(toPlantUmlNode),
       ...[...links.values()].map(toPlantUmlLink),
       '@enduml',
@@ -71,10 +69,10 @@ const plantUmlExtractorInjectable = getInjectable({
 
       if (alias.aliasType === injectionTokenSymbol) {
         node.isInjectionToken = true;
-        node.lifecycleName = lifecycleEnum.transient.name;
+        node.lifecycle = tokenLifecycle;
         node.infos.add('Token');
       } else {
-        node.lifecycleName = alias.lifecycle.name;
+        node.lifecycle = alias.lifecycle;
       }
 
       const instanceIsAsync = isPromise(instance);
@@ -134,18 +132,19 @@ const plantUmlExtractorInjectable = getInjectable({
 const toPlantUmlNode = ({
   id,
   name,
-  lifecycleName,
+  lifecycle,
   tags,
   isInjectionToken,
   infos,
 }) => {
-  const infosString = [lifecycleName, ...infos.values()].join('\\n');
+  const infosString = [lifecycle.name, ...infos.values()].join('\\n');
   const classPuml = `class "${name}" as ${id}<${infosString}>`;
+  const spotPuml = `<< (${lifecycle.shortName},${lifecycle.color}) >>`;
   const tagPuml = [...tags].map(tag => `$${tag}`).join(' ');
-  const borderColor = isInjectionToken ? 'orange' : 'darkRed';
+  const borderColor = isInjectionToken ? 'green' : 'darkRed';
   const stylePuml = `#line:${borderColor}`;
 
-  return `${classPuml} ${tagPuml} ${stylePuml}`;
+  return `${classPuml} ${spotPuml} ${tagPuml} ${stylePuml}`;
 };
 
 const toPlantUmlLink = ({
@@ -164,4 +163,10 @@ const toPlantUmlLink = ({
   const infosString = infos.size ? ` : ${[...infos.values()].join('\\n')}` : '';
 
   return `${parentId} --${lineStyle}up* ${dependencyId}${infosString}`;
+};
+
+const tokenLifecycle = {
+  name: 'Transient',
+  shortName: 'X',
+  color: 'orange',
 };
