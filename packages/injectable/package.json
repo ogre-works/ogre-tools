@@ -10,8 +10,8 @@
   "main": "build/index.js",
   "types": "./ogre-tools-injectable.d.ts",
   "keywords": [
-    "js",
-    "functional-programming"
+    "dependency-injection",
+    "js"
   ],
   "author": "Ogre Works",
   "license": "MIT",
