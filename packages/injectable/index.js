@@ -6,6 +6,7 @@ import createContainer from './src/dependency-injection-container/createContaine
 import {
   registerDependencyGraphing,
   plantUmlDependencyGraphInjectable,
+  dependencyGraphCustomizerToken,
 } from './src/dependency-injection-container/extensions/dependency-graphing/dependency-graphing';
 
 import {
@@ -20,6 +21,7 @@ export {
   createContainer,
   registerDependencyGraphing,
   plantUmlDependencyGraphInjectable,
+  dependencyGraphCustomizerToken,
   registerErrorMonitoring,
   errorMonitorInjectionToken,
 };

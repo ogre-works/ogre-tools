@@ -2,11 +2,15 @@ import getInjectable from '../../../getInjectable/getInjectable';
 import { injectionDecoratorToken } from '../../createContainer';
 import lifecycleEnum from '../../lifecycleEnum';
 import camelCase from 'lodash/fp/camelCase';
-import { injectionTokenSymbol } from '../../../getInjectionToken/getInjectionToken';
+import getInjectionToken, {
+  injectionTokenSymbol,
+} from '../../../getInjectionToken/getInjectionToken';
 import last from 'lodash/fp/last';
 import get from 'lodash/fp/get';
 import some from 'lodash/fp/some';
 import { isPromise, pipeline } from '@ogre-tools/fp';
+import filter from 'lodash/fp/filter';
+import tap from 'lodash/fp/tap';
 
 export const registerDependencyGraphing = di => {
   di.register(plantUmlDependencyGraphInjectable);
@@ -31,6 +35,11 @@ export const plantUmlDependencyGraphInjectable = getInjectable({
     ].join('\n');
   },
 
+  decorable: false,
+});
+
+export const dependencyGraphCustomizerToken = getInjectionToken({
+  id: 'dependency-graph-customizer',
   decorable: false,
 });
 
@@ -83,6 +92,7 @@ const plantUmlExtractorInjectable = getInjectable({
       }
 
       const parentContext = last(context);
+      let link;
 
       if (parentContext) {
         const parentId = camelCase(parentContext.injectable.id);
@@ -95,8 +105,10 @@ const plantUmlExtractorInjectable = getInjectable({
         }`;
 
         const descendantIds = context.map(get('injectable.id'));
-        const node = graphState.nodes.get(dependencyId);
-        descendantIds.forEach(descendantId => node.tags.add(descendantId));
+        const dependencyNode = graphState.nodes.get(dependencyId);
+        descendantIds.forEach(descendantId =>
+          dependencyNode.tags.add(descendantId),
+        );
 
         if (!graphState.links.has(linkId)) {
           graphState.links.set(linkId, {
@@ -106,12 +118,12 @@ const plantUmlExtractorInjectable = getInjectable({
           });
         }
 
-        const link = graphState.links.get(linkId);
+        link = graphState.links.get(linkId);
 
         if (linkIsRelatedToSetup) {
           link.isRelatedToSetup = true;
           link.infos.add('Setup');
-          node.tags.add('setup');
+          dependencyNode.tags.add('setup');
         }
 
         if (instanceIsAsync) {
@@ -120,7 +132,7 @@ const plantUmlExtractorInjectable = getInjectable({
         }
       }
 
-      return instance;
+      return pipeline(instance, tap(customizeFor(di, node, link)));
     },
   }),
 
@@ -128,6 +140,21 @@ const plantUmlExtractorInjectable = getInjectable({
 
   injectionToken: injectionDecoratorToken,
 });
+
+const customizeFor = (di, node, link) => instance => {
+  const customizers = pipeline(
+    di.injectMany(dependencyGraphCustomizerToken),
+    filter(customizer => customizer.shouldCustomize(instance)),
+  );
+
+  customizers.forEach(customizer => customizer.customizeNode(node));
+
+  if (!link) {
+    return;
+  }
+
+  customizers.forEach(customizer => customizer.customizeLink(link));
+};
 
 const toPlantUmlNode = ({
   id,

@@ -1,4 +1,6 @@
 /// <reference types="jest" />
+import isEqual from 'lodash/fp/isEqual';
+
 declare module '@ogre-tools/injectable' {
   export interface DiContainer extends DiContainerForInjection<false> {
     purge: (injectableKey: Injectable<any, any, any>) => void;
@@ -177,6 +179,15 @@ declare module '@ogre-tools/injectable' {
     }) => void | Promise<void>,
     void
   >;
+
+  interface Customizer {
+    shouldCustomize: (instance: any) => boolean;
+    // Todo: add proper typing
+    customizeLink: (link: any) => void;
+    customizeNode: (node: any) => void;
+  }
+
+  export const dependencyGraphCustomizerToken: InjectionToken<Customizer, void>;
 
   export function registerDependencyGraphing(di: DiContainer): void;
 

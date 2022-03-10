@@ -2,10 +2,12 @@ import getDi from '../test-utils/getDiForUnitTesting';
 import getInjectable from '../getInjectable/getInjectable';
 
 import {
+  dependencyGraphCustomizerToken,
   plantUmlDependencyGraphInjectable,
   registerDependencyGraphing,
 } from './extensions/dependency-graphing/dependency-graphing';
 
+import isEqual from 'lodash/fp/isEqual';
 import getInjectionToken from '../getInjectionToken/getInjectionToken';
 import lifecycleEnum from './lifecycleEnum';
 
@@ -31,7 +33,11 @@ describe('createContainer.dependency-graph', () => {
 
     const asyncChildInjectable = getInjectable({
       id: 'some-async-child-injectable',
-      instantiate: async () => 'irrelevant',
+      instantiate: async di => {
+        di.inject(customizableAsyncInjectable);
+
+        return 'irrelevant';
+      },
     });
 
     const keyedInjectable = getInjectable({
@@ -48,6 +54,31 @@ describe('createContainer.dependency-graph', () => {
       id: 'some-token-injectable',
       instantiate: () => 'irrelevant',
       injectionToken,
+    });
+
+    const customizableSyncInjectable = getInjectable({
+      id: 'some-customizable-sync-injectable',
+      instantiate: () => 'some-customizable-instance',
+      injectionToken,
+    });
+
+    const customizableAsyncInjectable = getInjectable({
+      id: 'some-customizable-async-injectable',
+      instantiate: async () => 'some-customizable-instance',
+    });
+
+    const graphCustomizer = getInjectable({
+      id: 'some-dependency-graph-customizer',
+
+      instantiate: () => ({
+        shouldCustomize: isEqual('some-customizable-instance'),
+        customizeLink: link => link.infos.add('some-custom-link-info'),
+        customizeNode: node => node.infos.add('some-custom-node-info'),
+      }),
+
+      decorable: false,
+
+      injectionToken: dependencyGraphCustomizerToken,
     });
 
     const setuppable = getInjectable({
@@ -67,6 +98,9 @@ describe('createContainer.dependency-graph', () => {
       tokenInjectable,
       setuppable,
       keyedInjectable,
+      customizableSyncInjectable,
+      customizableAsyncInjectable,
+      graphCustomizer,
     );
 
     registerDependencyGraphing(di);
