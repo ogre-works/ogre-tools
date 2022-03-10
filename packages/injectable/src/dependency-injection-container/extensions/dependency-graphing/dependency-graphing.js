@@ -1,8 +1,12 @@
 import getInjectable from '../../../getInjectable/getInjectable';
-import { injectionSpyInjectionToken } from '../../createContainer';
+import { injectionDecoratorToken } from '../../createContainer';
 import lifecycleEnum from '../../lifecycleEnum';
 import camelCase from 'lodash/fp/camelCase';
-import getOr from 'lodash/fp/getOr';
+import { injectionTokenSymbol } from '../../../getInjectionToken/getInjectionToken';
+import last from 'lodash/fp/last';
+import get from 'lodash/fp/get';
+import some from 'lodash/fp/some';
+import { pipeline } from '@ogre-tools/fp';
 
 export const registerDependencyGraphing = di => {
   di.register(plantUmlDependencyGraphInjectable);
@@ -45,85 +49,67 @@ const dependencyGraphStateInjectable = getInjectable({
 const plantUmlExtractorInjectable = getInjectable({
   id: 'plant-uml-extractor',
 
-  instantiate: di => {
-    const plantUmlState = di.inject(dependencyGraphStateInjectable);
+  instantiate: di => ({
+    decorate: toBeDecorated => (alias, instantiationParameter, context) => {
+      const graphState = di.inject(dependencyGraphStateInjectable);
+      const injectableName = alias.id;
+      const injectableId = camelCase(injectableName);
 
-    return ({ context }) => {
-      context.forEach(contextItem => {
-        const injectableName = contextItem.injectable.id;
-        const injectableId = camelCase(injectableName);
+      if (!graphState.nodes.has(injectableId)) {
+        graphState.nodes.set(injectableId, {
+          id: injectableId,
+          name: injectableName,
+          tags: new Set([injectableName]),
+        });
+      }
 
-        if (!plantUmlState.nodes.has(injectableId)) {
-          plantUmlState.nodes.set(injectableId, {
-            id: injectableId,
-            name: injectableName,
-            lifecycleName: getOr(
-              null,
-              'injectable.lifecycle.name',
-              contextItem,
-            ),
-            tags: new Set([injectableName]),
-          });
-        }
+      const node = graphState.nodes.get(injectableId);
 
-        const node = plantUmlState.nodes.get(injectableId);
+      if (alias.aliasType === injectionTokenSymbol) {
+        node.isInjectionToken = true;
+      } else {
+        node.lifecycleName = alias.lifecycle.name;
+      }
 
-        if (contextItem.isInjectionToken) {
-          node.isInjectionToken = true;
-        }
-      });
+      const parentContext = last(context);
 
-      context.reduce((parent, dependency) => {
-        const parentId = camelCase(parent.injectable.id);
-        const dependencyId = camelCase(dependency.injectable.id);
+      if (parentContext) {
+        const parentId = camelCase(parentContext.injectable.id);
+        const dependencyId = camelCase(alias.id);
 
-        const linkIsRelatedToSetup =
-          parent.isSetup || parent.descendantOfSetup === true;
+        const linkIsRelatedToSetup = pipeline(context, some('isSetup'));
 
         const linkId = `${parentId}/${dependencyId}:${
           linkIsRelatedToSetup ? 'setup' : 'not-setup'
         }`;
 
-        const descendantOf = [
-          ...(parent.descendantOf || []),
-          parent.injectable.id,
-        ];
+        const descendantIds = context.map(get('injectable.id'));
+        const node = graphState.nodes.get(dependencyId);
+        descendantIds.forEach(descendantId => node.tags.add(descendantId));
 
-        const node = plantUmlState.nodes.get(dependencyId);
-        descendantOf.forEach(ancestorId => node.tags.add(ancestorId));
-
-        if (!plantUmlState.links.has(linkId)) {
-          plantUmlState.links.set(linkId, {
+        if (!graphState.links.has(linkId)) {
+          graphState.links.set(linkId, {
             parentId,
             dependencyId,
           });
         }
 
-        const link = plantUmlState.links.get(linkId);
+        const link = graphState.links.get(linkId);
 
         if (linkIsRelatedToSetup) {
-          link.setup = true;
+          link.isRelatedToSetup = true;
 
           node.tags.add('setup');
-
-          return {
-            ...dependency,
-            descendantOfSetup: true,
-            descendantOf,
-          };
         }
+      }
 
-        return {
-          ...dependency,
-          descendantOf,
-        };
-      });
-    };
-  },
+      return toBeDecorated(alias, instantiationParameter, context);
+    },
+  }),
 
   decorable: false,
 
-  injectionToken: injectionSpyInjectionToken,
+  injectionToken: injectionDecoratorToken,
 });
 
 const toPlantUmlNode = ({
@@ -142,7 +128,8 @@ const toPlantUmlNode = ({
   return mainPuml + tagPuml;
 };
 
-const toPlantUmlLink = ({ parentId, dependencyId, setup }) =>
-  setup
+const toPlantUmlLink = ({ parentId, dependencyId, isRelatedToSetup }) => {
+  return isRelatedToSetup
     ? `${parentId} ..up* ${dependencyId} : Setup`
     : `${parentId} --up* ${dependencyId}`;
+};

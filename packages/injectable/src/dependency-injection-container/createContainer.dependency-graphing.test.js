@@ -12,7 +12,11 @@ describe('createContainer.dependency-graph', () => {
     const parentInjectable = getInjectable({
       id: 'some-parent-injectable',
 
-      instantiate: di => di.inject(childInjectable),
+      instantiate: di => {
+        // Inject twice for coverage
+        di.inject(childInjectable);
+        di.inject(childInjectable);
+      },
     });
 
     const childInjectable = getInjectable({

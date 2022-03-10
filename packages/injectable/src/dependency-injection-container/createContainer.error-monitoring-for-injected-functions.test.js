@@ -24,6 +24,7 @@ describe('createContainer.error-monitoring-for-injected-functions', () => {
         id: 'some-error-monitor',
         injectionToken: errorMonitorInjectionToken,
         instantiate: () => errorMonitorMock,
+        decorable: false,
       });
 
       childCallMock = asyncFn();
@@ -129,6 +130,7 @@ describe('createContainer.error-monitoring-for-injected-functions', () => {
         id: 'some-error-monitor',
         injectionToken: errorMonitorInjectionToken,
         instantiate: () => errorMonitorMock,
+        decorable: false,
       });
 
       childCallMock = asyncFn();

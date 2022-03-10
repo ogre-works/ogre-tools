@@ -1,11 +1,12 @@
-import { isFunction, last } from 'lodash/fp';
+import { isFunction } from 'lodash/fp';
 import getInjectionToken from '../../../getInjectionToken/getInjectionToken';
 import { isPromise, pipeline } from '@ogre-tools/fp';
 import getInjectable from '../../../getInjectable/getInjectable';
-import { instantiateDecoratorInjectionToken } from '../../createContainer';
+import { instantiationDecoratorToken } from '../../createContainer';
 
 export const errorMonitorInjectionToken = getInjectionToken({
   id: 'error-monitor-token',
+  decorable: false,
 });
 
 export const registerErrorMonitoring = di => {
@@ -29,13 +30,15 @@ const errorMonitoringDecoratorForInstantiationInjectable = getInjectable({
       },
   }),
 
-  injectionToken: instantiateDecoratorInjectionToken,
+  decorable: false,
+
+  injectionToken: instantiationDecoratorToken,
 });
 
 const errorMonitoringDecoratorForFunctionInstancesInjectable = getInjectable({
   id: 'error-monitoring-for-function-instances-decorator',
 
-  instantiate: di => ({
+  instantiate: () => ({
     decorate:
       instantiateToBeDecorated =>
       (di, ...args) => {
@@ -49,7 +52,9 @@ const errorMonitoringDecoratorForFunctionInstancesInjectable = getInjectable({
       },
   }),
 
-  injectionToken: instantiateDecoratorInjectionToken,
+  decorable: false,
+
+  injectionToken: instantiationDecoratorToken,
 });
 
 const withErrorMonitoringFor = di => {
