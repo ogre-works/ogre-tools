@@ -14,7 +14,7 @@
   ],
   "author": "Ogre Works",
   "license": "MIT",
-  "peerDependencies": {
+  "dependencies": {
     "lodash": "^4.17.21"
   },
   "bugs": {
