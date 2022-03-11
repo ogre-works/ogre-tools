@@ -15,9 +15,11 @@
   ],
   "author": "Ogre Works",
   "license": "MIT",
-  "dependencies": {
-    "@ogre-tools/fp": "^5.0.0",
+  "peerDependencies": {
     "lodash": "^4.17.21"
+  },
+  "dependencies": {
+    "@ogre-tools/fp": "^5.0.0"
   },
   "scripts": {
     "build": "webpack"
