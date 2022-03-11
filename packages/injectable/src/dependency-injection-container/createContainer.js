@@ -190,6 +190,8 @@ export default (...listOfGetRequireContexts) => {
       const setupContext = new Map();
 
       const diForSetupsFor = setuppable => ({
+        injectMany: publicDi.injectMany,
+
         inject: async (alias, parameter) => {
           const targetSetuppable = injectables.find(
             conforms({
