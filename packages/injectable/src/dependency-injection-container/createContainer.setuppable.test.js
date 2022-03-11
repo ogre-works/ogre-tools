@@ -6,7 +6,7 @@ import getDi from '../test-utils/getDiForUnitTesting';
 import getInjectionToken from '../getInjectionToken/getInjectionToken';
 
 describe('createContainer.setuppable', () => {
-  it('given setuppables with a dependency cycle, when setupped, throws most complex cycle in system', () => {
+  it('given setuppables with a dependency cycle when injecting single, when setupped, throws most complex cycle in system', () => {
     const someRootSetuppable = getInjectable({
       id: 'some-root-injectable',
       setup: async di => {
@@ -34,6 +34,38 @@ describe('createContainer.setuppable', () => {
     });
 
     const di = getDi(someRootSetuppable, someSetuppable, someOtherSetuppable);
+
+    return expect(di.runSetups()).rejects.toThrow(
+      'Cycle of setuppables encountered: "some-root-injectable" -> "some-parent-injectable" -> "some-child-injectable" -> "some-parent-injectable"',
+    );
+  });
+
+  xit('given setuppables with a dependency cycle when injecting many, when setupped, throws most complex cycle in system', async () => {
+    const someToken = getInjectionToken({ id: 'some-token' });
+    const someSetuppable = getInjectable({
+      id: 'some-injectable',
+      setup: async di => {
+        await di.injectMany(someOtherToken);
+      },
+
+      instantiate: () => 'irrelevant',
+
+      injectionToken: someToken,
+    });
+
+    const someOtherToken = getInjectionToken({ id: 'some-other-token' });
+    const someOtherSetuppable = getInjectable({
+      id: 'some-other-injectable',
+      setup: async di => {
+        await di.injectMany(someToken);
+      },
+
+      instantiate: () => 'irrelevant',
+
+      injectionToken: someOtherToken,
+    });
+
+    const di = getDi(someSetuppable, someOtherSetuppable);
 
     return expect(di.runSetups()).rejects.toThrow(
       'Cycle of setuppables encountered: "some-root-injectable" -> "some-parent-injectable" -> "some-child-injectable" -> "some-parent-injectable"',
