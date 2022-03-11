@@ -12,7 +12,7 @@ import {
 import {
   registerErrorMonitoring,
   errorMonitorInjectionToken,
-} from '@ogre-tools/injectable';
+} from './src/dependency-injection-container/extensions/error-monitoring/error-monitoring';
 
 export {
   getInjectionToken,
