@@ -2,7 +2,7 @@ import asyncFn from '@async-fn/jest';
 import getDi from '../test-utils/getDiForUnitTesting';
 import getInjectable from '../getInjectable/getInjectable';
 import lifecycleEnum from './lifecycleEnum';
-import { noop } from 'lodash/fp';
+import noop from 'lodash/fp/noop';
 
 import {
   errorMonitorInjectionToken,

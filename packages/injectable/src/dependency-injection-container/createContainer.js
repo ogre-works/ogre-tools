@@ -13,7 +13,7 @@ import isFunction from 'lodash/fp/isFunction';
 import isUndefined from 'lodash/fp/isUndefined';
 import join from 'lodash/fp/join';
 import last from 'lodash/fp/last';
-import lifecycleEnum, { nonStoredInstanceKey } from './lifecycleEnum';
+import { nonStoredInstanceKey } from './lifecycleEnum';
 import map from 'lodash/fp/map';
 import matches from 'lodash/fp/matches';
 import not from 'lodash/fp/negate';
@@ -23,7 +23,8 @@ import reject from 'lodash/fp/reject';
 import sortBy from 'lodash/fp/sortBy';
 import tap from 'lodash/fp/tap';
 import { pipeline } from '@ogre-tools/fp';
-import { curry, overSome } from 'lodash';
+import curry from 'lodash/fp/curry';
+import overSome from 'lodash/fp/overSome';
 
 export default (...listOfGetRequireContexts) => {
   let injectables = [];
