@@ -1,6 +1,4 @@
 /// <reference types="jest" />
-import isEqual from 'lodash/fp/isEqual';
-
 declare module '@ogre-tools/injectable' {
   export interface DiContainer extends DiContainerForInjection<false> {
     purge: (injectableKey: Injectable<any, any, any>) => void;
