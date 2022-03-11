@@ -3,6 +3,16 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [5.1.0](https://github.com/ogre-works/ogre-tools/compare/v5.0.0...v5.1.0) (2022-03-11)
+
+
+### Features
+
+* Expose naive, synchronous types for pipeline ([b909e72](https://github.com/ogre-works/ogre-tools/commit/b909e7239c5d2507088805a1d51aaef649ade837))
+* Introduce way to get property value from dictionary and throw if it does not exist ([3707c78](https://github.com/ogre-works/ogre-tools/commit/3707c78c525fd9eb3e2b02f509e19f977164757d))
+
+
+
 ## [5.0.0](https://github.com/ogre-works/ogre-tools/compare/v4.1.0...v5.0.0) (2022-02-09)
 
 **Note:** Version bump only for package @ogre-tools/fp
