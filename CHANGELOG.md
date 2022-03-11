@@ -3,6 +3,15 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+### [5.1.1](https://github.com/ogre-works/ogre-tools/compare/v5.1.0...v5.1.1) (2022-03-11)
+
+
+### Bug Fixes
+
+* Make all reports directories excludes from NPM ([a7b71ce](https://github.com/ogre-works/ogre-tools/commit/a7b71ce6aa89b957a1cd7995b2396781854cd5c6))
+
+
+
 ## [5.1.0](https://github.com/ogre-works/ogre-tools/compare/v5.0.0...v5.1.0) (2022-03-11)
 
 
