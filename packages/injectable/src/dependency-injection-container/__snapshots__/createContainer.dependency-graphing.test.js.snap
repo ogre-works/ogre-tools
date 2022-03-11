@@ -13,15 +13,15 @@ class \\"some-async-child-injectable\\" as someAsyncChildInjectable<Singleton\\\
 class \\"some-parent-injectable\\" as someParentInjectable<Singleton\\\\nAsync> << (S,lightGreen) >> $some-parent-injectable #line:darkRed
 class \\"some-keyed-injectable\\" as someKeyedInjectable<Keyed> << (K,pink) >> $some-keyed-injectable $some-parent-injectable #line:darkRed
 someInjectionToken --[#black,dashed,thickness=1]up* someTokenInjectable #text:black  : Setup 
-someInjectionToken --[#orange,dashed,thickness=1]up* someCustomizableSyncInjectable #text:orange  : Setup\\\\nsome-custom-link-info 
+someInjectionToken --[#orange,dashed,thickness=1]up* someCustomizableSyncInjectable #text:green  : Setup\\\\nsome-custom-link-info 
 someSyncChildInjectable --[#black,dashed,thickness=1]up* someInjectionToken #text:black  : Setup 
 someSetuppable --[#black,dashed,thickness=1]up* someSyncChildInjectable #text:black  : Setup 
 someSetuppable --[#black,dashed,thickness=1]up* someSetuppable #text:black  : Setup 
 someInjectionToken --[#black,plain,thickness=1]up* someTokenInjectable #text:black  
-someInjectionToken --[#orange,plain,thickness=1]up* someCustomizableSyncInjectable #text:orange  : some-custom-link-info 
+someInjectionToken --[#orange,plain,thickness=1]up* someCustomizableSyncInjectable #text:green  : some-custom-link-info 
 someSyncChildInjectable --[#black,plain,thickness=1]up* someInjectionToken #text:black  
 someParentInjectable --[#black,plain,thickness=1]up* someSyncChildInjectable #text:black  
-someAsyncChildInjectable --[#orange,plain,thickness=4]up* someCustomizableAsyncInjectable #text:orange  : Async\\\\nsome-custom-link-info 
+someAsyncChildInjectable --[#orange,plain,thickness=4]up* someCustomizableAsyncInjectable #text:green  : Async\\\\nsome-custom-link-info 
 someParentInjectable --[#black,plain,thickness=4]up* someAsyncChildInjectable #text:black  : Async 
 someParentInjectable --[#black,plain,thickness=1]up* someKeyedInjectable #text:black  
 @enduml"

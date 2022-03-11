@@ -75,7 +75,8 @@ describe('createContainer.dependency-graph', () => {
 
         customizeLink: link => {
           link.infos.add('some-custom-link-info');
-          link.color = 'orange';
+          link.lineColor = 'orange';
+          link.textColor = 'green';
         },
 
         customizeNode: node => {
