@@ -12,7 +12,7 @@
     "install-all-packages": "lerna bootstrap",
     "update-package-locks-for-lerna": "lerna exec --parallel -- npm i --package-lock-only",
     "reinstall-all-dependencies": "./npm-scripts/reinstall-all-dependencies.sh",
-    "build-all-packages": "lerna run build --parallel",
+    "build-all-packages": "lerna exec 'webpack --mode production' --parallel",
     "generate-build-stats": "lerna exec 'mkdir -p reports && webpack --profile --json > reports/webpack-build-stats.json' --parallel",
     "remove-all-package-builds": "find ./packages -name build -type d -prune -exec rm -rfv {} \\;",
     "build-and-publish": "npm run remove-all-package-builds && npm run test-for-ci && npm run build-all-packages && lerna publish --yes && npm run remove-all-package-builds",

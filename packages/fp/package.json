@@ -17,9 +17,6 @@
   "peerDependencies": {
     "lodash": "^4.17.21"
   },
-  "scripts": {
-    "build": "webpack"
-  },
   "bugs": {
     "url": "https://github.com/ogre-works/ogre-tools/issues"
   },
