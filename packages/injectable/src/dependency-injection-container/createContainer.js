@@ -24,6 +24,7 @@ import sortBy from 'lodash/fp/sortBy';
 import tap from 'lodash/fp/tap';
 import { pipeline } from '@ogre-tools/fp';
 import curry from 'lodash/fp/curry';
+import isString from 'lodash/fp/isString';
 import overSome from 'lodash/fp/overSome';
 
 export default (...listOfGetRequireContexts) => {
@@ -298,14 +299,11 @@ export default (...listOfGetRequireContexts) => {
 };
 
 const autoRegisterInjectables = ({ getRequireContextForInjectables, di }) => {
-  const requireContextForInjectables = getRequireContextForInjectables();
-
   pipeline(
-    requireContextForInjectables,
-    invoke('keys'),
-    map(requireContextForInjectables),
-    map('default'),
-    forEach(di.register),
+    getRequireContextForInjectables(),
+    fileNameAndDefaultExport,
+    tap(forEach(verifyInjectable)),
+    forEach(registerInjectableFor(di)),
   );
 };
 
@@ -331,15 +329,8 @@ const getInstance = ({
   context: oldContext,
   injectableMap,
 }) => {
-  if (!injectable.instantiate) {
-    throw new Error(
-      `Tried to inject "${injectable.id}" when instantiation is not defined.`,
-    );
-  }
-
   const newContext = [
     ...oldContext,
-
     {
       injectable,
       instantiationParameter,
@@ -439,22 +430,22 @@ const withInstantiationDecoratorsFor = ({ injectMany, injectable }) => {
 
 const withInjectionDecoratorsFor =
   ({ injectMany }) =>
-  toBeDecorated =>
-  (alias, ...args) => {
-    if (alias.decorable === false) {
-      return toBeDecorated(alias, ...args);
-    }
+    toBeDecorated =>
+      (alias, ...args) => {
+        if (alias.decorable === false) {
+          return toBeDecorated(alias, ...args);
+        }
 
-    const isRelevantDecorator = isRelevantDecoratorFor(alias);
+        const isRelevantDecorator = isRelevantDecoratorFor(alias);
 
-    const decorators = pipeline(
-      injectMany(injectionDecoratorToken),
-      filter(isRelevantDecorator),
-      map('decorate'),
-    );
+        const decorators = pipeline(
+          injectMany(injectionDecoratorToken),
+          filter(isRelevantDecorator),
+          map('decorate'),
+        );
 
-    return pipeline(toBeDecorated, ...decorators)(alias, ...args);
-  };
+        return pipeline(toBeDecorated, ...decorators)(alias, ...args);
+      };
 
 const isGlobalDecorator = not(has('target'));
 
@@ -491,11 +482,32 @@ const checkForTooManyMatches = (injectables, alias) => {
 
   if (relatedInjectables.length > 1) {
     throw new Error(
-      `Tried to inject single injectable for injection token "${
-        alias.id
+      `Tried to inject single injectable for injection token "${alias.id
       }" but found multiple injectables: "${relatedInjectables
         .map(relatedInjectable => relatedInjectable.id)
         .join('", "')}"`,
     );
   }
 };
+
+const hasInjectableSignature = conforms({ id: isString, instantiate: isFunction });
+const verifyInjectable = ([fileName, injectable]) => {
+  if (!injectable) {
+    throw new Error(
+      `Tried to register injectable from ${fileName}, but no default export`,
+    );
+  }
+
+  if (!hasInjectableSignature(injectable)) {
+    throw new Error(
+      `Tried to register injectable from ${fileName}, but default export is of wrong shape`,
+    );
+  }
+};
+
+const fileNameAndDefaultExport = (context) => (
+  context.keys()
+    .map(key => [key, context(key).default])
+);
+
+const registerInjectableFor = (di) => ([, injectable]) => di.register(injectable);

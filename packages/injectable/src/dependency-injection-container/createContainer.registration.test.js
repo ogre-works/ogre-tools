@@ -1,5 +1,6 @@
 import getInjectable from '../getInjectable/getInjectable';
 import getDi from '../test-utils/getDiForUnitTesting';
+import createContainer from './createContainer';
 
 describe('createContainer.registration', () => {
   it('injects auto-registered injectable without sub-injectables', () => {
@@ -13,6 +14,69 @@ describe('createContainer.registration', () => {
     const actual = di.inject(injectableStub);
 
     expect(actual).toBe('some-injected-instance');
+  });
+
+  it('given injectable file with no default export, when auto-registering, throws with name of faulty file', () => {
+    const requireContextStub = Object.assign(
+      () => ({
+        notDefault: 'irrelevant',
+      }),
+      {
+        keys: () => ['./some.injectable.js'],
+      },
+    );
+
+    expect(() => createContainer(() => requireContextStub)).toThrowError(
+      'Tried to register injectable from ./some.injectable.js, but no default export',
+    );
+  });
+
+  it('given injectable file with default export without id, when auto-registering, throws with name of faulty file', () => {
+    const requireContextStub = Object.assign(
+      () => ({
+        default: 'irrelevant',
+      }),
+      {
+        keys: () => ['./some.injectable.js'],
+      },
+    );
+
+    expect(() => createContainer(() => requireContextStub)).toThrowError(
+      'Tried to register injectable from ./some.injectable.js, but default export is of wrong shape',
+    );
+  });
+
+  it('given injectable file with default export with in but without instantiate, when auto-registering, throws with name of faulty file', () => {
+    const requireContextStub = Object.assign(
+      () => ({
+        default: {
+          id: 'irrelevant',
+        },
+      }),
+      {
+        keys: () => ['./some.injectable.js'],
+      },
+    );
+
+    expect(() => createContainer(() => requireContextStub)).toThrowError(
+      'Tried to register injectable from ./some.injectable.js, but default export is of wrong shape',
+    );
+  });
+
+  it('given injectable file with default export of correct shape, when auto-registering, does not throw', () => {
+    const requireContextStub = Object.assign(
+      () => ({
+        default: {
+          id: 'some-injectable-id',
+          instantiate: () => { },
+        },
+      }),
+      {
+        keys: () => ['./some.injectable.js'],
+      },
+    );
+
+    expect(() => createContainer(() => requireContextStub)).not.toThrow();
   });
 
   it('given manually registered injectable, when injecting, injects', () => {

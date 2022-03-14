@@ -166,7 +166,12 @@ declare module '@ogre-tools/injectable' {
     };
   };
 
-  export function createContainer(...getRequireContexts: any[]): DiContainer;
+  export interface RequireContext {
+    keys(): string[];
+    (key: string): any;
+  }
+
+  export function createContainer(...getRequireContexts: (() => RequireContext)[]): DiContainer;
 
   export function registerErrorMonitoring(di: DiContainer): void;
 
