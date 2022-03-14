@@ -1,7 +1,7 @@
 {
   "name": "@ogre-tools/fp",
   "private": false,
-  "version": "5.0.0",
+  "version": "5.1.1",
   "description": "A collection of low abstraction functions in functional programming flavor",
   "repository": {
     "type": "git",
@@ -16,9 +16,6 @@
   "license": "MIT",
   "dependencies": {
     "lodash": "^4.17.21"
-  },
-  "scripts": {
-    "build": "webpack"
   },
   "bugs": {
     "url": "https://github.com/ogre-works/ogre-tools/issues"

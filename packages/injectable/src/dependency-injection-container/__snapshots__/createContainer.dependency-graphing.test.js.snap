@@ -3,18 +3,26 @@
 exports[`createContainer.dependency-graph given dependency graphing, dependencies and injected, creates Plant-UML graph 1`] = `
 "@startuml
 hide members
-hide circle
-class \\"some-setuppable\\" as someSetuppable<Singleton> $some-setuppable $setup
-class \\"some-child-injectable\\" as someChildInjectable<Transient> $some-child-injectable $some-setuppable $setup $some-parent-injectable
-class \\"some-injection-token\\" as someInjectionToken<Token> $some-injection-token $some-setuppable $some-child-injectable $setup $some-parent-injectable
-class \\"some-token-injectable\\" as someTokenInjectable<Singleton> $some-token-injectable $some-setuppable $some-child-injectable $some-injection-token $setup $some-parent-injectable
-class \\"some-parent-injectable\\" as someParentInjectable<Singleton> $some-parent-injectable
-someSetuppable ..up* someChildInjectable : Setup
-someChildInjectable ..up* someInjectionToken : Setup
-someInjectionToken ..up* someTokenInjectable : Setup
-someSetuppable ..up* someSetuppable : Setup
-someParentInjectable --up* someChildInjectable
-someChildInjectable --up* someInjectionToken
-someInjectionToken --up* someTokenInjectable
+class \\"some-token-injectable\\" as someTokenInjectable<Singleton> << (S,lightGreen) >> $some-token-injectable $some-setuppable $some-sync-child-injectable $some-injection-token $setup $some-parent-injectable #line:darkRed
+class \\"some-customizable-sync-injectable\\" as someCustomizableSyncInjectable<Singleton\\\\nsome-custom-node-info> << (S,lightGreen) >> $some-customizable-sync-injectable $some-setuppable $some-sync-child-injectable $some-injection-token $setup $some-parent-injectable #line:darkRed
+class \\"some-injection-token\\" as someInjectionToken<Transient\\\\nToken> << (X,orange) >> $some-injection-token $some-setuppable $some-sync-child-injectable $setup $some-parent-injectable #line:green
+class \\"some-sync-child-injectable\\" as someSyncChildInjectable<Transient> << (T,orchid) >> $some-sync-child-injectable $some-setuppable $setup $some-parent-injectable #line:darkRed
+class \\"some-setuppable\\" as someSetuppable<Singleton> << (S,lightGreen) >> $some-setuppable $setup #line:darkRed
+class \\"some-customizable-async-injectable\\" as someCustomizableAsyncInjectable<Singleton\\\\nAsync\\\\nsome-custom-node-info> << (S,lightGreen) >> $some-customizable-async-injectable $some-parent-injectable $some-async-child-injectable #line:darkRed
+class \\"some-async-child-injectable\\" as someAsyncChildInjectable<Singleton\\\\nAsync> << (S,lightGreen) >> $some-async-child-injectable $some-parent-injectable #line:darkRed
+class \\"some-parent-injectable\\" as someParentInjectable<Singleton\\\\nAsync> << (S,lightGreen) >> $some-parent-injectable #line:darkRed
+class \\"some-keyed-injectable\\" as someKeyedInjectable<Keyed> << (K,pink) >> $some-keyed-injectable $some-parent-injectable #line:darkRed
+someInjectionToken --[#black,dashed,thickness=1]up* someTokenInjectable #text:black  : Setup 
+someInjectionToken --[#orange,dashed,thickness=1]up* someCustomizableSyncInjectable #text:green  : Setup\\\\nsome-custom-link-info 
+someSyncChildInjectable --[#black,dashed,thickness=1]up* someInjectionToken #text:black  : Setup 
+someSetuppable --[#black,dashed,thickness=1]up* someSyncChildInjectable #text:black  : Setup 
+someSetuppable --[#black,dashed,thickness=1]up* someSetuppable #text:black  : Setup 
+someInjectionToken --[#black,plain,thickness=1]up* someTokenInjectable #text:black  
+someInjectionToken --[#orange,plain,thickness=1]up* someCustomizableSyncInjectable #text:green  : some-custom-link-info 
+someSyncChildInjectable --[#black,plain,thickness=1]up* someInjectionToken #text:black  
+someParentInjectable --[#black,plain,thickness=1]up* someSyncChildInjectable #text:black  
+someAsyncChildInjectable --[#orange,plain,thickness=4]up* someCustomizableAsyncInjectable #text:green  : Async\\\\nsome-custom-link-info 
+someParentInjectable --[#black,plain,thickness=4]up* someAsyncChildInjectable #text:black  : Async 
+someParentInjectable --[#black,plain,thickness=1]up* someKeyedInjectable #text:black  
 @enduml"
 `;

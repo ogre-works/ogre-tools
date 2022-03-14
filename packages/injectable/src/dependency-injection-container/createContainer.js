@@ -1,4 +1,3 @@
-import { identity, zip } from 'lodash/fp';
 import conforms from 'lodash/fp/conforms';
 import filter from 'lodash/fp/filter';
 import find from 'lodash/fp/find';
@@ -14,16 +13,19 @@ import isFunction from 'lodash/fp/isFunction';
 import isUndefined from 'lodash/fp/isUndefined';
 import join from 'lodash/fp/join';
 import last from 'lodash/fp/last';
-import lifecycleEnum, { nonStoredInstanceKey } from './lifecycleEnum';
+import { nonStoredInstanceKey } from './lifecycleEnum';
 import map from 'lodash/fp/map';
 import matches from 'lodash/fp/matches';
 import not from 'lodash/fp/negate';
+import isEqual from 'lodash/fp/isEqual';
 import once from 'lodash/fp/once';
 import reject from 'lodash/fp/reject';
 import sortBy from 'lodash/fp/sortBy';
 import tap from 'lodash/fp/tap';
 import { pipeline } from '@ogre-tools/fp';
-import { curry, isString, overSome } from 'lodash';
+import curry from 'lodash/fp/curry';
+import isString from 'lodash/fp/isString';
+import overSome from 'lodash/fp/overSome';
 
 export default (...listOfGetRequireContexts) => {
   let injectables = [];
@@ -34,69 +36,85 @@ export default (...listOfGetRequireContexts) => {
 
   const injectableMap = new Map();
 
-  const privateDi = {
-    inject: (alias, instantiationParameter, context = []) => {
-      checkForTooManyMatches(injectables, alias);
+  const privateInject = (alias, instantiationParameter, context = []) => {
+    checkForTooManyMatches(injectables, alias);
 
-      const relatedInjectables = getRelatedInjectables({ injectables, alias });
+    const relatedInjectables = getRelatedInjectables({ injectables, alias });
 
-      if (relatedInjectables.length === 0 && alias.adHoc === true) {
-        privateDi.register(alias);
-      } else {
-        checkForNoMatches(injectables, alias, context);
-      }
+    if (relatedInjectables.length === 0 && alias.adHoc === true) {
+      privateDi.register(alias);
+    } else {
+      checkForNoMatches(injectables, alias, context);
+    }
 
-      const originalInjectable = getRelatedInjectable({
-        injectables,
-        alias,
-        context,
-      });
+    const originalInjectable = getRelatedInjectable({
+      injectables,
+      alias,
+      context,
+    });
 
-      const overriddenInjectable = getOverridingInjectable({
-        overridingInjectables,
-        alias,
-      });
+    const overriddenInjectable = getOverridingInjectable({
+      overridingInjectables,
+      alias,
+    });
 
-      const injectable = overriddenInjectable || originalInjectable;
+    const injectable = overriddenInjectable || originalInjectable;
 
-      if (!setupsHaveBeenRan && !setupsAreBeingRan && injectable.setup) {
-        throw new Error(
-          `Tried to inject setuppable "${injectable.id}" before setups are ran.`,
-        );
-      }
-
-      if (sideEffectsArePrevented && injectable.causesSideEffects) {
-        throw new Error(
-          `Tried to inject "${injectable.id}" when side-effects are prevented.`,
-        );
-      }
-
-      return getInstance({
-        injectable,
-        instantiationParameter,
-        di: privateDi,
-        injectableMap,
-        context,
-      });
-    },
-
-    injectMany: (injectionToken, instantiationParameter, oldContext = []) => {
-      const newContext = [
-        ...oldContext,
-        { injectable: injectionToken, isInjectionToken: true },
-      ];
-
-      return pipeline(
-        getRelatedInjectables({
-          injectables,
-          alias: injectionToken,
-        }),
-
-        map(injectable =>
-          privateDi.inject(injectable, instantiationParameter, newContext),
-        ),
+    if (!setupsHaveBeenRan && !setupsAreBeingRan && injectable.setup) {
+      throw new Error(
+        `Tried to inject setuppable "${injectable.id}" before setups are ran.`,
       );
-    },
+    }
+
+    if (sideEffectsArePrevented && injectable.causesSideEffects) {
+      throw new Error(
+        `Tried to inject "${injectable.id}" when side-effects are prevented.`,
+      );
+    }
+
+    return getInstance({
+      injectable,
+      instantiationParameter,
+      di: privateDi,
+      injectableMap,
+      context,
+      injectMany: nonDecoratedPrivateInjectMany,
+    });
+  };
+
+  const nonDecoratedPrivateInjectMany = (
+    injectionToken,
+    instantiationParameter,
+    oldContext = [],
+  ) => {
+    const newContext = [...oldContext, { injectable: injectionToken }];
+
+    return pipeline(
+      getRelatedInjectables({
+        injectables,
+        alias: injectionToken,
+      }),
+
+      map(injectable =>
+        decoratedPrivateInject(injectable, instantiationParameter, newContext),
+      ),
+    );
+  };
+
+  const withInjectionDecorators = withInjectionDecoratorsFor({
+    injectMany: nonDecoratedPrivateInjectMany,
+  });
+
+  const decoratedPrivateInject = withInjectionDecorators(privateInject);
+
+  const decoratedPrivateInjectMany = withInjectionDecorators(
+    nonDecoratedPrivateInjectMany,
+  );
+
+  const privateDi = {
+    inject: decoratedPrivateInject,
+
+    injectMany: decoratedPrivateInjectMany,
 
     register: externalInjectable => {
       if (setupsHaveBeenRan && !!externalInjectable.setup) {
@@ -121,12 +139,8 @@ export default (...listOfGetRequireContexts) => {
         );
       }
 
-      const lifecycle = externalInjectable.lifecycle || lifecycleEnum.singleton;
-
       const internalInjectable = {
         ...externalInjectable,
-
-        lifecycle,
 
         ...(externalInjectable.setup
           ? { setup: once(externalInjectable.setup) }
@@ -177,10 +191,12 @@ export default (...listOfGetRequireContexts) => {
       const setupContext = new Map();
 
       const diForSetupsFor = setuppable => ({
+        injectMany: publicDi.injectMany,
+
         inject: async (alias, parameter) => {
           const targetSetuppable = injectables.find(
             conforms({
-              id: x => x === alias.id,
+              id: isEqual(alias.id),
               setup: isFunction,
             }),
           );
@@ -263,6 +279,7 @@ export default (...listOfGetRequireContexts) => {
 
   const publicDi = {
     ...privateDi,
+
     inject: (alias, parameter, customContextItem) =>
       privateDi.inject(
         alias,
@@ -359,11 +376,6 @@ const getInstance = ({
     );
   }
 
-  if (injectable.decorable !== false) {
-    di.injectMany(injectionSpyInjectionToken).forEach(spy =>
-      spy({ context: newContext }),
-    );
-  }
   const instanceMap = injectableMap.get(injectable.id);
 
   const minimalDi = {
@@ -391,12 +403,10 @@ const getInstance = ({
   const instantiateWithDecorators = pipeline(
     injectable.instantiate,
 
-    // Prevent recursive decoration
-    injectable.injectionToken === instantiateDecoratorInjectionToken ||
-      // Todo: remove kludge by preventing decorations also from all child-dependencies of decorationInjectionToken implementations
-      injectable.decorable === false
-      ? identity
-      : withDecoratorsFor(di, injectable),
+    withInstantiationDecoratorsFor({
+      injectMany: di.injectMany,
+      injectable,
+    }),
   );
 
   const newInstance = instantiateWithDecorators(
@@ -411,21 +421,27 @@ const getInstance = ({
   return newInstance;
 };
 
-export const instantiateDecoratorInjectionToken = getInjectionToken({
+export const instantiationDecoratorToken = getInjectionToken({
   id: 'instantiate-decorator-token',
+  decorable: false,
 });
 
-export const injectionSpyInjectionToken = getInjectionToken({
-  id: 'injection-spy-token',
+export const injectionDecoratorToken = getInjectionToken({
+  id: 'injection-decorator-token',
+  decorable: false,
 });
 
-const withDecoratorsFor = (di, injectable) => {
+const withInstantiationDecoratorsFor = ({ injectMany, injectable }) => {
   const isRelevantDecorator = isRelevantDecoratorFor(injectable);
 
   return toBeDecorated =>
     (...args) => {
+      if (injectable.decorable === false) {
+        return toBeDecorated(...args);
+      }
+
       const decorators = pipeline(
-        di.injectMany(instantiateDecoratorInjectionToken),
+        injectMany(instantiationDecoratorToken),
         filter(isRelevantDecorator),
         map('decorate'),
       );
@@ -433,6 +449,25 @@ const withDecoratorsFor = (di, injectable) => {
       return pipeline(toBeDecorated, ...decorators)(...args);
     };
 };
+
+const withInjectionDecoratorsFor =
+  ({ injectMany }) =>
+    toBeDecorated =>
+      (alias, ...args) => {
+        if (alias.decorable === false) {
+          return toBeDecorated(alias, ...args);
+        }
+
+        const isRelevantDecorator = isRelevantDecoratorFor(alias);
+
+        const decorators = pipeline(
+          injectMany(injectionDecoratorToken),
+          filter(isRelevantDecorator),
+          map('decorate'),
+        );
+
+        return pipeline(toBeDecorated, ...decorators)(alias, ...args);
+      };
 
 const isGlobalDecorator = not(has('target'));
 

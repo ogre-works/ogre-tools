@@ -1,7 +1,7 @@
 {
   "name": "@ogre-tools/test-utils",
   "private": false,
-  "version": "5.0.0",
+  "version": "5.1.1",
   "description": "A collection of test-utils for Ogre-tools.",
   "repository": {
     "type": "git",
@@ -17,9 +17,6 @@
   "license": "MIT",
   "dependencies": {
     "lodash": "^4.17.21"
-  },
-  "scripts": {
-    "build": "webpack"
   },
   "bugs": {
     "url": "https://github.com/ogre-works/ogre-tools/issues"

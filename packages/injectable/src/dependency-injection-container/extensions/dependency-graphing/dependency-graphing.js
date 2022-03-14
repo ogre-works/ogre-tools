@@ -1,11 +1,20 @@
 import getInjectable from '../../../getInjectable/getInjectable';
-import { injectionSpyInjectionToken } from '../../createContainer';
+import { injectionDecoratorToken } from '../../createContainer';
 import lifecycleEnum from '../../lifecycleEnum';
 import camelCase from 'lodash/fp/camelCase';
+import getInjectionToken, {
+  injectionTokenSymbol,
+} from '../../../getInjectionToken/getInjectionToken';
+import last from 'lodash/fp/last';
+import get from 'lodash/fp/get';
+import some from 'lodash/fp/some';
+import { isPromise, pipeline } from '@ogre-tools/fp';
+import filter from 'lodash/fp/filter';
+import tap from 'lodash/fp/tap';
 
 export const registerDependencyGraphing = di => {
   di.register(plantUmlDependencyGraphInjectable);
-  di.register(plantUmlStateInjectable);
+  di.register(dependencyGraphStateInjectable);
   di.register(plantUmlExtractorInjectable);
 };
 
@@ -15,16 +24,13 @@ export const plantUmlDependencyGraphInjectable = getInjectable({
   lifecycle: lifecycleEnum.transient,
 
   instantiate: di => {
-    const plantUmlState = di.inject(plantUmlStateInjectable);
+    const { nodes, links } = di.inject(dependencyGraphStateInjectable);
 
     return [
       '@startuml',
       'hide members',
-      'hide circle',
-      ...[...plantUmlState.nodes.values()].map(
-        x => `${x.puml}${[...x.tags].map(x => ` $${x}`).join('')}`,
-      ),
-      ...plantUmlState.links,
+      ...[...nodes.values()].map(toPlantUmlNode),
+      ...[...links.values()].map(toPlantUmlLink),
       '@enduml',
     ].join('\n');
   },
@@ -32,12 +38,17 @@ export const plantUmlDependencyGraphInjectable = getInjectable({
   decorable: false,
 });
 
-const plantUmlStateInjectable = getInjectable({
-  id: 'plant-uml-state',
+export const dependencyGraphCustomizerToken = getInjectionToken({
+  id: 'dependency-graph-customizer',
+  decorable: false,
+});
+
+const dependencyGraphStateInjectable = getInjectable({
+  id: 'dependency-graph-state',
 
   instantiate: () => ({
     nodes: new Map(),
-    links: new Set(),
+    links: new Map(),
   }),
 
   decorable: false,
@@ -46,74 +57,142 @@ const plantUmlStateInjectable = getInjectable({
 const plantUmlExtractorInjectable = getInjectable({
   id: 'plant-uml-extractor',
 
-  instantiate: di => {
-    const plantUmlState = di.inject(plantUmlStateInjectable);
+  instantiate: di => ({
+    decorate: toBeDecorated => (alias, instantiationParameter, context) => {
+      const instance = toBeDecorated(alias, instantiationParameter, context);
 
-    return ({ context }) => {
-      context.forEach(contextItem => {
-        const injectableName = contextItem.injectable.id;
-        const injectableId = camelCase(injectableName);
+      const graphState = di.inject(dependencyGraphStateInjectable);
+      const injectableName = alias.id;
+      const injectableId = camelCase(injectableName);
 
-        if (!plantUmlState.nodes.has(injectableId)) {
-          if (contextItem.isInjectionToken) {
-            plantUmlState.nodes.set(injectableId, {
-              puml: `class "${injectableName}" as ${injectableId}<Token>`,
-              tags: new Set([injectableName]),
-            });
-          } else {
-            plantUmlState.nodes.set(injectableId, {
-              puml: `class "${injectableName}" as ${injectableId}<${contextItem.injectable.lifecycle.name}>`,
-              tags: new Set([injectableName]),
-            });
-          }
+      if (!graphState.nodes.has(injectableId)) {
+        graphState.nodes.set(injectableId, {
+          id: injectableId,
+          name: injectableName,
+          tags: new Set([injectableName]),
+          infos: new Set(),
+        });
+      }
+
+      const node = graphState.nodes.get(injectableId);
+
+      if (alias.aliasType === injectionTokenSymbol) {
+        node.isInjectionToken = true;
+        node.lifecycle = tokenLifecycle;
+        node.infos.add('Token');
+      } else {
+        node.lifecycle = alias.lifecycle;
+      }
+
+      const instanceIsAsync = isPromise(instance);
+
+      if (instanceIsAsync) {
+        node.isAsync = true;
+        node.infos.add('Async');
+      }
+
+      const parentContext = last(context);
+      let link;
+
+      if (parentContext) {
+        const parentId = camelCase(parentContext.injectable.id);
+        const dependencyId = camelCase(alias.id);
+
+        const linkIsRelatedToSetup = pipeline(context, some('isSetup'));
+
+        const linkId = `${parentId}/${dependencyId}:${
+          linkIsRelatedToSetup ? 'setup' : 'not-setup'
+        }`;
+
+        const descendantIds = context.map(get('injectable.id'));
+        const dependencyNode = graphState.nodes.get(dependencyId);
+        descendantIds.forEach(descendantId =>
+          dependencyNode.tags.add(descendantId),
+        );
+
+        if (!graphState.links.has(linkId)) {
+          graphState.links.set(linkId, {
+            parentId,
+            dependencyId,
+            infos: new Set(),
+          });
         }
-      });
 
-      context.reduce((parent, dependency) => {
-        const parentId = camelCase(parent.injectable.id);
-        const dependencyId = camelCase(dependency.injectable.id);
+        link = graphState.links.get(linkId);
 
-        const descendantOf = [
-          ...(parent.descendantOf || []),
-          parent.injectable.id,
-        ];
-
-        const dependencyTags = plantUmlState.nodes.get(dependencyId).tags;
-        descendantOf.forEach(x => dependencyTags.add(x));
-
-        if (parent.descendantOfSetup === true) {
-          plantUmlState.links.add(`${parentId} ..up* ${dependencyId} : Setup`);
-          dependencyTags.add('setup');
-
-          return {
-            ...dependency,
-            descendantOfSetup: true,
-            descendantOf,
-          };
+        if (linkIsRelatedToSetup) {
+          link.isRelatedToSetup = true;
+          link.infos.add('Setup');
+          dependencyNode.tags.add('setup');
         }
 
-        if (parent.isSetup === true) {
-          plantUmlState.links.add(`${parentId} ..up* ${dependencyId} : Setup`);
-          dependencyTags.add('setup');
-
-          return {
-            ...dependency,
-            descendantOfSetup: true,
-            descendantOf,
-          };
+        if (instanceIsAsync) {
+          link.isAsync = true;
+          link.infos.add('Async');
         }
+      }
 
-        plantUmlState.links.add(`${parentId} --up* ${dependencyId}`);
-
-        return {
-          ...dependency,
-          descendantOf,
-        };
-      });
-    };
-  },
+      return pipeline(instance, tap(customizeFor(di, node, link)));
+    },
+  }),
 
   decorable: false,
 
-  injectionToken: injectionSpyInjectionToken,
+  injectionToken: injectionDecoratorToken,
 });
+
+const customizeFor = (di, node, link) => instance => {
+  const customizers = pipeline(
+    di.injectMany(dependencyGraphCustomizerToken),
+    filter(customizer => customizer.shouldCustomize(instance)),
+  );
+
+  customizers.forEach(customizer => customizer.customizeNode(node));
+
+  if (!link) {
+    return;
+  }
+
+  customizers.forEach(customizer => customizer.customizeLink(link));
+};
+
+const toPlantUmlNode = ({
+  id,
+  name,
+  lifecycle,
+  tags,
+  isInjectionToken,
+  infos,
+}) => {
+  const infosString = [lifecycle.name, ...infos.values()].join('\\n');
+  const classPuml = `class "${name}" as ${id}<${infosString}>`;
+  const spotPuml = `<< (${lifecycle.shortName},${lifecycle.color}) >>`;
+  const tagPuml = [...tags].map(tag => `$${tag}`).join(' ');
+  const borderColor = isInjectionToken ? 'green' : 'darkRed';
+  const stylePuml = `#line:${borderColor}`;
+
+  return `${classPuml} ${spotPuml} ${tagPuml} ${stylePuml}`;
+};
+
+const toPlantUmlLink = ({
+  parentId,
+  dependencyId,
+  isRelatedToSetup,
+  isAsync,
+  infos,
+  lineColor = 'black',
+  textColor = 'black',
+}) => {
+  const lineType = isRelatedToSetup ? 'dashed' : 'plain';
+  const lineThickness = isAsync ? 4 : 1;
+  const lineStyle = `[#${lineColor},${lineType},thickness=${lineThickness}]`;
+  const infosString = infos.size ? ` : ${[...infos.values()].join('\\n')}` : '';
+
+  return `${parentId} --${lineStyle}up* ${dependencyId} #text:${textColor} ${infosString} `;
+};
+
+const tokenLifecycle = {
+  name: 'Transient',
+  shortName: 'X',
+  color: 'orange',
+};

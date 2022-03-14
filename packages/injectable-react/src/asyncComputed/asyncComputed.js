@@ -1,4 +1,4 @@
-import { noop } from 'lodash/fp';
+import noop from 'lodash/fp/noop';
 import { computed, createAtom, observable, runInAction, untracked } from 'mobx';
 
 const neutralizeObsoletePromiseSymbol = Symbol.for(
