@@ -298,34 +298,12 @@ export default (...listOfGetRequireContexts) => {
   return publicDi;
 };
 
-const verifyInjectable = conforms({ id: isString, instantiate: isFunction });
-
 const autoRegisterInjectables = ({ getRequireContextForInjectables, di }) => {
-  const context = getRequireContextForInjectables();
-
-  const getAndVerifyInjectable = key => {
-    const injectable = context(key).default;
-
-    if (!injectable) {
-      throw new Error(
-        `Tried to register injectable from ${key}, but no default export`,
-      );
-    }
-
-    if (!verifyInjectable(injectable)) {
-      throw new Error(
-        `Tried to register injectable from ${key}, but default export is of wrong shape`,
-      );
-    }
-
-    return injectable;
-  };
-
   pipeline(
-    context,
-    invoke('keys'),
-    map(getAndVerifyInjectable),
-    forEach(di.register),
+    getRequireContextForInjectables(),
+    fileNameAndDefaultExport,
+    tap(forEach(verifyInjectable)),
+    forEach(registerInjectableFor(di)),
   );
 };
 
@@ -511,3 +489,25 @@ const checkForTooManyMatches = (injectables, alias) => {
     );
   }
 };
+
+const hasInjectableSignature = conforms({ id: isString, instantiate: isFunction });
+const verifyInjectable = ([fileName, injectable]) => {
+  if (!injectable) {
+    throw new Error(
+      `Tried to register injectable from ${fileName}, but no default export`,
+    );
+  }
+
+  if (!hasInjectableSignature(injectable)) {
+    throw new Error(
+      `Tried to register injectable from ${fileName}, but default export is of wrong shape`,
+    );
+  }
+};
+
+const fileNameAndDefaultExport = (context) => (
+  context.keys()
+    .map(key => [key, context(key).default])
+);
+
+const registerInjectableFor = (di) => ([, injectable]) => di.register(injectable);
