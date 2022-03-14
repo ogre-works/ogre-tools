@@ -27,7 +27,7 @@ describe('createContainer.registration', () => {
     );
 
     expect(() => createContainer(() => requireContextStub)).toThrowError(
-      'tried to register injectable from ./some.injectable.js, but no default export',
+      'Tried to register injectable from ./some.injectable.js, but no default export',
     );
   });
 
@@ -42,7 +42,7 @@ describe('createContainer.registration', () => {
     );
 
     expect(() => createContainer(() => requireContextStub)).toThrowError(
-      'tried to register injectable from ./some.injectable.js, but default export is of wrong shape',
+      'Tried to register injectable from ./some.injectable.js, but default export is of wrong shape',
     );
   });
 
@@ -59,7 +59,7 @@ describe('createContainer.registration', () => {
     );
 
     expect(() => createContainer(() => requireContextStub)).toThrowError(
-      'tried to register injectable from ./some.injectable.js, but default export is of wrong shape',
+      'Tried to register injectable from ./some.injectable.js, but default export is of wrong shape',
     );
   });
 
