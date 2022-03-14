@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+### [5.1.2](https://github.com/ogre-works/ogre-tools/compare/v5.1.1...v5.1.2) (2022-03-14)
+
+
+### Bug Fixes
+
+* Report misconfigured *.injectable.{js|ts} files ([8117f16](https://github.com/ogre-works/ogre-tools/commit/8117f1614a49b2202eb8620d280dfed6e6f1fcb6))
+* Unit tests ([435690e](https://github.com/ogre-works/ogre-tools/commit/435690e1095c0214aece8bb81d54372e706102e7))
+* Uppercase for errors ([8b48b69](https://github.com/ogre-works/ogre-tools/commit/8b48b69843a0c4e2994b2b498fd14a6a48870742))
+
+
+
 ### [5.1.1](https://github.com/ogre-works/ogre-tools/compare/v5.1.0...v5.1.1) (2022-03-11)
 
 
