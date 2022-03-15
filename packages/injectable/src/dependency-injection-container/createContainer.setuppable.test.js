@@ -236,6 +236,68 @@ describe('createContainer.setuppable', () => {
     expect(instanceFromChildSetup).toBe('some-value');
   });
 
+  describe.skip('given setuppables that inject non-setuppables that inject setuppables, when running setups', () => {
+    let setupMockResolve;
+    let runSetupsPromise;
+
+    beforeEach(() => {
+      const setupMock = jest.fn().mockImplementation(() => new Promise((resolve) => setupMockResolve = resolve));
+
+      const someSetuppable = getInjectable({
+        id: 'some-setuppable',
+
+        setup: async di => {
+          await di.inject(someNonSetuppable);
+        },
+
+        instantiate: () => {},
+      });
+
+      const someOtherSetuppable = getInjectable({
+        id: 'some-other-setuppable',
+
+        setup: async di => {
+          await di.inject(someChildSetuppable);
+        },
+
+        instantiate: () => {},
+      });
+
+      let foo;
+
+      const someChildSetuppable = getInjectable({
+        id: 'some-child-setuppable',
+        setup: async () => {
+          await setupMock();
+          foo = {
+            bar: 1,
+          };
+        },
+        instantiate: () => foo,
+      });
+
+      const someNonSetuppable = getInjectable({
+        id: 'some-non-setuppable',
+        instantiate: di => di.inject(someChildSetuppable).bar,
+      });
+
+      const di = getDi(
+        someSetuppable,
+        someOtherSetuppable,
+        someChildSetuppable,
+        someNonSetuppable,
+      );
+
+      runSetupsPromise = di.runSetups();
+    });
+
+    it('runs setup successfully', async () => {
+      setupMockResolve();
+
+      expect(await runSetupsPromise).toBeUndefined();
+    });
+  });
+
   describe('given setuppables that inject other setuppable, when running setups', () => {
     let runSetupsPromise;
     let setupMock;
