@@ -155,7 +155,9 @@ declare module '@ogre-tools/injectable' {
   const nonStoredInstanceKey: unique symbol;
 
   export const lifecycleEnum: {
-    singleton: (di: DiContainer, param: void) => typeof storedInstanceKey;
+    singleton: {
+      getInstanceKey: (di: DiContainer, param: void) => typeof storedInstanceKey;
+    };
 
     keyedSingleton<InstantiationParam>(
       options: ILifecycle<InstantiationParam>,
