@@ -3,6 +3,8 @@ declare module '@ogre-tools/injectable' {
   export interface DiContainer extends DiContainerForInjection<false> {
     purge: (injectableKey: Injectable<any, any, any>) => void;
 
+    permitSideEffects: (injectableKey: Injectable<any, any, any>) => void;
+
     runSetups: () => Promise<void>;
 
     override<
@@ -171,7 +173,9 @@ declare module '@ogre-tools/injectable' {
     (key: string): any;
   }
 
-  export function createContainer(...getRequireContexts: (() => RequireContext)[]): DiContainer;
+  export function createContainer(
+    ...getRequireContexts: (() => RequireContext)[]
+  ): DiContainer;
 
   export function registerErrorMonitoring(di: DiContainer): void;
 
