@@ -3,23 +3,17 @@ export const storedInstanceKey = Symbol('stored-instance-key');
 
 export default {
   singleton: {
-    name: 'Singleton',
-    shortName: 'S',
-    color: 'lightGreen',
+    id: 'singleton',
     getInstanceKey: () => storedInstanceKey,
   },
 
   keyedSingleton: ({ getInstanceKey }) => ({
-    name: 'Keyed',
-    shortName: 'K',
-    color: 'pink',
+    id: 'keyedSingleton',
     getInstanceKey,
   }),
 
   transient: {
-    name: 'Transient',
-    shortName: 'T',
-    color: 'orchid',
+    id: 'transient',
     getInstanceKey: () => nonStoredInstanceKey,
   },
 };

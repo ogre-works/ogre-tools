@@ -1,16 +1,20 @@
-import getInjectable from '../../../getInjectable/getInjectable';
-import { injectionDecoratorToken } from '../../createContainer';
-import lifecycleEnum from '../../lifecycleEnum';
 import camelCase from 'lodash/fp/camelCase';
-import getInjectionToken, {
-  injectionTokenSymbol,
-} from '../../../getInjectionToken/getInjectionToken';
 import last from 'lodash/fp/last';
 import get from 'lodash/fp/get';
 import some from 'lodash/fp/some';
-import { isPromise, pipeline } from '@ogre-tools/fp';
 import filter from 'lodash/fp/filter';
 import tap from 'lodash/fp/tap';
+
+import {
+  getInjectable,
+  getInjectionToken,
+  injectionDecoratorToken,
+  injectionTokenSymbol,
+  lifecycleEnum,
+} from '@ogre-tools/injectable';
+
+import { isPromise, pipeline } from '@ogre-tools/fp';
+import lifecycleEnumForDependencyGraphing from './lifecycleEnumForDependencyGraphing';
 
 export const registerDependencyGraphing = di => {
   di.register(plantUmlDependencyGraphInjectable);
@@ -78,10 +82,10 @@ const plantUmlExtractorInjectable = getInjectable({
 
       if (alias.aliasType === injectionTokenSymbol) {
         node.isInjectionToken = true;
-        node.lifecycle = tokenLifecycle;
+        node.lifecycle = lifecycleEnumForDependencyGraphing.injectionToken;
         node.infos.add('Token');
       } else {
-        node.lifecycle = alias.lifecycle;
+        node.lifecycle = lifecycleEnumForDependencyGraphing[alias.lifecycle.id];
       }
 
       const instanceIsAsync = isPromise(instance);
@@ -189,10 +193,4 @@ const toPlantUmlLink = ({
   const infosString = infos.size ? ` : ${[...infos.values()].join('\\n')}` : '';
 
   return `${parentId} --${lineStyle}up* ${dependencyId} #text:${textColor} ${infosString} `;
-};
-
-const tokenLifecycle = {
-  name: 'Transient',
-  shortName: 'X',
-  color: 'orange',
 };

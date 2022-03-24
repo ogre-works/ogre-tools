@@ -1,15 +1,24 @@
-import getDi from '../test-utils/getDiForUnitTesting';
-import getInjectable from '../getInjectable/getInjectable';
-
 import {
   dependencyGraphCustomizerToken,
   plantUmlDependencyGraphInjectable,
   registerDependencyGraphing,
-} from './extensions/dependency-graphing/dependency-graphing';
+} from './dependency-graphing';
 
 import isEqual from 'lodash/fp/isEqual';
-import getInjectionToken from '../getInjectionToken/getInjectionToken';
-import lifecycleEnum from './lifecycleEnum';
+import {
+  createContainer,
+  getInjectable,
+  getInjectionToken,
+  lifecycleEnum,
+} from '@ogre-tools/injectable';
+
+const getDi = (...injectables) => {
+  const di = createContainer();
+
+  injectables.forEach(di.register);
+
+  return di;
+};
 
 describe('createContainer.dependency-graph', () => {
   it('given dependency graphing, dependencies and injected, creates Plant-UML graph', async () => {

@@ -1,0 +1,30 @@
+{
+  "name": "@ogre-tools/injectable-extensions-for-dependency-graphing",
+  "private": false,
+  "version": "5.2.0",
+  "description": "Dependency graphing for Injectable in Ogre Tools",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ogre-works/ogre-tools"
+  },
+  "main": "build/index.js",
+  "types": "./index.d.ts",
+  "keywords": [
+    "js"
+  ],
+  "author": "Ogre Works",
+  "license": "MIT",
+  "dependencies": {
+    "@ogre-tools/fp": "^5.2.0",
+    "@ogre-tools/injectable": "^5.2.0",
+    "lodash": "^4.17.21"
+  },
+  "peerDependencies": {},
+  "bugs": {
+    "url": "https://github.com/ogre-works/ogre-tools/issues"
+  },
+  "homepage": "https://github.com/ogre-works/ogre-tools#readme",
+  "publishConfig": {
+    "access": "public"
+  }
+}
