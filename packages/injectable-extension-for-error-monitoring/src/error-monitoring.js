@@ -1,8 +1,8 @@
 import isFunction from 'lodash/fp/isFunction';
-import getInjectionToken from '../../../getInjectionToken/getInjectionToken';
+import getInjectionToken from '../../injectable/src/getInjectionToken/getInjectionToken';
+import getInjectable from '../../injectable/src/getInjectable/getInjectable';
+import { instantiationDecoratorToken } from '../../injectable/src/dependency-injection-container/createContainer';
 import { isPromise, pipeline } from '@ogre-tools/fp';
-import getInjectable from '../../../getInjectable/getInjectable';
-import { instantiationDecoratorToken } from '../../createContainer';
 
 export const errorMonitorInjectionToken = getInjectionToken({
   id: 'error-monitor-token',

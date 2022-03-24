@@ -9,11 +9,6 @@ import {
   dependencyGraphCustomizerToken,
 } from './src/dependency-injection-container/extensions/dependency-graphing/dependency-graphing';
 
-import {
-  registerErrorMonitoring,
-  errorMonitorInjectionToken,
-} from './src/dependency-injection-container/extensions/error-monitoring/error-monitoring';
-
 export {
   getInjectionToken,
   getInjectable,
@@ -22,6 +17,4 @@ export {
   registerDependencyGraphing,
   plantUmlDependencyGraphInjectable,
   dependencyGraphCustomizerToken,
-  registerErrorMonitoring,
-  errorMonitorInjectionToken,
 };

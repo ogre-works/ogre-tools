@@ -177,16 +177,6 @@ declare module '@ogre-tools/injectable' {
     ...getRequireContexts: (() => RequireContext)[]
   ): DiContainer;
 
-  export function registerErrorMonitoring(di: DiContainer): void;
-
-  export const errorMonitorInjectionToken: InjectionToken<
-    (error: {
-      context: { id: string; instantiationParameter: any }[];
-      error: any;
-    }) => void | Promise<void>,
-    void
-  >;
-
   interface Customizer {
     shouldCustomize: (instance: any) => boolean;
     // Todo: add proper typing

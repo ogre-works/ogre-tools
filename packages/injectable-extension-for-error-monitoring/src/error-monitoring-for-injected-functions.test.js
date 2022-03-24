@@ -1,13 +1,23 @@
 import asyncFn from '@async-fn/jest';
-import getDi from '../test-utils/getDiForUnitTesting';
-import getInjectable from '../getInjectable/getInjectable';
-import lifecycleEnum from './lifecycleEnum';
 import noop from 'lodash/fp/noop';
 
 import {
   errorMonitorInjectionToken,
   registerErrorMonitoring,
-} from './extensions/error-monitoring/error-monitoring';
+} from './error-monitoring';
+import {
+  createContainer,
+  getInjectable,
+  lifecycleEnum,
+} from '@ogre-tools/injectable';
+
+const getDi = (...injectables) => {
+  const di = createContainer();
+
+  injectables.forEach(di.register);
+
+  return di;
+};
 
 describe('createContainer.error-monitoring-for-injected-functions', () => {
   describe('given error monitoring and async function as child-injectable, when injected and called', () => {
