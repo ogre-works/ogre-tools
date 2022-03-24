@@ -430,22 +430,22 @@ const withInstantiationDecoratorsFor = ({ injectMany, injectable }) => {
 
 const withInjectionDecoratorsFor =
   ({ injectMany }) =>
-    toBeDecorated =>
-      (alias, ...args) => {
-        if (alias.decorable === false) {
-          return toBeDecorated(alias, ...args);
-        }
+  toBeDecorated =>
+  (alias, ...args) => {
+    if (alias.decorable === false) {
+      return toBeDecorated(alias, ...args);
+    }
 
-        const isRelevantDecorator = isRelevantDecoratorFor(alias);
+    const isRelevantDecorator = isRelevantDecoratorFor(alias);
 
-        const decorators = pipeline(
-          injectMany(injectionDecoratorToken),
-          filter(isRelevantDecorator),
-          map('decorate'),
-        );
+    const decorators = pipeline(
+      injectMany(injectionDecoratorToken),
+      filter(isRelevantDecorator),
+      map('decorate'),
+    );
 
-        return pipeline(toBeDecorated, ...decorators)(alias, ...args);
-      };
+    return pipeline(toBeDecorated, ...decorators)(alias, ...args);
+  };
 
 const isGlobalDecorator = not(has('target'));
 
@@ -482,7 +482,8 @@ const checkForTooManyMatches = (injectables, alias) => {
 
   if (relatedInjectables.length > 1) {
     throw new Error(
-      `Tried to inject single injectable for injection token "${alias.id
+      `Tried to inject single injectable for injection token "${
+        alias.id
       }" but found multiple injectables: "${relatedInjectables
         .map(relatedInjectable => relatedInjectable.id)
         .join('", "')}"`,
@@ -490,7 +491,11 @@ const checkForTooManyMatches = (injectables, alias) => {
   }
 };
 
-const hasInjectableSignature = conforms({ id: isString, instantiate: isFunction });
+const hasInjectableSignature = conforms({
+  id: isString,
+  instantiate: isFunction,
+});
+
 const verifyInjectable = ([fileName, injectable]) => {
   if (!injectable) {
     throw new Error(
@@ -505,9 +510,10 @@ const verifyInjectable = ([fileName, injectable]) => {
   }
 };
 
-const fileNameAndDefaultExport = (context) => (
-  context.keys()
-    .map(key => [key, context(key).default])
-);
+const fileNameAndDefaultExport = context =>
+  context.keys().map(key => [key, context(key).default]);
 
-const registerInjectableFor = (di) => ([, injectable]) => di.register(injectable);
+const registerInjectableFor =
+  di =>
+  ([, injectable]) =>
+    di.register(injectable);
