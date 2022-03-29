@@ -73,34 +73,6 @@ describe('createContainer.override', () => {
     expect(actual).toBe('some-other-instance');
   });
 
-  it('given an injectable with self-injecting setup is overridden, when setups are ran, injects the override in setup', async () => {
-    const someInjectable = getInjectable({
-      id: 'irrelevant',
-
-      setup: async di => {
-        const self = await di.inject(someInjectable);
-
-        self.setupped = true;
-      },
-
-      instantiate: () => {
-        throw new Error('Should not go here');
-      },
-    });
-
-    const di = getDi(someInjectable);
-
-    const someInjectableOverride = getInjectable({
-      id: 'irrelevant',
-    });
-
-    di.override(someInjectable, () => someInjectableOverride);
-
-    await di.runSetups();
-
-    expect(someInjectableOverride.setupped).toBe(true);
-  });
-
   it('given an injectable is overridden twice, injects the last overridden injectable', () => {
     const childInjectable = getInjectable({
       id: 'some-injectable',

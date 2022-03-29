@@ -1,11 +1,9 @@
 /// <reference types="jest" />
 declare module '@ogre-tools/injectable' {
-  export interface DiContainer extends DiContainerForInjection<false> {
+  export interface DiContainer extends DiContainerForInjection {
     purge: (injectableKey: Injectable<any, any, any>) => void;
 
     permitSideEffects: (injectableKey: Injectable<any, any, any>) => void;
-
-    runSetups: () => Promise<void>;
 
     override<
       InjectionInstance extends InjectionTokenInstance,
@@ -36,13 +34,10 @@ declare module '@ogre-tools/injectable' {
 
   export type Instantiate<InjectionInstance, InstantiationParam> = {
     (
-      di: DiContainerForInstantiate,
+      di: DiContainerForInjection,
       param: InstantiationParam extends void ? void : InstantiationParam,
     ): InjectionInstance;
   };
-
-  export type DiContainerForSetup = DiContainerForInjection<true>;
-  export type DiContainerForInstantiate = DiContainerForInjection<false>;
 
   export interface InjectionToken<InjectionInstance, InstantiationParam> {
     template: InjectionInstance;
@@ -56,7 +51,6 @@ declare module '@ogre-tools/injectable' {
     InstantiationParam,
   > {
     id: string;
-    setup?: (di: DiContainerForSetup) => void | Promise<void>;
     causesSideEffects?: boolean;
     injectionToken?: InjectionToken<InjectionTokenInstance, InstantiationParam>;
     instantiate: Instantiate<InjectionInstance, InstantiationParam>;
@@ -98,43 +92,39 @@ declare module '@ogre-tools/injectable' {
     InstantiationParam = void,
   >({ id: string }): InjectionToken<InjectionInstance, InstantiationParam>;
 
-  type SelectiveAsync<
-    IsAsync extends boolean,
-    InjectionInstance,
-  > = IsAsync extends true ? Promise<InjectionInstance> : InjectionInstance;
-
-  interface Inject<IsAsync extends boolean> {
+  interface Inject {
     <InjectionInstance>(
       key:
         | Injectable<InjectionInstance, unknown, void>
         | InjectionToken<InjectionInstance, void>,
-    ): SelectiveAsync<IsAsync, InjectionInstance>;
-    <InjectionInstance, InstantiationParam>(
-      key:
-        | Injectable<InjectionInstance, unknown, InstantiationParam>
-        | InjectionToken<InjectionInstance, InstantiationParam>,
-      param: InstantiationParam,
-    ): SelectiveAsync<IsAsync, InjectionInstance>;
-  }
-
-  interface InjectMany<IsAsync extends boolean> {
-    <InjectionInstance>(
-      key:
-        | Injectable<InjectionInstance, unknown, void>
-        | InjectionToken<InjectionInstance, void>,
-    ): SelectiveAsync<IsAsync, InjectionInstance[]>;
+    ): InjectionInstance;
 
     <InjectionInstance, InstantiationParam>(
       key:
         | Injectable<InjectionInstance, unknown, InstantiationParam>
         | InjectionToken<InjectionInstance, InstantiationParam>,
       param: InstantiationParam,
-    ): SelectiveAsync<IsAsync, InjectionInstance[]>;
+    ): InjectionInstance;
   }
 
-  interface DiContainerForInjection<TReturnAsPromise extends boolean> {
-    inject: Inject<TReturnAsPromise>;
-    injectMany: InjectMany<TReturnAsPromise>;
+  interface InjectMany {
+    <InjectionInstance>(
+      key:
+        | Injectable<InjectionInstance, unknown, void>
+        | InjectionToken<InjectionInstance, void>,
+    ): InjectionInstance[];
+
+    <InjectionInstance, InstantiationParam>(
+      key:
+        | Injectable<InjectionInstance, unknown, InstantiationParam>
+        | InjectionToken<InjectionInstance, InstantiationParam>,
+      param: InstantiationParam,
+    ): InjectionInstance[];
+  }
+
+  export interface DiContainerForInjection {
+    inject: Inject;
+    injectMany: InjectMany;
 
     register<
       InjectionInstance extends InjectionTokenInstance,

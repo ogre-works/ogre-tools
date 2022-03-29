@@ -98,22 +98,11 @@ describe('createContainer.dependency-graph', () => {
       injectionToken: dependencyGraphCustomizerToken,
     });
 
-    const setuppable = getInjectable({
-      id: 'some-setuppable',
-      instantiate: () => 'irrelevant',
-
-      setup: async di => {
-        await di.inject(syncChildInjectable);
-        await di.inject(setuppable);
-      },
-    });
-
     const di = getDi(
       parentInjectable,
       syncChildInjectable,
       asyncChildInjectable,
       tokenInjectable,
-      setuppable,
       keyedInjectable,
       customizableSyncInjectable,
       customizableAsyncInjectable,
@@ -121,8 +110,6 @@ describe('createContainer.dependency-graph', () => {
     );
 
     registerDependencyGraphing(di);
-
-    await di.runSetups();
 
     await di.inject(parentInjectable);
 

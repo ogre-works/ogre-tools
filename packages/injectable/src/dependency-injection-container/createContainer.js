@@ -5,22 +5,15 @@ import findLast from 'lodash/fp/findLast';
 import first from 'lodash/fp/first';
 import forEach from 'lodash/fp/forEach';
 import get from 'lodash/fp/get';
-import getCycles from './getCycles/getCycles';
 import getInjectionToken from '../getInjectionToken/getInjectionToken';
 import has from 'lodash/fp/has';
-import invoke from 'lodash/fp/invoke';
 import isFunction from 'lodash/fp/isFunction';
 import isUndefined from 'lodash/fp/isUndefined';
-import join from 'lodash/fp/join';
-import last from 'lodash/fp/last';
 import { nonStoredInstanceKey } from './lifecycleEnum';
 import map from 'lodash/fp/map';
 import matches from 'lodash/fp/matches';
 import not from 'lodash/fp/negate';
-import isEqual from 'lodash/fp/isEqual';
-import once from 'lodash/fp/once';
 import reject from 'lodash/fp/reject';
-import sortBy from 'lodash/fp/sortBy';
 import tap from 'lodash/fp/tap';
 import { pipeline } from '@ogre-tools/fp';
 import curry from 'lodash/fp/curry';
@@ -31,8 +24,6 @@ export default (...listOfGetRequireContexts) => {
   let injectables = [];
   let overridingInjectables = [];
   let sideEffectsArePrevented = false;
-  let setupsHaveBeenRan = false;
-  let setupsAreBeingRan = false;
 
   const injectableMap = new Map();
 
@@ -59,12 +50,6 @@ export default (...listOfGetRequireContexts) => {
     });
 
     const injectable = overriddenInjectable || originalInjectable;
-
-    if (!setupsHaveBeenRan && !setupsAreBeingRan && injectable.setup) {
-      throw new Error(
-        `Tried to inject setuppable "${injectable.id}" before setups are ran.`,
-      );
-    }
 
     if (sideEffectsArePrevented && injectable.causesSideEffects) {
       throw new Error(
@@ -117,18 +102,6 @@ export default (...listOfGetRequireContexts) => {
     injectMany: decoratedPrivateInjectMany,
 
     register: externalInjectable => {
-      if (setupsHaveBeenRan && !!externalInjectable.setup) {
-        throw new Error(
-          `Tried to register setuppable "${externalInjectable.id}" after setups have already ran.`,
-        );
-      }
-
-      if (setupsAreBeingRan && !!externalInjectable.setup) {
-        throw new Error(
-          `Tried to register setuppable "${externalInjectable.id}" during setup.`,
-        );
-      }
-
       if (!externalInjectable.id) {
         throw new Error('Tried to register injectable without ID.');
       }
@@ -141,10 +114,6 @@ export default (...listOfGetRequireContexts) => {
 
       const internalInjectable = {
         ...externalInjectable,
-
-        ...(externalInjectable.setup
-          ? { setup: once(externalInjectable.setup) }
-          : {}),
 
         permitSideEffects: function () {
           this.causesSideEffects = false;
@@ -184,75 +153,6 @@ export default (...listOfGetRequireContexts) => {
 
     reset: () => {
       overridingInjectables = [];
-    },
-
-    runSetups: async () => {
-      setupsAreBeingRan = true;
-      const setupContext = new Map();
-
-      const diForSetupsFor = setuppable => ({
-        injectMany: publicDi.injectMany,
-
-        inject: async (alias, parameter) => {
-          const targetSetuppable = injectables.find(
-            conforms({
-              id: isEqual(alias.id),
-              setup: isFunction,
-            }),
-          );
-
-          if (targetSetuppable && setuppable.id !== targetSetuppable.id) {
-            setupContext.get(setuppable.id).add(targetSetuppable.id);
-
-            const cycles = getCycles(setupContext);
-
-            if (cycles.length > 0) {
-              const mostComplexCycle = pipeline(
-                cycles,
-                sortBy('length'),
-                last,
-                join('" -> "'),
-              );
-
-              throw new Error(
-                `Cycle of setuppables encountered: "${mostComplexCycle}"`,
-              );
-            }
-
-            await targetSetuppable.setup(diForSetupsFor(targetSetuppable));
-          }
-
-          return privateDi.inject(alias, parameter, [
-            {
-              injectable: setuppable,
-              isSetup: true,
-            },
-          ]);
-        },
-
-        register: privateDi.register,
-      });
-
-      await pipeline(
-        injectables,
-        filter('setup'),
-
-        tap(
-          forEach(setuppable => {
-            setupContext.set(setuppable.id, new Set());
-          }),
-        ),
-
-        map(async injectable => {
-          const diForSetups = diForSetupsFor(injectable);
-          await injectable.setup(diForSetups);
-        }),
-
-        tap(() => {
-          setupsHaveBeenRan = true;
-          setupsAreBeingRan = false;
-        }),
-      );
     },
 
     preventSideEffects: () => {
@@ -339,11 +239,7 @@ const getInstance = ({
 
   const injectableCausingCycle = pipeline(
     oldContext,
-    find(
-      contextItem =>
-        contextItem.injectable.id === injectable.id &&
-        contextItem.isSetup !== true,
-    ),
+    find(contextItem => contextItem.injectable.id === injectable.id),
   );
 
   if (injectableCausingCycle) {

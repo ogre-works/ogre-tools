@@ -102,11 +102,7 @@ const plantUmlExtractorInjectable = getInjectable({
         const parentId = camelCase(parentContext.injectable.id);
         const dependencyId = camelCase(alias.id);
 
-        const linkIsRelatedToSetup = pipeline(context, some('isSetup'));
-
-        const linkId = `${parentId}/${dependencyId}:${
-          linkIsRelatedToSetup ? 'setup' : 'not-setup'
-        }`;
+        const linkId = `${parentId}/${dependencyId}`;
 
         const descendantIds = context.map(get('injectable.id'));
         const dependencyNode = graphState.nodes.get(dependencyId);
@@ -123,12 +119,6 @@ const plantUmlExtractorInjectable = getInjectable({
         }
 
         link = graphState.links.get(linkId);
-
-        if (linkIsRelatedToSetup) {
-          link.isRelatedToSetup = true;
-          link.infos.add('Setup');
-          dependencyNode.tags.add('setup');
-        }
 
         if (instanceIsAsync) {
           link.isAsync = true;
@@ -181,13 +171,12 @@ const toPlantUmlNode = ({
 const toPlantUmlLink = ({
   parentId,
   dependencyId,
-  isRelatedToSetup,
   isAsync,
   infos,
   lineColor = 'black',
   textColor = 'black',
 }) => {
-  const lineType = isRelatedToSetup ? 'dashed' : 'plain';
+  const lineType = 'plain';
   const lineThickness = isAsync ? 4 : 1;
   const lineStyle = `[#${lineColor},${lineType},thickness=${lineThickness}]`;
   const infosString = infos.size ? ` : ${[...infos.values()].join('\\n')}` : '';
