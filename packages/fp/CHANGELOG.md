@@ -3,6 +3,14 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [6.0.0](https://github.com/ogre-works/ogre-tools/compare/v5.2.0...v6.0.0) (2022-03-29)
+
+**Note:** Version bump only for package @ogre-tools/fp
+
+
+
+
+
 ## [5.2.0](https://github.com/ogre-works/ogre-tools/compare/v5.1.3...v5.2.0) (2022-03-23)
 
 **Note:** Version bump only for package @ogre-tools/fp
