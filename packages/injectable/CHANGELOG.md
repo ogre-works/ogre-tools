@@ -3,6 +3,15 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+### [6.0.1](https://github.com/ogre-works/ogre-tools/compare/v6.0.0...v6.0.1) (2022-03-30)
+
+
+### Bug Fixes
+
+* Fix error in typing of a lifecycle ([3b4b3cd](https://github.com/ogre-works/ogre-tools/commit/3b4b3cdae9f67afd668c96bc451e1f858af27513))
+
+
+
 ## [6.0.0](https://github.com/ogre-works/ogre-tools/compare/v5.2.0...v6.0.0) (2022-03-29)
 
 
