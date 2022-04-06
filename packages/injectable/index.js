@@ -7,6 +7,7 @@ import lifecycleEnum from './src/dependency-injection-container/lifecycleEnum';
 
 import createContainer, {
   injectionDecoratorToken,
+  registrationDecoratorToken,
 } from './src/dependency-injection-container/createContainer';
 
 export {
@@ -14,6 +15,7 @@ export {
   getInjectable,
   getInjectionToken,
   injectionDecoratorToken,
+  registrationDecoratorToken,
   injectionTokenSymbol,
   lifecycleEnum,
 };
