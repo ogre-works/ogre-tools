@@ -1,0 +1,30 @@
+{
+  "name": "@ogre-tools/injectable-extension-for-mobx",
+  "private": false,
+  "version": "6.0.1",
+  "description": "MobX support for Injectable in Ogre Tools",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ogre-works/ogre-tools"
+  },
+  "main": "build/index.js",
+  "types": "./index.d.ts",
+  "keywords": [
+    "js"
+  ],
+  "author": "Ogre Works",
+  "license": "MIT",
+  "dependencies": {
+    "@ogre-tools/fp": "^6.0.1",
+    "@ogre-tools/injectable": "^6.0.1",
+    "lodash": "^4.17.21",
+    "mobx": "^6.3.0"
+  },
+  "bugs": {
+    "url": "https://github.com/ogre-works/ogre-tools/issues"
+  },
+  "homepage": "https://github.com/ogre-works/ogre-tools#readme",
+  "publishConfig": {
+    "access": "public"
+  }
+}
