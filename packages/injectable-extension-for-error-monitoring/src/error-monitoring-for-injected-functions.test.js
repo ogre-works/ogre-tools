@@ -11,14 +11,6 @@ import {
   lifecycleEnum,
 } from '@ogre-tools/injectable';
 
-const getDi = (...injectables) => {
-  const di = createContainer();
-
-  injectables.forEach(di.register);
-
-  return di;
-};
-
 describe('createContainer.error-monitoring-for-injected-functions', () => {
   describe('given error monitoring and async function as child-injectable, when injected and called', () => {
     let errorMonitorMock;
@@ -52,7 +44,9 @@ describe('createContainer.error-monitoring-for-injected-functions', () => {
           di.inject(childInjectable, 'some-instantiation-parameter-for-child'),
       });
 
-      di = getDi(parentInjectable, childInjectable, errorMonitorInjectable);
+      const di = createContainer();
+
+      di.register(parentInjectable, childInjectable, errorMonitorInjectable);
 
       registerErrorMonitoring(di);
 
@@ -161,7 +155,9 @@ describe('createContainer.error-monitoring-for-injected-functions', () => {
           di.inject(childInjectable, 'some-instantiation-parameter-for-child'),
       });
 
-      di = getDi(parentInjectable, childInjectable, errorMonitorInjectable);
+      di = createContainer();
+
+      di.register(parentInjectable, childInjectable, errorMonitorInjectable);
 
       registerErrorMonitoring(di);
 

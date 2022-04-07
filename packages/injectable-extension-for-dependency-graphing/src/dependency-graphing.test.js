@@ -12,14 +12,6 @@ import {
   lifecycleEnum,
 } from '@ogre-tools/injectable';
 
-const getDi = (...injectables) => {
-  const di = createContainer();
-
-  injectables.forEach(di.register);
-
-  return di;
-};
-
 describe('createContainer.dependency-graph', () => {
   it('given dependency graphing, dependencies and injected, creates Plant-UML graph', async () => {
     const parentInjectable = getInjectable({
@@ -98,7 +90,9 @@ describe('createContainer.dependency-graph', () => {
       injectionToken: dependencyGraphCustomizerToken,
     });
 
-    const di = getDi(
+    const di = createContainer();
+
+    di.register(
       parentInjectable,
       syncChildInjectable,
       asyncChildInjectable,

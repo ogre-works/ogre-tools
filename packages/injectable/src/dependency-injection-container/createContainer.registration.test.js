@@ -1,5 +1,4 @@
 import getInjectable from '../getInjectable/getInjectable';
-import getDi from '../test-utils/getDiForUnitTesting';
 import createContainer from './createContainer';
 
 describe('createContainer.registration', () => {
@@ -9,7 +8,9 @@ describe('createContainer.registration', () => {
       instantiate: () => 'some-injected-instance',
     });
 
-    const di = getDi(injectableStub);
+    const di = createContainer();
+
+    di.register(injectableStub);
 
     const actual = di.inject(injectableStub);
 
@@ -68,7 +69,7 @@ describe('createContainer.registration', () => {
       () => ({
         default: {
           id: 'some-injectable-id',
-          instantiate: () => { },
+          instantiate: () => {},
         },
       }),
       {
@@ -80,7 +81,7 @@ describe('createContainer.registration', () => {
   });
 
   it('given manually registered injectable, when injecting, injects', () => {
-    const di = getDi();
+    const di = createContainer();
 
     const someInjectable = getInjectable({
       id: 'irrelevant',
@@ -95,7 +96,7 @@ describe('createContainer.registration', () => {
   });
 
   it('given injectables with same ID, when registering, throws', () => {
-    const di = getDi();
+    const di = createContainer();
 
     const someInjectable = getInjectable({
       id: 'some-id',
@@ -125,7 +126,9 @@ describe('createContainer.registration', () => {
       instantiate: di => di.inject(childInjectable),
     });
 
-    const di = getDi(childInjectable, parentInjectable);
+    const di = createContainer();
+
+    di.register(childInjectable, parentInjectable);
 
     const actual = di.inject(parentInjectable);
 
@@ -133,7 +136,7 @@ describe('createContainer.registration', () => {
   });
 
   it('given an injectable does not specify id, when manually registered, throws', () => {
-    const di = getDi();
+    const di = createContainer();
 
     const someInjectable = getInjectable({
       id: undefined,
@@ -150,7 +153,7 @@ describe('createContainer.registration', () => {
       id: 'some-non-registered-injectable',
     });
 
-    const di = getDi();
+    const di = createContainer();
 
     expect(() => {
       di.inject(someNonRegisteredInjectable);
@@ -170,7 +173,9 @@ describe('createContainer.registration', () => {
       instantiate: di => di.inject(someNonRegisteredInjectable),
     });
 
-    const di = getDi(someRegisteredInjectable);
+    const di = createContainer();
+
+    di.register(someRegisteredInjectable);
 
     expect(() => {
       di.inject(someRegisteredInjectable);

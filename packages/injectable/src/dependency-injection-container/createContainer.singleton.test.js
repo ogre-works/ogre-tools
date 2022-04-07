@@ -1,6 +1,6 @@
 import lifecycleEnum from './lifecycleEnum';
 import getInjectable from '../getInjectable/getInjectable';
-import getDi from '../test-utils/getDiForUnitTesting';
+import createContainer from './createContainer';
 
 describe('createContainer.singleton', () => {
   it('given multiple containers and shared singleton, when injected from different containers, injects different instance', () => {
@@ -10,8 +10,11 @@ describe('createContainer.singleton', () => {
       lifecycle: lifecycleEnum.singleton,
     });
 
-    const di1 = getDi(someInjectable);
-    const di2 = getDi(someInjectable);
+    const di1 = createContainer();
+    di1.register(someInjectable);
+
+    const di2 = createContainer();
+    di2.register(someInjectable);
 
     const actual1 = di1.inject(someInjectable);
     const actual2 = di2.inject(someInjectable);
@@ -26,7 +29,9 @@ describe('createContainer.singleton', () => {
       lifecycle: lifecycleEnum.singleton,
     });
 
-    const di = getDi(singletonInjectable);
+    const di = createContainer();
+
+    di.register(singletonInjectable);
 
     const actual1 = di.inject(singletonInjectable);
     const actual2 = di.inject(singletonInjectable);
@@ -41,7 +46,9 @@ describe('createContainer.singleton', () => {
       lifecycle: undefined,
     });
 
-    const di = getDi(injectable);
+    const di = createContainer();
+
+    di.register(injectable);
 
     const actual1 = di.inject(injectable);
     const actual2 = di.inject(injectable);
@@ -56,7 +63,9 @@ describe('createContainer.singleton', () => {
       lifecycle: lifecycleEnum.singleton,
     });
 
-    const di = getDi(singletonInjectable);
+    const di = createContainer();
+
+    di.register(singletonInjectable);
 
     const actual1 = di.inject(singletonInjectable);
 
@@ -80,7 +89,9 @@ describe('createContainer.singleton', () => {
       lifecycle: lifecycleEnum.singleton,
     });
 
-    const di = getDi(singletonInjectable, unrelatedSingletonInjectable);
+    const di = createContainer();
+
+    di.register(singletonInjectable, unrelatedSingletonInjectable);
 
     const actual1 = di.inject(singletonInjectable);
 

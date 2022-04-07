@@ -1,6 +1,6 @@
-import getDi from '../test-utils/getDiForUnitTesting';
 import getInjectable from '../getInjectable/getInjectable';
 import lifecycleEnum from './lifecycleEnum';
+import createContainer from './createContainer';
 
 describe('createContainer.injection', () => {
   it('given async child-injectable as dependency, when injected, parent-injectable receives child as sync', async () => {
@@ -23,7 +23,9 @@ describe('createContainer.injection', () => {
       },
     });
 
-    const di = getDi(asyncChildInjectable, parentInjectable);
+    const di = createContainer();
+
+    di.register(asyncChildInjectable, parentInjectable);
 
     const actual = await di.inject(parentInjectable);
 
@@ -41,7 +43,9 @@ describe('createContainer.injection', () => {
       instantiate: di => di.inject(childInjectable),
     });
 
-    const di = getDi(parentInjectable, childInjectable);
+    const di = createContainer();
+
+    di.register(parentInjectable, childInjectable);
 
     expect(() => {
       di.inject(parentInjectable);
@@ -61,7 +65,9 @@ describe('createContainer.injection', () => {
       instantiate: di => di.inject(childInjectable),
     });
 
-    const di = getDi(parentInjectable, childInjectable);
+    const di = createContainer();
+
+    di.register(parentInjectable, childInjectable);
 
     expect(() => {
       di.inject(parentInjectable, undefined, {
@@ -86,7 +92,9 @@ describe('createContainer.injection', () => {
       instantiate: async di => await di.inject(childInjectable),
     });
 
-    const di = getDi(parentInjectable, childInjectable);
+    const di = createContainer();
+
+    di.register(parentInjectable, childInjectable);
 
     const actualPromise = di.inject(parentInjectable);
 

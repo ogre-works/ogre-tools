@@ -1,7 +1,7 @@
 import getInjectionToken from '../getInjectionToken/getInjectionToken';
 import getInjectable from '../getInjectable/getInjectable';
-import getDi from '../test-utils/getDiForUnitTesting';
 import lifecycleEnum from './lifecycleEnum';
+import createContainer from './createContainer';
 
 describe('createContainer.injection-token', () => {
   it('given multiple injectables with shared injection token, when injecting using the token, throws', () => {
@@ -21,7 +21,9 @@ describe('createContainer.injection-token', () => {
       instantiate: () => 'irrelevant',
     });
 
-    const di = getDi(someInjectable, someOtherInjectable);
+    const di = createContainer();
+
+    di.register(someInjectable, someOtherInjectable);
 
     expect(() => {
       di.inject(someSharedInjectionToken);
@@ -52,11 +54,9 @@ describe('createContainer.injection-token', () => {
       instantiate: () => 'some-other-instance',
     });
 
-    const di = getDi(
-      someInjectable,
-      someOtherInjectable,
-      someUnrelatedInjectable,
-    );
+    const di = createContainer();
+
+    di.register(someInjectable, someOtherInjectable, someUnrelatedInjectable);
 
     const actual = di.injectMany(someSharedInjectionToken);
 
@@ -85,7 +85,9 @@ describe('createContainer.injection-token', () => {
       instantiate: () => 'some-other-instance',
     });
 
-    const di = getDi(
+    const di = createContainer();
+
+    di.register(
       someSyncInjectable,
       someAsyncInjectable,
       someUnrelatedInjectable,
@@ -101,7 +103,7 @@ describe('createContainer.injection-token', () => {
       id: 'some-injection-token',
     });
 
-    const di = getDi();
+    const di = createContainer();
 
     const actual = await di.injectMany(
       someSharedInjectionToken,
@@ -132,7 +134,9 @@ describe('createContainer.injection-token', () => {
       instantiate: di => di.injectMany(someOtherInjectionToken),
     });
 
-    const di = getDi(parentInjectable, childInjectable);
+    const di = createContainer();
+
+    di.register(parentInjectable, childInjectable);
 
     expect(() => {
       di.injectMany(someInjectionToken);
@@ -150,7 +154,9 @@ describe('createContainer.injection-token', () => {
       injectionToken: injectionToken,
     });
 
-    const di = getDi(someInjectable);
+    const di = createContainer();
+
+    di.register(someInjectable);
 
     expect(di.inject(injectionToken)).toBe('some-instance');
   });
@@ -169,7 +175,9 @@ describe('createContainer.injection-token', () => {
       injectionToken,
     });
 
-    const di = getDi(parentInjectable, childInjectable);
+    const di = createContainer();
+
+    di.register(parentInjectable, childInjectable);
 
     expect(() => {
       di.injectMany(injectionToken, undefined, {

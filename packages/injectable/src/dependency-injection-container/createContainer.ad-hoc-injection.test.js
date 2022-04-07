@@ -1,5 +1,5 @@
-import getDi from '../test-utils/getDiForUnitTesting';
 import getInjectable from '../getInjectable/getInjectable';
+import createContainer from './createContainer';
 
 describe('createContainer.ad-hoc-injection', () => {
   it('given non-registered ad-hoc injectable, when injected, injects', () => {
@@ -9,7 +9,7 @@ describe('createContainer.ad-hoc-injection', () => {
       instantiate: () => ({}),
     });
 
-    const di = getDi();
+    const di = createContainer();
 
     const actual1 = di.inject(adHocInjectable);
     const actual2 = di.inject(adHocInjectable);

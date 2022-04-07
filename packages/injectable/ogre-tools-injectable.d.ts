@@ -23,11 +23,11 @@ declare module '@ogre-tools/injectable' {
       InjectionTokenInstance,
       InstantiationParam,
     >(
-      injectable: Injectable<
+      ...injectables: Injectable<
         InjectionInstance,
         InjectionTokenInstance,
         InstantiationParam
-      >,
+      >[]
     ): void;
     preventSideEffects: () => void;
   }
@@ -131,11 +131,11 @@ declare module '@ogre-tools/injectable' {
       InjectionTokenInstance,
       InstantiationParam,
     >(
-      injectable: Injectable<
+      ...injectables: Injectable<
         InjectionInstance,
         InjectionTokenInstance,
         InstantiationParam
-      >,
+      >[]
     ): void;
   }
 

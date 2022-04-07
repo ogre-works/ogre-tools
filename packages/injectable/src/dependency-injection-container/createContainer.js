@@ -100,28 +100,30 @@ export default (...listOfGetRequireContexts) => {
     nonDecoratedPrivateInjectMany,
   );
 
-  const nonDecoratedRegister = externalInjectable => {
-    if (!externalInjectable.id) {
-      throw new Error('Tried to register injectable without ID.');
-    }
+  const nonDecoratedRegister = (...externalInjectables) => {
+    externalInjectables.forEach(externalInjectable => {
+      if (!externalInjectable.id) {
+        throw new Error('Tried to register injectable without ID.');
+      }
 
-    if (injectables.find(matches({ id: externalInjectable.id }))) {
-      throw new Error(
-        `Tried to register multiple injectables for ID "${externalInjectable.id}"`,
-      );
-    }
+      if (injectables.find(matches({ id: externalInjectable.id }))) {
+        throw new Error(
+          `Tried to register multiple injectables for ID "${externalInjectable.id}"`,
+        );
+      }
 
-    const internalInjectable = {
-      ...externalInjectable,
+      const internalInjectable = {
+        ...externalInjectable,
 
-      permitSideEffects: function () {
-        this.causesSideEffects = false;
-      },
-    };
+        permitSideEffects: function () {
+          this.causesSideEffects = false;
+        },
+      };
 
-    injectables.push(internalInjectable);
+      injectables.push(internalInjectable);
 
-    injectableMap.set(internalInjectable.id, new Map());
+      injectableMap.set(internalInjectable.id, new Map());
+    });
   };
 
   const privateDi = {
@@ -319,14 +321,10 @@ export const injectionDecoratorToken = getInjectionToken({
 const withRegistrationDecoratorsFor =
   injectMany =>
   toBeDecorated =>
-  (injectable, ...args) => {
-    if (injectable.decorable === false) {
-      return toBeDecorated(injectable, ...args);
-    }
-
+  (...injectables) => {
     const decorators = injectMany(registrationDecoratorToken);
 
-    pipeline(toBeDecorated, ...decorators)(injectable, ...args);
+    pipeline(toBeDecorated, ...decorators)(...injectables);
   };
 
 const withInstantiationDecoratorsFor = ({ injectMany, injectable }) => {

@@ -1,6 +1,5 @@
-import getDi from '../test-utils/getDiForUnitTesting';
 import getInjectable from '../getInjectable/getInjectable';
-import { injectionDecoratorToken } from './createContainer';
+import createContainer, { injectionDecoratorToken } from './createContainer';
 
 describe('createContainer.global-decoration', () => {
   it('given global decorator and child injectable, when parent is injected, decorates instances and instantiation parameters of both parent and child', () => {
@@ -36,7 +35,9 @@ describe('createContainer.global-decoration', () => {
       },
     });
 
-    const di = getDi(parentInjectable, childInjectable, decoratorInjectable);
+    const di = createContainer();
+
+    di.register(parentInjectable, childInjectable, decoratorInjectable);
 
     const actual = di.inject(parentInjectable, 'parent-parameter');
 
@@ -93,7 +94,9 @@ describe('createContainer.global-decoration', () => {
         `parent(${instantiationParameter})`,
     });
 
-    const di = getDi(injectable, decoratorInjectable1, decoratorInjectable2);
+    const di = createContainer();
+
+    di.register(injectable, decoratorInjectable1, decoratorInjectable2);
 
     const actual = di.inject(injectable, 'some-parameter');
 

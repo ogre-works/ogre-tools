@@ -1,6 +1,6 @@
 import lifecycleEnum from './lifecycleEnum';
 import getInjectable from '../getInjectable/getInjectable';
-import getDi from '../test-utils/getDiForUnitTesting';
+import createContainer from './createContainer';
 
 describe('createContainer.keyed-singleton', () => {
   describe('given key from instantiation parameter', () => {
@@ -16,7 +16,9 @@ describe('createContainer.keyed-singleton', () => {
         }),
       });
 
-      di = getDi(injectable);
+      di = createContainer();
+
+      di.register(injectable);
     });
 
     it('when injected multiple times with same key, injects same instance', () => {
@@ -63,7 +65,9 @@ describe('createContainer.keyed-singleton', () => {
       lifecycle: lifecycleEnum.transient,
     });
 
-    const di = getDi(mainInjectable, keyInjectable);
+    const di = createContainer();
+
+    di.register(mainInjectable, keyInjectable);
 
     const actual1 = di.inject(
       mainInjectable,
@@ -98,7 +102,9 @@ describe('createContainer.keyed-singleton', () => {
       lifecycle: lifecycleEnum.transient,
     });
 
-    const di = getDi(mainInjectable, keyInjectable);
+    const di = createContainer();
+
+    di.register(mainInjectable, keyInjectable);
 
     const actual1 = di.inject(
       mainInjectable,
@@ -132,7 +138,9 @@ describe('createContainer.keyed-singleton', () => {
       }),
     });
 
-    const di = getDi(injectable1, injectable2);
+    const di = createContainer();
+
+    di.register(injectable1, injectable2);
 
     const actual1 = di.inject(injectable1, 'some-instance-key');
     const actual2 = di.inject(injectable2, 'some-instance-key');

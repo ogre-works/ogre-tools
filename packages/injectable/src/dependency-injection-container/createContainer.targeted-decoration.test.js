@@ -1,6 +1,5 @@
-import getDi from '../test-utils/getDiForUnitTesting';
 import getInjectable from '../getInjectable/getInjectable';
-import { injectionDecoratorToken } from './createContainer';
+import createContainer, { injectionDecoratorToken } from './createContainer';
 import getInjectionToken from '../getInjectionToken/getInjectionToken';
 
 describe('createContainer.targeted-decoration', () => {
@@ -44,7 +43,9 @@ describe('createContainer.targeted-decoration', () => {
       },
     });
 
-    const di = getDi(parentInjectable, childInjectable, decoratorInjectable);
+    const di = createContainer();
+
+    di.register(parentInjectable, childInjectable, decoratorInjectable);
 
     const actual = di.inject(parentInjectable, 'parent-parameter');
 
@@ -96,7 +97,9 @@ describe('createContainer.targeted-decoration', () => {
       },
     });
 
-    const di = getDi(parentInjectable, childInjectable, decoratorInjectable);
+    const di = createContainer();
+
+    di.register(parentInjectable, childInjectable, decoratorInjectable);
 
     const actual = di.inject(parentInjectable, 'parent-parameter');
 

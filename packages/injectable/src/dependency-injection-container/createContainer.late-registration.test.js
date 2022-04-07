@@ -1,5 +1,5 @@
-import getDi from '../test-utils/getDiForUnitTesting';
 import getInjectable from '../getInjectable/getInjectable';
+import createContainer from './createContainer';
 
 describe('createContainer.late-registration', () => {
   it('given injectable registered by another injectable during injection, when thus registered injectable is injected, injects', async () => {
@@ -17,7 +17,9 @@ describe('createContainer.late-registration', () => {
       instantiate: () => 'some-instance',
     });
 
-    const di = getDi(
+    const di = createContainer();
+
+    di.register(
       someInjectableForLateRegistration,
       // Notice: the injectable is not registered before late.
       // someInjectableToBeRegisteredLate,

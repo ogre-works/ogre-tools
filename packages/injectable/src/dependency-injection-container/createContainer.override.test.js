@@ -1,6 +1,6 @@
 import lifecycleEnum from './lifecycleEnum';
 import getInjectable from '../getInjectable/getInjectable';
-import getDi from '../test-utils/getDiForUnitTesting';
+import createContainer from './createContainer';
 
 describe('createContainer.override', () => {
   it('given an injectable is overridden, injects the overridden injectable', () => {
@@ -18,7 +18,9 @@ describe('createContainer.override', () => {
       instantiate: di => di.inject(childInjectable),
     });
 
-    const di = getDi(childInjectable, parentInjectable);
+    const di = createContainer();
+
+    di.register(childInjectable, parentInjectable);
 
     di.override(childInjectable, () => 'some-overridden-value');
 
@@ -40,7 +42,9 @@ describe('createContainer.override', () => {
       lifecycle: lifecycleEnum.transient,
     });
 
-    const di = getDi(someInjectable, someOtherInjectable);
+    const di = createContainer();
+
+    di.register(someInjectable, someOtherInjectable);
 
     di.override(someInjectable, (di, instantiationParameter) =>
       di.inject(someOtherInjectable, instantiationParameter),
@@ -64,7 +68,9 @@ describe('createContainer.override', () => {
       lifecycle: lifecycleEnum.transient,
     });
 
-    const di = getDi(someInjectable, someOtherInjectable);
+    const di = createContainer();
+
+    di.register(someInjectable, someOtherInjectable);
 
     di.override(someInjectable, di => di.inject(someOtherInjectable));
 
@@ -84,7 +90,9 @@ describe('createContainer.override', () => {
       instantiate: di => di.inject(childInjectable),
     });
 
-    const di = getDi(childInjectable, parentInjectable);
+    const di = createContainer();
+
+    di.register(childInjectable, parentInjectable);
 
     di.override(childInjectable, () => 'irrelevant');
     di.override(childInjectable, () => 'some-reoverridden-value');
@@ -105,7 +113,9 @@ describe('createContainer.override', () => {
       instantiate: di => di.inject(childInjectable),
     });
 
-    const di = getDi(childInjectable, parentInjectable);
+    const di = createContainer();
+
+    di.register(childInjectable, parentInjectable);
 
     di.override(childInjectable, () => 'irrelevant');
 
@@ -122,7 +132,9 @@ describe('createContainer.override', () => {
       instantiate: () => 'some-original-value',
     });
 
-    const di = getDi(someInjectable);
+    const di = createContainer();
+
+    di.register(someInjectable);
 
     di.override(someInjectable, () => 'irrelevant');
 
@@ -134,7 +146,7 @@ describe('createContainer.override', () => {
   });
 
   it('when overriding non-registered injectable, throws', () => {
-    const di = getDi();
+    const di = createContainer();
 
     const injectable = getInjectable({
       id: 'some-non-registered-injectable',

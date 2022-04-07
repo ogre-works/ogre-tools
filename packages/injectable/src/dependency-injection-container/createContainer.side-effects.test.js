@@ -1,5 +1,5 @@
 import getInjectable from '../getInjectable/getInjectable';
-import getDi from '../test-utils/getDiForUnitTesting';
+import createContainer from './createContainer';
 
 describe('createContainer.side-effects', () => {
   it('given in side effects are not prevented, when injecting injectable which causes side effects, does not throw', () => {
@@ -9,7 +9,9 @@ describe('createContainer.side-effects', () => {
       instantiate: () => 'some-instance',
     });
 
-    const di = getDi(someInjectable);
+    const di = createContainer();
+
+    di.register(someInjectable);
 
     const actual = di.inject(someInjectable);
 
@@ -23,7 +25,9 @@ describe('createContainer.side-effects', () => {
       instantiate: () => 'irrelevant',
     });
 
-    const di = getDi(someInjectable);
+    const di = createContainer();
+
+    di.register(someInjectable);
 
     di.preventSideEffects();
 
@@ -41,7 +45,9 @@ describe('createContainer.side-effects', () => {
       instantiate: () => 'irrelevant',
     });
 
-    const di = getDi(someInjectable);
+    const di = createContainer();
+
+    di.register(someInjectable);
 
     di.preventSideEffects();
 

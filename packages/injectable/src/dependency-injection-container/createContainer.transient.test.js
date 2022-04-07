@@ -1,7 +1,7 @@
 import lifecycleEnum from './lifecycleEnum';
 import getInjectionToken from '../getInjectionToken/getInjectionToken';
 import getInjectable from '../getInjectable/getInjectable';
-import getDi from '../test-utils/getDiForUnitTesting';
+import createContainer from './createContainer';
 
 describe('createContainer.transient', () => {
   it('given instantiation parameter, when injected multiple times, injects different instances', () => {
@@ -11,7 +11,9 @@ describe('createContainer.transient', () => {
       lifecycle: lifecycleEnum.transient,
     });
 
-    const di = getDi(transientInjectable);
+    const di = createContainer();
+
+    di.register(transientInjectable);
 
     const actual1 = di.inject(
       transientInjectable,
@@ -33,7 +35,9 @@ describe('createContainer.transient', () => {
       lifecycle: lifecycleEnum.transient,
     });
 
-    const di = getDi(transientInjectable);
+    const di = createContainer();
+
+    di.register(transientInjectable);
 
     const actual1 = di.inject(transientInjectable);
     const actual2 = di.inject(transientInjectable);
@@ -55,7 +59,9 @@ describe('createContainer.transient', () => {
         `some-instance: "${instantiationParameter}"`,
     });
 
-    const di = getDi(someInjectable);
+    const di = createContainer();
+
+    di.register(someInjectable);
 
     const actual = di.injectMany(
       someSharedInjectionToken,
