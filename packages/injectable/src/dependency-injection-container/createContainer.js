@@ -96,6 +96,10 @@ export default () => {
     nonDecoratedPrivateInjectMany,
   );
 
+  const withDeregistrationDecorators = withDeregistrationDecoratorsFor(
+    nonDecoratedPrivateInjectMany,
+  );
+
   const nonDecoratedRegister = (...externalInjectables) => {
     externalInjectables.forEach(externalInjectable => {
       if (!externalInjectable.id) {
@@ -131,6 +135,25 @@ export default () => {
     injectableMap.get(injectable.id).clear();
   };
 
+  const nonDecoratedDeregister = (...aliases) => {
+    aliases.forEach(alias => {
+      if (!injectableMap.has(alias.id)) {
+        throw new Error(
+          `Tried to deregister non-registered injectable "${alias.id}".`,
+        );
+      }
+
+      purgeInstances(alias);
+
+      injectables = pipeline(injectables, reject(isRelatedTo(alias)));
+
+      overridingInjectables = pipeline(
+        overridingInjectables,
+        reject(isRelatedTo(alias)),
+      );
+    });
+  };
+
   const privateDi = {
     inject: decoratedPrivateInject,
 
@@ -138,24 +161,7 @@ export default () => {
 
     register: withRegistrationDecorators(nonDecoratedRegister),
 
-    deregister: (...aliases) => {
-      aliases.forEach(alias => {
-        if (!injectableMap.has(alias.id)) {
-          throw new Error(
-            `Tried to deregister non-registered injectable "${alias.id}".`,
-          );
-        }
-
-        purgeInstances(alias);
-
-        injectables = pipeline(injectables, reject(isRelatedTo(alias)));
-
-        overridingInjectables = pipeline(
-          overridingInjectables,
-          reject(isRelatedTo(alias)),
-        );
-      });
-    },
+    deregister: withDeregistrationDecorators(nonDecoratedDeregister),
 
     override: (alias, instantiateStub) => {
       const originalInjectable = pipeline(
@@ -312,6 +318,11 @@ export const registrationDecoratorToken = getInjectionToken({
   decorable: false,
 });
 
+export const deregistrationDecoratorToken = getInjectionToken({
+  id: 'deregistration-decorator-token',
+  decorable: false,
+});
+
 export const instantiationDecoratorToken = getInjectionToken({
   id: 'instantiate-decorator-token',
   decorable: false,
@@ -327,6 +338,15 @@ const withRegistrationDecoratorsFor =
   toBeDecorated =>
   (...injectables) => {
     const decorators = injectMany(registrationDecoratorToken);
+
+    pipeline(toBeDecorated, ...decorators)(...injectables);
+  };
+
+const withDeregistrationDecoratorsFor =
+  injectMany =>
+  toBeDecorated =>
+  (...injectables) => {
+    const decorators = injectMany(deregistrationDecoratorToken);
 
     pipeline(toBeDecorated, ...decorators)(...injectables);
   };
