@@ -122,12 +122,38 @@ export default () => {
     });
   };
 
+  const purgeInstances = alias => {
+    const injectable = getRelatedInjectable({
+      injectables,
+      alias,
+    });
+
+    injectableMap.get(injectable.id).clear();
+  };
+
   const privateDi = {
     inject: decoratedPrivateInject,
 
     injectMany: decoratedPrivateInjectMany,
 
     register: withRegistrationDecorators(nonDecoratedRegister),
+
+    deregister: alias => {
+      if (!injectableMap.has(alias.id)) {
+        throw new Error(
+          `Tried to deregister non-registered injectable "${alias.id}".`,
+        );
+      }
+
+      purgeInstances(alias);
+
+      injectables = pipeline(injectables, reject(isRelatedTo(alias)));
+
+      overridingInjectables = pipeline(
+        overridingInjectables,
+        reject(isRelatedTo(alias)),
+      );
+    },
 
     override: (alias, instantiateStub) => {
       const originalInjectable = pipeline(
@@ -167,14 +193,7 @@ export default () => {
       getRelatedInjectable({ injectables, alias }).permitSideEffects();
     },
 
-    purge: alias => {
-      const injectable = getRelatedInjectable({
-        injectables,
-        alias,
-      });
-
-      injectableMap.get(injectable.id).clear();
-    },
+    purge: purgeInstances,
   };
 
   const publicDi = {
