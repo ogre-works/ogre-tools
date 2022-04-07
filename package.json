@@ -29,6 +29,7 @@
     "@babel/preset-react": "^7.14.5",
     "@types/react": "^17.0.37",
     "@types/jest": "^27.0.3",
+    "@types/webpack-env": "^1.16.3",
     "babel-loader": "^8.1.0",
     "jest": "^27.0.6",
     "lerna": "^4.0.0",

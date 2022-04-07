@@ -1,0 +1,29 @@
+{
+  "name": "@ogre-tools/injectable-extension-for-auto-registration",
+  "private": false,
+  "version": "6.0.1",
+  "description": "Auto-registration of injectables for Injectable in Ogre Tools",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ogre-works/ogre-tools"
+  },
+  "main": "build/index.js",
+  "types": "./index.d.ts",
+  "keywords": [
+    "js"
+  ],
+  "author": "Ogre Works",
+  "license": "MIT",
+  "dependencies": {
+    "@ogre-tools/fp": "^6.0.1",
+    "@ogre-tools/injectable": "^6.0.1",
+    "lodash": "^4.17.21"
+  },
+  "bugs": {
+    "url": "https://github.com/ogre-works/ogre-tools/issues"
+  },
+  "homepage": "https://github.com/ogre-works/ogre-tools#readme",
+  "publishConfig": {
+    "access": "public"
+  }
+}

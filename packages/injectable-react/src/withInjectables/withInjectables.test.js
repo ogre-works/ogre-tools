@@ -149,8 +149,7 @@ describe('withInjectables', () => {
         instantiate: di => di.inject(injectable),
       });
 
-      di.register(injectable);
-      di.register(otherInjectable);
+      di.register(injectable, otherInjectable);
 
       const DumbTestComponent = scenario.getComponent();
 

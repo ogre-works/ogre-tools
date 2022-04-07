@@ -3,24 +3,20 @@ import filter from 'lodash/fp/filter';
 import find from 'lodash/fp/find';
 import findLast from 'lodash/fp/findLast';
 import first from 'lodash/fp/first';
-import forEach from 'lodash/fp/forEach';
 import get from 'lodash/fp/get';
 import getInjectionToken from '../getInjectionToken/getInjectionToken';
 import has from 'lodash/fp/has';
-import isFunction from 'lodash/fp/isFunction';
 import isUndefined from 'lodash/fp/isUndefined';
 import { nonStoredInstanceKey } from './lifecycleEnum';
 import map from 'lodash/fp/map';
 import matches from 'lodash/fp/matches';
 import not from 'lodash/fp/negate';
 import reject from 'lodash/fp/reject';
-import tap from 'lodash/fp/tap';
 import { pipeline } from '@ogre-tools/fp';
 import curry from 'lodash/fp/curry';
-import isString from 'lodash/fp/isString';
 import overSome from 'lodash/fp/overSome';
 
-export default (...listOfGetRequireContexts) => {
+export default () => {
   let injectables = [];
   let overridingInjectables = [];
   let sideEffectsArePrevented = false;
@@ -181,10 +177,6 @@ export default (...listOfGetRequireContexts) => {
     },
   };
 
-  listOfGetRequireContexts.forEach(getRequireContextForInjectables => {
-    autoRegisterInjectables({ getRequireContextForInjectables, di: privateDi });
-  });
-
   const publicDi = {
     ...privateDi,
 
@@ -204,15 +196,6 @@ export default (...listOfGetRequireContexts) => {
   };
 
   return publicDi;
-};
-
-const autoRegisterInjectables = ({ getRequireContextForInjectables, di }) => {
-  pipeline(
-    getRequireContextForInjectables(),
-    fileNameAndDefaultExport,
-    tap(forEach(verifyInjectable)),
-    forEach(registerInjectableFor(di)),
-  );
 };
 
 const isRelatedTo = curry(
@@ -408,30 +391,3 @@ const checkForTooManyMatches = (injectables, alias) => {
     );
   }
 };
-
-const hasInjectableSignature = conforms({
-  id: isString,
-  instantiate: isFunction,
-});
-
-const verifyInjectable = ([fileName, injectable]) => {
-  if (!injectable) {
-    throw new Error(
-      `Tried to register injectable from ${fileName}, but no default export`,
-    );
-  }
-
-  if (!hasInjectableSignature(injectable)) {
-    throw new Error(
-      `Tried to register injectable from ${fileName}, but default export is of wrong shape`,
-    );
-  }
-};
-
-const fileNameAndDefaultExport = context =>
-  context.keys().map(key => [key, context(key).default]);
-
-const registerInjectableFor =
-  di =>
-  ([, injectable]) =>
-    di.register(injectable);

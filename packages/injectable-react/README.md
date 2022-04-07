@@ -18,6 +18,7 @@ import { withInjectables } from '@ogre-tools/injectable-react';
 it('given a Component is registered, when Inject is rendered for the Component, renders with dependencies', () => {
   const di = createContainer();
 
+
   const NonInjectedTestComponent = ({ someDependency, ...props }) => (
     <div {...props}>Some content: "{someDependency}"</div>
   );

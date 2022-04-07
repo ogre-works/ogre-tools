@@ -16,6 +16,7 @@ import { createContainer } from '@ogre-tools/injectable';
 ```
 it('given an injectable is registered, when injected, injects', () => {
   const di = createContainer();
+
   
   const someInjectable = getInjectable({
     id: 'some-id',
