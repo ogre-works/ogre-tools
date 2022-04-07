@@ -138,21 +138,23 @@ export default () => {
 
     register: withRegistrationDecorators(nonDecoratedRegister),
 
-    deregister: alias => {
-      if (!injectableMap.has(alias.id)) {
-        throw new Error(
-          `Tried to deregister non-registered injectable "${alias.id}".`,
+    deregister: (...aliases) => {
+      aliases.forEach(alias => {
+        if (!injectableMap.has(alias.id)) {
+          throw new Error(
+            `Tried to deregister non-registered injectable "${alias.id}".`,
+          );
+        }
+
+        purgeInstances(alias);
+
+        injectables = pipeline(injectables, reject(isRelatedTo(alias)));
+
+        overridingInjectables = pipeline(
+          overridingInjectables,
+          reject(isRelatedTo(alias)),
         );
-      }
-
-      purgeInstances(alias);
-
-      injectables = pipeline(injectables, reject(isRelatedTo(alias)));
-
-      overridingInjectables = pipeline(
-        overridingInjectables,
-        reject(isRelatedTo(alias)),
-      );
+      });
     },
 
     override: (alias, instantiateStub) => {

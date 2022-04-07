@@ -19,6 +19,30 @@ describe('createContainer.deregistration', () => {
     }).toThrow('Tried to inject non-registered injectable "some-injectable".');
   });
 
+  it('given multiple registered injectables and deregistered, when injecting, throws', () => {
+    const di = createContainer();
+
+    const someInjectable = getInjectable({
+      id: 'some-injectable',
+      instantiate: () => 'irrelevant',
+    });
+
+    const someOtherInjectable = getInjectable({
+      id: 'some-other-injectable',
+      instantiate: () => 'irrelevant',
+    });
+
+    di.register(someInjectable, someOtherInjectable);
+
+    di.deregister(someInjectable, someOtherInjectable);
+
+    expect(() => {
+      di.inject(someOtherInjectable);
+    }).toThrow(
+      'Tried to inject non-registered injectable "some-other-injectable".',
+    );
+  });
+
   it('given not registered, when still deregistering, throws', () => {
     const di = createContainer();
 
