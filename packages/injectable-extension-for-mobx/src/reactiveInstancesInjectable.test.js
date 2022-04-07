@@ -25,6 +25,7 @@ describe('registerMobx', () => {
     let di;
     let actual;
     let someInjectionToken;
+    let someOtherInjectable;
 
     beforeEach(() => {
       someInjectionToken = getInjectionToken({
@@ -37,7 +38,7 @@ describe('registerMobx', () => {
         injectionToken: someInjectionToken,
       });
 
-      const someOtherInjectable = getInjectable({
+      someOtherInjectable = getInjectable({
         id: 'some-other-injectable',
         instantiate: () => 'some-other-instance',
         injectionToken: someInjectionToken,
@@ -86,6 +87,12 @@ describe('registerMobx', () => {
         'some-other-instance',
         'some-another-instance',
       ]);
+    });
+
+    it('when an existing implementation gets deregistered, the reactive instances react', () => {
+      di.deregister(someOtherInjectable);
+
+      expect(reactiveInstances).toEqual(['some-instance']);
     });
   });
 });

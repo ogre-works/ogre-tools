@@ -2,6 +2,7 @@ import {
   getInjectable,
   lifecycleEnum,
   registrationDecoratorToken,
+  deregistrationDecoratorToken,
 } from '@ogre-tools/injectable';
 
 import { computed, createAtom, runInAction } from 'mobx';
@@ -12,61 +13,73 @@ const invalidabilityForReactiveInstances = getInjectable({
   instantiate: (_, injectionToken) =>
     createAtom(`reactivity-for-${injectionToken.id}`),
 
-  adHoc: true,
-
   lifecycle: lifecycleEnum.keyedSingleton({
     getInstanceKey: (_, injectable) => injectable,
   }),
 });
+
+const getInvalidatorInstance =
+  di =>
+  registerToBeDecorated =>
+  (injectable, ...args) => {
+    const registered = registerToBeDecorated(injectable, ...args);
+
+    if (injectable.injectionToken) {
+      const mobxAtomForToken = di.inject(
+        invalidabilityForReactiveInstances,
+        injectable.injectionToken,
+      );
+
+      runInAction(() => {
+        mobxAtomForToken.reportChanged();
+      });
+    }
+
+    return registered;
+  };
 
 const invalidateReactiveInstancesOnRegisterDecorator = getInjectable({
   id: 'invalidate-reactive-instances-on-register',
 
-  instantiate:
-    di =>
-    registerToBeDecorated =>
-    (injectable, ...args) => {
-      const registered = registerToBeDecorated(injectable, ...args);
-
-      if (injectable.injectionToken) {
-        const mobxAtomForToken = di.inject(
-          invalidabilityForReactiveInstances,
-          injectable.injectionToken,
-        );
-
-        runInAction(() => {
-          mobxAtomForToken.reportChanged();
-        });
-      }
-
-      return registered;
-    },
+  instantiate: getInvalidatorInstance,
 
   injectionToken: registrationDecoratorToken,
 });
 
-export const registerMobX = di => {
-  di.register(invalidateReactiveInstancesOnRegisterDecorator);
-};
+const invalidateReactiveInstancesOnDeregisterDecorator = getInjectable({
+  id: 'invalidate-reactive-instances-on-deregister',
+
+  instantiate: getInvalidatorInstance,
+
+  injectionToken: deregistrationDecoratorToken,
+});
 
 export const reactiveInstancesInjectable = getInjectable({
   id: 'reactive-instances',
 
-  instantiate: (di, { injectionToken }) =>
-    computed(() => {
-      const mobxAtomForToken = di.inject(
-        invalidabilityForReactiveInstances,
-        injectionToken,
-      );
+  instantiate: (di, { injectionToken }) => {
+    const mobxAtomForToken = di.inject(
+      invalidabilityForReactiveInstances,
+      injectionToken,
+    );
 
+    return computed(() => {
       mobxAtomForToken.reportObserved();
 
       return di.injectMany(injectionToken);
-    }),
-
-  adHoc: true,
+    });
+  },
 
   lifecycle: lifecycleEnum.keyedSingleton({
     getInstanceKey: (_, injectable) => injectable,
   }),
 });
+
+export const registerMobX = di => {
+  di.register(
+    invalidateReactiveInstancesOnRegisterDecorator,
+    invalidateReactiveInstancesOnDeregisterDecorator,
+    reactiveInstancesInjectable,
+    invalidabilityForReactiveInstances,
+  );
+};
