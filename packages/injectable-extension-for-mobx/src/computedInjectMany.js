@@ -61,7 +61,7 @@ const invalidateReactiveInstancesOnDeregisterDecorator = getInjectable({
   injectionToken: deregistrationDecoratorToken,
 });
 
-export const reactiveInstancesInjectable = getInjectable({
+export const computedInjectMany = getInjectable({
   id: 'reactive-instances',
 
   instantiate: (di, { injectionToken }) => {
@@ -86,7 +86,7 @@ export const registerMobX = di => {
   di.register(
     invalidateReactiveInstancesOnRegisterDecorator,
     invalidateReactiveInstancesOnDeregisterDecorator,
-    reactiveInstancesInjectable,
+    computedInjectMany,
     invalidabilityForReactiveInstances,
   );
 };

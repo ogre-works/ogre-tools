@@ -4,10 +4,7 @@ import {
   getInjectionToken,
 } from '@ogre-tools/injectable';
 
-import {
-  reactiveInstancesInjectable,
-  registerMobX,
-} from './reactiveInstancesInjectable';
+import { computedInjectMany, registerMobX } from './computedInjectMany';
 
 import { configure, observe } from 'mobx';
 
@@ -51,7 +48,7 @@ describe('registerMobx', () => {
 
       registerMobX(di);
 
-      actual = di.inject(reactiveInstancesInjectable, {
+      actual = di.inject(computedInjectMany, {
         injectionToken: someFirstInjectionToken,
       });
 
@@ -142,7 +139,7 @@ describe('registerMobx', () => {
           injectionToken: someSecondInjectionToken,
         });
 
-        const actual = di.inject(reactiveInstancesInjectable, {
+        const actual = di.inject(computedInjectMany, {
           injectionToken: someSecondInjectionToken,
         });
 

@@ -1,6 +1,3 @@
-import {
-  reactiveInstancesInjectable,
-  registerMobX,
-} from './src/reactiveInstancesInjectable';
+import { computedInjectMany, registerMobX } from './src/computedInjectMany';
 
-export { registerMobX, reactiveInstancesInjectable };
+export { registerMobX, computedInjectMany };
