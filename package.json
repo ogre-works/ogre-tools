@@ -20,7 +20,7 @@
     "open-github-in-browser": "open https://github.com/ogre-works/ogre-tools",
     "postinstall": "husky install",
     "test-types": "lerna exec --parallel --scope \"@ogre-tools/injectable\" -- tsd",
-    "test-types-watch": "nodemon --exec \"clear; npm run test-types\" --watch packages/**/*.test-d.ts"
+    "test-types-watch": "nodemon --watch \"packages/*\" --ext \"d.ts,test-d.ts\" --exec \"clear; npm run test-types\""
   },
   "keywords": [],
   "author": "Ogre Works",
