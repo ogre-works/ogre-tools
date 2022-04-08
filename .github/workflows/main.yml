@@ -34,6 +34,9 @@ jobs:
           CI: true
 
       - name: Run tests
-        run: npm run test-for-ci
+        run: |
+          npm run test-for-ci
+          npm run test-types
+
         env:
           CI: true
