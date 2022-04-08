@@ -18,12 +18,15 @@
     "test": "jest --coverage --coverageReporters=lcov --watch",
     "test-for-ci": "jest --coverage --coverageReporters=lcov",
     "open-github-in-browser": "open https://github.com/ogre-works/ogre-tools",
-    "postinstall": "husky install"
+    "postinstall": "husky install",
+    "test-types": "lerna exec --parallel --scope \"@ogre-tools/injectable\" -- tsd",
+    "test-types-watch": "nodemon --exec \"clear; npm run test-types\" --watch packages/**/*.test-d.ts"
   },
   "keywords": [],
   "author": "Ogre Works",
   "license": "MIT",
   "devDependencies": {
+    "tsd": "^0.20.0",
     "@babel/core": "^7.10.3",
     "@babel/preset-env": "^7.10.3",
     "@babel/preset-react": "^7.14.5",
@@ -50,7 +53,8 @@
     "husky": "^7.0.4",
     "@commitlint/cli": "^16.1.0",
     "@commitlint/config-conventional": "^16.0.0",
-    "type-fest": "^2.12.0"
+    "type-fest": "^2.12.0",
+    "nodemon": "^2.0.15"
   },
   "bugs": {
     "url": "https://github.com/ogre-works/ogre-tools/issues"
