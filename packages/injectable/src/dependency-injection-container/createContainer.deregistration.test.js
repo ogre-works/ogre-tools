@@ -75,4 +75,31 @@ describe('createContainer.deregistration', () => {
     const actual = di.inject(someInjectable);
     expect(actual).toBe('some-instance');
   });
+
+  it('given injectable and injectable which can deregister and first injectable is deregistered, when first injectable is injected, throws', () => {
+    const di = createContainer();
+
+    const someInjectable = getInjectable({
+      id: 'some-injectable',
+      instantiate: () => 'some-instance',
+    });
+
+    const deregisterInjectable = getInjectable({
+      id: 'deregister',
+
+      instantiate: di => injectable => {
+        di.deregister(injectable);
+      },
+    });
+
+    di.register(someInjectable, deregisterInjectable);
+
+    const deregister = di.inject(deregisterInjectable);
+
+    deregister(someInjectable);
+
+    expect(() => {
+      di.inject(someInjectable);
+    }).toThrow('Tried to inject non-registered injectable "some-injectable".');
+  });
 });

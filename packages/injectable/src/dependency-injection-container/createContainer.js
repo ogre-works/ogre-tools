@@ -279,6 +279,8 @@ const getInstance = ({
     context: newContext,
 
     register: di.register,
+
+    deregister: di.deregister,
   };
 
   const instanceKey = injectable.lifecycle.getInstanceKey(

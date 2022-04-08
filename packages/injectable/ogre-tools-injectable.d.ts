@@ -28,6 +28,8 @@ export interface DiContainer extends DiContainerForInjection {
       InstantiationParam
     >[]
   ): void;
+
+  deregister(...injectables: Injectable<any, any, any>[]): void;
   preventSideEffects: () => void;
 }
 
