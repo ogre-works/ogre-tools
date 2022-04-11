@@ -1,3 +1,4 @@
+import forEach from 'lodash/fp/forEach';
 import conforms from 'lodash/fp/conforms';
 import filter from 'lodash/fp/filter';
 import find from 'lodash/fp/find';
@@ -14,12 +15,15 @@ import not from 'lodash/fp/negate';
 import reject from 'lodash/fp/reject';
 import { pipeline } from '@ogre-tools/fp';
 import curry from 'lodash/fp/curry';
+import nth from 'lodash/fp/nth';
 import overSome from 'lodash/fp/overSome';
 
 export default () => {
   let injectables = [];
   let overridingInjectables = [];
   let sideEffectsArePrevented = false;
+
+  const injectableAndRegistrationContext = new Map();
 
   const injectableMap = new Map();
 
@@ -60,6 +64,7 @@ export default () => {
       injectableMap,
       context,
       injectMany: nonDecoratedPrivateInjectMany,
+      injectableAndRegistrationContext,
     });
   };
 
@@ -137,11 +142,28 @@ export default () => {
 
   const nonDecoratedDeregister = (...aliases) => {
     aliases.forEach(alias => {
-      if (!injectableMap.has(alias.id)) {
+      const relatedInjectable = pipeline(injectables, find(isRelatedTo(alias)));
+
+      if (!relatedInjectable) {
         throw new Error(
           `Tried to deregister non-registered injectable "${alias.id}".`,
         );
       }
+
+      pipeline(
+        [...injectableAndRegistrationContext.entries()],
+
+        filter(([, context]) =>
+          context.find(matches({ injectable: { id: alias.id } })),
+        ),
+
+        map(nth(0)),
+
+        forEach(injectable => {
+          injectableAndRegistrationContext.delete(injectable);
+          privateDi.deregister(injectable);
+        }),
+      );
 
       purgeInstances(alias);
 
@@ -242,22 +264,27 @@ const getOverridingInjectable = ({ overridingInjectables, alias }) =>
 
 const getInstance = ({
   di,
-  injectable,
+  injectable: injectableToBeInstantiated,
   instantiationParameter,
   context: oldContext,
   injectableMap,
+  injectableAndRegistrationContext,
 }) => {
   const newContext = [
     ...oldContext,
+
     {
-      injectable,
+      injectable: injectableToBeInstantiated,
       instantiationParameter,
     },
   ];
 
   const injectableCausingCycle = pipeline(
     oldContext,
-    find(contextItem => contextItem.injectable.id === injectable.id),
+    find(
+      contextItem =>
+        contextItem.injectable.id === injectableToBeInstantiated.id,
+    ),
   );
 
   if (injectableCausingCycle) {
@@ -268,7 +295,7 @@ const getInstance = ({
     );
   }
 
-  const instanceMap = injectableMap.get(injectable.id);
+  const instanceMap = injectableMap.get(injectableToBeInstantiated.id);
 
   const minimalDi = {
     inject: (alias, parameter) => di.inject(alias, parameter, newContext),
@@ -278,12 +305,21 @@ const getInstance = ({
 
     context: newContext,
 
-    register: di.register,
+    register: (...injectables) => {
+      injectables.forEach(injectableToBeRegistered => {
+        injectableAndRegistrationContext.set(
+          injectableToBeRegistered,
+          newContext,
+        );
+      });
+
+      return di.register(...injectables);
+    },
 
     deregister: di.deregister,
   };
 
-  const instanceKey = injectable.lifecycle.getInstanceKey(
+  const instanceKey = injectableToBeInstantiated.lifecycle.getInstanceKey(
     minimalDi,
     instantiationParameter,
   );
@@ -295,11 +331,11 @@ const getInstance = ({
   }
 
   const instantiateWithDecorators = pipeline(
-    injectable.instantiate,
+    injectableToBeInstantiated.instantiate,
 
     withInstantiationDecoratorsFor({
       injectMany: di.injectMany,
-      injectable,
+      injectable: injectableToBeInstantiated,
     }),
   );
 

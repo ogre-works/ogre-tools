@@ -1,5 +1,6 @@
 import getInjectable from '../getInjectable/getInjectable';
 import createContainer from './createContainer';
+import getInjectionToken from '../getInjectionToken/getInjectionToken';
 
 describe('createContainer.deregistration', () => {
   it('given registered injectable and deregistered, when injecting, throws', () => {
@@ -101,5 +102,141 @@ describe('createContainer.deregistration', () => {
     expect(() => {
       di.inject(someInjectable);
     }).toThrow('Tried to inject non-registered injectable "some-injectable".');
+  });
+
+  it('given injectable which can register, when the injectable is deregistered, does not deregister unrelated injectable', () => {
+    const di = createContainer();
+
+    const someInjectable = getInjectable({
+      id: 'some-injectable',
+      instantiate: () => 'some-instance',
+    });
+
+    const unrelatedInjectable = getInjectable({
+      id: 'some-unrelated-injectable',
+      instantiate: () => 'some-unrelated-instance',
+    });
+
+    const registererInjectable = getInjectable({
+      id: 'registerer',
+
+      instantiate: di => injectable => {
+        di.register(injectable);
+      },
+    });
+
+    di.register(registererInjectable, unrelatedInjectable);
+
+    const register = di.inject(registererInjectable);
+
+    register(someInjectable);
+
+    di.deregister(registererInjectable);
+
+    const actual = di.inject(unrelatedInjectable);
+
+    expect(actual).toBe('some-unrelated-instance');
+  });
+
+  it('given injectable which can register, when the injectable is deregistered, also injectables registered by it are deregistered', () => {
+    const di = createContainer();
+
+    const someInjectable = getInjectable({
+      id: 'some-injectable',
+      instantiate: () => 'some-instance',
+    });
+
+    const registererInjectable = getInjectable({
+      id: 'registerer',
+
+      instantiate: di => injectable => {
+        di.register(injectable);
+      },
+    });
+
+    di.register(registererInjectable);
+
+    const register = di.inject(registererInjectable);
+
+    register(someInjectable);
+
+    di.deregister(registererInjectable);
+
+    expect(() => {
+      di.inject(someInjectable);
+    }).toThrow('Tried to inject non-registered injectable "some-injectable".');
+  });
+
+  it('given injectable which can late register and implements an injection token, when the root injectable is deregistered, deregisters also the late registered injectables', () => {
+    const di = createContainer();
+
+    const someInjectionToken = getInjectionToken({
+      id: 'some-injection-token',
+    });
+
+    const someInjectable = getInjectable({
+      id: 'some-injectable',
+      instantiate: () => 'some-instance',
+    });
+
+    const someRootInjectable = getInjectable({
+      id: 'some-root-injectable',
+
+      instantiate: di => injectable =>
+        di.injectMany(someInjectionToken).forEach(x => x(injectable)),
+    });
+
+    const registererInjectable = getInjectable({
+      id: 'registerer',
+
+      instantiate: di => injectable => {
+        di.register(injectable);
+      },
+
+      injectionToken: someInjectionToken,
+    });
+
+    di.register(registererInjectable, someRootInjectable);
+
+    const registerInContextOfRootInjectable = di.inject(someRootInjectable);
+
+    registerInContextOfRootInjectable(someInjectable);
+
+    di.deregister(someRootInjectable);
+
+    expect(() => {
+      di.inject(someInjectable);
+    }).toThrow('Tried to inject non-registered injectable "some-injectable".');
+  });
+
+  it('given injectable which can itself register and has done so and deregistered and registered again, when deregistered again, does not throw because of previous registrations done by itself', () => {
+    const di = createContainer();
+
+    const someInjectable = getInjectable({
+      id: 'some-injectable',
+      instantiate: () => 'some-instance',
+    });
+
+    const registererInjectable = getInjectable({
+      id: 'registerer',
+
+      instantiate: di => injectable => {
+        di.register(injectable);
+      },
+    });
+
+    di.register(registererInjectable);
+
+    const register = di.inject(registererInjectable);
+
+    register(someInjectable);
+
+    di.deregister(registererInjectable);
+
+    di.register(registererInjectable);
+
+    expect(() => {
+      di.deregister(registererInjectable);
+    }).not.toThrow();
   });
 });
