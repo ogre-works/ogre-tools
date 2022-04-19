@@ -19,17 +19,7 @@ export interface DiContainer extends DiContainerForInjection {
 
   unoverride(injectable: Injectable<any, any, any>): void;
 
-  register<
-    InjectionInstance extends InjectionTokenInstance,
-    InjectionTokenInstance,
-    InstantiationParam,
-  >(
-    ...injectables: Injectable<
-      InjectionInstance,
-      InjectionTokenInstance,
-      InstantiationParam
-    >[]
-  ): void;
+  register(...injectables: Injectable<any, any, any>[]): void;
 
   deregister(...injectables: Injectable<any, any, any>[]): void;
   preventSideEffects: () => void;
@@ -130,18 +120,7 @@ interface InjectMany {
 export interface DiContainerForInjection {
   inject: Inject;
   injectMany: InjectMany;
-
-  register<
-    InjectionInstance extends InjectionTokenInstance,
-    InjectionTokenInstance,
-    InstantiationParam,
-  >(
-    ...injectables: Injectable<
-      InjectionInstance,
-      InjectionTokenInstance,
-      InstantiationParam
-    >[]
-  ): void;
+  register(...injectables: Injectable<any, any, any>[]): void;
 }
 
 export interface ILifecycle<InstantiationParam> {
