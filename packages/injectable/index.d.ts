@@ -17,6 +17,8 @@ export interface DiContainer extends DiContainerForInjection {
     instantiateStub: Instantiate<InjectionInstance, InstantiationParam>,
   ): void;
 
+  unoverride(injectable: Injectable<any, any, any>): void;
+
   register<
     InjectionInstance extends InjectionTokenInstance,
     InjectionTokenInstance,
