@@ -3,7 +3,7 @@
   "private": false,
   "version": "6.0.1",
   "description": "A collection of low abstraction functions in functional programming flavor",
-  "types": "./ogre-tools-fp.d.ts",
+  "types": "./index.d.ts",
   "repository": {
     "type": "git",
     "url": "https://github.com/ogre-works/ogre-tools"
