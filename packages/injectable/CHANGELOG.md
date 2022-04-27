@@ -3,6 +3,32 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [7.0.0](https://github.com/ogre-works/ogre-tools/compare/v6.0.1...v7.0.0) (2022-04-27)
+
+
+### ⚠ BREAKING CHANGES
+
+* Extract auto-registration as extension
+
+### Features
+
+* Add decorator for deregistration of injectables ([1192484](https://github.com/ogre-works/ogre-tools/commit/1192484e1c28be4f8f8c8524f9c0a841e6fca1f6))
+* Expose deregister to instantiate ([eea8bcc](https://github.com/ogre-works/ogre-tools/commit/eea8bcc8ebd63ec316d39f43d4284f79a9c47b5e))
+* Expose di.unoverride() for TypeScript ([293b3ac](https://github.com/ogre-works/ogre-tools/commit/293b3ace89d535efe33f50d43a0b9bc0e33e824b))
+* Introduce automated testing for typings ([19b2d45](https://github.com/ogre-works/ogre-tools/commit/19b2d45eccd34698f6709b1f3eaf2cc849475a2c))
+* Introduce decorator for registration to later permit reactive injectMany ([34d2667](https://github.com/ogre-works/ogre-tools/commit/34d266764124cf247018fd8714e95e4fdee7ef76))
+* Introduce deregistration of injectables ([d5ee408](https://github.com/ogre-works/ogre-tools/commit/d5ee408e1d75ac520ed05a83bf86dd135709242f))
+* Make deregistration of injectables variadic ([8681a6e](https://github.com/ogre-works/ogre-tools/commit/8681a6eff8002373056a151f6405fb945280d427))
+* Make late registered branches deregister together ([41304db](https://github.com/ogre-works/ogre-tools/commit/41304db962b3fd0147e2d6855071f640a42a03f9))
+* Make registration of injectables variadic ([eea1c0a](https://github.com/ogre-works/ogre-tools/commit/eea1c0af9944ff695d77bdc1a5b62a7e2fc87291))
+
+
+### Miscellaneous Chores
+
+* Extract auto-registration as extension ([8395a7a](https://github.com/ogre-works/ogre-tools/commit/8395a7a8eba457f98ebd10a1dfa7c6cf901fdc34))
+
+
+
 ### [6.0.1](https://github.com/ogre-works/ogre-tools/compare/v6.0.0...v6.0.1) (2022-03-30)
 
 

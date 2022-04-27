@@ -1,7 +1,7 @@
 {
   "name": "@ogre-tools/test-utils",
   "private": false,
-  "version": "6.0.1",
+  "version": "7.0.0",
   "description": "A collection of test-utils for Ogre-tools.",
   "repository": {
     "type": "git",
