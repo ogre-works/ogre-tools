@@ -3,6 +3,15 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [7.1.0](https://github.com/ogre-works/ogre-tools/compare/v7.0.0...v7.1.0) (2022-06-09)
+
+
+### Features
+
+* Expose way to decorate instantiations ([8f4b39a](https://github.com/ogre-works/ogre-tools/commit/8f4b39a884e8566159ac72d04f3a9cf69b977a2a))
+
+
+
 ## [7.0.0](https://github.com/ogre-works/ogre-tools/compare/v6.0.1...v7.0.0) (2022-04-27)
 
 
