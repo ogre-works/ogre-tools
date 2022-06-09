@@ -1,5 +1,4 @@
 import forEach from 'lodash/fp/forEach';
-import conforms from 'lodash/fp/conforms';
 import filter from 'lodash/fp/filter';
 import find from 'lodash/fp/find';
 import findLast from 'lodash/fp/findLast';
@@ -10,11 +9,9 @@ import has from 'lodash/fp/has';
 import isUndefined from 'lodash/fp/isUndefined';
 import { nonStoredInstanceKey } from './lifecycleEnum';
 import map from 'lodash/fp/map';
-import matches from 'lodash/fp/matches';
 import not from 'lodash/fp/negate';
 import reject from 'lodash/fp/reject';
 import { pipeline } from '@ogre-tools/fp';
-import curry from 'lodash/fp/curry';
 import nth from 'lodash/fp/nth';
 import overSome from 'lodash/fp/overSome';
 
@@ -111,7 +108,9 @@ export default () => {
         throw new Error('Tried to register injectable without ID.');
       }
 
-      if (injectables.find(matches({ id: externalInjectable.id }))) {
+      if (
+        injectables.find(injectable => injectable.id === externalInjectable.id)
+      ) {
         throw new Error(
           `Tried to register multiple injectables for ID "${externalInjectable.id}"`,
         );
@@ -142,7 +141,7 @@ export default () => {
 
   const nonDecoratedDeregister = (...aliases) => {
     aliases.forEach(alias => {
-      const relatedInjectable = pipeline(injectables, find(isRelatedTo(alias)));
+      const relatedInjectable = injectables.find(isRelatedTo(alias));
 
       if (!relatedInjectable) {
         throw new Error(
@@ -154,7 +153,7 @@ export default () => {
         [...injectableAndRegistrationContext.entries()],
 
         filter(([, context]) =>
-          context.find(matches({ injectable: { id: alias.id } })),
+          context.find(contextItem => contextItem.injectable.id === alias.id),
         ),
 
         map(nth(0)),
@@ -186,10 +185,7 @@ export default () => {
     deregister: withDeregistrationDecorators(nonDecoratedDeregister),
 
     override: (alias, instantiateStub) => {
-      const originalInjectable = pipeline(
-        injectables,
-        find(isRelatedTo(alias)),
-      );
+      const originalInjectable = injectables.find(isRelatedTo(alias));
 
       if (!originalInjectable) {
         throw new Error(
@@ -247,17 +243,15 @@ export default () => {
   return publicDi;
 };
 
-const isRelatedTo = curry(
-  (alias, injectable) =>
-    injectable.id === alias.id ||
-    (injectable.injectionToken && injectable.injectionToken === alias),
-);
+const isRelatedTo = alias => injectable =>
+  injectable.id === alias.id ||
+  (injectable.injectionToken && injectable.injectionToken === alias);
 
 const getRelatedInjectable = ({ injectables, alias }) =>
   pipeline(getRelatedInjectables({ injectables, alias }), first);
 
 const getRelatedInjectables = ({ injectables, alias }) =>
-  pipeline(injectables, filter(isRelatedTo(alias)));
+  injectables.filter(isRelatedTo(alias));
 
 const getOverridingInjectable = ({ overridingInjectables, alias }) =>
   pipeline(overridingInjectables, findLast(isRelatedTo(alias)));
@@ -429,10 +423,8 @@ const withInjectionDecoratorsFor =
 
 const isGlobalDecorator = not(has('target'));
 
-const isTargetedDecoratorFor = injectable =>
-  conforms({
-    target: alias => isRelatedTo(alias, injectable),
-  });
+const isTargetedDecoratorFor = injectable => alias =>
+  isRelatedTo(alias.target)(injectable);
 
 const isRelevantDecoratorFor = injectable =>
   overSome([isGlobalDecorator, isTargetedDecoratorFor(injectable)]);
