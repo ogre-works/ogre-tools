@@ -14,6 +14,7 @@ import reject from 'lodash/fp/reject';
 import { pipeline } from '@ogre-tools/fp';
 import nth from 'lodash/fp/nth';
 import overSome from 'lodash/fp/overSome';
+import getInjectable from '../getInjectable/getInjectable';
 
 export default () => {
   let injectables = [];
@@ -175,14 +176,42 @@ export default () => {
     });
   };
 
+  const register = withRegistrationDecorators(nonDecoratedRegister);
+
+  const decorate = (alias, decorator) => {
+    const decoratorInjectable = getInjectable({
+      id: `${alias.id}-decorator-${Math.random()}`,
+      injectionToken: injectionDecoratorToken,
+      decorable: false,
+
+      instantiate: () => ({
+        decorate: decorator,
+        target: alias,
+      }),
+    });
+
+    register(decoratorInjectable);
+  };
+
   const privateDi = {
     inject: decoratedPrivateInject,
 
     injectMany: decoratedPrivateInjectMany,
 
-    register: withRegistrationDecorators(nonDecoratedRegister),
+    register,
 
     deregister: withDeregistrationDecorators(nonDecoratedDeregister),
+
+    decorate,
+
+    decorateFunction: (alias, decorator) => {
+      decorate(
+        alias,
+        toBeDecorated =>
+          (...instantiation) =>
+            decorator(toBeDecorated(...instantiation)),
+      );
+    },
 
     override: (alias, instantiateStub) => {
       const originalInjectable = injectables.find(isRelatedTo(alias));
