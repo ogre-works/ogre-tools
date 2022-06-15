@@ -137,31 +137,4 @@ describe('createContainer.targeted-decoration-via-shorthand', () => {
       'some-other-decorated-instance(some-decorated-instance(some(some-decorated-parameter(some-other-decorated-parameter(some-parameter)))))',
     );
   });
-
-  fit('asd', () => {
-    const someInjectable = getInjectable({
-      id: 'some-some-injectable',
-
-      instantiate: (di, instantiationParameter) => () =>
-        `some(${instantiationParameter})`,
-    });
-
-    const di = createContainer();
-
-    di.register(someInjectable);
-
-    di.decorate(
-      someInjectable,
-      toBeDecorated =>
-        (...instantiation) =>
-          jest.fn(toBeDecorated(...instantiation)),
-    );
-
-    const getActual = di.inject(someInjectable, 'some-parameter');
-
-    console.log(getActual);
-    const actual = getActual('asd');
-
-    expect(getActual).toHaveBeenCalledWith('asd');
-  });
 });
