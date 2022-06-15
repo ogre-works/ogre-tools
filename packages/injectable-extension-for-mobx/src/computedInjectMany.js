@@ -62,22 +62,37 @@ const invalidateReactiveInstancesOnDeregisterDecorator = getInjectable({
 });
 
 export const computedInjectManyInjectable = getInjectable({
-  id: 'reactive-instances',
+  id: 'computed-inject-many',
 
   instantiate: di => {
-    const getMobxAtomForToken = injectionToken =>
-      di.inject(invalidabilityForReactiveInstances, injectionToken);
+    const getReactiveInstances = injectionToken =>
+      di.inject(reactiveInstancesInjectable, injectionToken);
 
     return injectionToken => {
-      const mobxAtomForToken = getMobxAtomForToken(injectionToken);
-
-      return computed(() => {
-        mobxAtomForToken.reportObserved();
-
-        return di.injectMany(injectionToken);
-      });
+      return getReactiveInstances(injectionToken);
     };
   },
+});
+
+const reactiveInstancesInjectable = getInjectable({
+  id: 'reactive-instances',
+
+  instantiate: (di, injectionToken) => {
+    const mobxAtomForToken = di.inject(
+      invalidabilityForReactiveInstances,
+      injectionToken,
+    );
+
+    return computed(() => {
+      mobxAtomForToken.reportObserved();
+
+      return di.injectMany(injectionToken);
+    });
+  },
+
+  lifecycle: lifecycleEnum.keyedSingleton({
+    getInstanceKey: (di, injectionToken) => injectionToken,
+  }),
 });
 
 export const registerMobX = di => {
@@ -86,5 +101,6 @@ export const registerMobX = di => {
     invalidateReactiveInstancesOnDeregisterDecorator,
     computedInjectManyInjectable,
     invalidabilityForReactiveInstances,
+    reactiveInstancesInjectable,
   );
 };

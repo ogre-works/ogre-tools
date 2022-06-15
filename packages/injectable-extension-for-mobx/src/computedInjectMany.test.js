@@ -27,6 +27,7 @@ describe('registerMobx', () => {
     let someFirstInjectionToken;
     let someOtherInjectable;
     let reactionCountForFirstToken;
+    let computedInjectMany;
 
     beforeEach(() => {
       reactionCountForFirstToken = 0;
@@ -51,7 +52,7 @@ describe('registerMobx', () => {
 
       registerMobX(di);
 
-      const computedInjectMany = di.inject(computedInjectManyInjectable);
+      computedInjectMany = di.inject(computedInjectManyInjectable);
 
       actual = computedInjectMany(someFirstInjectionToken);
 
@@ -72,6 +73,13 @@ describe('registerMobx', () => {
         'some-instance',
         'some-other-instance',
       ]);
+    });
+
+    it('when injected again, returns same instance of computed', () => {
+      const actual1 = computedInjectMany(someFirstInjectionToken);
+      const actual2 = computedInjectMany(someFirstInjectionToken);
+
+      expect(actual1).toBe(actual2);
     });
 
     it('when a new implementation gets registered, the reactive instances react', () => {
