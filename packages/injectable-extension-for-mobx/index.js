@@ -1,3 +1,6 @@
-import { computedInjectMany, registerMobX } from './src/computedInjectMany';
+import {
+  computedInjectManyInjectable,
+  registerMobX,
+} from './src/computedInjectMany';
 
-export { registerMobX, computedInjectMany };
+export { registerMobX, computedInjectManyInjectable };

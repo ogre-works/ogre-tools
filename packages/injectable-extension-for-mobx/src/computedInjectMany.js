@@ -29,7 +29,7 @@ const getInvalidatorInstance =
     runInAction(() => {
       pipeline(
         injectables,
-        filter('injectionToken'),
+        filter(injectable => !!injectable.injectionToken),
 
         forEach(({ injectionToken }) => {
           const mobxAtomForToken = di.inject(
@@ -61,32 +61,30 @@ const invalidateReactiveInstancesOnDeregisterDecorator = getInjectable({
   injectionToken: deregistrationDecoratorToken,
 });
 
-export const computedInjectMany = getInjectable({
+export const computedInjectManyInjectable = getInjectable({
   id: 'reactive-instances',
 
-  instantiate: (di, { injectionToken }) => {
-    const mobxAtomForToken = di.inject(
-      invalidabilityForReactiveInstances,
-      injectionToken,
-    );
+  instantiate: di => {
+    const getMobxAtomForToken = injectionToken =>
+      di.inject(invalidabilityForReactiveInstances, injectionToken);
 
-    return computed(() => {
-      mobxAtomForToken.reportObserved();
+    return injectionToken => {
+      const mobxAtomForToken = getMobxAtomForToken(injectionToken);
 
-      return di.injectMany(injectionToken);
-    });
+      return computed(() => {
+        mobxAtomForToken.reportObserved();
+
+        return di.injectMany(injectionToken);
+      });
+    };
   },
-
-  lifecycle: lifecycleEnum.keyedSingleton({
-    getInstanceKey: (_, injectable) => injectable,
-  }),
 });
 
 export const registerMobX = di => {
   di.register(
     invalidateReactiveInstancesOnRegisterDecorator,
     invalidateReactiveInstancesOnDeregisterDecorator,
-    computedInjectMany,
+    computedInjectManyInjectable,
     invalidabilityForReactiveInstances,
   );
 };
