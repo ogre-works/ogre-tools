@@ -274,7 +274,7 @@ export default () => {
 
 const isRelatedTo = alias => injectable =>
   injectable.id === alias.id ||
-  (injectable.injectionToken && injectable.injectionToken === alias);
+  (injectable.injectionToken && injectable.injectionToken.id === alias.id);
 
 const getRelatedInjectable = ({ injectables, alias }) =>
   pipeline(getRelatedInjectables({ injectables, alias }), first);
