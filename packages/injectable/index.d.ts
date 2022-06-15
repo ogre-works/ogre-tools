@@ -121,6 +121,7 @@ export interface DiContainerForInjection {
   inject: Inject;
   injectMany: InjectMany;
   register(...injectables: Injectable<any, any, any>[]): void;
+  deregister(...injectables: Injectable<any, any, any>[]): void;
 }
 
 export interface ILifecycle<InstantiationParam> {
