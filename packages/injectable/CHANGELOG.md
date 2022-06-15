@@ -3,6 +3,16 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [8.0.0](https://github.com/ogre-works/ogre-tools/compare/v7.1.0...v8.0.0) (2022-06-15)
+
+
+### Features
+
+* Add shorthands for decorating to make addition of e.g. jest.spy easier ([350a957](https://github.com/ogre-works/ogre-tools/commit/350a9575ba2b20d0395bcfb0e855c0ee93be80a8))
+* Expose deregistering in types ([6823839](https://github.com/ogre-works/ogre-tools/commit/6823839c781e8c6aca1394fd70d5fc3e9f8405fe))
+
+
+
 ## [7.1.0](https://github.com/ogre-works/ogre-tools/compare/v7.0.0...v7.1.0) (2022-06-09)
 
 
