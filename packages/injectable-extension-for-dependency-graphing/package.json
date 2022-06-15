@@ -15,11 +15,9 @@
   "author": "Ogre Works",
   "license": "MIT",
   "dependencies": {
-    "lodash": "^4.17.21"
-  },
-  "peerDependencies": {
     "@ogre-tools/fp": "^7.1.0",
-    "@ogre-tools/injectable": "^7.1.0"
+    "@ogre-tools/injectable": "^7.1.0",
+    "lodash": "^4.17.21"
   },
   "bugs": {
     "url": "https://github.com/ogre-works/ogre-tools/issues"

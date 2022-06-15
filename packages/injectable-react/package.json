@@ -16,15 +16,15 @@
   "author": "Ogre Works",
   "license": "MIT",
   "dependencies": {
+    "@ogre-tools/fp": "^7.1.0",
+    "@ogre-tools/injectable": "^7.1.0",
     "lodash": "^4.17.21"
   },
   "peerDependencies": {
     "mobx": "^6.3.0",
     "mobx-react": "^7.2.0",
     "react": "^17.0.0",
-    "react-dom": "^17.0.0",
-    "@ogre-tools/fp": "^7.1.0",
-    "@ogre-tools/injectable": "^7.1.0"
+    "react-dom": "^17.0.0"
   },
   "jest": {
     "testEnvironment": "jsdom",
