@@ -97,32 +97,30 @@ const plantUmlExtractorInjectable = getInjectable({
       const parentContext = last(context);
       let link;
 
-      if (parentContext) {
-        const parentId = camelCase(parentContext.injectable.id);
-        const dependencyId = camelCase(alias.id);
+      const parentId = camelCase(parentContext.injectable.id);
+      const dependencyId = camelCase(alias.id);
 
-        const linkId = `${parentId}/${dependencyId}`;
+      const linkId = `${parentId}/${dependencyId}`;
 
-        const descendantIds = context.map(get('injectable.id'));
-        const dependencyNode = graphState.nodes.get(dependencyId);
-        descendantIds.forEach(descendantId =>
-          dependencyNode.tags.add(descendantId),
-        );
+      const descendantIds = context.map(get('injectable.id'));
+      const dependencyNode = graphState.nodes.get(dependencyId);
+      descendantIds.forEach(descendantId =>
+        dependencyNode.tags.add(descendantId),
+      );
 
-        if (!graphState.links.has(linkId)) {
-          graphState.links.set(linkId, {
-            parentId,
-            dependencyId,
-            infos: new Set(),
-          });
-        }
+      if (!graphState.links.has(linkId)) {
+        graphState.links.set(linkId, {
+          parentId,
+          dependencyId,
+          infos: new Set(),
+        });
+      }
 
-        link = graphState.links.get(linkId);
+      link = graphState.links.get(linkId);
 
-        if (instanceIsAsync) {
-          link.isAsync = true;
-          link.infos.add('Async');
-        }
+      if (instanceIsAsync) {
+        link.isAsync = true;
+        link.infos.add('Async');
       }
 
       return pipeline(instance, tap(customizeFor(di, node, link)));
