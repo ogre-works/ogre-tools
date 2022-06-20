@@ -16,7 +16,7 @@ import nth from 'lodash/fp/nth';
 import overSome from 'lodash/fp/overSome';
 import getInjectable from '../getInjectable/getInjectable';
 
-export default () => {
+export default containerId => {
   let injectables = [];
   let overridingInjectables = [];
   let sideEffectsArePrevented = false;
@@ -251,6 +251,8 @@ export default () => {
     purge: purgeInstances,
   };
 
+  const containerRootContextItem = { injectable: { id: containerId } };
+
   const publicDi = {
     ...privateDi,
 
@@ -258,14 +260,18 @@ export default () => {
       privateDi.inject(
         alias,
         parameter,
-        customContextItem ? [customContextItem] : undefined,
+        customContextItem
+          ? [containerRootContextItem, customContextItem]
+          : [containerRootContextItem],
       ),
 
     injectMany: (alias, parameter, customContextItem) =>
       privateDi.injectMany(
         alias,
         parameter,
-        customContextItem ? [customContextItem] : undefined,
+        customContextItem
+          ? [containerRootContextItem, customContextItem]
+          : [containerRootContextItem],
       ),
   };
 

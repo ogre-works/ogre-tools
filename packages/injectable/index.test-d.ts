@@ -9,7 +9,7 @@ import {
   lifecycleEnum,
 } from '.';
 
-const di = createContainer();
+const di = createContainer('some-container');
 
 // given injectable with unspecified type for instantiation parameter, argument typing is OK
 const someInjectableForTypingOfInstantiate = getInjectable({

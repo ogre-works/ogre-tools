@@ -9,7 +9,7 @@ describe('createContainer.ad-hoc-injection', () => {
       instantiate: () => ({}),
     });
 
-    const di = createContainer();
+    const di = createContainer('some-container');
 
     const actual1 = di.inject(adHocInjectable);
     const actual2 = di.inject(adHocInjectable);

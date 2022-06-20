@@ -35,7 +35,7 @@ describe('withInjectables', () => {
   let mount;
 
   beforeEach(() => {
-    di = createContainer();
+    di = createContainer('some-container');
 
     mount = mountFor(di);
   });
@@ -74,7 +74,7 @@ describe('withInjectables', () => {
       injectOrInjectMany: 'inject',
 
       expectedError:
-        'Cycle of injectables encountered: "anonymous-component-0" -> "some-injectable-id" -> "some-other-injectable-id" -> "some-injectable-id"',
+        'Cycle of injectables encountered: "some-container" -> "anonymous-component-0" -> "some-injectable-id" -> "some-other-injectable-id" -> "some-injectable-id"',
     },
 
     {
@@ -88,7 +88,7 @@ describe('withInjectables', () => {
       injectOrInjectMany: 'inject',
 
       expectedError:
-        'Cycle of injectables encountered: "SomeNamedComponent" -> "some-injectable-id" -> "some-other-injectable-id" -> "some-injectable-id"',
+        'Cycle of injectables encountered: "some-container" -> "SomeNamedComponent" -> "some-injectable-id" -> "some-other-injectable-id" -> "some-injectable-id"',
     },
 
     {
@@ -103,7 +103,7 @@ describe('withInjectables', () => {
       injectOrInjectMany: 'inject',
 
       expectedError:
-        'Cycle of injectables encountered: "some-component-display-name" -> "some-injectable-id" -> "some-other-injectable-id" -> "some-injectable-id"',
+        'Cycle of injectables encountered: "some-container" -> "some-component-display-name" -> "some-injectable-id" -> "some-other-injectable-id" -> "some-injectable-id"',
     },
 
     {
@@ -119,7 +119,7 @@ describe('withInjectables', () => {
       injectOrInjectMany: 'inject',
 
       expectedError:
-        'Cycle of injectables encountered: "SomeClassComponent" -> "some-injectable-id" -> "some-other-injectable-id" -> "some-injectable-id"',
+        'Cycle of injectables encountered: "some-container" -> "SomeClassComponent" -> "some-injectable-id" -> "some-other-injectable-id" -> "some-injectable-id"',
     },
 
     {
@@ -130,7 +130,7 @@ describe('withInjectables', () => {
       injectUsing: 'injectionToken',
 
       expectedError:
-        'Cycle of injectables encountered: "anonymous-component-0" -> "some-injection-token" -> "some-injectable-id" -> "some-other-injectable-id" -> "some-injectable-id"',
+        'Cycle of injectables encountered: "some-container" -> "anonymous-component-0" -> "some-injection-token" -> "some-injectable-id" -> "some-other-injectable-id" -> "some-injectable-id"',
     },
   ].forEach(scenario => {
     it(scenario.name, () => {

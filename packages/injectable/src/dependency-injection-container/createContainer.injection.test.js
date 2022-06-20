@@ -23,7 +23,7 @@ describe('createContainer.injection', () => {
       },
     });
 
-    const di = createContainer();
+    const di = createContainer('some-container');
 
     di.register(asyncChildInjectable, parentInjectable);
 
@@ -43,14 +43,14 @@ describe('createContainer.injection', () => {
       instantiate: di => di.inject(childInjectable),
     });
 
-    const di = createContainer();
+    const di = createContainer('some-container');
 
     di.register(parentInjectable, childInjectable);
 
     expect(() => {
       di.inject(parentInjectable);
     }).toThrow(
-      'Cycle of injectables encountered: "some-parent-injectable" -> "some-child-injectable" -> "some-parent-injectable"',
+      'Cycle of injectables encountered: "some-container" -> "some-parent-injectable" -> "some-child-injectable" -> "some-parent-injectable"',
     );
   });
 
@@ -65,7 +65,7 @@ describe('createContainer.injection', () => {
       instantiate: di => di.inject(childInjectable),
     });
 
-    const di = createContainer();
+    const di = createContainer('some-container');
 
     di.register(parentInjectable, childInjectable);
 
@@ -77,7 +77,7 @@ describe('createContainer.injection', () => {
         },
       });
     }).toThrow(
-      'Cycle of injectables encountered: "some-custom-context-id" -> "some-parent-injectable" -> "some-child-injectable" -> "some-parent-injectable"',
+      'Cycle of injectables encountered: "some-container" -> "some-custom-context-id" -> "some-parent-injectable" -> "some-child-injectable" -> "some-parent-injectable"',
     );
   });
 
@@ -92,14 +92,14 @@ describe('createContainer.injection', () => {
       instantiate: async di => await di.inject(childInjectable),
     });
 
-    const di = createContainer();
+    const di = createContainer('some-container');
 
     di.register(parentInjectable, childInjectable);
 
     const actualPromise = di.inject(parentInjectable);
 
     return expect(actualPromise).rejects.toThrow(
-      'Cycle of injectables encountered: "some-parent-injectable" -> "some-child-injectable" -> "some-parent-injectable"',
+      'Cycle of injectables encountered: "some-container" -> "some-parent-injectable" -> "some-child-injectable" -> "some-parent-injectable"',
     );
   });
 });

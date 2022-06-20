@@ -50,7 +50,7 @@ describe('createContainer.error-monitoring-for-instantiation', () => {
         },
       });
 
-      const di = createContainer();
+      const di = createContainer('some-container');
 
       di.register(
         parentInjectable,
@@ -74,6 +74,8 @@ describe('createContainer.error-monitoring-for-instantiation', () => {
         error: 'some-error',
 
         context: [
+          { injectable: { id: 'some-container' } },
+
           {
             injectable: expect.objectContaining(parentInjectable),
             instantiationParameter: 'some-instantiation-parameter-for-parent',
@@ -127,7 +129,7 @@ describe('createContainer.error-monitoring-for-instantiation', () => {
         },
       });
 
-      di = createContainer();
+      di = createContainer('some-container');
 
       di.register(
         parentInjectable,
@@ -155,6 +157,8 @@ describe('createContainer.error-monitoring-for-instantiation', () => {
           error: expect.any(Error),
 
           context: [
+            { injectable: { id: 'some-container' } },
+
             {
               injectable: expect.objectContaining(parentInjectable),
               instantiationParameter: 'some-instantiation-parameter-for-parent',
@@ -185,6 +189,8 @@ describe('createContainer.error-monitoring-for-instantiation', () => {
           error: 'some-non-error-rejection',
 
           context: [
+            { injectable: { id: 'some-container' } },
+
             {
               injectable: expect.objectContaining(parentInjectable),
               instantiationParameter: 'some-instantiation-parameter-for-parent',

@@ -11,7 +11,7 @@ describe('createContainer.transient', () => {
       lifecycle: lifecycleEnum.transient,
     });
 
-    const di = createContainer();
+    const di = createContainer('some-container');
 
     di.register(transientInjectable);
 
@@ -35,7 +35,7 @@ describe('createContainer.transient', () => {
       lifecycle: lifecycleEnum.transient,
     });
 
-    const di = createContainer();
+    const di = createContainer('some-container');
 
     di.register(transientInjectable);
 
@@ -59,7 +59,7 @@ describe('createContainer.transient', () => {
         `some-instance: "${instantiationParameter}"`,
     });
 
-    const di = createContainer();
+    const di = createContainer('some-container');
 
     di.register(someInjectable);
 

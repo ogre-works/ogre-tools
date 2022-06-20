@@ -17,7 +17,7 @@ describe('createContainer.late-registration', () => {
       instantiate: () => 'some-instance',
     });
 
-    const di = createContainer();
+    const di = createContainer('some-container');
 
     di.register(
       someInjectableForLateRegistration,

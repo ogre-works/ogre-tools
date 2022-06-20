@@ -21,7 +21,7 @@ describe('createContainer.injection-token', () => {
       instantiate: () => 'irrelevant',
     });
 
-    const di = createContainer();
+    const di = createContainer('some-container');
 
     di.register(someInjectable, someOtherInjectable);
 
@@ -54,7 +54,7 @@ describe('createContainer.injection-token', () => {
       instantiate: () => 'some-other-instance',
     });
 
-    const di = createContainer();
+    const di = createContainer('some-container');
 
     di.register(someInjectable, someOtherInjectable, someUnrelatedInjectable);
 
@@ -85,7 +85,7 @@ describe('createContainer.injection-token', () => {
       instantiate: () => 'some-other-instance',
     });
 
-    const di = createContainer();
+    const di = createContainer('some-container');
 
     di.register(
       someSyncInjectable,
@@ -103,7 +103,7 @@ describe('createContainer.injection-token', () => {
       id: 'some-injection-token',
     });
 
-    const di = createContainer();
+    const di = createContainer('some-container');
 
     const actual = await di.injectMany(
       someSharedInjectionToken,
@@ -134,14 +134,14 @@ describe('createContainer.injection-token', () => {
       instantiate: di => di.injectMany(someOtherInjectionToken),
     });
 
-    const di = createContainer();
+    const di = createContainer('some-container');
 
     di.register(parentInjectable, childInjectable);
 
     expect(() => {
       di.injectMany(someInjectionToken);
     }).toThrow(
-      'Cycle of injectables encountered: "some-injection-token" -> "some-parent-injectable" -> "some-other-injection-token" -> "some-child-injectable" -> "some-injection-token"',
+      'Cycle of injectables encountered: "some-container" -> "some-injection-token" -> "some-parent-injectable" -> "some-other-injection-token" -> "some-child-injectable" -> "some-injection-token"',
     );
   });
 
@@ -154,7 +154,7 @@ describe('createContainer.injection-token', () => {
       injectionToken: injectionToken,
     });
 
-    const di = createContainer();
+    const di = createContainer('some-container');
 
     di.register(someInjectable);
 
@@ -175,7 +175,7 @@ describe('createContainer.injection-token', () => {
       injectionToken,
     });
 
-    const di = createContainer();
+    const di = createContainer('some-container');
 
     di.register(parentInjectable, childInjectable);
 
@@ -187,7 +187,7 @@ describe('createContainer.injection-token', () => {
         },
       });
     }).toThrow(
-      'Cycle of injectables encountered: "some-custom-context-id" -> "some-injection-token" -> "some-parent-injectable" -> "some-child-injectable" -> "some-parent-injectable"',
+      'Cycle of injectables encountered: "some-container" -> "some-custom-context-id" -> "some-injection-token" -> "some-parent-injectable" -> "some-child-injectable" -> "some-parent-injectable"',
     );
   });
 });

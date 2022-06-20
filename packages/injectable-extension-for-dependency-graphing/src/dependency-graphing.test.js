@@ -5,6 +5,7 @@ import {
 } from './dependency-graphing';
 
 import isEqual from 'lodash/fp/isEqual';
+
 import {
   createContainer,
   getInjectable,
@@ -90,7 +91,7 @@ describe('createContainer.dependency-graph', () => {
       injectionToken: dependencyGraphCustomizerToken,
     });
 
-    const di = createContainer();
+    const di = createContainer('some-container');
 
     di.register(
       parentInjectable,

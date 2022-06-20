@@ -1,7 +1,6 @@
 import camelCase from 'lodash/fp/camelCase';
 import last from 'lodash/fp/last';
 import get from 'lodash/fp/get';
-import some from 'lodash/fp/some';
 import filter from 'lodash/fp/filter';
 import tap from 'lodash/fp/tap';
 
@@ -142,10 +141,6 @@ const customizeFor = (di, node, link) => instance => {
   );
 
   customizers.forEach(customizer => customizer.customizeNode(node));
-
-  if (!link) {
-    return;
-  }
 
   customizers.forEach(customizer => customizer.customizeLink(link));
 };

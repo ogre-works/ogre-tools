@@ -16,7 +16,7 @@ describe('createContainer.keyed-singleton', () => {
         }),
       });
 
-      di = createContainer();
+      di = createContainer('some-container');
 
       di.register(injectable);
     });
@@ -65,7 +65,7 @@ describe('createContainer.keyed-singleton', () => {
       lifecycle: lifecycleEnum.transient,
     });
 
-    const di = createContainer();
+    const di = createContainer('some-container');
 
     di.register(mainInjectable, keyInjectable);
 
@@ -102,7 +102,7 @@ describe('createContainer.keyed-singleton', () => {
       lifecycle: lifecycleEnum.transient,
     });
 
-    const di = createContainer();
+    const di = createContainer('some-container');
 
     di.register(mainInjectable, keyInjectable);
 
@@ -138,7 +138,7 @@ describe('createContainer.keyed-singleton', () => {
       }),
     });
 
-    const di = createContainer();
+    const di = createContainer('some-container');
 
     di.register(injectable1, injectable2);
 

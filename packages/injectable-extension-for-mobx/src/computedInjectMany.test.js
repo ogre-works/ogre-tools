@@ -74,7 +74,7 @@ describe('registerMobx', () => {
         injectionToken: someFirstInjectionToken,
       });
 
-      di = createContainer();
+      di = createContainer('some-container');
 
       di.register(contextSpyDecorator);
 
@@ -274,6 +274,7 @@ describe('registerMobx', () => {
       it('a deeply nested injectable has full context', () => {
         expect(contextsOfSomeInjectable).toEqual([
           [
+            'some-container',
             'computed-inject-many',
             'reactive-instances',
             'some-root-injection-token',

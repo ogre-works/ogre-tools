@@ -5,7 +5,7 @@ import getInjectionToken from '../getInjectionToken/getInjectionToken';
 
 describe('createContainer.decoration-of-deregistration', () => {
   it('given there is decorator for deregistration, when an injectable is deregistered, calls decorator with injectable', () => {
-    const di = createContainer();
+    const di = createContainer('some-container');
 
     const deregisterDecoratorMock = jest.fn();
 
@@ -31,7 +31,7 @@ describe('createContainer.decoration-of-deregistration', () => {
   });
 
   it('given there is decorator for deregistration and injectable which registers, when the injectable is deregistered at root level, calls decorator for the injectable and all injectables directly or indirectly registered by it', () => {
-    const di = createContainer();
+    const di = createContainer('some-container');
 
     const deregisterDecoratorMock = jest.fn();
 
@@ -98,7 +98,7 @@ describe('createContainer.decoration-of-deregistration', () => {
   });
 
   it('given there is decorator for deregistration and injectable which registers, when the injectable is deregistered using another injectable, calls decorator for the injectable and all injectables directly or indirectly registered by it', () => {
-    const di = createContainer();
+    const di = createContainer('some-container');
 
     const deregisterDecoratorMock = jest.fn();
 

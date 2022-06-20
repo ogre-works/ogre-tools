@@ -9,7 +9,7 @@ describe('createContainer.side-effects', () => {
       instantiate: () => 'some-instance',
     });
 
-    const di = createContainer();
+    const di = createContainer('some-container');
 
     di.register(someInjectable);
 
@@ -25,7 +25,7 @@ describe('createContainer.side-effects', () => {
       instantiate: () => 'irrelevant',
     });
 
-    const di = createContainer();
+    const di = createContainer('some-container');
 
     di.register(someInjectable);
 
@@ -45,7 +45,7 @@ describe('createContainer.side-effects', () => {
       instantiate: () => 'irrelevant',
     });
 
-    const di = createContainer();
+    const di = createContainer('some-container');
 
     di.register(someInjectable);
 

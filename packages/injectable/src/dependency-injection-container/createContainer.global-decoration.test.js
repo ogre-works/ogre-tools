@@ -35,7 +35,7 @@ describe('createContainer.global-decoration', () => {
       },
     });
 
-    const di = createContainer();
+    const di = createContainer('some-container');
 
     di.register(parentInjectable, childInjectable, decoratorInjectable);
 
@@ -94,7 +94,7 @@ describe('createContainer.global-decoration', () => {
         `parent(${instantiationParameter})`,
     });
 
-    const di = createContainer();
+    const di = createContainer('some-container');
 
     di.register(injectable, decoratorInjectable1, decoratorInjectable2);
 

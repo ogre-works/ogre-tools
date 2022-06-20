@@ -10,10 +10,10 @@ describe('createContainer.singleton', () => {
       lifecycle: lifecycleEnum.singleton,
     });
 
-    const di1 = createContainer();
+    const di1 = createContainer('some-container');
     di1.register(someInjectable);
 
-    const di2 = createContainer();
+    const di2 = createContainer('some-container');
     di2.register(someInjectable);
 
     const actual1 = di1.inject(someInjectable);
@@ -29,7 +29,7 @@ describe('createContainer.singleton', () => {
       lifecycle: lifecycleEnum.singleton,
     });
 
-    const di = createContainer();
+    const di = createContainer('some-container');
 
     di.register(singletonInjectable);
 
@@ -46,7 +46,7 @@ describe('createContainer.singleton', () => {
       lifecycle: undefined,
     });
 
-    const di = createContainer();
+    const di = createContainer('some-container');
 
     di.register(injectable);
 
@@ -63,7 +63,7 @@ describe('createContainer.singleton', () => {
       lifecycle: lifecycleEnum.singleton,
     });
 
-    const di = createContainer();
+    const di = createContainer('some-container');
 
     di.register(singletonInjectable);
 
@@ -89,7 +89,7 @@ describe('createContainer.singleton', () => {
       lifecycle: lifecycleEnum.singleton,
     });
 
-    const di = createContainer();
+    const di = createContainer('some-container');
 
     di.register(singletonInjectable, unrelatedSingletonInjectable);
 

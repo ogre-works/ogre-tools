@@ -18,7 +18,7 @@ describe('createContainer.override', () => {
       instantiate: di => di.inject(childInjectable),
     });
 
-    const di = createContainer();
+    const di = createContainer('some-container');
 
     di.register(childInjectable, parentInjectable);
 
@@ -42,7 +42,7 @@ describe('createContainer.override', () => {
       lifecycle: lifecycleEnum.transient,
     });
 
-    const di = createContainer();
+    const di = createContainer('some-container');
 
     di.register(someInjectable, someOtherInjectable);
 
@@ -68,7 +68,7 @@ describe('createContainer.override', () => {
       lifecycle: lifecycleEnum.transient,
     });
 
-    const di = createContainer();
+    const di = createContainer('some-container');
 
     di.register(someInjectable, someOtherInjectable);
 
@@ -90,7 +90,7 @@ describe('createContainer.override', () => {
       instantiate: di => di.inject(childInjectable),
     });
 
-    const di = createContainer();
+    const di = createContainer('some-container');
 
     di.register(childInjectable, parentInjectable);
 
@@ -113,7 +113,7 @@ describe('createContainer.override', () => {
       instantiate: di => di.inject(childInjectable),
     });
 
-    const di = createContainer();
+    const di = createContainer('some-container');
 
     di.register(childInjectable, parentInjectable);
 
@@ -132,7 +132,7 @@ describe('createContainer.override', () => {
       instantiate: () => 'some-original-value',
     });
 
-    const di = createContainer();
+    const di = createContainer('some-container');
 
     di.register(someInjectable);
 
@@ -146,7 +146,7 @@ describe('createContainer.override', () => {
   });
 
   it('when overriding non-registered injectable, throws', () => {
-    const di = createContainer();
+    const di = createContainer('some-container');
 
     const injectable = getInjectable({
       id: 'some-non-registered-injectable',

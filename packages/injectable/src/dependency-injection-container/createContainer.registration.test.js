@@ -3,7 +3,7 @@ import createContainer from './createContainer';
 
 describe('createContainer.registration', () => {
   it('given manually registered injectable, when injecting, injects', () => {
-    const di = createContainer();
+    const di = createContainer('some-container');
 
     const someInjectable = getInjectable({
       id: 'irrelevant',
@@ -18,7 +18,7 @@ describe('createContainer.registration', () => {
   });
 
   it('given injectables with same ID, when registering, throws', () => {
-    const di = createContainer();
+    const di = createContainer('some-container');
 
     const someInjectable = getInjectable({
       id: 'some-id',
@@ -38,7 +38,7 @@ describe('createContainer.registration', () => {
   });
 
   it('given an injectable does not specify id, when manually registered, throws', () => {
-    const di = createContainer();
+    const di = createContainer('some-container');
 
     const someInjectable = getInjectable({
       id: undefined,
@@ -55,12 +55,12 @@ describe('createContainer.registration', () => {
       id: 'some-non-registered-injectable',
     });
 
-    const di = createContainer();
+    const di = createContainer('some-container');
 
     expect(() => {
       di.inject(someNonRegisteredInjectable);
     }).toThrow(
-      'Tried to inject non-registered injectable "some-non-registered-injectable".',
+      'Tried to inject non-registered injectable "some-container" -> "some-non-registered-injectable".',
     );
   });
 
@@ -75,14 +75,14 @@ describe('createContainer.registration', () => {
       instantiate: di => di.inject(someNonRegisteredInjectable),
     });
 
-    const di = createContainer();
+    const di = createContainer('some-container');
 
     di.register(someRegisteredInjectable);
 
     expect(() => {
       di.inject(someRegisteredInjectable);
     }).toThrow(
-      'Tried to inject non-registered injectable "some-registered-injectable" -> "some-non-registered-injectable".',
+      'Tried to inject non-registered injectable "some-container" -> "some-registered-injectable" -> "some-non-registered-injectable".',
     );
   });
 });

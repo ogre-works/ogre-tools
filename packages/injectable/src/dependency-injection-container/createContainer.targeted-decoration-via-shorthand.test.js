@@ -33,7 +33,7 @@ describe('createContainer.targeted-decoration-via-shorthand', () => {
       },
     });
 
-    const di = createContainer();
+    const di = createContainer('some-container');
 
     di.register(parentInjectable, childInjectable);
 
@@ -79,7 +79,7 @@ describe('createContainer.targeted-decoration-via-shorthand', () => {
       },
     });
 
-    const di = createContainer();
+    const di = createContainer('some-container');
 
     di.register(parentInjectable, childInjectable);
 
@@ -124,7 +124,7 @@ describe('createContainer.targeted-decoration-via-shorthand', () => {
         `some(${instantiationParameter})`,
     });
 
-    const di = createContainer();
+    const di = createContainer('some-container');
 
     di.register(someInjectable);
 

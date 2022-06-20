@@ -44,7 +44,7 @@ describe('createContainer.error-monitoring-for-injected-functions', () => {
           di.inject(childInjectable, 'some-instantiation-parameter-for-child'),
       });
 
-      const di = createContainer();
+      const di = createContainer('some-container');
 
       di.register(parentInjectable, childInjectable, errorMonitorInjectable);
 
@@ -70,6 +70,8 @@ describe('createContainer.error-monitoring-for-injected-functions', () => {
           error: expect.any(Error),
 
           context: [
+            { injectable: { id: 'some-container' } },
+
             {
               injectable: expect.objectContaining(parentInjectable),
               instantiationParameter: 'some-instantiation-parameter-for-parent',
@@ -100,6 +102,8 @@ describe('createContainer.error-monitoring-for-injected-functions', () => {
           error: 'some-non-error-rejection',
 
           context: [
+            { injectable: { id: 'some-container' } },
+
             {
               injectable: expect.objectContaining(parentInjectable),
               instantiationParameter: 'some-instantiation-parameter-for-parent',
@@ -155,7 +159,7 @@ describe('createContainer.error-monitoring-for-injected-functions', () => {
           di.inject(childInjectable, 'some-instantiation-parameter-for-child'),
       });
 
-      di = createContainer();
+      di = createContainer('some-container');
 
       di.register(parentInjectable, childInjectable, errorMonitorInjectable);
 
@@ -178,6 +182,8 @@ describe('createContainer.error-monitoring-for-injected-functions', () => {
         error: expect.any(Error),
 
         context: [
+          { injectable: { id: 'some-container' } },
+
           {
             injectable: expect.objectContaining(parentInjectable),
             instantiationParameter: 'some-instantiation-parameter-for-parent',

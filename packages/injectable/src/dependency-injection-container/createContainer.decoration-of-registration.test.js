@@ -8,7 +8,7 @@ describe('createContainer.decoration-of-registration', () => {
     let di;
 
     beforeEach(() => {
-      di = createContainer();
+      di = createContainer('some-container');
 
       const someRegistrationDecorator = getInjectable({
         id: 'some-registration-decorator',

@@ -14,7 +14,7 @@ describe('autoRegister', () => {
       instantiate: () => 'some-injected-instance',
     });
 
-    const di = createContainer();
+    const di = createContainer('some-container');
 
     const someRequireContext = getRequireContextStub(injectableStub);
 
@@ -36,7 +36,7 @@ describe('autoRegister', () => {
       },
     );
 
-    const di = createContainer();
+    const di = createContainer('some-container');
 
     expect(() =>
       autoRegister({ di, requireContexts: [requireContextStub] }),
@@ -55,7 +55,7 @@ describe('autoRegister', () => {
       },
     );
 
-    const di = createContainer();
+    const di = createContainer('some-container');
 
     expect(() =>
       autoRegister({ di, requireContexts: [requireContextStub] }),
@@ -76,7 +76,7 @@ describe('autoRegister', () => {
       },
     );
 
-    const di = createContainer();
+    const di = createContainer('some-container');
 
     expect(() =>
       autoRegister({ di, requireContexts: [requireContextStub] }),
@@ -98,7 +98,7 @@ describe('autoRegister', () => {
       },
     );
 
-    const di = createContainer();
+    const di = createContainer('some-container');
 
     expect(() =>
       autoRegister({ di, requireContexts: [requireContextStub] }),
@@ -116,7 +116,7 @@ describe('autoRegister', () => {
       instantiate: di => di.inject(childInjectable),
     });
 
-    const di = createContainer();
+    const di = createContainer('some-container');
 
     autoRegister({
       di,

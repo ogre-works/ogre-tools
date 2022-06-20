@@ -10,7 +10,7 @@ describe('createContainer.targeted-decoration-for-function-via-shorthand', () =>
         `some(${instantiationParameter}(${parameter}))`,
     });
 
-    const di = createContainer();
+    const di = createContainer('some-container');
 
     di.register(someInjectable);
 

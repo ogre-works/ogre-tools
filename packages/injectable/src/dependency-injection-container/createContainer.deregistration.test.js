@@ -4,7 +4,7 @@ import getInjectionToken from '../getInjectionToken/getInjectionToken';
 
 describe('createContainer.deregistration', () => {
   it('given registered injectable and deregistered, when injecting, throws', () => {
-    const di = createContainer();
+    const di = createContainer('some-container');
 
     const someInjectable = getInjectable({
       id: 'some-injectable',
@@ -17,11 +17,13 @@ describe('createContainer.deregistration', () => {
 
     expect(() => {
       di.inject(someInjectable);
-    }).toThrow('Tried to inject non-registered injectable "some-injectable".');
+    }).toThrow(
+      'Tried to inject non-registered injectable "some-container" -> "some-injectable".',
+    );
   });
 
   it('given multiple registered injectables and deregistered, when injecting, throws', () => {
-    const di = createContainer();
+    const di = createContainer('some-container');
 
     const someInjectable = getInjectable({
       id: 'some-injectable',
@@ -40,12 +42,12 @@ describe('createContainer.deregistration', () => {
     expect(() => {
       di.inject(someOtherInjectable);
     }).toThrow(
-      'Tried to inject non-registered injectable "some-other-injectable".',
+      'Tried to inject non-registered injectable "some-container" -> "some-other-injectable".',
     );
   });
 
   it('given not registered, when still deregistering, throws', () => {
-    const di = createContainer();
+    const di = createContainer('some-container');
 
     const someInjectable = getInjectable({
       id: 'some-injectable',
@@ -60,7 +62,7 @@ describe('createContainer.deregistration', () => {
   });
 
   it('given registered injectable and overridden and deregistered and registered again, when injecting, injects non-overridden instance', () => {
-    const di = createContainer();
+    const di = createContainer('some-container');
 
     const someInjectable = getInjectable({
       id: 'some-injectable',
@@ -78,7 +80,7 @@ describe('createContainer.deregistration', () => {
   });
 
   it('given injectable and injectable which can deregister and first injectable is deregistered, when first injectable is injected, throws', () => {
-    const di = createContainer();
+    const di = createContainer('some-container');
 
     const someInjectable = getInjectable({
       id: 'some-injectable',
@@ -101,11 +103,13 @@ describe('createContainer.deregistration', () => {
 
     expect(() => {
       di.inject(someInjectable);
-    }).toThrow('Tried to inject non-registered injectable "some-injectable".');
+    }).toThrow(
+      'Tried to inject non-registered injectable "some-container" -> "some-injectable".',
+    );
   });
 
   it('given injectable which can register, when the injectable is deregistered, does not deregister unrelated injectable', () => {
-    const di = createContainer();
+    const di = createContainer('some-container');
 
     const someInjectable = getInjectable({
       id: 'some-injectable',
@@ -139,7 +143,7 @@ describe('createContainer.deregistration', () => {
   });
 
   it('given injectable which can register, when the injectable is deregistered, also injectables registered by it are deregistered', () => {
-    const di = createContainer();
+    const di = createContainer('some-container');
 
     const someInjectable = getInjectable({
       id: 'some-injectable',
@@ -164,11 +168,13 @@ describe('createContainer.deregistration', () => {
 
     expect(() => {
       di.inject(someInjectable);
-    }).toThrow('Tried to inject non-registered injectable "some-injectable".');
+    }).toThrow(
+      'Tried to inject non-registered injectable "some-container" -> "some-injectable".',
+    );
   });
 
   it('given injectable which can late register and implements an injection token, when the root injectable is deregistered, deregisters also the late registered injectables', () => {
-    const di = createContainer();
+    const di = createContainer('some-container');
 
     const someInjectionToken = getInjectionToken({
       id: 'some-injection-token',
@@ -206,11 +212,13 @@ describe('createContainer.deregistration', () => {
 
     expect(() => {
       di.inject(someInjectable);
-    }).toThrow('Tried to inject non-registered injectable "some-injectable".');
+    }).toThrow(
+      'Tried to inject non-registered injectable "some-container" -> "some-injectable".',
+    );
   });
 
   it('given injectable which can itself register and has done so and deregistered and registered again, when deregistered again, does not throw because of previous registrations done by itself', () => {
-    const di = createContainer();
+    const di = createContainer('some-container');
 
     const someInjectable = getInjectable({
       id: 'some-injectable',

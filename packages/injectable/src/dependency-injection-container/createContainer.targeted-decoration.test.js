@@ -43,7 +43,7 @@ describe('createContainer.targeted-decoration', () => {
       },
     });
 
-    const di = createContainer();
+    const di = createContainer('some-container');
 
     di.register(parentInjectable, childInjectable, decoratorInjectable);
 
@@ -97,7 +97,7 @@ describe('createContainer.targeted-decoration', () => {
       },
     });
 
-    const di = createContainer();
+    const di = createContainer('some-container');
 
     di.register(parentInjectable, childInjectable, decoratorInjectable);
 

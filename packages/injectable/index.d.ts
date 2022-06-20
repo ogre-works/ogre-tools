@@ -145,4 +145,4 @@ export const lifecycleEnum: {
   };
 };
 
-export function createContainer(): DiContainer;
+export function createContainer(containerId: string): DiContainer;
