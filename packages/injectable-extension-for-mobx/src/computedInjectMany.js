@@ -1,8 +1,8 @@
 import {
+  deregistrationDecoratorToken,
   getInjectable,
   lifecycleEnum,
   registrationDecoratorToken,
-  deregistrationDecoratorToken,
 } from '@ogre-tools/injectable';
 
 import { computed, createAtom, runInAction } from 'mobx';
@@ -64,14 +64,12 @@ const invalidateReactiveInstancesOnDeregisterDecorator = getInjectable({
 export const computedInjectManyInjectable = getInjectable({
   id: 'computed-inject-many',
 
-  instantiate: di => {
-    const getReactiveInstances = injectionToken =>
-      di.inject(reactiveInstancesInjectable, injectionToken);
+  instantiate: di => injectionToken =>
+    di.inject(reactiveInstancesInjectable, injectionToken),
 
-    return injectionToken => {
-      return getReactiveInstances(injectionToken);
-    };
-  },
+  lifecycle: lifecycleEnum.transient,
+
+  cannotCauseCycles: true,
 });
 
 const reactiveInstancesInjectable = getInjectable({
@@ -93,6 +91,8 @@ const reactiveInstancesInjectable = getInjectable({
   lifecycle: lifecycleEnum.keyedSingleton({
     getInstanceKey: (di, injectionToken) => injectionToken,
   }),
+
+  cannotCauseCycles: true,
 });
 
 export const registerMobX = di => {

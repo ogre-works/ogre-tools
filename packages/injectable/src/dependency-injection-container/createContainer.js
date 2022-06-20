@@ -304,6 +304,7 @@ const getInstance = ({
 
   const injectableCausingCycle = pipeline(
     oldContext,
+    reject(contextItem => contextItem.injectable.cannotCauseCycles),
     find(
       contextItem =>
         contextItem.injectable.id === injectableToBeInstantiated.id,
