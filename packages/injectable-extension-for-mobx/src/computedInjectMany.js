@@ -6,8 +6,7 @@ import {
 } from '@ogre-tools/injectable';
 
 import { computed, createAtom, runInAction } from 'mobx';
-import { pipeline } from '@ogre-tools/fp';
-import { filter, forEach } from 'lodash/fp';
+import uniq from 'lodash/fp/uniq';
 
 const invalidabilityForReactiveInstances = getInjectable({
   id: 'invalidability-for-reactive-instances',
@@ -26,20 +25,21 @@ const getInvalidatorInstance =
   (...injectables) => {
     const registered = registerToBeDecorated(...injectables);
 
+    const injectionTokens = injectables
+      .filter(injectable => injectable.injectionToken)
+      .map(injectable => injectable.injectionToken);
+
+    const uniqueInjectionTokens = uniq(injectionTokens);
+
     runInAction(() => {
-      pipeline(
-        injectables,
-        filter(injectable => !!injectable.injectionToken),
+      uniqueInjectionTokens.forEach(injectionToken => {
+        const mobxAtomForToken = di.inject(
+          invalidabilityForReactiveInstances,
+          injectionToken,
+        );
 
-        forEach(({ injectionToken }) => {
-          const mobxAtomForToken = di.inject(
-            invalidabilityForReactiveInstances,
-            injectionToken,
-          );
-
-          mobxAtomForToken.reportChanged();
-        }),
-      );
+        mobxAtomForToken.reportChanged();
+      });
     });
 
     return registered;

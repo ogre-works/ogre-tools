@@ -1,24 +1,17 @@
-import forEach from 'lodash/fp/forEach';
-import filter from 'lodash/fp/filter';
-import find from 'lodash/fp/find';
-import findLast from 'lodash/fp/findLast';
-import first from 'lodash/fp/first';
-import get from 'lodash/fp/get';
+import flow from 'lodash/fp/flow';
 import getInjectionToken from '../getInjectionToken/getInjectionToken';
 import has from 'lodash/fp/has';
 import isUndefined from 'lodash/fp/isUndefined';
 import { nonStoredInstanceKey } from './lifecycleEnum';
-import map from 'lodash/fp/map';
 import not from 'lodash/fp/negate';
-import reject from 'lodash/fp/reject';
-import { pipeline } from '@ogre-tools/fp';
-import nth from 'lodash/fp/nth';
 import overSome from 'lodash/fp/overSome';
+import some from 'lodash/fp/some';
 import getInjectable from '../getInjectable/getInjectable';
+import { isPromise } from '@ogre-tools/fp';
 
 export default containerId => {
-  let injectables = [];
-  let overridingInjectables = [];
+  let injectables = new Map();
+  let overridingInjectables = new Map();
   let sideEffectsArePrevented = false;
 
   const injectableAndRegistrationContext = new Map();
@@ -39,13 +32,11 @@ export default containerId => {
     const originalInjectable = getRelatedInjectable({
       injectables,
       alias,
-      context,
     });
 
-    const overriddenInjectable = getOverridingInjectable({
-      overridingInjectables,
-      alias,
-    });
+    const overriddenInjectable = overridingInjectables.get(
+      originalInjectable.id,
+    );
 
     const injectable = overriddenInjectable || originalInjectable;
 
@@ -73,16 +64,20 @@ export default containerId => {
   ) => {
     const newContext = [...oldContext, { injectable: injectionToken }];
 
-    return pipeline(
-      getRelatedInjectables({
-        injectables,
-        alias: injectionToken,
-      }),
+    const relatedInjectables = getRelatedInjectables({
+      injectables,
+      alias: injectionToken,
+    });
 
-      map(injectable =>
-        decoratedPrivateInject(injectable, instantiationParameter, newContext),
-      ),
+    const injected = relatedInjectables.map(injectable =>
+      decoratedPrivateInject(injectable, instantiationParameter, newContext),
     );
+
+    if (some(isPromise, injected)) {
+      return Promise.all(injected);
+    }
+
+    return injected;
   };
 
   const withInjectionDecorators = withInjectionDecoratorsFor({
@@ -109,9 +104,7 @@ export default containerId => {
         throw new Error('Tried to register injectable without ID.');
       }
 
-      if (
-        injectables.find(injectable => injectable.id === externalInjectable.id)
-      ) {
+      if (injectables.has(externalInjectable.id)) {
         throw new Error(
           `Tried to register multiple injectables for ID "${externalInjectable.id}"`,
         );
@@ -125,7 +118,7 @@ export default containerId => {
         },
       };
 
-      injectables.push(internalInjectable);
+      injectables.set(internalInjectable.id, internalInjectable);
 
       injectableMap.set(internalInjectable.id, new Map());
     });
@@ -142,7 +135,7 @@ export default containerId => {
 
   const nonDecoratedDeregister = (...aliases) => {
     aliases.forEach(alias => {
-      const relatedInjectable = injectables.find(isRelatedTo(alias));
+      const relatedInjectable = injectables.get(alias.id);
 
       if (!relatedInjectable) {
         throw new Error(
@@ -150,29 +143,21 @@ export default containerId => {
         );
       }
 
-      pipeline(
-        [...injectableAndRegistrationContext.entries()],
-
-        filter(([, context]) =>
+      [...injectableAndRegistrationContext.entries()]
+        .filter(([, context]) =>
           context.find(contextItem => contextItem.injectable.id === alias.id),
-        ),
-
-        map(nth(0)),
-
-        forEach(injectable => {
+        )
+        .map(x => x[0])
+        .forEach(injectable => {
           injectableAndRegistrationContext.delete(injectable);
           privateDi.deregister(injectable);
-        }),
-      );
+        });
 
       purgeInstances(alias);
 
-      injectables = pipeline(injectables, reject(isRelatedTo(alias)));
+      injectables.delete(alias.id);
 
-      overridingInjectables = pipeline(
-        overridingInjectables,
-        reject(isRelatedTo(alias)),
-      );
+      overridingInjectables.delete(alias.id);
     });
   };
 
@@ -214,7 +199,7 @@ export default containerId => {
     },
 
     override: (alias, instantiateStub) => {
-      const originalInjectable = injectables.find(isRelatedTo(alias));
+      const originalInjectable = injectables.get(alias.id);
 
       if (!originalInjectable) {
         throw new Error(
@@ -222,7 +207,7 @@ export default containerId => {
         );
       }
 
-      overridingInjectables.push({
+      overridingInjectables.set(originalInjectable.id, {
         ...originalInjectable,
         causesSideEffects: false,
         instantiate: instantiateStub,
@@ -230,14 +215,11 @@ export default containerId => {
     },
 
     unoverride: alias => {
-      overridingInjectables = pipeline(
-        overridingInjectables,
-        reject(isRelatedTo(alias)),
-      );
+      overridingInjectables.delete(alias.id);
     },
 
     reset: () => {
-      overridingInjectables = [];
+      overridingInjectables.clear();
     },
 
     preventSideEffects: () => {
@@ -283,13 +265,10 @@ const isRelatedTo = alias => injectable =>
   (injectable.injectionToken && injectable.injectionToken.id === alias.id);
 
 const getRelatedInjectable = ({ injectables, alias }) =>
-  pipeline(getRelatedInjectables({ injectables, alias }), first);
+  getRelatedInjectables({ injectables, alias })[0];
 
 const getRelatedInjectables = ({ injectables, alias }) =>
-  injectables.filter(isRelatedTo(alias));
-
-const getOverridingInjectable = ({ overridingInjectables, alias }) =>
-  pipeline(overridingInjectables, findLast(isRelatedTo(alias)));
+  [...injectables.values()].filter(isRelatedTo(alias));
 
 const getInstance = ({
   di,
@@ -308,19 +287,17 @@ const getInstance = ({
     },
   ];
 
-  const injectableCausingCycle = pipeline(
-    oldContext,
-    reject(contextItem => contextItem.injectable.cannotCauseCycles),
-    find(
+  const injectableCausingCycle = oldContext
+    .filter(contextItem => !contextItem.injectable.cannotCauseCycles)
+    .find(
       contextItem =>
         contextItem.injectable.id === injectableToBeInstantiated.id,
-    ),
-  );
+    );
 
   if (injectableCausingCycle) {
     throw new Error(
       `Cycle of injectables encountered: "${newContext
-        .map(get('injectable.id'))
+        .map(x => x.injectable.id)
         .join('" -> "')}"`,
     );
   }
@@ -360,13 +337,13 @@ const getInstance = ({
     return existingInstance;
   }
 
-  const instantiateWithDecorators = pipeline(
-    injectableToBeInstantiated.instantiate,
+  const withInstantiationDecorators = withInstantiationDecoratorsFor({
+    injectMany: di.injectMany,
+    injectable: injectableToBeInstantiated,
+  });
 
-    withInstantiationDecoratorsFor({
-      injectMany: di.injectMany,
-      injectable: injectableToBeInstantiated,
-    }),
+  const instantiateWithDecorators = withInstantiationDecorators(
+    injectableToBeInstantiated.instantiate,
   );
 
   const newInstance = instantiateWithDecorators(
@@ -407,7 +384,9 @@ const withRegistrationDecoratorsFor =
   (...injectables) => {
     const decorators = injectMany(registrationDecoratorToken);
 
-    pipeline(toBeDecorated, ...decorators)(...injectables);
+    const decorated = flow(...decorators)(toBeDecorated);
+
+    decorated(...injectables);
   };
 
 const withDeregistrationDecoratorsFor =
@@ -416,26 +395,29 @@ const withDeregistrationDecoratorsFor =
   (...injectables) => {
     const decorators = injectMany(deregistrationDecoratorToken);
 
-    pipeline(toBeDecorated, ...decorators)(...injectables);
+    const decorated = flow(...decorators)(toBeDecorated);
+
+    decorated(...injectables);
   };
 
 const withInstantiationDecoratorsFor = ({ injectMany, injectable }) => {
   const isRelevantDecorator = isRelevantDecoratorFor(injectable);
 
-  return toBeDecorated =>
-    (...args) => {
+  return toBeDecorated => {
+    return (...args) => {
       if (injectable.decorable === false) {
         return toBeDecorated(...args);
       }
 
-      const decorators = pipeline(
-        injectMany(instantiationDecoratorToken),
-        filter(isRelevantDecorator),
-        map('decorate'),
-      );
+      const decorators = injectMany(instantiationDecoratorToken)
+        .filter(isRelevantDecorator)
+        .map(x => x.decorate);
 
-      return pipeline(toBeDecorated, ...decorators)(...args);
+      const decorated = flow(...decorators)(toBeDecorated);
+
+      return decorated(...args);
     };
+  };
 };
 
 const withInjectionDecoratorsFor =
@@ -448,13 +430,13 @@ const withInjectionDecoratorsFor =
 
     const isRelevantDecorator = isRelevantDecoratorFor(alias);
 
-    const decorators = pipeline(
-      injectMany(injectionDecoratorToken),
-      filter(isRelevantDecorator),
-      map('decorate'),
-    );
+    const decorators = injectMany(injectionDecoratorToken)
+      .filter(isRelevantDecorator)
+      .map(x => x.decorate);
 
-    return pipeline(toBeDecorated, ...decorators)(alias, ...args);
+    const decorated = flow(...decorators)(toBeDecorated);
+
+    return decorated(alias, ...args);
   };
 
 const isGlobalDecorator = not(has('target'));
@@ -473,7 +455,7 @@ const checkForNoMatches = (injectables, alias, context) => {
 
   if (relatedInjectables.length === 0) {
     const errorContextString = [...context, { injectable: { id: alias.id } }]
-      .map(get('injectable.id'))
+      .map(x => x.injectable.id)
       .join('" -> "');
 
     throw new Error(

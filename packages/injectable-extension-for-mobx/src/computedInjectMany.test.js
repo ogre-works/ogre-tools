@@ -106,6 +106,10 @@ describe('registerMobx', () => {
         ]);
       });
 
+      it('causes only one reaction', () => {
+        expect(reactionCountForFirstToken).toBe(1);
+      });
+
       it('when injected again, returns same instance of computed', () => {
         const computedInjectMany = di.inject(computedInjectManyInjectable);
 

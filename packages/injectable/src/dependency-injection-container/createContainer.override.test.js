@@ -1,6 +1,7 @@
 import lifecycleEnum from './lifecycleEnum';
 import getInjectable from '../getInjectable/getInjectable';
 import createContainer from './createContainer';
+import getInjectionToken from '../getInjectionToken/getInjectionToken';
 
 describe('createContainer.override', () => {
   it('given an injectable is overridden, injects the overridden injectable', () => {
@@ -157,5 +158,49 @@ describe('createContainer.override', () => {
     }).toThrow(
       'Tried to override "some-non-registered-injectable" which is not registered.',
     );
+  });
+
+  it('given overridden injectable with injection token, when injected using injection token, injects the overridden instance', () => {
+    const di = createContainer('some-container');
+
+    const someInjectionToken = getInjectionToken({
+      id: 'some-injection-token',
+    });
+
+    const injectable = getInjectable({
+      id: 'some-injectable',
+      instantiate: () => 'irrelevant',
+      injectionToken: someInjectionToken,
+    });
+
+    di.register(injectable);
+
+    di.override(injectable, () => 'some-override');
+
+    const actual = di.inject(someInjectionToken);
+
+    expect(actual).toBe('some-override');
+  });
+
+  it('given overridden injectable with injection token, when injected many using injection token, injects the overridden instance', () => {
+    const di = createContainer('some-container');
+
+    const someInjectionToken = getInjectionToken({
+      id: 'some-injection-token',
+    });
+
+    const injectable = getInjectable({
+      id: 'some-injectable',
+      instantiate: () => 'irrelevant',
+      injectionToken: someInjectionToken,
+    });
+
+    di.register(injectable);
+
+    di.override(injectable, () => 'some-override');
+
+    const actual = di.injectMany(someInjectionToken);
+
+    expect(actual).toEqual(['some-override']);
   });
 });

@@ -1,7 +1,5 @@
-import curry from 'lodash/fp/curry';
 import flow from 'lodash/fp/flow';
 import flowRight from 'lodash/fp/flowRight';
-import get from 'lodash/fp/get';
 import identity from 'lodash/fp/identity';
 import isArray from 'lodash/fp/isArray';
 import some from 'lodash/fp/some';
@@ -13,11 +11,10 @@ export const pipelineBreak = Symbol('pipelineBreak');
 export default (...functions) =>
   flow([identity, ...functions].map(toTentativeAsyncWrapper));
 
-const isAsync = x => !!get('then', x);
+const isAsync = x => x && !!x.then;
 
-const withTentativeAwait = curry((f, arg) =>
-  isAsync(arg) ? Promise.resolve(arg).then(f) : f(arg),
-);
+const withTentativeAwait = f => arg =>
+  isAsync(arg) ? Promise.resolve(arg).then(f) : f(arg);
 
 const withSkippingForPipelineBreakFor = f => arg => {
   if (arg === pipelineBreak) {
