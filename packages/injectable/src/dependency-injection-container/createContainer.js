@@ -1,38 +1,45 @@
 import flow from 'lodash/fp/flow';
 import getInjectionToken from '../getInjectionToken/getInjectionToken';
-import has from 'lodash/fp/has';
-import isUndefined from 'lodash/fp/isUndefined';
 import { nonStoredInstanceKey } from './lifecycleEnum';
-import not from 'lodash/fp/negate';
-import overSome from 'lodash/fp/overSome';
-import some from 'lodash/fp/some';
 import getInjectable from '../getInjectable/getInjectable';
 import { isPromise } from '@ogre-tools/fp';
 
 export default containerId => {
-  let injectables = new Map();
+  let injectableMap = new Map();
   let overridingInjectables = new Map();
   let sideEffectsArePrevented = false;
 
   const injectableAndRegistrationContext = new Map();
+  const instancesByInjectableMap = new Map();
+  const injectableIdsByInjectionToken = new Map();
 
-  const injectableMap = new Map();
+  const getInjectablesHavingInjectionToken =
+    getInjectablesHavingInjectionTokenFor({
+      injectableMap,
+      injectableIdsByInjectionToken,
+    });
+
+  const getRelatedInjectables = getRelatedInjectablesFor({
+    injectableMap,
+    getInjectablesHavingInjectionToken,
+  });
+
+  const getRelatedInjectable = getRelatedInjectableFor({
+    getRelatedInjectables,
+  });
 
   const privateInject = (alias, instantiationParameter, context = []) => {
-    checkForTooManyMatches(injectables, alias);
+    const relatedInjectables = getRelatedInjectables(alias);
 
-    const relatedInjectables = getRelatedInjectables({ injectables, alias });
+    checkForTooManyMatches(relatedInjectables, alias);
 
     if (relatedInjectables.length === 0 && alias.adHoc === true) {
       privateDi.register(alias);
     } else {
-      checkForNoMatches(injectables, alias, context);
+      checkForNoMatches(relatedInjectables, alias, context);
     }
 
-    const originalInjectable = getRelatedInjectable({
-      injectables,
-      alias,
-    });
+    const originalInjectable = getRelatedInjectable(alias);
 
     const overriddenInjectable = overridingInjectables.get(
       originalInjectable.id,
@@ -50,9 +57,8 @@ export default containerId => {
       injectable,
       instantiationParameter,
       di: privateDi,
-      injectableMap,
+      instancesByInjectableMap,
       context,
-      injectMany: nonDecoratedPrivateInjectMany,
       injectableAndRegistrationContext,
     });
   };
@@ -64,16 +70,13 @@ export default containerId => {
   ) => {
     const newContext = [...oldContext, { injectable: injectionToken }];
 
-    const relatedInjectables = getRelatedInjectables({
-      injectables,
-      alias: injectionToken,
-    });
+    const relatedInjectables = getRelatedInjectables(injectionToken);
 
     const injected = relatedInjectables.map(injectable =>
       decoratedPrivateInject(injectable, instantiationParameter, newContext),
     );
 
-    if (some(isPromise, injected)) {
+    if (injected.find(isPromise)) {
       return Promise.all(injected);
     }
 
@@ -100,13 +103,15 @@ export default containerId => {
 
   const nonDecoratedRegister = (...externalInjectables) => {
     externalInjectables.forEach(externalInjectable => {
-      if (!externalInjectable.id) {
+      let injectableId = externalInjectable.id;
+
+      if (!injectableId) {
         throw new Error('Tried to register injectable without ID.');
       }
 
-      if (injectables.has(externalInjectable.id)) {
+      if (injectableMap.has(injectableId)) {
         throw new Error(
-          `Tried to register multiple injectables for ID "${externalInjectable.id}"`,
+          `Tried to register multiple injectables for ID "${injectableId}"`,
         );
       }
 
@@ -118,24 +123,31 @@ export default containerId => {
         },
       };
 
-      injectables.set(internalInjectable.id, internalInjectable);
+      injectableMap.set(internalInjectable.id, internalInjectable);
+      instancesByInjectableMap.set(internalInjectable.id, new Map());
 
-      injectableMap.set(internalInjectable.id, new Map());
+      if (externalInjectable.injectionToken) {
+        const tokenId = externalInjectable.injectionToken.id;
+
+        const injectableIdsSet =
+          injectableIdsByInjectionToken.get(tokenId) || new Set();
+
+        injectableIdsSet.add(injectableId);
+
+        injectableIdsByInjectionToken.set(tokenId, injectableIdsSet);
+      }
     });
   };
 
   const purgeInstances = alias => {
-    const injectable = getRelatedInjectable({
-      injectables,
-      alias,
-    });
+    const injectable = getRelatedInjectable(alias);
 
-    injectableMap.get(injectable.id).clear();
+    instancesByInjectableMap.get(injectable.id).clear();
   };
 
   const nonDecoratedDeregister = (...aliases) => {
     aliases.forEach(alias => {
-      const relatedInjectable = injectables.get(alias.id);
+      const relatedInjectable = injectableMap.get(alias.id);
 
       if (!relatedInjectable) {
         throw new Error(
@@ -155,7 +167,17 @@ export default containerId => {
 
       purgeInstances(alias);
 
-      injectables.delete(alias.id);
+      injectableMap.delete(alias.id);
+
+      if (alias.injectionToken) {
+        const tokenId = alias.injectionToken.id;
+
+        const injectableIdSet = injectableIdsByInjectionToken.get(tokenId);
+
+        if (injectableIdSet) {
+          injectableIdSet.delete(alias.id);
+        }
+      }
 
       overridingInjectables.delete(alias.id);
     });
@@ -199,7 +221,7 @@ export default containerId => {
     },
 
     override: (alias, instantiateStub) => {
-      const originalInjectable = injectables.get(alias.id);
+      const originalInjectable = injectableMap.get(alias.id);
 
       if (!originalInjectable) {
         throw new Error(
@@ -227,7 +249,7 @@ export default containerId => {
     },
 
     permitSideEffects: alias => {
-      getRelatedInjectable({ injectables, alias }).permitSideEffects();
+      getRelatedInjectable(alias).permitSideEffects();
     },
 
     purge: purgeInstances,
@@ -264,18 +286,47 @@ const isRelatedTo = alias => injectable =>
   injectable.id === alias.id ||
   (injectable.injectionToken && injectable.injectionToken.id === alias.id);
 
-const getRelatedInjectable = ({ injectables, alias }) =>
-  getRelatedInjectables({ injectables, alias })[0];
+const getRelatedInjectableFor =
+  ({ getRelatedInjectables }) =>
+  alias =>
+    getRelatedInjectables(alias)[0];
 
-const getRelatedInjectables = ({ injectables, alias }) =>
-  [...injectables.values()].filter(isRelatedTo(alias));
+const getInjectablesHavingInjectionTokenFor =
+  ({ injectableMap, injectableIdsByInjectionToken }) =>
+  alias => {
+    const idSetForInjectablesHavingInjectionToken =
+      injectableIdsByInjectionToken.get(alias.id);
+
+    const idsForInjectablesHavingInjectionToken =
+      idSetForInjectablesHavingInjectionToken
+        ? [...idSetForInjectablesHavingInjectionToken.values()]
+        : [];
+
+    return idsForInjectablesHavingInjectionToken.map(injectableId =>
+      injectableMap.get(injectableId),
+    );
+  };
+
+const getRelatedInjectablesFor =
+  ({ injectableMap, getInjectablesHavingInjectionToken }) =>
+  alias => {
+    const injectable = injectableMap.get(alias.id);
+
+    const injectablesHavingInjectionToken = getInjectablesHavingInjectionToken(
+      alias,
+    ).filter(x => x.id !== alias.id);
+
+    return injectable
+      ? [injectable, ...injectablesHavingInjectionToken]
+      : injectablesHavingInjectionToken;
+  };
 
 const getInstance = ({
   di,
   injectable: injectableToBeInstantiated,
   instantiationParameter,
   context: oldContext,
-  injectableMap,
+  instancesByInjectableMap,
   injectableAndRegistrationContext,
 }) => {
   const newContext = [
@@ -302,7 +353,9 @@ const getInstance = ({
     );
   }
 
-  const instanceMap = injectableMap.get(injectableToBeInstantiated.id);
+  const instanceMap = instancesByInjectableMap.get(
+    injectableToBeInstantiated.id,
+  );
 
   const minimalDi = {
     inject: (alias, parameter) => di.inject(alias, parameter, newContext),
@@ -348,7 +401,7 @@ const getInstance = ({
 
   const newInstance = instantiateWithDecorators(
     minimalDi,
-    ...(isUndefined(instantiationParameter) ? [] : [instantiationParameter]),
+    ...(instantiationParameter === undefined ? [] : [instantiationParameter]),
   );
 
   if (instanceKey !== nonStoredInstanceKey) {
@@ -439,20 +492,10 @@ const withInjectionDecoratorsFor =
     return decorated(alias, ...args);
   };
 
-const isGlobalDecorator = not(has('target'));
+const isRelevantDecoratorFor = injectable => decorator =>
+  !decorator.target || isRelatedTo(decorator.target)(injectable);
 
-const isTargetedDecoratorFor = injectable => alias =>
-  isRelatedTo(alias.target)(injectable);
-
-const isRelevantDecoratorFor = injectable =>
-  overSome([isGlobalDecorator, isTargetedDecoratorFor(injectable)]);
-
-const checkForNoMatches = (injectables, alias, context) => {
-  const relatedInjectables = getRelatedInjectables({
-    injectables,
-    alias,
-  });
-
+const checkForNoMatches = (relatedInjectables, alias, context) => {
   if (relatedInjectables.length === 0) {
     const errorContextString = [...context, { injectable: { id: alias.id } }]
       .map(x => x.injectable.id)
@@ -464,12 +507,7 @@ const checkForNoMatches = (injectables, alias, context) => {
   }
 };
 
-const checkForTooManyMatches = (injectables, alias) => {
-  const relatedInjectables = getRelatedInjectables({
-    injectables,
-    alias,
-  });
-
+const checkForTooManyMatches = (relatedInjectables, alias) => {
   if (relatedInjectables.length > 1) {
     throw new Error(
       `Tried to inject single injectable for injection token "${

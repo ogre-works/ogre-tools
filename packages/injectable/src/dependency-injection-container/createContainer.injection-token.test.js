@@ -32,6 +32,22 @@ describe('createContainer.injection-token', () => {
     );
   });
 
+  it('given injection token and injectable with same ID, when injecting, does not throw', () => {
+    const di = createContainer('some-container');
+
+    const someInjectionToken = getInjectionToken({ id: 'some-id' });
+
+    const someInjectable = getInjectable({
+      id: 'some-id',
+      injectionToken: someInjectionToken,
+      instantiate: () => {},
+    });
+
+    di.register(someInjectable);
+
+    expect(() => di.inject(someInjectionToken)).not.toThrow();
+  });
+
   it('given multiple sync injectables with shared injection token, when injecting many using the token, injects all injectables with the shared token', () => {
     const someSharedInjectionToken = getInjectionToken({
       id: 'some-injection-token',
