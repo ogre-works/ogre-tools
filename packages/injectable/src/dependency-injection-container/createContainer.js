@@ -174,9 +174,7 @@ export default containerId => {
 
         const injectableIdSet = injectableIdsByInjectionToken.get(tokenId);
 
-        if (injectableIdSet) {
-          injectableIdSet.delete(alias.id);
-        }
+        injectableIdSet.delete(alias.id);
       }
 
       overridingInjectables.delete(alias.id);
