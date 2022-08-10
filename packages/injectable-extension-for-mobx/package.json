@@ -1,7 +1,7 @@
 {
   "name": "@ogre-tools/injectable-extension-for-mobx",
   "private": false,
-  "version": "9.0.1",
+  "version": "9.0.2",
   "description": "MobX support for Injectable in Ogre Tools",
   "repository": {
     "type": "git",
@@ -15,8 +15,8 @@
   "author": "Ogre Works",
   "license": "MIT",
   "dependencies": {
-    "@ogre-tools/fp": "^9.0.1",
-    "@ogre-tools/injectable": "^9.0.1",
+    "@ogre-tools/fp": "^9.0.2",
+    "@ogre-tools/injectable": "^9.0.2",
     "lodash": "^4.17.21"
   },
   "peerDependencies": {
