@@ -16,6 +16,7 @@
     "remove-all-package-builds": "find ./packages -name build -type d -prune -exec rm -rfv {} \\;",
     "build-and-publish": "npm run remove-all-package-builds && npm run test-for-ci && npm run build-all-packages && lerna publish --yes && npm run remove-all-package-builds",
     "test": "jest --coverage --coverageReporters=lcov --watch",
+    "test-with-inspector": "node --inspect-brk ./node_modules/.bin/jest --watch --runInBand",
     "test-for-ci": "jest --coverage --coverageReporters=lcov",
     "open-github-in-browser": "open https://github.com/ogre-works/ogre-tools",
     "postinstall": "husky install",
