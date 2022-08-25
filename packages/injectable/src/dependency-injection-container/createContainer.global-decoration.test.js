@@ -1,5 +1,8 @@
 import getInjectable from '../getInjectable/getInjectable';
-import createContainer, { injectionDecoratorToken } from './createContainer';
+import createContainer, {
+  injectionDecoratorToken,
+  registrationDecoratorToken,
+} from './createContainer';
 
 describe('createContainer.global-decoration', () => {
   it('given global decorator and child injectable, when parent is injected, decorates instances and instantiation parameters of both parent and child', () => {
@@ -103,5 +106,143 @@ describe('createContainer.global-decoration', () => {
     expect(actual).toBe(
       'decorated-instance-2(decorated-instance-1(parent(decorated-parameter-1(decorated-parameter-2(some-parameter)))))',
     );
+  });
+
+  it('given a decorator with an overridden dependency, when injecting something that is decorated, decorator uses overriden decorator', () => {
+    const someInjectable = getInjectable({
+      id: 'some-injectable-to-be-decorated',
+
+      instantiate: () => () => 'some-undecorated-value',
+    });
+
+    const dependencyOfDecoratorInjectable = getInjectable({
+      id: 'some-dependency-for-overriding',
+      decorable: false,
+
+      instantiate: () => 'irrelevant',
+    });
+
+    const decoratorInjectable = getInjectable({
+      id: 'some-decorator',
+      injectionToken: injectionDecoratorToken,
+      decorable: false,
+
+      instantiate: di => ({
+        decorate:
+          injectToBeDecorated =>
+          (alias, instantiationParameter, ...args) => {
+            const dependency = di.inject(dependencyOfDecoratorInjectable);
+
+            const functionToBeDecorated = injectToBeDecorated(
+              alias,
+              instantiationParameter,
+              ...args,
+            );
+
+            return (...args2) =>
+              `decorated-with-${dependency}(${functionToBeDecorated(
+                ...args2,
+              )})`;
+          },
+      }),
+    });
+
+    const di = createContainer('some-container');
+
+    di.register(
+      someInjectable,
+      dependencyOfDecoratorInjectable,
+      decoratorInjectable,
+    );
+
+    di.override(dependencyOfDecoratorInjectable, () => 'some-override');
+
+    const someInjectedThing = di.inject(someInjectable);
+
+    const actual = someInjectedThing();
+
+    expect(actual).toBe('decorated-with-some-override(some-undecorated-value)');
+  });
+
+  xit('given a registration decorator, and a decorator with an overridden dependency, when injecting something that is decorated, decorator uses overriden decorator', () => {
+    const someOtherInjectable = getInjectable({
+      id: 'some-other-injectable',
+      instantiate: () => () => 'irrelevant',
+    });
+
+    const someRegistrationDecorator = getInjectable({
+      id: 'some-registration-decorator',
+
+      instantiate: di => {
+        di.inject(someOtherInjectable);
+
+        return toBeDecorated =>
+          (...args) => {
+            console.log(args);
+
+            return toBeDecorated(...args);
+          };
+      },
+
+      injectionToken: registrationDecoratorToken,
+    });
+
+    const someInjectable = getInjectable({
+      id: 'some-injectable-to-be-decorated',
+
+      instantiate: () => () => 'some-undecorated-value',
+    });
+
+    const dependencyOfDecoratorInjectable = getInjectable({
+      id: 'some-dependency-for-overriding',
+      decorable: false,
+
+      instantiate: () => 'irrelevant',
+    });
+
+    const decoratorInjectable = getInjectable({
+      id: 'some-decorator',
+      injectionToken: injectionDecoratorToken,
+      decorable: false,
+
+      instantiate: di => ({
+        decorate:
+          injectToBeDecorated =>
+          (alias, instantiationParameter, ...args) => {
+            const dependency = di.inject(dependencyOfDecoratorInjectable);
+
+            const functionToBeDecorated = injectToBeDecorated(
+              alias,
+              instantiationParameter,
+              ...args,
+            );
+
+            return (...args2) =>
+              `decorated-with-${dependency}(${functionToBeDecorated(
+                ...args2,
+              )})`;
+          },
+      }),
+    });
+
+    const di = createContainer('some-container');
+
+    di.register(someOtherInjectable);
+
+    di.register(someRegistrationDecorator);
+
+    di.register(someInjectable);
+
+    di.register(decoratorInjectable);
+
+    di.register(dependencyOfDecoratorInjectable);
+
+    di.override(dependencyOfDecoratorInjectable, () => 'some-override');
+
+    const someInjectedThing = di.inject(someInjectable);
+
+    const actual = someInjectedThing();
+
+    expect(actual).toBe('decorated-with-some-override(some-undecorated-value)');
   });
 });
