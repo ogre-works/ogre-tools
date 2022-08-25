@@ -1,4 +1,4 @@
-import createContainer from './createContainer';
+import createContainer, { registrationDecoratorToken } from './createContainer';
 import getInjectable from '../getInjectable/getInjectable';
 import { range } from 'lodash/fp';
 import getInjectionToken from '../getInjectionToken/getInjectionToken';
@@ -44,6 +44,48 @@ describe('createContainer.performance', () => {
 
       di.injectMany(someInjectionToken);
 
+      const p2 = performance.now();
+
+      // TODO: Figure out way to make it even faster
+      expect(p2 - p1).toBeLessThan(60);
+    });
+  });
+
+  describe('given registration decorator, when registering', () => {
+    let p1;
+    let p2;
+
+    beforeEach(() => {
+      const someRegistrationDecorator = getInjectable({
+        id: 'some-registration-decorator',
+
+        instantiate:
+          di =>
+          toBeDecorated =>
+          (...args) =>
+            toBeDecorated(...args),
+
+        injectionToken: registrationDecoratorToken,
+      });
+
+      di.register(someRegistrationDecorator);
+
+      p1 = performance.now();
+
+      di.register(...injectables);
+
+      p2 = performance.now();
+    });
+
+    it('is quick enough', () => {
+      // TODO: Figure out way to make it even faster
+      expect(p2 - p1).toBeLessThan(20);
+    });
+
+    it('when injecting, is quick enough', () => {
+      const p1 = performance.now();
+
+      di.injectMany(someInjectionToken);
       const p2 = performance.now();
 
       // TODO: Figure out way to make it even faster
