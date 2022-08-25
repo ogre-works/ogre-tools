@@ -3,6 +3,20 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+### [9.0.3](https://github.com/ogre-works/ogre-tools/compare/v9.0.2...v9.0.3) (2022-08-25)
+
+
+### Bug Fixes
+
+* Make injectable-react not break React reconciliation when using async dependencies ([049c84a](https://github.com/ogre-works/ogre-tools/commit/049c84a022ed18e14cd6b1d0a8ad7358ccec8640))
+
+
+### Reverts
+
+* Revert "chore: Change to using v8 coverage provider for babel misbehaving" ([4fb612b](https://github.com/ogre-works/ogre-tools/commit/4fb612be9fcbda37333e51cea75d3c6ab5767b30))
+
+
+
 ### [9.0.2](https://github.com/ogre-works/ogre-tools/compare/v9.0.1...v9.0.2) (2022-08-10)
 
 **Note:** Version bump only for package ogre-tools
