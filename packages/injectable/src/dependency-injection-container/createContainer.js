@@ -101,42 +101,40 @@ export default containerId => {
     nonDecoratedPrivateInjectMany,
   );
 
-  const nonDecoratedRegister = (...externalInjectables) => {
-    externalInjectables.forEach(externalInjectable => {
-      let injectableId = externalInjectable.id;
+  const nonDecoratedRegisterSingle = externalInjectable => {
+    let injectableId = externalInjectable.id;
 
-      if (!injectableId) {
-        throw new Error('Tried to register injectable without ID.');
-      }
+    if (!injectableId) {
+      throw new Error('Tried to register injectable without ID.');
+    }
 
-      if (injectableMap.has(injectableId)) {
-        throw new Error(
-          `Tried to register multiple injectables for ID "${injectableId}"`,
-        );
-      }
+    if (injectableMap.has(injectableId)) {
+      throw new Error(
+        `Tried to register multiple injectables for ID "${injectableId}"`,
+      );
+    }
 
-      const internalInjectable = {
-        ...externalInjectable,
+    const internalInjectable = {
+      ...externalInjectable,
 
-        permitSideEffects: function () {
-          this.causesSideEffects = false;
-        },
-      };
+      permitSideEffects: function () {
+        this.causesSideEffects = false;
+      },
+    };
 
-      injectableMap.set(internalInjectable.id, internalInjectable);
-      instancesByInjectableMap.set(internalInjectable.id, new Map());
+    injectableMap.set(internalInjectable.id, internalInjectable);
+    instancesByInjectableMap.set(internalInjectable.id, new Map());
 
-      if (externalInjectable.injectionToken) {
-        const tokenId = externalInjectable.injectionToken.id;
+    if (externalInjectable.injectionToken) {
+      const tokenId = externalInjectable.injectionToken.id;
 
-        const injectableIdsSet =
-          injectableIdsByInjectionToken.get(tokenId) || new Set();
+      const injectableIdsSet =
+        injectableIdsByInjectionToken.get(tokenId) || new Set();
 
-        injectableIdsSet.add(injectableId);
+      injectableIdsSet.add(injectableId);
 
-        injectableIdsByInjectionToken.set(tokenId, injectableIdsSet);
-      }
-    });
+      injectableIdsByInjectionToken.set(tokenId, injectableIdsSet);
+    }
   };
 
   const purgeInstances = alias => {
@@ -145,43 +143,45 @@ export default containerId => {
     instancesByInjectableMap.get(injectable.id).clear();
   };
 
-  const nonDecoratedDeregister = (...aliases) => {
-    aliases.forEach(alias => {
-      const relatedInjectable = injectableMap.get(alias.id);
+  const nonDecoratedDeregisterSingle = alias => {
+    const relatedInjectable = injectableMap.get(alias.id);
 
-      if (!relatedInjectable) {
-        throw new Error(
-          `Tried to deregister non-registered injectable "${alias.id}".`,
-        );
-      }
+    if (!relatedInjectable) {
+      throw new Error(
+        `Tried to deregister non-registered injectable "${alias.id}".`,
+      );
+    }
 
-      [...injectableAndRegistrationContext.entries()]
-        .filter(([, context]) =>
-          context.find(contextItem => contextItem.injectable.id === alias.id),
-        )
-        .map(x => x[0])
-        .forEach(injectable => {
-          injectableAndRegistrationContext.delete(injectable);
-          privateDi.deregister(injectable);
-        });
+    [...injectableAndRegistrationContext.entries()]
+      .filter(([, context]) =>
+        context.find(contextItem => contextItem.injectable.id === alias.id),
+      )
+      .map(x => x[0])
+      .forEach(injectable => {
+        injectableAndRegistrationContext.delete(injectable);
+        privateDi.deregister(injectable);
+      });
 
-      purgeInstances(alias);
+    purgeInstances(alias);
 
-      injectableMap.delete(alias.id);
+    injectableMap.delete(alias.id);
 
-      if (alias.injectionToken) {
-        const tokenId = alias.injectionToken.id;
+    if (alias.injectionToken) {
+      const tokenId = alias.injectionToken.id;
 
-        const injectableIdSet = injectableIdsByInjectionToken.get(tokenId);
+      const injectableIdSet = injectableIdsByInjectionToken.get(tokenId);
 
-        injectableIdSet.delete(alias.id);
-      }
+      injectableIdSet.delete(alias.id);
+    }
 
-      overridingInjectables.delete(alias.id);
-    });
+    overridingInjectables.delete(alias.id);
   };
 
-  const register = withRegistrationDecorators(nonDecoratedRegister);
+  const registerSingle = withRegistrationDecorators(nonDecoratedRegisterSingle);
+
+  const deregisterSingle = withDeregistrationDecorators(
+    nonDecoratedDeregisterSingle,
+  );
 
   const decorate = (alias, decorator) => {
     const decoratorInjectable = getInjectable({
@@ -195,7 +195,7 @@ export default containerId => {
       }),
     });
 
-    register(decoratorInjectable);
+    registerSingle(decoratorInjectable);
   };
 
   const privateDi = {
@@ -203,9 +203,15 @@ export default containerId => {
 
     injectMany: decoratedPrivateInjectMany,
 
-    register,
+    register: (...injectables) =>
+      injectables.forEach(injectable => {
+        registerSingle(injectable);
+      }),
 
-    deregister: withDeregistrationDecorators(nonDecoratedDeregister),
+    deregister: (...injectables) =>
+      injectables.forEach(injectable => {
+        deregisterSingle(injectable);
+      }),
 
     decorate,
 
@@ -430,25 +436,21 @@ export const injectionDecoratorToken = getInjectionToken({
 });
 
 const withRegistrationDecoratorsFor =
-  injectMany =>
-  toBeDecorated =>
-  (...injectables) => {
+  injectMany => toBeDecorated => injectable => {
     const decorators = injectMany(registrationDecoratorToken);
 
     const decorated = flow(...decorators)(toBeDecorated);
 
-    decorated(...injectables);
+    decorated(injectable);
   };
 
 const withDeregistrationDecoratorsFor =
-  injectMany =>
-  toBeDecorated =>
-  (...injectables) => {
+  injectMany => toBeDecorated => injectable => {
     const decorators = injectMany(deregistrationDecoratorToken);
 
     const decorated = flow(...decorators)(toBeDecorated);
 
-    decorated(...injectables);
+    decorated(injectable);
   };
 
 const withInstantiationDecoratorsFor = ({ injectMany, injectable }) => {
