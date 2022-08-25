@@ -18,60 +18,62 @@ const componentNameMapInjectable = getInjectable({
 });
 
 export default (Component, { getPlaceholder = constant(null), getProps }) =>
-  React.forwardRef((props, ref) => (
-    <DiContextConsumer>
-      {({ di }) => {
-        const componentNameMap = di.inject(componentNameMapInjectable);
+  React.memo(
+    React.forwardRef((props, ref) => (
+      <DiContextConsumer>
+        {({ di }) => {
+          const componentNameMap = di.inject(componentNameMapInjectable);
 
-        if (!componentNameMap.has(Component)) {
-          componentNameMap.set(
-            Component,
-            Component.displayName ||
-              Component.name ||
-              `anonymous-component-${componentNameMap.size}`,
+          if (!componentNameMap.has(Component)) {
+            componentNameMap.set(
+              Component,
+              Component.displayName ||
+                Component.name ||
+                `anonymous-component-${componentNameMap.size}`,
+            );
+          }
+
+          const componentContext = {
+            injectable: {
+              id: componentNameMap.get(Component),
+              lifecycle: lifecycleEnum.transient,
+            },
+          };
+
+          const diForComponentContext = {
+            inject: (alias, parameter) =>
+              di.inject(alias, parameter, componentContext),
+
+            injectMany: (injectionToken, parameter) =>
+              di.injectMany(injectionToken, parameter, componentContext),
+          };
+
+          const maybeAsyncProps = getProps(diForComponentContext, props);
+          const refProps = ref ? { ref } : {};
+
+          if (!isPromise(maybeAsyncProps)) {
+            return <Component {...refProps} {...maybeAsyncProps} />;
+          }
+
+          const observablePropsPromise = getObservablePromise(maybeAsyncProps);
+
+          return (
+            <Observer>
+              {() => {
+                const syncProps = observablePropsPromise.value;
+
+                if (!syncProps) {
+                  return getPlaceholder();
+                }
+
+                return <Component {...refProps} {...syncProps} />;
+              }}
+            </Observer>
           );
-        }
-
-        const componentContext = {
-          injectable: {
-            id: componentNameMap.get(Component),
-            lifecycle: lifecycleEnum.transient,
-          },
-        };
-
-        const diForComponentContext = {
-          inject: (alias, parameter) =>
-            di.inject(alias, parameter, componentContext),
-
-          injectMany: (injectionToken, parameter) =>
-            di.injectMany(injectionToken, parameter, componentContext),
-        };
-
-        const maybeAsyncProps = getProps(diForComponentContext, props);
-        const refProps = ref ? { ref } : {};
-
-        if (!isPromise(maybeAsyncProps)) {
-          return <Component {...refProps} {...maybeAsyncProps} />;
-        }
-
-        const observablePropsPromise = getObservablePromise(maybeAsyncProps);
-
-        return (
-          <Observer>
-            {() => {
-              const syncProps = observablePropsPromise.value;
-
-              if (!syncProps) {
-                return getPlaceholder();
-              }
-
-              return <Component {...refProps} {...syncProps} />;
-            }}
-          </Observer>
-        );
-      }}
-    </DiContextConsumer>
-  ));
+        }}
+      </DiContextConsumer>
+    )),
+  );
 
 const getObservablePromise = asyncValue => {
   const observableObject = observable({ value: null }, null, {

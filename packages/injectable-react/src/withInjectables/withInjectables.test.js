@@ -12,6 +12,8 @@ import {
 import withInjectables from './withInjectables';
 import asyncFn from '@async-fn/jest';
 import { DiContextProvider } from '@ogre-tools/injectable-react';
+import { observable, runInAction } from 'mobx';
+import { observer } from 'mobx-react';
 
 const flushPromises = () => new Promise(flushMicroTasks);
 
@@ -38,6 +40,108 @@ describe('withInjectables', () => {
     di = createContainer('some-container');
 
     mount = mountFor(di);
+  });
+
+  it('given async dependency, placeholder and parent component, when parent component rerenders, does not remount component with the dependency', async () => {
+    const componentDidMountMock = jest.fn();
+
+    const injectable = getInjectable({
+      id: 'some-injectable-id',
+      instantiate: async () => await Promise.resolve('some-injectable-value'),
+    });
+
+    di.register(injectable);
+
+    class DumbTestComponent extends React.Component {
+      componentDidMount() {
+        componentDidMountMock();
+      }
+
+      render() {
+        let { someDependency, ...props } = this.props;
+
+        return <div {...props}>Some content: "{someDependency}"</div>;
+      }
+    }
+
+    const SmartTestComponent = withInjectables(DumbTestComponent, {
+      getPlaceholder: () => <div />,
+
+      getProps: async (di, props) => ({
+        someDependency: await di.inject(injectable),
+        ...props,
+      }),
+    });
+
+    const SomeParentComponent = observer(({ someObservable }) => (
+      <div>
+        {someObservable.get()}
+
+        <SmartTestComponent data-some-prop-test />
+      </div>
+    ));
+
+    const someObservable = observable.box('some-value');
+
+    mount(<SomeParentComponent someObservable={someObservable} />);
+
+    await flushPromises();
+
+    runInAction(() => {
+      someObservable.set('some-other-value');
+    });
+
+    await flushPromises();
+
+    expect(componentDidMountMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('given sync dependency and parent component, when parent component rerenders, does not remount component with the dependency', () => {
+    const componentDidMountMock = jest.fn();
+
+    const injectable = getInjectable({
+      id: 'some-injectable-id',
+      instantiate: () => 'some-injectable-value',
+    });
+
+    di.register(injectable);
+
+    class DumbTestComponent extends React.Component {
+      componentDidMount() {
+        componentDidMountMock();
+      }
+
+      render() {
+        let { someDependency, ...props } = this.props;
+
+        return <div {...props}>Some content: "{someDependency}"</div>;
+      }
+    }
+
+    const SmartTestComponent = withInjectables(DumbTestComponent, {
+      getProps: (di, props) => ({
+        someDependency: di.inject(injectable),
+        ...props,
+      }),
+    });
+
+    const SomeParentComponent = observer(({ someObservable }) => (
+      <div>
+        {someObservable.get()}
+
+        <SmartTestComponent data-some-prop-test />
+      </div>
+    ));
+
+    const someObservable = observable.box('some-value');
+
+    mount(<SomeParentComponent someObservable={someObservable} />);
+
+    runInAction(() => {
+      someObservable.set('some-other-value');
+    });
+
+    expect(componentDidMountMock).toHaveBeenCalledTimes(1);
   });
 
   it('given component and sync dependencies, when rendered, renders with dependencies', () => {
