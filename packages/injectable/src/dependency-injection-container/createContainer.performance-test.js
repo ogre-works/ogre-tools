@@ -6,7 +6,7 @@ import getInjectionToken from '../getInjectionToken/getInjectionToken';
 const performance = require('perf_hooks').performance;
 
 // Note: To be used for optimizing performance
-describe.skip('createContainer.performance', () => {
+describe('createContainer.performance', () => {
   let injectables;
   let di;
 
