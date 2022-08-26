@@ -6,7 +6,6 @@ import {
 } from '@ogre-tools/injectable';
 
 import { computed, createAtom, runInAction, _getGlobalState } from 'mobx';
-import uniq from 'lodash/fp/uniq';
 
 const invalidabilityForReactiveInstances = getInjectable({
   id: 'invalidability-for-reactive-instances',
@@ -20,39 +19,26 @@ const invalidabilityForReactiveInstances = getInjectable({
 });
 
 const getInvalidatorInstance =
-  registerOrDeregister =>
-  di =>
-  registerToBeDecorated =>
-  (...injectables) => {
+  registerOrDeregister => di => registerToBeDecorated => injectable => {
     const { inBatch } = _getGlobalState();
     if (inBatch === 0) {
       throw new Error(
-        `Tried to ${registerOrDeregister} injectables "${injectables
-          .map(x => x.id)
-          .join(
-            '", ',
-          )}" outside of MobX-transaction, as without computedInjectMany could cause untimely observations and injections`,
+        `Tried to ${registerOrDeregister} injectables "${injectable.id}" outside of MobX-transaction, as without computedInjectMany could cause untimely observations and injections`,
       );
     }
 
-    const registered = registerToBeDecorated(...injectables);
+    registerToBeDecorated(injectable);
 
-    const injectionTokens = injectables
-      .filter(injectable => injectable.injectionToken)
-      .map(injectable => injectable.injectionToken);
+    if (!injectable.injectionToken) {
+      return;
+    }
 
-    const uniqueInjectionTokens = uniq(injectionTokens);
+    const mobxAtomForToken = di.inject(
+      invalidabilityForReactiveInstances,
+      injectable.injectionToken,
+    );
 
-    uniqueInjectionTokens.forEach(injectionToken => {
-      const mobxAtomForToken = di.inject(
-        invalidabilityForReactiveInstances,
-        injectionToken,
-      );
-
-      mobxAtomForToken.reportChanged();
-    });
-
-    return registered;
+    mobxAtomForToken.reportChanged();
   };
 
 const invalidateReactiveInstancesOnRegisterDecorator = getInjectable({
