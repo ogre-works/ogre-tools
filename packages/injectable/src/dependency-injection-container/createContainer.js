@@ -1,4 +1,4 @@
-import flow from 'lodash/fp/flow';
+import flow from './fastFlow';
 import getInjectionToken from '../getInjectionToken/getInjectionToken';
 import { nonStoredInstanceKey } from './lifecycleEnum';
 import getInjectable from '../getInjectable/getInjectable';
