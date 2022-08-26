@@ -1,3 +1,4 @@
+import { computed, configure, observe, runInAction } from 'mobx';
 import {
   createContainer,
   getInjectable,
@@ -9,8 +10,6 @@ import {
   computedInjectManyInjectable,
   registerMobX,
 } from './computedInjectMany';
-
-import { computed, configure, observe } from 'mobx';
 
 configure({
   enforceActions: 'always',
@@ -81,7 +80,7 @@ describe('registerMobx', () => {
       registerMobX(di);
     });
 
-    describe('given observed as computedInjectMany, when registered', () => {
+    describe('given in reactive context and observed as computedInjectMany, when multiple injectables that implement the injection token are registered', () => {
       beforeEach(() => {
         const computedInjectMany = di.inject(computedInjectManyInjectable);
 
@@ -96,7 +95,9 @@ describe('registerMobx', () => {
           },
         );
 
-        di.register(someInjectable, someOtherInjectable);
+        runInAction(() => {
+          di.register(someInjectable, someOtherInjectable);
+        });
       });
 
       it('injects reactive instances', () => {
@@ -131,7 +132,9 @@ describe('registerMobx', () => {
           injectionToken: someFirstInjectionToken,
         });
 
-        di.register(someIrrelevantInjectable, someAnotherInjectable);
+        runInAction(() => {
+          di.register(someIrrelevantInjectable, someAnotherInjectable);
+        });
 
         expect(reactiveInstances).toEqual([
           'some-instance',
@@ -146,9 +149,13 @@ describe('registerMobx', () => {
           instantiate: () => 'irrelevant',
         });
 
-        di.register(someIrrelevantInjectable);
+        runInAction(() => {
+          di.register(someIrrelevantInjectable);
+        });
 
-        di.deregister(someIrrelevantInjectable, someOtherInjectable);
+        runInAction(() => {
+          di.deregister(someIrrelevantInjectable, someOtherInjectable);
+        });
 
         expect(reactiveInstances).toEqual(['some-instance']);
       });
@@ -168,7 +175,9 @@ describe('registerMobx', () => {
 
         reactionCountForFirstToken = 0;
 
-        di.register(someNewInjectable1, someNewInjectable2);
+        runInAction(() => {
+          di.register(someNewInjectable1, someNewInjectable2);
+        });
 
         expect(reactionCountForFirstToken).toBe(1);
       });
@@ -201,7 +210,9 @@ describe('registerMobx', () => {
 
           reactionCountForFirstToken = 0;
 
-          di.register(someInjectableForSecondInjectionToken);
+          runInAction(() => {
+            di.register(someInjectableForSecondInjectionToken);
+          });
         });
 
         it('injects only related implementations', () => {
@@ -214,6 +225,26 @@ describe('registerMobx', () => {
           expect(reactionCountForFirstToken).toBe(0);
         });
       });
+    });
+
+    it('given not in reactive context, when any injectable is registered, throws', () => {
+      expect(() => {
+        di.register(someInjectable);
+      }).toThrow(
+        'Tried to register injectables "some-injectable" outside of MobX-transaction, as without computedInjectMany could cause untimely observations and injections',
+      );
+    });
+
+    it('given registered injectable, and no longer in reactive context, when the injectable is deregistered, throws', () => {
+      runInAction(() => {
+        di.register(someInjectable);
+      });
+
+      expect(() => {
+        di.deregister(someInjectable);
+      }).toThrow(
+        'Tried to deregister injectables "some-injectable" outside of MobX-transaction, as without computedInjectMany could cause untimely observations and injections',
+      );
     });
 
     describe('given nested injection token and implementations, when injected as reactive', () => {
@@ -266,7 +297,9 @@ describe('registerMobx', () => {
           },
         );
 
-        di.register(someRootInjectable, someInjectable, someOtherInjectable);
+        runInAction(() => {
+          di.register(someRootInjectable, someInjectable, someOtherInjectable);
+        });
       });
 
       it('observes root and nested values', () => {

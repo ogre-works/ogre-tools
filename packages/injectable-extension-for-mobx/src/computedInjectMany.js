@@ -5,7 +5,7 @@ import {
   registrationDecoratorToken,
 } from '@ogre-tools/injectable';
 
-import { computed, createAtom, runInAction } from 'mobx';
+import { computed, createAtom, runInAction, _getGlobalState } from 'mobx';
 import uniq from 'lodash/fp/uniq';
 
 const invalidabilityForReactiveInstances = getInjectable({
@@ -20,9 +20,21 @@ const invalidabilityForReactiveInstances = getInjectable({
 });
 
 const getInvalidatorInstance =
+  registerOrDeregister =>
   di =>
   registerToBeDecorated =>
   (...injectables) => {
+    const { inBatch } = _getGlobalState();
+    if (inBatch === 0) {
+      throw new Error(
+        `Tried to ${registerOrDeregister} injectables "${injectables
+          .map(x => x.id)
+          .join(
+            '", ',
+          )}" outside of MobX-transaction, as without computedInjectMany could cause untimely observations and injections`,
+      );
+    }
+
     const registered = registerToBeDecorated(...injectables);
 
     const injectionTokens = injectables
@@ -31,15 +43,13 @@ const getInvalidatorInstance =
 
     const uniqueInjectionTokens = uniq(injectionTokens);
 
-    runInAction(() => {
-      uniqueInjectionTokens.forEach(injectionToken => {
-        const mobxAtomForToken = di.inject(
-          invalidabilityForReactiveInstances,
-          injectionToken,
-        );
+    uniqueInjectionTokens.forEach(injectionToken => {
+      const mobxAtomForToken = di.inject(
+        invalidabilityForReactiveInstances,
+        injectionToken,
+      );
 
-        mobxAtomForToken.reportChanged();
-      });
+      mobxAtomForToken.reportChanged();
     });
 
     return registered;
@@ -48,7 +58,7 @@ const getInvalidatorInstance =
 const invalidateReactiveInstancesOnRegisterDecorator = getInjectable({
   id: 'invalidate-reactive-instances-on-register',
 
-  instantiate: getInvalidatorInstance,
+  instantiate: getInvalidatorInstance('register'),
 
   injectionToken: registrationDecoratorToken,
 });
@@ -56,7 +66,7 @@ const invalidateReactiveInstancesOnRegisterDecorator = getInjectable({
 const invalidateReactiveInstancesOnDeregisterDecorator = getInjectable({
   id: 'invalidate-reactive-instances-on-deregister',
 
-  instantiate: getInvalidatorInstance,
+  instantiate: getInvalidatorInstance('deregister'),
 
   injectionToken: deregistrationDecoratorToken,
 });
@@ -96,11 +106,13 @@ const reactiveInstancesInjectable = getInjectable({
 });
 
 export const registerMobX = di => {
-  di.register(
-    invalidateReactiveInstancesOnRegisterDecorator,
-    invalidateReactiveInstancesOnDeregisterDecorator,
-    computedInjectManyInjectable,
-    invalidabilityForReactiveInstances,
-    reactiveInstancesInjectable,
-  );
+  runInAction(() => {
+    di.register(
+      invalidabilityForReactiveInstances,
+      reactiveInstancesInjectable,
+      computedInjectManyInjectable,
+      invalidateReactiveInstancesOnRegisterDecorator,
+      invalidateReactiveInstancesOnDeregisterDecorator,
+    );
+  });
 };
