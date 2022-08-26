@@ -235,6 +235,25 @@ describe('registerMobx', () => {
       );
     });
 
+    it('given not in reactive context, when an injectable is late-registered, throws', () => {
+      const lateRegistratorInjectable = getInjectable({
+        id: 'some-late-registrator',
+        instantiate: di => injectable => di.register(injectable),
+      });
+
+      runInAction(() => {
+        di.register(lateRegistratorInjectable);
+      });
+
+      const lateRegister = di.inject(lateRegistratorInjectable);
+
+      expect(() => {
+        lateRegister(someInjectable);
+      }).toThrow(
+        'Tried to register injectables "some-injectable" outside of MobX-transaction, as without computedInjectMany could cause untimely observations and injections',
+      );
+    });
+
     it('given registered injectable, and no longer in reactive context, when the injectable is deregistered, throws', () => {
       runInAction(() => {
         di.register(someInjectable);
