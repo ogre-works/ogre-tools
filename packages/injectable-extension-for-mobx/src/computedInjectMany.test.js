@@ -227,15 +227,15 @@ describe('registerMobx', () => {
       });
     });
 
-    it('given not in reactive context, when any injectable is registered, throws', () => {
+    it('given not in reactive context, when an injectable with injection token is registered, throws', () => {
       expect(() => {
         di.register(someInjectable);
       }).toThrow(
-        'Tried to register injectables "some-injectable" outside of MobX-transaction, as without computedInjectMany could cause untimely observations and injections',
+        'Tried to register injectable "some-injectable" having an injection token outside of MobX-transaction. Transaction is required, as otherwise usages of computedInjectMany could observe untimely invalidations.',
       );
     });
 
-    it('given not in reactive context, when an injectable is late-registered, throws', () => {
+    it('given not in reactive context, when an injectable without injection token is late-registered, does not throw', () => {
       const lateRegistratorInjectable = getInjectable({
         id: 'some-late-registrator',
         instantiate: di => injectable => di.register(injectable),
@@ -248,9 +248,30 @@ describe('registerMobx', () => {
       const lateRegister = di.inject(lateRegistratorInjectable);
 
       expect(() => {
+        delete someInjectable.injectionToken;
+        lateRegister(someInjectable);
+      }).not.toThrow();
+    });
+
+    it('given not in reactive context, when an injectable with injection token is late-registered, throws', () => {
+      const injectionToken = getInjectionToken({ id: 'some-injection-token' });
+
+      const lateRegistratorInjectable = getInjectable({
+        id: 'some-late-registrator',
+        instantiate: di => injectable => di.register(injectable),
+        injectionToken,
+      });
+
+      runInAction(() => {
+        di.register(lateRegistratorInjectable);
+      });
+
+      const lateRegister = di.inject(lateRegistratorInjectable);
+
+      expect(() => {
         lateRegister(someInjectable);
       }).toThrow(
-        'Tried to register injectables "some-injectable" outside of MobX-transaction, as without computedInjectMany could cause untimely observations and injections',
+        'Tried to register injectable "some-injectable" having an injection token outside of MobX-transaction. Transaction is required, as otherwise usages of computedInjectMany could observe untimely invalidations.',
       );
     });
 
@@ -262,7 +283,7 @@ describe('registerMobx', () => {
       expect(() => {
         di.deregister(someInjectable);
       }).toThrow(
-        'Tried to deregister injectables "some-injectable" outside of MobX-transaction, as without computedInjectMany could cause untimely observations and injections',
+        'Tried to deregister injectable "some-injectable" having an injection token outside of MobX-transaction. Transaction is required, as otherwise usages of computedInjectMany could observe untimely invalidations.',
       );
     });
 

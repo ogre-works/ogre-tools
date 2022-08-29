@@ -21,9 +21,10 @@ const invalidabilityForReactiveInstances = getInjectable({
 const getInvalidatorInstance =
   registerOrDeregister => di => registerToBeDecorated => injectable => {
     const { inBatch } = _getGlobalState();
-    if (inBatch === 0) {
+
+    if (inBatch === 0 && !!injectable.injectionToken) {
       throw new Error(
-        `Tried to ${registerOrDeregister} injectables "${injectable.id}" outside of MobX-transaction, as without computedInjectMany could cause untimely observations and injections`,
+        `Tried to ${registerOrDeregister} injectable "${injectable.id}" having an injection token outside of MobX-transaction. Transaction is required, as otherwise usages of computedInjectMany could observe untimely invalidations.`,
       );
     }
 
