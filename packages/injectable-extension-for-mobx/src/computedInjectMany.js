@@ -7,6 +7,10 @@ import {
 
 import { computed, createAtom, runInAction, _getGlobalState } from 'mobx';
 
+export const isInternalOfComputedInjectMany = Symbol(
+  'isInternalOfComputedInjectMany',
+);
+
 const invalidabilityForReactiveInstances = getInjectable({
   id: 'invalidability-for-reactive-instances',
 
@@ -16,6 +20,10 @@ const invalidabilityForReactiveInstances = getInjectable({
   lifecycle: lifecycleEnum.keyedSingleton({
     getInstanceKey: (_, injectable) => injectable,
   }),
+
+  [isInternalOfComputedInjectMany]: true,
+
+  decorable: false,
 });
 
 const getInvalidatorInstance =
@@ -44,18 +52,18 @@ const getInvalidatorInstance =
 
 const invalidateReactiveInstancesOnRegisterDecorator = getInjectable({
   id: 'invalidate-reactive-instances-on-register',
-
   instantiate: getInvalidatorInstance('register'),
-
   injectionToken: registrationDecoratorToken,
+  [isInternalOfComputedInjectMany]: true,
+  decorable: false,
 });
 
 const invalidateReactiveInstancesOnDeregisterDecorator = getInjectable({
   id: 'invalidate-reactive-instances-on-deregister',
-
   instantiate: getInvalidatorInstance('deregister'),
-
   injectionToken: deregistrationDecoratorToken,
+  [isInternalOfComputedInjectMany]: true,
+  decorable: false,
 });
 
 export const computedInjectManyInjectable = getInjectable({

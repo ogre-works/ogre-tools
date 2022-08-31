@@ -4,10 +4,12 @@ import {
   getInjectable,
   getInjectionToken,
   injectionDecoratorToken,
+  instantiationDecoratorToken,
 } from '@ogre-tools/injectable';
 
 import {
   computedInjectManyInjectable,
+  isInternalOfComputedInjectMany,
   registerMobX,
 } from './computedInjectMany';
 
@@ -285,6 +287,37 @@ describe('registerMobx', () => {
       }).toThrow(
         'Tried to deregister injectable "some-injectable" having an injection token outside of MobX-transaction. Transaction is required, as otherwise usages of computedInjectMany could observe untimely invalidations.',
       );
+    });
+
+    it('given an injection decorator, when an injectable is registered and deregistered, does not decorate internals of computedInjectMany because injects between registrations can happen too early', () => {
+      const someDecorator = getInjectable({
+        id: 'some-decorator',
+
+        instantiate: () => ({
+          decorate:
+            toBeDecorated =>
+            (injectable, ...args) => {
+              if (injectable[isInternalOfComputedInjectMany] === true) {
+                throw new Error(
+                  `Tried to decorate an internal of computedInjectMany: "${injectable.id}"`,
+                );
+              }
+
+              return toBeDecorated(injectable, ...args);
+            },
+        }),
+
+        decorable: false,
+
+        injectionToken: injectionDecoratorToken,
+      });
+
+      runInAction(() => {
+        di.register(someDecorator);
+
+        di.register(someInjectable);
+        di.deregister(someInjectable);
+      });
     });
 
     describe('given nested injection token and implementations, when injected as reactive', () => {
