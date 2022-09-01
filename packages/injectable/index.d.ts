@@ -48,6 +48,8 @@ export interface Injectable<
   injectionToken?: InjectionToken<InjectionTokenInstance, InstantiationParam>;
   instantiate: Instantiate<InjectionInstance, InstantiationParam>;
   lifecycle: ILifecycle<InstantiationParam>;
+  decorable?: boolean;
+  tags?: any[];
 }
 
 type InjectableLifecycle<InstantiationParam> = InstantiationParam extends void
@@ -117,11 +119,17 @@ interface InjectMany {
   ): InjectionInstance[];
 }
 
+interface ContextItem {
+  injectable: Injectable<any, any, any>;
+  instantiationParameter: unknown;
+}
+
 export interface DiContainerForInjection {
   inject: Inject;
   injectMany: InjectMany;
   register(...injectables: Injectable<any, any, any>[]): void;
   deregister(...injectables: Injectable<any, any, any>[]): void;
+  context: ContextItem[];
 }
 
 export interface ILifecycle<InstantiationParam> {
@@ -144,5 +152,19 @@ export const lifecycleEnum: {
     getInstanceKey: (di: DiContainer) => typeof nonStoredInstanceKey;
   };
 };
+
+type Decorator = InjectionToken<
+  { decorate: (toBeDecorated) => typeof toBeDecorated },
+  unknown
+>;
+
+type TargetableDecorator = Decorator & {
+  target?: Injectable<any, any, any> | InjectionToken<any, any>;
+};
+
+export const injectionDecoratorToken: TargetableDecorator;
+export const instantiationDecoratorToken: TargetableDecorator;
+export const registrationDecoratorToken: Decorator;
+export const deregistrationDecoratorToken: Decorator;
 
 export function createContainer(containerId: string): DiContainer;
