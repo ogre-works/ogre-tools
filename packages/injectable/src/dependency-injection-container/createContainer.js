@@ -66,7 +66,7 @@ export default containerId => {
   const nonDecoratedPrivateInjectMany = (
     injectionToken,
     instantiationParameter,
-    oldContext = [],
+    oldContext = [containerRootContextItem],
   ) => {
     const newContext = [...oldContext, { injectable: injectionToken }];
 
