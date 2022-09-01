@@ -36,6 +36,7 @@ export interface InjectionToken<InjectionInstance, InstantiationParam> {
   template: InjectionInstance;
   instantiationParameter: InstantiationParam;
   key: Symbol;
+  id: string;
 }
 
 export interface Injectable<
