@@ -448,8 +448,8 @@ export const injectionDecoratorToken = getInjectionToken({
 const withInstantiationDecoratorsFor = ({ injectMany, injectable }) => {
   const isRelevantDecorator = isRelevantDecoratorFor(injectable);
 
-  return toBeDecorated => {
-    return (...args) => {
+  return toBeDecorated =>
+    (...args) => {
       if (injectable.decorable === false) {
         return toBeDecorated(...args);
       }
@@ -462,7 +462,6 @@ const withInstantiationDecoratorsFor = ({ injectMany, injectable }) => {
 
       return decorated(...args);
     };
-  };
 };
 
 const withInjectionDecoratorsFor =
