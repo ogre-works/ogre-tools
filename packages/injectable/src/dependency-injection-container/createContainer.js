@@ -93,15 +93,7 @@ export default containerId => {
     nonDecoratedPrivateInjectMany,
   );
 
-  const withRegistrationDecorators = withRegistrationDecoratorsFor(
-    nonDecoratedPrivateInjectMany,
-  );
-
-  const withDeregistrationDecorators = withDeregistrationDecoratorsFor(
-    nonDecoratedPrivateInjectMany,
-  );
-
-  const nonDecoratedRegisterSingle = externalInjectable => {
+  const registerSingle = externalInjectable => {
     let injectableId = externalInjectable.id;
 
     if (!injectableId) {
@@ -143,7 +135,7 @@ export default containerId => {
     instancesByInjectableMap.get(injectable.id).clear();
   };
 
-  const nonDecoratedDeregisterSingle = alias => {
+  const deregisterSingle = alias => {
     const relatedInjectable = injectableMap.get(alias.id);
 
     if (!relatedInjectable) {
@@ -177,12 +169,6 @@ export default containerId => {
     overridingInjectables.delete(alias.id);
   };
 
-  const registerSingle = withRegistrationDecorators(nonDecoratedRegisterSingle);
-
-  const deregisterSingle = withDeregistrationDecorators(
-    nonDecoratedDeregisterSingle,
-  );
-
   const decorate = (alias, decorator) => {
     const decoratorInjectable = getInjectable({
       id: `${alias.id}-decorator-${Math.random()}`,
@@ -203,15 +189,37 @@ export default containerId => {
 
     injectMany: decoratedPrivateInjectMany,
 
-    register: (...injectables) =>
+    register: (...injectables) => {
       injectables.forEach(injectable => {
         registerSingle(injectable);
-      }),
+      });
 
-    deregister: (...injectables) =>
+      const callbacks = nonDecoratedPrivateInjectMany(
+        registrationCallbackToken,
+      );
+
+      injectables.forEach(injectable => {
+        callbacks.forEach(callback => {
+          callback(injectable);
+        });
+      });
+    },
+
+    deregister: (...injectables) => {
+      const callbacks = nonDecoratedPrivateInjectMany(
+        deregistrationCallbackToken,
+      );
+
+      injectables.forEach(injectable => {
+        callbacks.forEach(callback => {
+          callback(injectable);
+        });
+      });
+
       injectables.forEach(injectable => {
         deregisterSingle(injectable);
-      }),
+      });
+    },
 
     decorate,
 
@@ -415,13 +423,13 @@ const getInstance = ({
   return newInstance;
 };
 
-export const registrationDecoratorToken = getInjectionToken({
-  id: 'registration-decorator-token',
+export const registrationCallbackToken = getInjectionToken({
+  id: 'registration-callback-token',
   decorable: false,
 });
 
-export const deregistrationDecoratorToken = getInjectionToken({
-  id: 'deregistration-decorator-token',
+export const deregistrationCallbackToken = getInjectionToken({
+  id: 'deregistration-callback-token',
   decorable: false,
 });
 
@@ -434,24 +442,6 @@ export const injectionDecoratorToken = getInjectionToken({
   id: 'injection-decorator-token',
   decorable: false,
 });
-
-const withRegistrationDecoratorsFor =
-  injectMany => toBeDecorated => injectable => {
-    const decorators = injectMany(registrationDecoratorToken);
-
-    const decorated = flow(...decorators)(toBeDecorated);
-
-    decorated(injectable);
-  };
-
-const withDeregistrationDecoratorsFor =
-  injectMany => toBeDecorated => injectable => {
-    const decorators = injectMany(deregistrationDecoratorToken);
-
-    const decorated = flow(...decorators)(toBeDecorated);
-
-    decorated(injectable);
-  };
 
 const withInstantiationDecoratorsFor = ({ injectMany, injectable }) => {
   const isRelevantDecorator = isRelevantDecoratorFor(injectable);

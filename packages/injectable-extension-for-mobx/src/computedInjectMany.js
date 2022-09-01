@@ -1,8 +1,8 @@
 import {
-  deregistrationDecoratorToken,
+  registrationCallbackToken,
   getInjectable,
   lifecycleEnum,
-  registrationDecoratorToken,
+  deregistrationCallbackToken,
 } from '@ogre-tools/injectable';
 
 import { computed, createAtom, runInAction, _getGlobalState } from 'mobx';
@@ -26,42 +26,39 @@ const invalidabilityForReactiveInstances = getInjectable({
   decorable: false,
 });
 
-const getInvalidatorInstance =
-  registerOrDeregister => di => registerToBeDecorated => injectable => {
-    const { inBatch } = _getGlobalState();
+const getInvalidatorInstance = registerOrDeregister => di => injectable => {
+  const { inBatch } = _getGlobalState();
 
-    if (inBatch === 0 && !!injectable.injectionToken) {
-      throw new Error(
-        `Tried to ${registerOrDeregister} injectable "${injectable.id}" having an injection token outside of MobX-transaction. Transaction is required, as otherwise usages of computedInjectMany could observe untimely invalidations.`,
-      );
-    }
-
-    registerToBeDecorated(injectable);
-
-    if (!injectable.injectionToken) {
-      return;
-    }
-
-    const mobxAtomForToken = di.inject(
-      invalidabilityForReactiveInstances,
-      injectable.injectionToken,
+  if (inBatch === 0 && !!injectable.injectionToken) {
+    throw new Error(
+      `Tried to ${registerOrDeregister} injectable "${injectable.id}" having an injection token outside of MobX-transaction. Transaction is required, as otherwise usages of computedInjectMany could observe untimely invalidations.`,
     );
+  }
 
-    mobxAtomForToken.reportChanged();
-  };
+  if (!injectable.injectionToken) {
+    return;
+  }
 
-const invalidateReactiveInstancesOnRegisterDecorator = getInjectable({
+  const mobxAtomForToken = di.inject(
+    invalidabilityForReactiveInstances,
+    injectable.injectionToken,
+  );
+
+  mobxAtomForToken.reportChanged();
+};
+
+const invalidateReactiveInstancesOnRegisterCallback = getInjectable({
   id: 'invalidate-reactive-instances-on-register',
   instantiate: getInvalidatorInstance('register'),
-  injectionToken: registrationDecoratorToken,
+  injectionToken: registrationCallbackToken,
   [isInternalOfComputedInjectMany]: true,
   decorable: false,
 });
 
-const invalidateReactiveInstancesOnDeregisterDecorator = getInjectable({
+const invalidateReactiveInstancesOnDeregisterCallback = getInjectable({
   id: 'invalidate-reactive-instances-on-deregister',
   instantiate: getInvalidatorInstance('deregister'),
-  injectionToken: deregistrationDecoratorToken,
+  injectionToken: deregistrationCallbackToken,
   [isInternalOfComputedInjectMany]: true,
   decorable: false,
 });
@@ -106,8 +103,8 @@ export const registerMobX = di => {
       invalidabilityForReactiveInstances,
       reactiveInstancesInjectable,
       computedInjectManyInjectable,
-      invalidateReactiveInstancesOnRegisterDecorator,
-      invalidateReactiveInstancesOnDeregisterDecorator,
+      invalidateReactiveInstancesOnRegisterCallback,
+      invalidateReactiveInstancesOnDeregisterCallback,
     );
   });
 };

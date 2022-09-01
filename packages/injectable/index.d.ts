@@ -159,13 +159,15 @@ type Decorator = InjectionToken<
   unknown
 >;
 
+type RegistrationCallback = (injectable: Injectable<any, any, any>) => void;
+
 type TargetableDecorator = Decorator & {
   target?: Injectable<any, any, any> | InjectionToken<any, any>;
 };
 
 export const injectionDecoratorToken: TargetableDecorator;
 export const instantiationDecoratorToken: TargetableDecorator;
-export const registrationDecoratorToken: Decorator;
-export const deregistrationDecoratorToken: Decorator;
+export const registrationCallbackToken: RegistrationCallback;
+export const deregistrationCallbackToken: RegistrationCallback;
 
 export function createContainer(containerId: string): DiContainer;

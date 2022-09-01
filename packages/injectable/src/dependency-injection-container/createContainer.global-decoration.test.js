@@ -1,7 +1,8 @@
+import { noop } from 'lodash/fp';
 import getInjectable from '../getInjectable/getInjectable';
 import createContainer, {
   injectionDecoratorToken,
-  registrationDecoratorToken,
+  registrationCallbackToken,
 } from './createContainer';
 
 describe('createContainer.global-decoration', () => {
@@ -164,27 +165,22 @@ describe('createContainer.global-decoration', () => {
     expect(actual).toBe('decorated-with-some-override(some-undecorated-value)');
   });
 
-  xit('given a registration decorator, and a decorator with an overridden dependency, when injecting something that is decorated, decorator uses overriden decorator', () => {
-    const someOtherInjectable = getInjectable({
+  xit('given a registration callback, and a decorator with an overridden dependency, when injecting something that is decorated, decorator uses overridden decorator', () => {
+    const dependencyOfRegistrationCallbackInjectable = getInjectable({
       id: 'some-other-injectable',
       instantiate: () => () => 'irrelevant',
     });
 
-    const someRegistrationDecorator = getInjectable({
-      id: 'some-registration-decorator',
+    const someRegistrationCallbackInjectable = getInjectable({
+      id: 'some-registration-callback',
 
       instantiate: di => {
-        di.inject(someOtherInjectable);
+        di.inject(dependencyOfRegistrationCallbackInjectable);
 
-        return toBeDecorated =>
-          (...args) => {
-            console.log(args);
-
-            return toBeDecorated(...args);
-          };
+        return noop;
       },
 
-      injectionToken: registrationDecoratorToken,
+      injectionToken: registrationCallbackToken,
     });
 
     const someInjectable = getInjectable({
@@ -227,15 +223,13 @@ describe('createContainer.global-decoration', () => {
 
     const di = createContainer('some-container');
 
-    di.register(someOtherInjectable);
-
-    di.register(someRegistrationDecorator);
-
-    di.register(someInjectable);
-
-    di.register(decoratorInjectable);
-
-    di.register(dependencyOfDecoratorInjectable);
+    di.register(
+      dependencyOfRegistrationCallbackInjectable,
+      someRegistrationCallbackInjectable,
+      someInjectable,
+      dependencyOfDecoratorInjectable,
+      decoratorInjectable,
+    );
 
     di.override(dependencyOfDecoratorInjectable, () => 'some-override');
 

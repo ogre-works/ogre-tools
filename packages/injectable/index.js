@@ -8,8 +8,8 @@ import lifecycleEnum from './src/dependency-injection-container/lifecycleEnum';
 import createContainer, {
   injectionDecoratorToken,
   instantiationDecoratorToken,
-  registrationDecoratorToken,
-  deregistrationDecoratorToken,
+  registrationCallbackToken,
+  deregistrationCallbackToken,
 } from './src/dependency-injection-container/createContainer';
 
 export {
@@ -18,8 +18,8 @@ export {
   getInjectionToken,
   injectionDecoratorToken,
   instantiationDecoratorToken,
-  registrationDecoratorToken,
-  deregistrationDecoratorToken,
+  registrationCallbackToken,
+  deregistrationCallbackToken,
   injectionTokenSymbol,
   lifecycleEnum,
 };
