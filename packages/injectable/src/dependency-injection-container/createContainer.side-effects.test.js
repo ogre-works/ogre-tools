@@ -34,7 +34,7 @@ describe('createContainer.side-effects', () => {
     expect(() => {
       di.inject(someInjectable);
     }).toThrow(
-      'Tried to inject "some-injectable" when side-effects are prevented.',
+      'Tried to inject "some-container" -> "some-injectable" when side-effects are prevented.',
     );
   });
 

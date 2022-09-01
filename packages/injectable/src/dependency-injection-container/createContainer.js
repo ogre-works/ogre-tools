@@ -49,7 +49,9 @@ export default containerId => {
 
     if (sideEffectsArePrevented && injectable.causesSideEffects) {
       throw new Error(
-        `Tried to inject "${injectable.id}" when side-effects are prevented.`,
+        `Tried to inject "${[...context, { injectable }]
+          .map(item => item.injectable.id)
+          .join('" -> "')}" when side-effects are prevented.`,
       );
     }
 
