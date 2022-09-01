@@ -3,7 +3,7 @@ import { createContainer } from '../../index';
 import { registrationDecoratorToken } from './createContainer';
 
 describe('createContainer.decoration-of-registration', () => {
-  describe('given there is decorator for registration, when an injectable is registered, ', () => {
+  describe('given there is decorator for registration, when an injectable is registered', () => {
     let someInjectable;
     let di;
 
