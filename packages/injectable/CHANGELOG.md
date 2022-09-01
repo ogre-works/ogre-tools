@@ -3,6 +3,26 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [10.0.0](https://github.com/ogre-works/ogre-tools/compare/v9.0.3...v10.0.0) (2022-09-01)
+
+
+### ⚠ BREAKING CHANGES
+
+* Make sure all registrations happen before injections
+
+### Features
+
+* Expose id of injectionToken in typing ([09284f3](https://github.com/ogre-works/ogre-tools/commit/09284f3fb3f012be3441893949d65fc34aa4c4ec))
+* Expose typings for decorability, tags and di.context ([fb49104](https://github.com/ogre-works/ogre-tools/commit/fb491045b93b28f15e372d153aa97f94fc7d093c))
+
+
+### Bug Fixes
+
+* Add unit tests to prove and document the injection context in di.context ([3126248](https://github.com/ogre-works/ogre-tools/commit/312624836ee4bc195d137f8c838e3e717dd98b4a))
+* Make sure all registrations happen before injections ([e551e70](https://github.com/ogre-works/ogre-tools/commit/e551e707934c35a11350818f66307fb40b51e693))
+
+
+
 ### [9.0.3](https://github.com/ogre-works/ogre-tools/compare/v9.0.2...v9.0.3) (2022-08-25)
 
 **Note:** Version bump only for package @ogre-tools/injectable
