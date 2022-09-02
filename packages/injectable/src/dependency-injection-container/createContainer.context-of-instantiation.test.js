@@ -289,6 +289,7 @@ describe('createContainer.context-of-instantiation', () => {
     it('decorator has context', () => {
       expect(contextOfDecorator.map(get('injectable.id'))).toEqual([
         'some-container',
+        'some-injectable',
         'instantiate-decorator-token',
         'some-decorator',
       ]);
@@ -342,6 +343,7 @@ describe('createContainer.context-of-instantiation', () => {
     it('decorator has context', () => {
       expect(contextOfDecorator.map(get('injectable.id'))).toEqual([
         'some-container',
+        'some-injectable',
         'injection-decorator-token',
         'some-decorator',
       ]);
@@ -434,6 +436,7 @@ describe('createContainer.context-of-instantiation', () => {
     it('parent decorator has root as context without knowledge of other decorators', () => {
       expect(contextOfParentDecorator.map(get('injectable.id'))).toEqual([
         'some-container',
+        'some-parent-injectable',
         'injection-decorator-token',
         'some-parent-decorator',
       ]);
@@ -442,6 +445,7 @@ describe('createContainer.context-of-instantiation', () => {
     it('child decorator has root as context without knowledge of other decorators', () => {
       expect(contextOfChildDecorator.map(get('injectable.id'))).toEqual([
         'some-container',
+        'some-parent-injectable',
         'injection-decorator-token',
         'some-child-decorator',
       ]);

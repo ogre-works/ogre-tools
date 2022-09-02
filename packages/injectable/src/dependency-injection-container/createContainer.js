@@ -352,21 +352,6 @@ const getInstance = ({
     },
   ];
 
-  const injectableCausingCycle = oldContext
-    .filter(contextItem => !contextItem.injectable.cannotCauseCycles)
-    .find(
-      contextItem =>
-        contextItem.injectable.id === injectableToBeInstantiated.id,
-    );
-
-  if (injectableCausingCycle) {
-    throw new Error(
-      `Cycle of injectables encountered: "${newContext
-        .map(x => x.injectable.id)
-        .join('" -> "')}"`,
-    );
-  }
-
   const instanceMap = instancesByInjectableMap.get(
     injectableToBeInstantiated.id,
   );
@@ -454,7 +439,13 @@ const withInstantiationDecoratorsFor = ({ injectMany, injectable }) => {
         return toBeDecorated(...args);
       }
 
-      const decorators = injectMany(instantiationDecoratorToken)
+      const [{ context }] = args;
+
+      const decorators = injectMany(
+        instantiationDecoratorToken,
+        undefined,
+        context,
+      )
         .filter(isRelevantDecorator)
         .map(x => x.decorate);
 
@@ -472,9 +463,29 @@ const withInjectionDecoratorsFor =
       return toBeDecorated(alias, ...args);
     }
 
+    const [, oldContext] = args;
+
+    const injectableCausingCycle = oldContext
+      .filter(contextItem => !contextItem.injectable.cannotCauseCycles)
+      .find(contextItem => contextItem.injectable.id === alias.id);
+
+    const newContext = [...oldContext, { injectable: alias }];
+
+    if (injectableCausingCycle) {
+      throw new Error(
+        `Cycle of injectables encountered: "${newContext
+          .map(x => x.injectable.id)
+          .join('" -> "')}"`,
+      );
+    }
+
     const isRelevantDecorator = isRelevantDecoratorFor(alias);
 
-    const decorators = injectMany(injectionDecoratorToken)
+    const decorators = injectMany(
+      injectionDecoratorToken,
+      undefined,
+      newContext,
+    )
       .filter(isRelevantDecorator)
       .map(x => x.decorate);
 
