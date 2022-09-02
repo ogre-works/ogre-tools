@@ -3,6 +3,20 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [10.1.0](https://github.com/ogre-works/ogre-tools/compare/v10.0.0...v10.1.0) (2022-09-02)
+
+
+### Features
+
+* Make error message for attempt to inject a side-effect contain context ([b474146](https://github.com/ogre-works/ogre-tools/commit/b4741460e0a487980ed531f0c175debe5ff07f4d))
+
+
+### Bug Fixes
+
+* Make decorator injectables behave consistently with cycles ([b6481b5](https://github.com/ogre-works/ogre-tools/commit/b6481b5466d10dd4b9f6b95bab9c9aa9a80b719b))
+
+
+
 ## [10.0.0](https://github.com/ogre-works/ogre-tools/compare/v9.0.3...v10.0.0) (2022-09-01)
 
 
