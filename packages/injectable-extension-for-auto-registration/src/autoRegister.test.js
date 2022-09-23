@@ -16,7 +16,9 @@ describe('autoRegister', () => {
 
     const di = createContainer('some-container');
 
-    const someRequireContext = getRequireContextStub(injectableStub);
+    const someRequireContext = getRequireContextStub({
+      default: injectableStub,
+    });
 
     autoRegister({ di, requireContexts: [someRequireContext] });
 
@@ -25,10 +27,10 @@ describe('autoRegister', () => {
     expect(actual).toBe('some-injected-instance');
   });
 
-  it('given injectable file with no default export, when auto-registering, throws with name of faulty file', () => {
+  it('given injectable file with no injectables, when auto-registering, throws', () => {
     const requireContextStub = Object.assign(
       () => ({
-        notDefault: 'irrelevant',
+        someExport: 'irrelevant',
       }),
 
       {
@@ -41,14 +43,16 @@ describe('autoRegister', () => {
     expect(() =>
       autoRegister({ di, requireContexts: [requireContextStub] }),
     ).toThrowError(
-      'Tried to register injectable from ./some.injectable.js, but no default export',
+      'Tried to register injectables from "./some.injectable.js", but there were none',
     );
   });
 
-  it('given injectable file with default export without id, when auto-registering, throws with name of faulty file', () => {
+  it('given injectable file with default export without id, when auto-registering, throws', () => {
+    const injectable = getInjectable({ instantiate: () => {} });
+
     const requireContextStub = Object.assign(
       () => ({
-        default: 'irrelevant',
+        default: injectable,
       }),
       {
         keys: () => ['./some.injectable.js'],
@@ -60,16 +64,16 @@ describe('autoRegister', () => {
     expect(() =>
       autoRegister({ di, requireContexts: [requireContextStub] }),
     ).toThrowError(
-      'Tried to register injectable from ./some.injectable.js, but default export is of wrong shape',
+      'Tried to register injectables from "./some.injectable.js", but export "default" is of wrong shape',
     );
   });
 
-  it('given injectable file with default export with in but without instantiate, when auto-registering, throws with name of faulty file', () => {
+  it('given injectable file with an id but without instantiate, when auto-registering, throws', () => {
+    const injectable = getInjectable({ id: 'irrelevant' });
+
     const requireContextStub = Object.assign(
       () => ({
-        default: {
-          id: 'irrelevant',
-        },
+        default: injectable,
       }),
       {
         keys: () => ['./some.injectable.js'],
@@ -81,28 +85,8 @@ describe('autoRegister', () => {
     expect(() =>
       autoRegister({ di, requireContexts: [requireContextStub] }),
     ).toThrowError(
-      'Tried to register injectable from ./some.injectable.js, but default export is of wrong shape',
+      'Tried to register injectables from "./some.injectable.js", but export "default" is of wrong shape',
     );
-  });
-
-  it('given injectable file with default export of correct shape, when auto-registering, does not throw', () => {
-    const requireContextStub = Object.assign(
-      () => ({
-        default: {
-          id: 'some-injectable-id',
-          instantiate: () => {},
-        },
-      }),
-      {
-        keys: () => ['./some.injectable.js'],
-      },
-    );
-
-    const di = createContainer('some-container');
-
-    expect(() =>
-      autoRegister({ di, requireContexts: [requireContextStub] }),
-    ).not.toThrow();
   });
 
   it('injects auto-registered injectable with a another auto-registered child-injectable', () => {
@@ -122,8 +106,8 @@ describe('autoRegister', () => {
       di,
 
       requireContexts: [
-        getRequireContextStub(childInjectable),
-        getRequireContextStub(parentInjectable),
+        getRequireContextStub({ default: childInjectable }),
+        getRequireContextStub({ default: parentInjectable }),
       ],
     });
 
@@ -131,16 +115,39 @@ describe('autoRegister', () => {
 
     expect(actual).toBe('some-child-instance');
   });
+
+  it('given file with both injectable and non-injectable exports, given auto-registered, when injecting one of the injectables, does so', () => {
+    const injectable = getInjectable({
+      id: 'some-injectable',
+      instantiate: () => 'some-instance',
+    });
+
+    const di = createContainer('some-container');
+
+    autoRegister({
+      di,
+
+      requireContexts: [
+        getRequireContextStub({
+          someExport: injectable,
+          someOtherExport: 'not-an-injectable',
+        }),
+      ],
+    });
+
+    const actual = di.inject(injectable);
+
+    expect(actual).toBe('some-instance');
+  });
 });
 
-const getRequireContextStub = (...injectables) => {
+const getRequireContextStub = (...modules) => {
   const contextDictionary = pipeline(
-    injectables,
-    map(injectable => ({ default: injectable })),
+    modules,
 
-    nonCappedMap((file, index) => [
+    nonCappedMap((module, index) => [
       `stubbed-require-context-key-${index}`,
-      file,
+      module,
     ]),
 
     fromPairs,

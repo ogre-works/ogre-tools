@@ -3,6 +3,7 @@ import isString from 'lodash/fp/isString';
 import isFunction from 'lodash/fp/isFunction';
 import { pipeline } from '@ogre-tools/fp';
 import tap from 'lodash/fp/tap';
+import { injectableSymbol } from '@ogre-tools/injectable';
 import forEach from 'lodash/fp/forEach';
 import flatMap from 'lodash/fp/flatMap';
 
@@ -11,33 +12,42 @@ const hasInjectableSignature = conforms({
   instantiate: isFunction,
 });
 
-const getFileNameAndDefaultExport = requireContext =>
-  requireContext.keys().map(key => [key, requireContext(key).default]);
+const getFileNameAndModule = requireContext =>
+  requireContext.keys().map(key => [key, requireContext(key)]);
 
 const registerInjectableFor =
   di =>
-  ([, injectable]) =>
-    di.register(injectable);
+  ([, module]) => {
+    di.register(...Object.values(module).filter(isInjectable));
+  };
 
-const verifyInjectable = ([fileName, injectable]) => {
-  if (!injectable) {
+const verifyInjectables = ([[fileName, module]]) => {
+  const injectables = Object.entries(module).filter(([, exported]) =>
+    isInjectable(exported),
+  );
+
+  if (injectables.length === 0) {
     throw new Error(
-      `Tried to register injectable from ${fileName}, but no default export`,
+      `Tried to register injectables from "${fileName}", but there were none"`,
     );
   }
 
-  if (!hasInjectableSignature(injectable)) {
-    throw new Error(
-      `Tried to register injectable from ${fileName}, but default export is of wrong shape`,
-    );
-  }
+  injectables.forEach(([propertyName, injectable]) => {
+    if (!hasInjectableSignature(injectable)) {
+      throw new Error(
+        `Tried to register injectables from "${fileName}", but export "${propertyName}" is of wrong shape`,
+      );
+    }
+  });
 };
 
 export default ({ di, requireContexts }) => {
   pipeline(
     requireContexts,
-    flatMap(getFileNameAndDefaultExport),
-    tap(forEach(verifyInjectable)),
+    flatMap(getFileNameAndModule),
+    tap(verifyInjectables),
     forEach(registerInjectableFor(di)),
   );
 };
+
+const isInjectable = exported => exported?.aliasType === injectableSymbol;

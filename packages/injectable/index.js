@@ -2,7 +2,9 @@ import getInjectionToken, {
   injectionTokenSymbol,
 } from './src/getInjectionToken/getInjectionToken';
 
-import getInjectable from './src/getInjectable/getInjectable';
+import getInjectable, {
+  injectableSymbol,
+} from './src/getInjectable/getInjectable';
 import lifecycleEnum from './src/dependency-injection-container/lifecycleEnum';
 
 import createContainer, {
@@ -21,5 +23,6 @@ export {
   registrationCallbackToken,
   deregistrationCallbackToken,
   injectionTokenSymbol,
+  injectableSymbol,
   lifecycleEnum,
 };
