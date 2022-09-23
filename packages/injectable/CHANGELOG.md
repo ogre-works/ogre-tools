@@ -3,6 +3,15 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [10.2.0](https://github.com/ogre-works/ogre-tools/compare/v10.1.0...v10.2.0) (2022-09-23)
+
+
+### Features
+
+* Make auto-register also register named exports, and not just the default export ([6af7f4c](https://github.com/ogre-works/ogre-tools/commit/6af7f4cc844142efaff1f9e5a1bc7d1eeb8bfa29))
+
+
+
 ## [10.1.0](https://github.com/ogre-works/ogre-tools/compare/v10.0.0...v10.1.0) (2022-09-02)
 
 
