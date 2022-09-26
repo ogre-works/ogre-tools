@@ -4,6 +4,9 @@ module.exports = {
   entry: './index.js',
   target: 'node',
   mode: 'production',
+  resolve: {
+    extensions: ['.ts', '.tsx', '.js', '.jsx'],
+  },
   output: {
     path: path.resolve(process.cwd(), 'build'),
     filename: 'index.js',
