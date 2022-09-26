@@ -1,7 +1,7 @@
 {
   "name": "@ogre-tools/injectable-extensions-for-dependency-graphing",
   "private": false,
-  "version": "10.3.0",
+  "version": "10.3.1",
   "description": "Dependency graphing for Injectable in Ogre Tools",
   "repository": {
     "type": "git",
@@ -15,8 +15,8 @@
   "author": "Ogre Works",
   "license": "MIT",
   "dependencies": {
-    "@ogre-tools/fp": "^10.3.0",
-    "@ogre-tools/injectable": "^10.3.0",
+    "@ogre-tools/fp": "^10.3.1",
+    "@ogre-tools/injectable": "^10.3.1",
     "lodash": "^4.17.21"
   },
   "bugs": {
