@@ -1,7 +1,7 @@
 {
   "name": "@ogre-tools/injectable-extensions-for-error-handling",
   "private": false,
-  "version": "10.3.1",
+  "version": "10.3.2",
   "description": "Error monitoring for Injectable in Ogre Tools",
   "repository": {
     "type": "git",
@@ -15,8 +15,8 @@
   "author": "Ogre Works",
   "license": "MIT",
   "dependencies": {
-    "@ogre-tools/fp": "^10.3.1",
-    "@ogre-tools/injectable": "^10.3.1",
+    "@ogre-tools/fp": "^10.3.2",
+    "@ogre-tools/injectable": "^10.3.2",
     "lodash": "^4.17.21"
   },
   "bugs": {

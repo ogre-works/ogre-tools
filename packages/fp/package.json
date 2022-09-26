@@ -1,7 +1,7 @@
 {
   "name": "@ogre-tools/fp",
   "private": false,
-  "version": "10.3.1",
+  "version": "10.3.2",
   "description": "A collection of low abstraction functions in functional programming flavor",
   "types": "./index.d.ts",
   "repository": {
