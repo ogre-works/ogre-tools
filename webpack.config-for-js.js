@@ -5,7 +5,7 @@ module.exports = {
   target: 'node',
   mode: 'production',
   resolve: {
-    extensions: ['.ts', '.tsx', '.js', '.jsx'],
+    extensions: ['.js', '.jsx'],
   },
   output: {
     path: path.resolve(process.cwd(), 'build'),

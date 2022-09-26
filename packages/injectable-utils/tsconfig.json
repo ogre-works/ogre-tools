@@ -1,0 +1,8 @@
+{
+  "files": ["index.ts"],
+
+  "compilerOptions": {
+    "declaration": true,
+    "declarationDir": "build"
+  }
+}
