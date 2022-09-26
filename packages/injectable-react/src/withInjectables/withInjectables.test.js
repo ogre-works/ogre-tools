@@ -322,11 +322,11 @@ describe('withInjectables', () => {
     });
 
     it('does not render component yet', () => {
-      expect(component.find('DumbTestComponent')).not.toExist();
+      expect(component.find('DumbTestComponent')).not.toBePresent();
     });
 
     it('has placeholder', () => {
-      expect(component.find('[data-placeholder-test]')).toExist();
+      expect(component.find('[data-placeholder-test]')).toBePresent();
     });
 
     describe('when the dependency resolves', () => {
@@ -344,11 +344,11 @@ describe('withInjectables', () => {
       });
 
       it('has component', () => {
-        expect(component.find('DumbTestComponent')).toExist();
+        expect(component.find('DumbTestComponent')).toBePresent();
       });
 
       it('no longer has placeholder', () => {
-        expect(component.find('[data-placeholder-test]')).not.toExist();
+        expect(component.find('[data-placeholder-test]')).not.toBePresent();
       });
     });
   });
@@ -385,7 +385,7 @@ describe('withInjectables', () => {
     });
 
     it('renders as null', () => {
-      expect(component).toBeEmptyRender();
+      expect(component.html()).toBe('');
     });
 
     describe('when the dependency resolves', () => {
