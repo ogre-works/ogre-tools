@@ -1,3 +1,4 @@
-const placeholder = 'some-placeholder';
+import { runManyFor } from './src/runnable/run-many-for';
+import { runManySyncFor } from './src/runnable/run-many-sync-for';
 
-export { placeholder };
+export { runManyFor, runManySyncFor };
