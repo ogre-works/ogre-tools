@@ -169,5 +169,7 @@ export const injectionDecoratorToken: TargetableDecorator;
 export const instantiationDecoratorToken: TargetableDecorator;
 export const registrationCallbackToken: RegistrationCallback;
 export const deregistrationCallbackToken: RegistrationCallback;
+export const injectableSymbol: Symbol;
+export const injectionTokenSymbol: Symbol;
 
 export function createContainer(containerId: string): DiContainer;
