@@ -1,18 +1,17 @@
-import getInjectionToken, {
-  injectionTokenSymbol,
-} from './src/getInjectionToken/getInjectionToken';
+import getInjectionToken from './src/getInjectionToken/getInjectionToken';
 
-import getInjectable, {
-  injectableSymbol,
-} from './src/getInjectable/getInjectable';
+import getInjectable from './src/getInjectable/getInjectable';
 import lifecycleEnum from './src/dependency-injection-container/lifecycleEnum';
 
 import createContainer, {
+  deregistrationCallbackToken,
   injectionDecoratorToken,
   instantiationDecoratorToken,
   registrationCallbackToken,
-  deregistrationCallbackToken,
 } from './src/dependency-injection-container/createContainer';
+
+import isInjectable from './src/getInjectable/isInjectable';
+import isInjectionToken from './src/getInjectionToken/isInjectionToken';
 
 export {
   createContainer,
@@ -22,7 +21,7 @@ export {
   instantiationDecoratorToken,
   registrationCallbackToken,
   deregistrationCallbackToken,
-  injectionTokenSymbol,
-  injectableSymbol,
+  isInjectable,
+  isInjectionToken,
   lifecycleEnum,
 };

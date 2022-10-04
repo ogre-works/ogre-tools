@@ -8,7 +8,7 @@ import {
   getInjectable,
   getInjectionToken,
   injectionDecoratorToken,
-  injectionTokenSymbol,
+  isInjectionToken,
   lifecycleEnum,
 } from '@ogre-tools/injectable';
 
@@ -79,7 +79,7 @@ const plantUmlExtractorInjectable = getInjectable({
 
       const node = graphState.nodes.get(injectableId);
 
-      if (alias.aliasType === injectionTokenSymbol) {
+      if (isInjectionToken(alias)) {
         node.isInjectionToken = true;
         node.lifecycle = lifecycleEnumForDependencyGraphing.injectionToken;
         node.infos.add('Token');

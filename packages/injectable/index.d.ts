@@ -169,7 +169,7 @@ export const injectionDecoratorToken: TargetableDecorator;
 export const instantiationDecoratorToken: TargetableDecorator;
 export const registrationCallbackToken: RegistrationCallback;
 export const deregistrationCallbackToken: RegistrationCallback;
-export const injectableSymbol: Symbol;
-export const injectionTokenSymbol: Symbol;
+export const isInjectable: (thing: any) => boolean;
+export const isInjectionToken: (thing: any) => boolean;
 
 export function createContainer(containerId: string): DiContainer;

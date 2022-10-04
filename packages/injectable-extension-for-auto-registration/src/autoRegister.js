@@ -3,7 +3,7 @@ import isString from 'lodash/fp/isString';
 import isFunction from 'lodash/fp/isFunction';
 import { pipeline } from '@ogre-tools/fp';
 import tap from 'lodash/fp/tap';
-import { injectableSymbol } from '@ogre-tools/injectable';
+import { isInjectable } from '@ogre-tools/injectable';
 import forEach from 'lodash/fp/forEach';
 import flatMap from 'lodash/fp/flatMap';
 
@@ -49,5 +49,3 @@ export default ({ di, requireContexts }) => {
     forEach(registerInjectableFor(di)),
   );
 };
-
-const isInjectable = exported => exported?.aliasType === injectableSymbol;
