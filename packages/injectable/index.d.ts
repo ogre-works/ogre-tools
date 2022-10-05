@@ -155,7 +155,7 @@ export const lifecycleEnum: {
 };
 
 type Decorator = InjectionToken<
-  { decorate: (toBeDecorated) => typeof toBeDecorated },
+  { decorate: (toBeDecorated: unknown) => typeof toBeDecorated },
   unknown
 >;
 
