@@ -1,19 +1,31 @@
 import { pipeline } from '@ogre-tools/fp';
 import { fromPairs, map } from 'lodash/fp';
 
-export interface Composable<T> {
+export interface Composable<TThing> {
+  composes: (thing: any) => thing is TThing;
+  create: (thing: TThing) => TThing;
   readonly symbol: unique symbol;
-  readonly template: T;
+  readonly template: TThing;
 }
 
-export const getComposable = <T>(name: string): Composable<T> =>
-  ({ symbol: Symbol(name) } as unknown as Composable<T>);
+const composes =
+  <TThing>(symbol: any) =>
+  (thing: any): thing is TThing =>
+    thing[symbol] === true;
 
-export const isComposedOf =
-  <T extends Composable<any>>(composable: T) =>
-  (thing: any): thing is T['template'] => {
-    return thing[composable.symbol] === true;
-  };
+export const getComposable = <TThing>(name: string): Composable<TThing> => {
+  const symbol = Symbol(name);
+
+  return {
+    symbol,
+    composes: composes<TThing>(symbol),
+    create: createFor(symbol),
+  } as unknown as Composable<TThing>;
+};
+
+export const isComposedOf = <TComposable extends Composable<any>>(
+  composable: TComposable,
+) => composes<TComposable['template']>(composable.symbol);
 
 // Todo: implement this pyramid of overrides with ts-tuple recursion somehow.
 export function compose<
@@ -41,11 +53,15 @@ export function compose<T1 extends Composable<unknown>>(
 ): <TThing extends T1['template']>(thing: TThing) => TThing;
 
 export function compose(...composables: Composable<unknown>[]) {
-  const symbols: object = pipeline(
-    composables,
-    map(({ symbol }) => [symbol, true]),
+  return createFor(...composables.map(c => c.symbol));
+}
+
+const createFor = (...symbols: Symbol[]) => {
+  const symbolObject: object = pipeline(
+    symbols,
+    map(symbol => [symbol, true]),
     fromPairs,
   );
 
-  return (thing: object) => ({ ...thing, ...symbols });
-}
+  return (thing: object) => ({ ...thing, ...symbolObject });
+};
