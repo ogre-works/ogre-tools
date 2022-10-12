@@ -41,8 +41,8 @@ export interface InjectionToken<InjectionInstance, InstantiationParam> {
 
 export interface Injectable<
   InjectionInstance extends InjectionTokenInstance,
-  InjectionTokenInstance,
-  InstantiationParam,
+  InjectionTokenInstance = InjectionInstance,
+  InstantiationParam = void,
 > {
   id: string;
   causesSideEffects?: boolean;
