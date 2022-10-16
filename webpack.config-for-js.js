@@ -7,6 +7,11 @@ module.exports = {
   target: 'node',
   mode: 'production',
 
+  performance: {
+    maxEntrypointSize: 10000,
+    hints: 'error',
+  },
+
   resolve: {
     extensions: ['.js', '.jsx'],
   },
