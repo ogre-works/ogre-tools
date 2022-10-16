@@ -1,24 +1,30 @@
 const path = require('path');
 
+const nodeExternals = require('webpack-node-externals');
+
 module.exports = {
   entry: './index.js',
   target: 'node',
   mode: 'production',
+
   resolve: {
     extensions: ['.js', '.jsx'],
   },
+
   output: {
     path: path.resolve(process.cwd(), 'build'),
     filename: 'index.js',
     libraryTarget: 'commonjs2',
   },
 
-  externals: ['mobx', 'mobx-react', 'react'],
+  externals: [nodeExternals({ modulesFromFile: true })],
+  externalsPresets: { node: true },
 
   node: {
     __dirname: true,
     __filename: true,
   },
+
   module: {
     rules: [
       {
