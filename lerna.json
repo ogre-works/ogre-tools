@@ -1,13 +1,10 @@
 {
   "version": "11.0.0",
-  "packages": [
-    "packages/*"
-  ],
+  "useWorkspaces": true,
+  "packages": ["packages/*"],
   "command": {
     "bootstrap": {
-      "npmClientArgs": [
-        "--no-package-lock"
-      ],
+      "npmClientArgs": ["--no-package-lock"],
       "hoist": true
     },
     "publish": {
