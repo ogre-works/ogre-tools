@@ -1,5 +1,5 @@
 import asyncFn from '@async-fn/jest';
-import noop from 'lodash/fp/noop';
+import { noop } from 'lodash/fp';
 
 import {
   errorMonitorInjectionToken,

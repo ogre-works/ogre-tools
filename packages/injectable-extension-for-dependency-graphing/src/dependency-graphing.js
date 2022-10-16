@@ -1,8 +1,4 @@
-import camelCase from 'lodash/fp/camelCase';
-import last from 'lodash/fp/last';
-import get from 'lodash/fp/get';
-import filter from 'lodash/fp/filter';
-import tap from 'lodash/fp/tap';
+import { camelCase, filter, get, last, tap } from 'lodash/fp';
 
 import {
   getInjectable,

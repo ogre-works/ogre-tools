@@ -1,5 +1,5 @@
 import React from 'react';
-import constant from 'lodash/fp/constant';
+import { constant } from 'lodash/fp';
 import { Observer } from 'mobx-react';
 import { action, observable } from 'mobx';
 

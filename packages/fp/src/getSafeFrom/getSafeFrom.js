@@ -1,6 +1,4 @@
-import curry from 'lodash/fp/curry';
-import get from 'lodash/fp/get';
-import has from 'lodash/fp/has';
+import { curry, get, has } from 'lodash/fp';
 
 export default curry((dictionary, propertyName) => {
   if (!has(propertyName, dictionary)) {

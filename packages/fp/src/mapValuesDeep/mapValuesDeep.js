@@ -1,12 +1,14 @@
-import curry from 'lodash/fp/curry';
-import flow from 'lodash/fp/flow';
-import fromPairs from 'lodash/fp/fromPairs';
-import isArray from 'lodash/fp/isArray';
-import isUndefined from 'lodash/fp/isUndefined';
-import map from 'lodash/fp/map';
-import nth from 'lodash/fp/nth';
-import reject from 'lodash/fp/reject';
-import toPairs from 'lodash/fp/toPairs';
+import {
+  curry,
+  flow,
+  fromPairs,
+  isArray,
+  isUndefined,
+  map,
+  nth,
+  reject,
+  toPairs,
+} from 'lodash/fp';
 import isPrimitive from '../isPrimitive/isPrimitive';
 import pipeline from '../pipeline/pipeline';
 

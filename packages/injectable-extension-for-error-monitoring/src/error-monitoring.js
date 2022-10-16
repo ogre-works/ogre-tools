@@ -1,4 +1,4 @@
-import isFunction from 'lodash/fp/isFunction';
+import { isFunction } from 'lodash/fp';
 import getInjectionToken from '../../injectable/src/getInjectionToken/getInjectionToken';
 import getInjectable from '../../injectable/src/getInjectable/getInjectable';
 import { isPromise, pipeline } from '@ogre-tools/fp';

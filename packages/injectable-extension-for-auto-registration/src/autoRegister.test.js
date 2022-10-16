@@ -1,8 +1,6 @@
 import { createContainer, getInjectable } from '@ogre-tools/injectable';
 import { pipeline } from '@ogre-tools/fp';
-import map from 'lodash/fp/map';
-import fromPairs from 'lodash/fp/fromPairs';
-import keys from 'lodash/fp/keys';
+import { fromPairs, keys, map } from 'lodash/fp';
 import autoRegister from './autoRegister';
 
 const nonCappedMap = map.convert({ cap: false });

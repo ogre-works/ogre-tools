@@ -1,8 +1,4 @@
-import isArray from 'lodash/fp/isArray';
-import isPlainObject from 'lodash/fp/isPlainObject';
-import isString from 'lodash/fp/isString';
-import nth from 'lodash/fp/nth';
-import toUpper from 'lodash/fp/toUpper';
+import { isArray, isPlainObject, isString, nth, toUpper } from 'lodash/fp';
 
 import mapValuesDeep from './mapValuesDeep';
 

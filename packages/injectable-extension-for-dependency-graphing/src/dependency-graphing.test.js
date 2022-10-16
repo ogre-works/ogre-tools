@@ -4,7 +4,7 @@ import {
   registerDependencyGraphing,
 } from './dependency-graphing';
 
-import isEqual from 'lodash/fp/isEqual';
+import { isEqual } from 'lodash/fp';
 
 import {
   createContainer,

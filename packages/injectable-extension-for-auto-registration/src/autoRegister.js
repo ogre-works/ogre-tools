@@ -1,11 +1,13 @@
-import conforms from 'lodash/fp/conforms';
-import isString from 'lodash/fp/isString';
-import isFunction from 'lodash/fp/isFunction';
+import {
+  conforms,
+  flatMap,
+  forEach,
+  isFunction,
+  isString,
+  tap,
+} from 'lodash/fp';
 import { pipeline } from '@ogre-tools/fp';
-import tap from 'lodash/fp/tap';
 import { isInjectable } from '@ogre-tools/injectable';
-import forEach from 'lodash/fp/forEach';
-import flatMap from 'lodash/fp/flatMap';
 
 const hasInjectableSignature = conforms({
   id: isString,

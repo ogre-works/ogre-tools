@@ -1,8 +1,4 @@
-import flow from 'lodash/fp/flow';
-import flowRight from 'lodash/fp/flowRight';
-import identity from 'lodash/fp/identity';
-import isArray from 'lodash/fp/isArray';
-import some from 'lodash/fp/some';
+import { flow, flowRight, identity, isArray, some } from 'lodash/fp';
 import awaitAll from '../awaitAll/awaitAll';
 import isPromise from '../isPromise/isPromise';
 
