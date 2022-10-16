@@ -15,13 +15,13 @@
   ],
   "author": "Ogre Works",
   "license": "MIT",
-  "dependencies": {
-    "@async-fn/jest": "^1.6.4",
+  "peerDependencies": {
     "@ogre-tools/fp": "^11.0.0",
     "@ogre-tools/injectable": "^11.0.0",
     "lodash": "^4.17.21"
   },
   "devDependencies": {
+    "@async-fn/jest": "^1.6.4",
     "@ogre-tools/test-utils": "^11.0.0"
   },
   "gitHead": "a5e3d70aa0d5d45dbf2f3d37f586fac93bfffc86",

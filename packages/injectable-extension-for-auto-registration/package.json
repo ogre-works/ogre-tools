@@ -14,7 +14,7 @@
   ],
   "author": "Ogre Works",
   "license": "MIT",
-  "dependencies": {
+  "peerDependencies": {
     "@ogre-tools/fp": "^11.0.0",
     "@ogre-tools/injectable": "^11.0.0",
     "lodash": "^4.17.21"
