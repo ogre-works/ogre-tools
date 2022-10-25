@@ -60,6 +60,7 @@ export type IAsyncComputed<T> = {
 type AsyncComputedParams<T> = {
   getValueFromObservedPromise: () => Promise<T>;
   valueWhenPending?: T;
+  betweenUpdates?: 'show-pending-value' | 'show-latest-value';
 };
 
 export function asyncComputed<T>(
