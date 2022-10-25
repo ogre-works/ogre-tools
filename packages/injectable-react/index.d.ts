@@ -57,7 +57,11 @@ export type IAsyncComputed<T> = {
   invalidate: () => void;
 };
 
+type AsyncComputedParams<T> = {
+  getValueFromObservedPromise: () => Promise<T>;
+  valueWhenPending?: T;
+};
+
 export function asyncComputed<T>(
-  getObservablePromise: () => Promise<T>,
-  pendingValue?: T,
+  configuration: AsyncComputedParams<T>,
 ): IAsyncComputed<T>;

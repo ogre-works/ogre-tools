@@ -5,14 +5,14 @@ const neutralizeObsoletePromiseSymbol = Symbol.for(
   'neutralize-obsolete-promise',
 );
 
-export default (getObservedPromise, pendingValue) => {
+export default ({ getValueFromObservedPromise, valueWhenPending }) => {
   const invalidateAtom = createAtom('invalidate');
 
   const pendingBox = observable.box(false);
 
   let neutralizeObsoletePromise = noop;
 
-  const syncValueBox = observable.box(pendingValue, {
+  const syncValueBox = observable.box(valueWhenPending, {
     name: 'sync-value-box-for-async-computed',
     deep: false,
   });
@@ -27,11 +27,11 @@ export default (getObservedPromise, pendingValue) => {
 
       runInAction(() => {
         pendingBox.set(true);
-        syncValueBox.set(pendingValue);
+        syncValueBox.set(valueWhenPending);
       });
 
       return Promise.race([
-        getObservedPromise(),
+        getValueFromObservedPromise(),
 
         new Promise(resolve => {
           neutralizeObsoletePromise = () =>
@@ -71,7 +71,7 @@ export default (getObservedPromise, pendingValue) => {
       runInAction(() => {
         invalidateAtom.reportChanged();
         pendingBox.set(true);
-        syncValueBox.set(pendingValue);
+        syncValueBox.set(valueWhenPending);
       });
     },
 

@@ -13,11 +13,15 @@ describe('asyncComputed', () => {
 
       someObservable = observable.box('some-initial-value');
 
-      someAsyncComputed = asyncComputed(() => {
-        const someObservedValue = someObservable.get();
+      someAsyncComputed = asyncComputed({
+        getValueFromObservedPromise: () => {
+          const someObservedValue = someObservable.get();
 
-        return someMock(someObservedValue);
-      }, 'some-pending-value');
+          return someMock(someObservedValue);
+        },
+
+        valueWhenPending: 'some-pending-value',
+      });
     });
 
     it('given invalidated before observation, when observed, does not throw', () => {
@@ -273,15 +277,16 @@ describe('asyncComputed', () => {
 
       someObservable = observable.box('some-initial-value');
 
-      someAsyncComputed = asyncComputed(
-        () => {
+      someAsyncComputed = asyncComputed({
+        getValueFromObservedPromise: () => {
           const someObservedValue = someObservable.get();
 
           return someMock(someObservedValue);
         },
+
         // Notice: no pending value.
-        // 'some-pending-value',
-      );
+        // valueWhenPending: 'some-pending-value',
+      });
     });
 
     it('given invalidated before observation, when observed, does not throw', () => {
