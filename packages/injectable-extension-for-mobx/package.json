@@ -20,6 +20,10 @@
     "mobx": "^6.3.0",
     "lodash": "^4.17.21"
   },
+  "devDependencies": {
+    "@ogre-tools/fp": "^11.0.0",
+    "@ogre-tools/injectable": "^11.0.0"
+  },
   "bugs": {
     "url": "https://github.com/ogre-works/ogre-tools/issues"
   },
