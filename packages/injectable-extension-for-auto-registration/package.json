@@ -1,7 +1,7 @@
 {
   "name": "@ogre-tools/injectable-extension-for-auto-registration",
   "private": false,
-  "version": "12.0.0",
+  "version": "12.0.1",
   "description": "Auto-registration of injectables for Injectable in Ogre Tools",
   "repository": {
     "type": "git",
