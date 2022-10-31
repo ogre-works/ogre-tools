@@ -1,1 +1,2 @@
-module.exports = require('../../webpack.config-for-js');
+module.exports =
+  require('@ogre-tools/infrastructure-webpack-for-js').webpackConfig;

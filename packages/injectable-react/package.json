@@ -24,12 +24,6 @@
     "react": "^17.0.0",
     "react-dom": "^17.0.0"
   },
-  "jest": {
-    "testEnvironment": "jsdom",
-    "setupFilesAfterEnv": [
-      "./setupTests.js"
-    ]
-  },
   "gitHead": "a5e3d70aa0d5d45dbf2f3d37f586fac93bfffc86",
   "bugs": {
     "url": "https://github.com/ogre-works/ogre-tools/issues"
@@ -37,5 +31,14 @@
   "homepage": "https://github.com/ogre-works/ogre-tools#readme",
   "publishConfig": {
     "access": "public"
+  },
+  "scripts": {
+    "build": "ogre-tools-build-js",
+    "test": "ogre-tools-test"
+  },
+  "devDependencies": {
+    "@ogre-tools/infrastructure-webpack-for-js": "*",
+    "@ogre-tools/infrastructure-babel-for-js": "*",
+    "@ogre-tools/infrastructure-jest": "*"
   }
 }

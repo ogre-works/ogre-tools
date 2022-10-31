@@ -1,14 +1,3 @@
 module.exports = {
-  presets: [
-    [
-      '@babel/preset-env',
-      {
-        targets: {
-          node: 'current',
-        },
-      },
-    ],
-
-    '@babel/react',
-  ],
+  extends: '@ogre-tools/infrastructure-babel-for-js',
 };

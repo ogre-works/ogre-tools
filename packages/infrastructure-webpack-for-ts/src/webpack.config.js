@@ -1,4 +1,6 @@
-const configForJs = require('./webpack.config-for-js');
+const {
+  webpackConfig: configForJs,
+} = require('@ogre-tools/infrastructure-webpack-for-js');
 
 module.exports = {
   ...configForJs,

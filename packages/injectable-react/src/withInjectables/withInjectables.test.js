@@ -9,9 +9,8 @@ import {
   lifecycleEnum,
 } from '@ogre-tools/injectable';
 
-import withInjectables from './withInjectables';
+import withInjectables, { DiContextProvider } from './withInjectables';
 import asyncFn from '@async-fn/jest';
-import { DiContextProvider } from '@ogre-tools/injectable-react';
 import { observable, runInAction } from 'mobx';
 import { observer } from 'mobx-react';
 

@@ -24,5 +24,13 @@
   "homepage": "https://github.com/ogre-works/ogre-tools#readme",
   "publishConfig": {
     "access": "public"
+  },
+  "scripts": {
+    "build": "ogre-tools-build-js",
+    "test": "ogre-tools-test"
+  },
+  "devDependencies": {
+    "@ogre-tools/infrastructure-webpack-for-js": "*",
+    "@ogre-tools/infrastructure-jest": "*"
   }
 }
