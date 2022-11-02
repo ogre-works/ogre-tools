@@ -4,7 +4,7 @@
   "version": "12.0.1",
   "description": "Shared webpack configuration",
   "bin": {
-    "ogre-tools-build-ts": "./bin/build.sh"
+    "ogre-tools-build-ts": "bin/build.sh"
   },
   "dependencies": {
     "@ogre-tools/infrastructure-webpack-for-js": "*"
@@ -13,7 +13,7 @@
     "type": "git",
     "url": "https://github.com/ogre-works/ogre-tools"
   },
-  "main": "./src/index.js",
+  "main": "src/index.js",
   "keywords": [
     "js"
   ],

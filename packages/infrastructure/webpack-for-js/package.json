@@ -1,13 +1,16 @@
 {
-  "name": "@ogre-tools/infrastructure-prettier",
+  "name": "@ogre-tools/infrastructure-webpack-for-js",
   "private": true,
   "version": "12.0.1",
-  "description": "Shared prettier configuration",
+  "description": "Shared webpack configuration",
+  "bin": {
+    "ogre-tools-build-js": "bin/build.sh"
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/ogre-works/ogre-tools"
   },
-  "main": "index.js",
+  "main": "src/index.js",
   "keywords": [
     "js"
   ],
@@ -21,8 +24,12 @@
   "publishConfig": {
     "access": "public"
   },
-  "bin": {
-    "ogre-tools-lint": "./bin/lint.sh",
-    "ogre-tools-lint-fix": "./bin/lint-fix.sh"
+  "prettier": "@ogre-tools/infrastructure-prettier",
+  "devDependencies": {
+    "@ogre-tools/infrastructure-prettier": "*"
+  },
+  "scripts": {
+    "lint": "ogre-tools-lint",
+    "lint:fix": "ogre-tools-lint-fix"
   }
 }

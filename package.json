@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "description": "An assortment of tools for brutal software development.",
   "workspaces": [
-    "packages/*"
+    "packages/**/*"
   ],
   "repository": {
     "type": "git",
