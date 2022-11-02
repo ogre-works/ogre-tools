@@ -26,13 +26,17 @@
   "publishConfig": {
     "access": "public"
   },
+  "prettier": "@ogre-tools/infrastructure-prettier",
   "scripts": {
     "build": "ogre-tools-build-js",
-    "test": "ogre-tools-test"
+    "test": "ogre-tools-test",
+    "lint": "ogre-tools-lint",
+    "lint:fix": "ogre-tools-lint-fix"
   },
   "devDependencies": {
     "@ogre-tools/infrastructure-webpack-for-js": "*",
     "@ogre-tools/infrastructure-babel-for-js": "*",
-    "@ogre-tools/infrastructure-jest": "*"
+    "@ogre-tools/infrastructure-jest": "*",
+    "@ogre-tools/infrastructure-prettier": "*"
   }
 }

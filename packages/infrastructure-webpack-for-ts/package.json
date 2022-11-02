@@ -26,5 +26,13 @@
   "homepage": "https://github.com/ogre-works/ogre-tools#readme",
   "publishConfig": {
     "access": "public"
+  },
+  "prettier": "@ogre-tools/infrastructure-prettier",
+  "devDependencies": {
+    "@ogre-tools/infrastructure-prettier": "*"
+  },
+  "scripts": {
+    "lint": "ogre-tools-lint",
+    "lint:fix": "ogre-tools-lint-fix"
   }
 }
