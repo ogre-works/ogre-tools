@@ -3,6 +3,8 @@ node_modules
 
 build
 
+lerna-debug.log
+
 # testing
 coverage
 
