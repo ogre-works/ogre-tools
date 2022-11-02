@@ -22,7 +22,7 @@
     "access": "public"
   },
   "bin": {
-    "ogre-tools-lint": "bin/lint.sh",
-    "ogre-tools-lint-fix": "bin/lint-fix.sh"
+    "ogre-tools-verify-code-style": "bin/verify-code-style.sh",
+    "ogre-tools-fix-code-style": "bin/fix-code-style.sh"
   }
 }

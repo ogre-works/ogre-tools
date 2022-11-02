@@ -32,7 +32,7 @@
     "@ogre-tools/infrastructure-prettier": "*"
   },
   "scripts": {
-    "lint": "ogre-tools-lint",
-    "lint:fix": "ogre-tools-lint-fix"
+    "code-style:verify": "ogre-tools-verify-code-style",
+    "code-style:fix": "ogre-tools-fix-code-style"
   }
 }

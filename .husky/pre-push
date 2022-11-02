@@ -1,6 +1,6 @@
 #!/bin/sh
 . "$(dirname "$0")/_/husky.sh"
 
-npm run verify-code-style
-npm run test-types
-npm run test-for-ci
+npm run code-style:verify
+npm run test:types
+npm run test:ci
