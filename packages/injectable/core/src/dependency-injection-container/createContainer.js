@@ -8,6 +8,7 @@ export default containerId => {
   let injectableMap = new Map();
   let overridingInjectables = new Map();
   let sideEffectsArePrevented = false;
+  let alreadyInjected = new Set();
 
   const injectableAndRegistrationContext = new Map();
   const instancesByInjectableMap = new Map();
@@ -40,6 +41,8 @@ export default containerId => {
     }
 
     const originalInjectable = getRelatedInjectable(alias);
+
+    alreadyInjected.add(originalInjectable.id);
 
     const overriddenInjectable = overridingInjectables.get(
       originalInjectable.id,
@@ -240,6 +243,12 @@ export default containerId => {
       if (!originalInjectable) {
         throw new Error(
           `Tried to override "${alias.id}" which is not registered.`,
+        );
+      }
+
+      if (alreadyInjected.has(alias.id)) {
+        throw new Error(
+          `Tried to override injectable "${alias.id}", but it was already injected.`,
         );
       }
 
