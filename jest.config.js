@@ -1,5 +1,6 @@
 const path = require('path');
 const glob = require('glob');
+const { omit } = require('lodash/fp');
 
 const getProjectColor = projectNumber => {
   const colors = [
@@ -21,19 +22,31 @@ const getProjectColor = projectNumber => {
   return colors[projectNumber % colors.length];
 };
 
-const toProject = (
+const nonMultiProjectConfigs = [
+  'coverageDirectory',
+  'coverageProvider',
+  'coverageReporters',
+  'collectCoverage',
+  'collectCoverageFrom',
+  'coveragePathIgnorePatterns',
+  'coverageThreshold',
+];
+
+const toJestMultiProjectConfig = (
   { packageJson, jestConfig, packagePath },
   projectNumber,
 ) => ({
   rootDir: packagePath,
+
   displayName: {
     name: packageJson.name,
     color: getProjectColor(projectNumber),
   },
-  ...jestConfig,
+
+  ...omit(nonMultiProjectConfigs, jestConfig),
 });
 
-const getProjectConfigs = () => {
+const getJestConfigsAndPackageJsons = () => {
   const packageJsonPaths = glob
     .sync('./packages/**/jest.config.js', {
       ignore: '**/node_modules/**',
@@ -47,8 +60,8 @@ const getProjectConfigs = () => {
   }));
 };
 
-const projectConfigs = getProjectConfigs();
+const jestConfigsAndPackageJsons = getJestConfigsAndPackageJsons();
 
 module.exports = {
-  projects: projectConfigs.map(toProject),
+  projects: jestConfigsAndPackageJsons.map(toJestMultiProjectConfig),
 };
