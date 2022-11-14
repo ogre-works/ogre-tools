@@ -7,8 +7,8 @@
     "type": "git",
     "url": "https://github.com/ogre-works/ogre-tools"
   },
-  "main": "build/index.js",
-  "types": "./build/index.d.ts",
+  "main": "index.ts",
+  "types": "build/index.d.ts",
   "keywords": [
     "dependency-injection",
     "js"
