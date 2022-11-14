@@ -1,3 +1,6 @@
-import autoRegister from './src/autoRegister';
+import fs from 'fs';
+import path from 'path';
 
-export { autoRegister };
+import autoRegisterFor from './src/autoRegister';
+
+export const autoRegister = autoRegisterFor({ fs, path });

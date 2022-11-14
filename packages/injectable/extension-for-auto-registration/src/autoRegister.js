@@ -1,18 +1,7 @@
-import {
-  conforms,
-  flatMap,
-  forEach,
-  isFunction,
-  isString,
-  tap,
-} from 'lodash/fp';
+import { flatMap, forEach, tap } from 'lodash/fp';
 import { pipeline } from '@ogre-tools/fp';
 import { isInjectable } from '@ogre-tools/injectable';
-
-const hasInjectableSignature = conforms({
-  id: isString,
-  instantiate: isFunction,
-});
+import requireContextFake from './requireContextFake';
 
 const getFileNameAndModule = requireContext =>
   requireContext.keys().map(key => [key, requireContext(key)]);
@@ -33,21 +22,22 @@ const verifyInjectables = ([[fileName, module]]) => {
       `Tried to register injectables from "${fileName}", but there were none"`,
     );
   }
+};
 
-  injectables.forEach(([propertyName, injectable]) => {
-    if (!hasInjectableSignature(injectable)) {
-      throw new Error(
-        `Tried to register injectables from "${fileName}", but export "${propertyName}" is of wrong shape`,
-      );
+export default ({ fs, path }) =>
+  ({ di, targetModule, getRequireContexts }) => {
+    if (!targetModule.require.context) {
+      targetModule.require.context = requireContextFake({
+        targetModule: targetModule,
+        fs,
+        path,
+      });
     }
-  });
-};
 
-export default ({ di, requireContexts }) => {
-  pipeline(
-    requireContexts,
-    flatMap(getFileNameAndModule),
-    tap(verifyInjectables),
-    forEach(registerInjectableFor(di)),
-  );
-};
+    pipeline(
+      getRequireContexts(),
+      flatMap(getFileNameAndModule),
+      tap(verifyInjectables),
+      forEach(registerInjectableFor(di)),
+    );
+  };

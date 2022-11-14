@@ -1,6 +1,7 @@
-import { DiContainer } from '@ogre-tools/injectable';
+import { DiContainer, DiContainerForInjection } from '@ogre-tools/injectable';
 
 export function autoRegister(arg: {
-  di: DiContainer;
-  requireContexts: __WebpackModuleApi.RequireContext[];
+  di: DiContainer | DiContainerForInjection;
+  targetModule: __WebpackModuleApi.Module;
+  getRequireContexts: () => __WebpackModuleApi.RequireContext[];
 }): void;
