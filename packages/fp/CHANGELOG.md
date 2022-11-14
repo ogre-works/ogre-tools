@@ -3,6 +3,16 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [13.0.0](https://github.com/ogre-works/ogre-tools/compare/v12.0.1...v13.0.0) (2022-11-14)
+
+### Features
+
+- Make getSafeFrom list existing properties as part of error for none found ([8eef13c](https://github.com/ogre-works/ogre-tools/commit/8eef13c71c06eb99a7dfb5a911f1af3b8a100e33))
+
+### Bug Fixes
+
+- Export fp-functions present in typing: "getFrom" and "getSafeFrom" ([f9e85a4](https://github.com/ogre-works/ogre-tools/commit/f9e85a43252a5e6a97822437535912322b441827))
+
 ### [12.0.1](https://github.com/ogre-works/ogre-tools/compare/v12.0.0...v12.0.1) (2022-10-25)
 
 **Note:** Version bump only for package @ogre-tools/fp

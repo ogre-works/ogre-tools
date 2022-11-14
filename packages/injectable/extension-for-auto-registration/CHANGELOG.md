@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [13.0.0](https://github.com/ogre-works/ogre-tools/compare/v12.0.1...v13.0.0) (2022-11-14)
+
+### ⚠ BREAKING CHANGES
+
+- `autoRegister()` now requires `targetModule` and `getRequireContexts`
+  instead of `requireContexts`.
+
+### Features
+
+- Make auto-register work within jest without hacks ([7ef90d1](https://github.com/ogre-works/ogre-tools/commit/7ef90d13852196beaf50e23d612a94b83b5d59c9))
+
 ### [12.0.1](https://github.com/ogre-works/ogre-tools/compare/v12.0.0...v12.0.1) (2022-10-25)
 
 ### Bug Fixes

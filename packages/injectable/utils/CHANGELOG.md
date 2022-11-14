@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [13.0.0](https://github.com/ogre-works/ogre-tools/compare/v12.0.1...v13.0.0) (2022-11-14)
+
+### Bug Fixes
+
+- Fix TypeScript compilation ([0bdcd5b](https://github.com/ogre-works/ogre-tools/commit/0bdcd5ba2efbad35642cb3f9403565dfac33cb34))
+
 ### [12.0.1](https://github.com/ogre-works/ogre-tools/compare/v12.0.0...v12.0.1) (2022-10-25)
 
 ### Bug Fixes

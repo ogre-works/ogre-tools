@@ -3,6 +3,16 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [13.0.0](https://github.com/ogre-works/ogre-tools/compare/v12.0.1...v13.0.0) (2022-11-14)
+
+### ⚠ BREAKING CHANGES
+
+- Prevent overriding already injected injectables
+
+### Features
+
+- Prevent overriding already injected injectables ([3a611bc](https://github.com/ogre-works/ogre-tools/commit/3a611bc3710bcd838a9b4bd9130a2a0871f20054))
+
 ### [12.0.1](https://github.com/ogre-works/ogre-tools/compare/v12.0.0...v12.0.1) (2022-10-25)
 
 ### Bug Fixes
