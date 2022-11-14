@@ -9,8 +9,10 @@ describe('getSafeFrom', () => {
 
   it('when getting non existing value, throws', () => {
     expect(() => {
-      getSafeFrom({})('someNonExistingProperty');
-    }).toThrow('Tried to get unknown property "someNonExistingProperty"');
+      getSafeFrom({ someProperty: 'irrelevant' })('someNonExistingProperty');
+    }).toThrow(
+      'Tried to get unknown property "someNonExistingProperty" from an object. Available properties are:\n\nsomeProperty',
+    );
   });
 
   it('when getting existing nested value, returns value', () => {
