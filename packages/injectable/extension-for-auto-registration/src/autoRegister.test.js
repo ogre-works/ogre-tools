@@ -237,6 +237,40 @@ describe('autoRegister', () => {
     );
   });
 
+  it('given no matching injectable files, when auto-registering, throws', () => {
+    const requireContextStub = Object.assign(
+      () => ({
+        someExport: 'irrelevant',
+      }),
+
+      {
+        keys: () => [],
+      },
+    );
+
+    const di = createContainer('some-container');
+
+    const requireStub = {
+      context: getSafeFrom({
+        'some-directory/': requireContextStub,
+      }),
+    };
+
+    expect(() =>
+      autoRegister({
+        di,
+
+        targetModule: { require: requireStub },
+
+        getRequireContexts: () => [
+          requireStub.context('some-directory/', true, /\.injectable\.js$/),
+        ],
+      }),
+    ).toThrowError(
+      'Tried to auto-register injectables, but no matching files were found',
+    );
+  });
+
   it('given file with both injectable and non-injectable exports, given auto-registered, when injecting one of the injectables, does so', () => {
     const injectable = getInjectable({
       id: 'some-injectable',

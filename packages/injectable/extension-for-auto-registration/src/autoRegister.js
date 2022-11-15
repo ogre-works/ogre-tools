@@ -12,6 +12,14 @@ const registerInjectableFor =
     di.register(...Object.values(module).filter(isInjectable));
   };
 
+const verifyFiles = fileNamesAndModules => {
+  if (fileNamesAndModules.length === 0) {
+    throw new Error(
+      'Tried to auto-register injectables, but no matching files were found',
+    );
+  }
+};
+
 const verifyInjectables = ([[fileName, module]]) => {
   const injectables = Object.entries(module).filter(([, exported]) =>
     isInjectable(exported),
@@ -37,6 +45,7 @@ export default ({ fs, path }) =>
     pipeline(
       getRequireContexts(),
       flatMap(getFileNameAndModule),
+      tap(verifyFiles),
       tap(verifyInjectables),
       forEach(registerInjectableFor(di)),
     );
