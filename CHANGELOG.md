@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+### [13.2.1](https://github.com/ogre-works/ogre-tools/compare/v13.2.0...v13.2.1) (2022-11-17)
+
+### Bug Fixes
+
+- Make auto-register work in already built packages ([35ed955](https://github.com/ogre-works/ogre-tools/commit/35ed9558154cd016b9e983dd9cd76539db349c40))
+
 ## [13.2.0](https://github.com/ogre-works/ogre-tools/compare/v13.1.0...v13.2.0) (2022-11-17)
 
 ### Features
