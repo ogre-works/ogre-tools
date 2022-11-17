@@ -203,6 +203,30 @@ describe('autoRegister', () => {
     expect(actual).toBe('some-instance');
   });
 
+  it('given operating in already built package, injects', () => {
+    const injectableStub = getInjectable({
+      id: 'some-injectable',
+      instantiate: () => 'some-instance',
+    });
+
+    const di = createContainer('some-container');
+
+    autoRegister({
+      di,
+      // Note: require being undefined in module implies package being already built.
+      targetModule: { require: undefined, path: '/some-module-path' },
+
+      getRequireContexts: () => [
+        // Note: in packages that are already built, require contexts are inlined.
+        getRequireContextStub({ default: injectableStub }),
+      ],
+    });
+
+    const actual = di.inject(injectableStub);
+
+    expect(actual).toBe('some-instance');
+  });
+
   it('given injectable file with no injectables, when auto-registering, throws', () => {
     const requireContextStub = Object.assign(
       () => ({

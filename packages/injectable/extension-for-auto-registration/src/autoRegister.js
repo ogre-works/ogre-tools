@@ -1,4 +1,4 @@
-import { flatMap, forEach, tap } from 'lodash/fp';
+import { flatMap, forEach, tap, set } from 'lodash/fp';
 import { pipeline } from '@ogre-tools/fp';
 import { isInjectable } from '@ogre-tools/injectable';
 import requireContextFake from './requireContextFake';
@@ -34,7 +34,7 @@ const verifyInjectables = ([[fileName, module]]) => {
 
 export default ({ fs, path }) =>
   ({ di, targetModule, getRequireContexts }) => {
-    if (!targetModule.require.context) {
+    if (targetModule.require && !targetModule.require.context) {
       targetModule.require.context = requireContextFake({
         targetModule: targetModule,
         fs,
