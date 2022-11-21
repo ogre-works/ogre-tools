@@ -44,13 +44,13 @@ export interface Injectable<
   InjectionTokenInstance = InjectionInstance,
   InstantiationParam = void,
 > {
-  id: string;
-  causesSideEffects?: boolean;
-  injectionToken?: InjectionToken<InjectionTokenInstance, InstantiationParam>;
-  instantiate: Instantiate<InjectionInstance, InstantiationParam>;
-  lifecycle: ILifecycle<InstantiationParam>;
-  decorable?: boolean;
-  tags?: any[];
+  readonly id: string;
+  readonly causesSideEffects?: boolean;
+  readonly injectionToken?: InjectionToken<InjectionTokenInstance, InstantiationParam>;
+  readonly instantiate: Instantiate<InjectionInstance, InstantiationParam>;
+  readonly lifecycle: ILifecycle<InstantiationParam>;
+  readonly decorable?: boolean;
+  readonly tags?: any[];
 }
 
 type InjectableLifecycle<InstantiationParam> = InstantiationParam extends void
