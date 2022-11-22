@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [14.0.0](https://github.com/ogre-works/ogre-tools/compare/v13.2.1...v14.0.0) (2022-11-22)
+
+### ⚠ BREAKING CHANGES
+
+- Make properties of an injectable read-only to prevent misuse
+
+### Features
+
+- Make properties of an injectable read-only to prevent misuse ([abf402a](https://github.com/ogre-works/ogre-tools/commit/abf402a2c3edaa9701d818c926c9faa3d029779e))
+- Permit override of single injectable using injection token ([f6ae117](https://github.com/ogre-works/ogre-tools/commit/f6ae117a949c353267ccd21bb7b5239705c6a62e))
+
 ### [13.2.1](https://github.com/ogre-works/ogre-tools/compare/v13.2.0...v13.2.1) (2022-11-17)
 
 **Note:** Version bump only for package @ogre-tools/injectable
