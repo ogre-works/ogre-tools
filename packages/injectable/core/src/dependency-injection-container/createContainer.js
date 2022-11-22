@@ -238,9 +238,25 @@ export default containerId => {
     },
 
     override: (alias, instantiateStub) => {
-      const originalInjectable = injectableMap.get(alias.id);
+      const relatedInjectables = getRelatedInjectables(alias);
 
-      if (!originalInjectable) {
+      if (relatedInjectables.length > 1) {
+        throw new Error(
+          `Tried to override single implementation of injection token "${
+            alias.id
+          }", but found multiple registered implementations: "${relatedInjectables
+            .map(x => x.id)
+            .join('", "')}".`,
+        );
+      }
+
+      if (relatedInjectables.length === 0) {
+        if (alias.aliasType === 'injection-token') {
+          throw new Error(
+            `Tried to override single implementation of injection token "${alias.id}", but found no registered implementations.`,
+          );
+        }
+
         throw new Error(
           `Tried to override "${alias.id}" which is not registered.`,
         );
@@ -251,6 +267,8 @@ export default containerId => {
           `Tried to override injectable "${alias.id}", but it was already injected.`,
         );
       }
+
+      const originalInjectable = relatedInjectables[0];
 
       overridingInjectables.set(originalInjectable.id, {
         ...originalInjectable,

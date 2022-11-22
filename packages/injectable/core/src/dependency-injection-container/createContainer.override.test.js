@@ -203,4 +203,90 @@ describe('createContainer.override', () => {
 
     expect(actual).toEqual(['some-override']);
   });
+
+  it('given single registered injectable with injection token, and the injection token is overridden, when the injection token is inject-singled, injects the overridden instance', () => {
+    const di = createContainer('some-container');
+
+    const someInjectionToken = getInjectionToken({
+      id: 'some-injection-token',
+    });
+
+    const injectable = getInjectable({
+      id: 'some-injectable',
+      instantiate: () => 'irrelevant',
+      injectionToken: someInjectionToken,
+    });
+
+    di.register(injectable);
+
+    di.override(someInjectionToken, () => 'some-override');
+
+    const actual = di.inject(someInjectionToken);
+
+    expect(actual).toBe('some-override');
+  });
+
+  it('given single registered injectable with injection token, and the injection token is overridden, when the injection token is inject-many, injects the overridden instance', () => {
+    const di = createContainer('some-container');
+
+    const someInjectionToken = getInjectionToken({
+      id: 'some-injection-token',
+    });
+
+    const injectable = getInjectable({
+      id: 'some-injectable',
+      instantiate: () => 'irrelevant',
+      injectionToken: someInjectionToken,
+    });
+
+    di.register(injectable);
+
+    di.override(someInjectionToken, () => 'some-override');
+
+    const actual = di.injectMany(someInjectionToken);
+
+    expect(actual).toEqual(['some-override']);
+  });
+
+  it('given multiple registered injectables with injection token, and the injection token is overridden, throws', () => {
+    const di = createContainer('some-container');
+
+    const someInjectionToken = getInjectionToken({
+      id: 'some-injection-token',
+    });
+
+    const injectable1 = getInjectable({
+      id: 'some-injectable-1',
+      instantiate: () => 'irrelevant',
+      injectionToken: someInjectionToken,
+    });
+
+    const injectable2 = getInjectable({
+      id: 'some-injectable-2',
+      instantiate: () => 'irrelevant',
+      injectionToken: someInjectionToken,
+    });
+
+    di.register(injectable1, injectable2);
+
+    expect(() => {
+      di.override(someInjectionToken, () => 'some-override');
+    }).toThrow(
+      'Tried to override single implementation of injection token "some-injection-token", but found multiple registered implementations: "some-injectable-1", "some-injectable-2".',
+    );
+  });
+
+  it('given no registered injectable with injection token, when the injection token is overridden, throws', () => {
+    const di = createContainer('some-container');
+
+    const someInjectionToken = getInjectionToken({
+      id: 'some-injection-token',
+    });
+
+    expect(() => {
+      di.override(someInjectionToken, () => 'some-override');
+    }).toThrow(
+      'Tried to override single implementation of injection token "some-injection-token", but found no registered implementations.',
+    );
+  });
 });
