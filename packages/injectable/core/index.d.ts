@@ -9,11 +9,13 @@ export interface DiContainer extends DiContainerForInjection {
     InjectionTokenInstance,
     InstantiationParam,
   >(
-    injectable: Injectable<
-      InjectionInstance,
-      InjectionTokenInstance,
-      InstantiationParam
-    >,
+    injectable:
+      | InjectionToken<InjectionInstance, InstantiationParam>
+      | Injectable<
+          InjectionInstance,
+          InjectionTokenInstance,
+          InstantiationParam
+        >,
     instantiateStub: Instantiate<InjectionInstance, InstantiationParam>,
   ): void;
 
@@ -46,7 +48,10 @@ export interface Injectable<
 > {
   readonly id: string;
   readonly causesSideEffects?: boolean;
-  readonly injectionToken?: InjectionToken<InjectionTokenInstance, InstantiationParam>;
+  readonly injectionToken?: InjectionToken<
+    InjectionTokenInstance,
+    InstantiationParam
+  >;
   readonly instantiate: Instantiate<InjectionInstance, InstantiationParam>;
   readonly lifecycle: ILifecycle<InstantiationParam>;
   readonly decorable?: boolean;

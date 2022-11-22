@@ -165,9 +165,14 @@ expectType<{ someGeneralProperty: string }[]>(
   di.injectMany(someTokenWithGeneralProperty),
 );
 
+const someOtherInjectionToken = getInjectionToken<{ someProperty: number }>({
+  id: 'some-other-injection-token',
+});
+
 const someInjectableForOverrides = getInjectable({
   id: 'some-injectable',
   instantiate: () => ({ someProperty: 42 }),
+  injectionToken: someOtherInjectionToken,
 });
 
 // given injectable, when overriding with matching instantiate, typing is OK
@@ -187,5 +192,17 @@ expectType<void>(
   di.override(someInjectableForOverrides, () => ({
     someProperty: 84,
     someSpecificProperty: 42,
+  })),
+);
+
+// given injectable with injection token, when overriding with injection token, typing is OK
+expectType<void>(
+  di.override(someOtherInjectionToken, () => ({ someProperty: 84 })),
+);
+
+// given injectable with injection token, when overriding with injection token, but wrong type of override, typing is not OK
+expectError(
+  di.override(someOtherInjectionToken, () => ({
+    someProperty: 'not a number',
   })),
 );
