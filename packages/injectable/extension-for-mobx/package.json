@@ -1,7 +1,7 @@
 {
   "name": "@ogre-tools/injectable-extension-for-mobx",
   "private": false,
-  "version": "14.0.1",
+  "version": "14.0.2",
   "description": "MobX support for Injectable in Ogre Tools",
   "files": [
     "build",
@@ -39,9 +39,9 @@
     "code-style:fix": "ogre-tools-fix-code-style"
   },
   "devDependencies": {
-    "@ogre-tools/infrastructure-babel-for-js": "^14.0.1",
-    "@ogre-tools/infrastructure-jest": "^14.0.1",
-    "@ogre-tools/infrastructure-prettier": "^14.0.1",
-    "@ogre-tools/infrastructure-webpack-for-js": "^14.0.1"
+    "@ogre-tools/infrastructure-babel-for-js": "^14.0.2",
+    "@ogre-tools/infrastructure-jest": "^14.0.2",
+    "@ogre-tools/infrastructure-prettier": "^14.0.2",
+    "@ogre-tools/infrastructure-webpack-for-js": "^14.0.2"
   }
 }
