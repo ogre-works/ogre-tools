@@ -1,6 +1,7 @@
 import React from 'react';
-import enzyme from 'enzyme';
 import { setImmediate as flushMicroTasks } from 'timers';
+import { render } from '@testing-library/react';
+import { act } from '@testing-library/react';
 
 import {
   createContainer,
@@ -16,18 +17,10 @@ import { observer } from 'mobx-react';
 
 const flushPromises = () => new Promise(flushMicroTasks);
 
-const enzymeUpdate = async component => {
-  component.setProps();
-
-  await flushPromises();
-
-  component.find('Observer').forEach(Observer => Observer.update());
-};
-
 const mountFor =
   di =>
   (node, ...rest) =>
-    enzyme.mount(<DiContextProvider value={{ di }}>{node}</DiContextProvider>, {
+    render(<DiContextProvider value={{ di }}>{node}</DiContextProvider>, {
       ...rest,
     });
 
@@ -84,13 +77,11 @@ describe('withInjectables', () => {
 
     mount(<SomeParentComponent someObservable={someObservable} />);
 
-    await flushPromises();
-
-    runInAction(() => {
-      someObservable.set('some-other-value');
+    await act(() => {
+      runInAction(() => {
+        someObservable.set('some-other-value');
+      });
     });
-
-    await flushPromises();
 
     expect(componentDidMountMock).toHaveBeenCalledTimes(1);
   });
@@ -136,8 +127,10 @@ describe('withInjectables', () => {
 
     mount(<SomeParentComponent someObservable={someObservable} />);
 
-    runInAction(() => {
-      someObservable.set('some-other-value');
+    act(() => {
+      runInAction(() => {
+        someObservable.set('some-other-value');
+      });
     });
 
     expect(componentDidMountMock).toHaveBeenCalledTimes(1);
@@ -165,9 +158,9 @@ describe('withInjectables', () => {
       }),
     });
 
-    const component = mount(<SmartTestComponent data-some-prop-test />);
+    const rendered = mount(<SmartTestComponent data-some-prop-test />);
 
-    expect(component).toMatchHtmlSnapshot();
+    expect(rendered.baseElement).toMatchSnapshot();
   });
 
   [
@@ -284,7 +277,7 @@ describe('withInjectables', () => {
   });
 
   describe('given component, placeholder and async dependencies, when rendered', () => {
-    let component;
+    let rendered;
     let asyncDependencyMock;
 
     beforeEach(async () => {
@@ -301,7 +294,9 @@ describe('withInjectables', () => {
       di.register(injectable);
 
       const DumbTestComponent = ({ someDependency, ...props }) => (
-        <div {...props}>Some content: "{someDependency}"</div>
+        <div data-testid="some-dumb-test-component" {...props}>
+          Some content: "{someDependency}"
+        </div>
       );
 
       const SmartTestComponent = withInjectables(DumbTestComponent, {
@@ -310,50 +305,59 @@ describe('withInjectables', () => {
           ...props,
         }),
 
-        getPlaceholder: () => <div data-placeholder-test />,
+        getPlaceholder: () => <div data-testid="some-placeholder" />,
       });
 
-      component = mount(<SmartTestComponent data-some-prop-test />);
+      rendered = mount(<SmartTestComponent data-some-prop-test />);
     });
 
     it('renders as placeholder', () => {
-      expect(component).toMatchHtmlSnapshot();
+      expect(rendered.baseElement).toMatchSnapshot();
     });
 
     it('does not render component yet', () => {
-      expect(component.find('DumbTestComponent')).not.toBePresent();
+      expect(
+        rendered.queryByTestId('some-dumb-test-component'),
+      ).not.toBeInTheDocument();
     });
 
     it('has placeholder', () => {
-      expect(component.find('[data-placeholder-test]')).toBePresent();
+      expect(rendered.queryByTestId('some-placeholder')).toBeInTheDocument();
     });
 
     describe('when the dependency resolves', () => {
       beforeEach(async () => {
-        await asyncDependencyMock.resolve('some-async-value');
-        await enzymeUpdate(component);
+        await act(async () => {
+          await asyncDependencyMock.resolve('some-async-value');
+        });
       });
 
       it('renders', () => {
-        expect(component).toMatchHtmlSnapshot();
+        expect(rendered.baseElement).toMatchSnapshot();
       });
 
       it('has component with async content', () => {
-        expect(component).toHaveText('Some content: "some-async-value"');
+        expect(rendered.baseElement).toHaveTextContent(
+          'Some content: "some-async-value"',
+        );
       });
 
       it('has component', () => {
-        expect(component.find('DumbTestComponent')).toBePresent();
+        expect(
+          rendered.queryByTestId('some-dumb-test-component'),
+        ).toBeInTheDocument();
       });
 
       it('no longer has placeholder', () => {
-        expect(component.find('[data-placeholder-test]')).not.toBePresent();
+        expect(
+          rendered.queryByTestId('some-placeholder'),
+        ).not.toBeInTheDocument();
       });
     });
   });
 
   describe('given component, no placeholder and async dependencies, when rendered', () => {
-    let component;
+    let rendered;
     let asyncDependencyMock;
 
     beforeEach(async () => {
@@ -380,25 +384,26 @@ describe('withInjectables', () => {
         }),
       });
 
-      component = mount(<SmartTestComponent data-some-prop-test />);
+      rendered = mount(<SmartTestComponent data-some-prop-test />);
     });
 
     it('renders as null', () => {
-      expect(component.html()).toBe('');
+      expect(rendered.container).toBeEmptyDOMElement();
     });
 
     describe('when the dependency resolves', () => {
       beforeEach(async () => {
-        await asyncDependencyMock.resolve('some-async-value');
-        await enzymeUpdate(component);
+        await act(() => asyncDependencyMock.resolve('some-async-value'));
       });
 
       it('renders', () => {
-        expect(component).toMatchHtmlSnapshot();
+        expect(rendered.baseElement).toMatchSnapshot();
       });
 
       it('has component with async content', () => {
-        expect(component).toHaveText('Some content: "some-async-value"');
+        expect(rendered.baseElement).toHaveTextContent(
+          'Some content: "some-async-value"',
+        );
       });
     });
   });
@@ -470,12 +475,9 @@ describe('withInjectables', () => {
 
     const ref = React.createRef();
 
-    const component = mount(
-      <SmartTestComponent ref={ref} data-some-prop-test />,
-    );
+    mount(<SmartTestComponent ref={ref} data-some-prop-test />);
 
-    await asyncDependencyMock.resolve('some-async-value');
-    await enzymeUpdate(component);
+    await act(() => asyncDependencyMock.resolve('some-async-value'));
 
     expect(ref.current.someProperty).toBe('some-property-accessed-with-ref');
   });
@@ -504,14 +506,14 @@ describe('withInjectables', () => {
       }),
     });
 
-    const component = mount(
+    const rendered = mount(
       <SmartTestComponent
         data-some-prop-test
         someInstantiationParameter="some-instantiation-parameter-value"
       />,
     );
 
-    expect(component).toMatchHtmlSnapshot();
+    expect(rendered.baseElement).toMatchSnapshot();
   });
 });
 
