@@ -3,6 +3,10 @@
   "private": false,
   "version": "14.0.2",
   "description": "A collection of low abstraction functions in functional programming flavor",
+  "files": [
+    "build",
+    "index.d.ts"
+  ],
   "types": "./index.d.ts",
   "repository": {
     "type": "git",
