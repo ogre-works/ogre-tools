@@ -3,6 +3,10 @@
   "private": false,
   "version": "14.0.1",
   "description": "Error monitoring for Injectable in Ogre Tools",
+  "files": [
+    "build",
+    "index.d.ts"
+  ],
   "repository": {
     "type": "git",
     "url": "https://github.com/ogre-works/ogre-tools"
