@@ -1,6 +1,8 @@
 import { identity } from 'lodash/fp';
 import getInjectable from '../getInjectable/getInjectable';
-import createContainer, { injectionDecoratorToken } from './createContainer';
+import createContainer, {
+  injectionDecoratorToken,
+} from '../dependency-injection-container/createContainer';
 import { instantiationDecoratorToken } from '../../index';
 
 describe('createContainer.global-decoration', () => {

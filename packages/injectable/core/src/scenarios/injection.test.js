@@ -1,6 +1,6 @@
 import getInjectable from '../getInjectable/getInjectable';
-import lifecycleEnum from './lifecycleEnum';
-import createContainer from './createContainer';
+import lifecycleEnum from '../dependency-injection-container/lifecycleEnum';
+import createContainer from '../dependency-injection-container/createContainer';
 
 describe('createContainer.injection', () => {
   it('given async child-injectable as dependency, when injected, parent-injectable receives child as sync', async () => {

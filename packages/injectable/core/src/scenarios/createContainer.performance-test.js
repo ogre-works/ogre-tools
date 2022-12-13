@@ -1,4 +1,6 @@
-import createContainer, { registrationDecoratorToken } from './createContainer';
+import createContainer, {
+  registrationDecoratorToken,
+} from '../dependency-injection-container/createContainer';
 import getInjectable from '../getInjectable/getInjectable';
 import { range } from 'lodash/fp';
 import getInjectionToken from '../getInjectionToken/getInjectionToken';

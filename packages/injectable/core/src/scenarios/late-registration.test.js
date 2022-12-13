@@ -1,5 +1,5 @@
 import getInjectable from '../getInjectable/getInjectable';
-import createContainer from './createContainer';
+import createContainer from '../dependency-injection-container/createContainer';
 
 describe('createContainer.late-registration', () => {
   it('given injectable registered by another injectable during injection, when thus registered injectable is injected, injects', async () => {

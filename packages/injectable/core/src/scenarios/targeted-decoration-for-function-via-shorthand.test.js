@@ -1,5 +1,5 @@
 import getInjectable from '../getInjectable/getInjectable';
-import createContainer from './createContainer';
+import createContainer from '../dependency-injection-container/createContainer';
 
 describe('createContainer.targeted-decoration-for-function-via-shorthand', () => {
   it('given decorating function, when called, returns the decorated value', () => {

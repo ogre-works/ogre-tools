@@ -1,6 +1,6 @@
-import lifecycleEnum from './lifecycleEnum';
+import lifecycleEnum from '../dependency-injection-container/lifecycleEnum';
 import getInjectable from '../getInjectable/getInjectable';
-import createContainer from './createContainer';
+import createContainer from '../dependency-injection-container/createContainer';
 
 describe('createContainer.singleton', () => {
   it('given multiple containers and shared singleton, when injected from different containers, injects different instance', () => {

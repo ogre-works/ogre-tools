@@ -1,5 +1,5 @@
 import getInjectable from '../getInjectable/getInjectable';
-import createContainer from './createContainer';
+import createContainer from '../dependency-injection-container/createContainer';
 
 describe('createContainer.ad-hoc-injection', () => {
   it('given non-registered ad-hoc injectable, when injected, injects', () => {

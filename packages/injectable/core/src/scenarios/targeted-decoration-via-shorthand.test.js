@@ -1,5 +1,7 @@
 import getInjectable from '../getInjectable/getInjectable';
-import createContainer, { injectionDecoratorToken } from './createContainer';
+import createContainer, {
+  injectionDecoratorToken,
+} from '../dependency-injection-container/createContainer';
 import getInjectionToken from '../getInjectionToken/getInjectionToken';
 
 describe('createContainer.targeted-decoration-via-shorthand', () => {

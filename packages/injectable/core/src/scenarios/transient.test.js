@@ -1,7 +1,7 @@
-import lifecycleEnum from './lifecycleEnum';
+import lifecycleEnum from '../dependency-injection-container/lifecycleEnum';
 import getInjectionToken from '../getInjectionToken/getInjectionToken';
 import getInjectable from '../getInjectable/getInjectable';
-import createContainer from './createContainer';
+import createContainer from '../dependency-injection-container/createContainer';
 
 describe('createContainer.transient', () => {
   it('given instantiation parameter, when injected multiple times, injects different instances', () => {

@@ -1,5 +1,5 @@
 import getInjectable from '../getInjectable/getInjectable';
-import createContainer from './createContainer';
+import createContainer from '../dependency-injection-container/createContainer';
 
 describe('createContainer.registration', () => {
   it('given manually registered injectable, when injecting, injects', () => {

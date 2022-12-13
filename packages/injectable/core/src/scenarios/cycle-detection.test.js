@@ -1,4 +1,4 @@
-import createContainer from './createContainer';
+import createContainer from '../dependency-injection-container/createContainer';
 import getInjectable from '../getInjectable/getInjectable';
 
 xdescribe('cycle-detection', () => {

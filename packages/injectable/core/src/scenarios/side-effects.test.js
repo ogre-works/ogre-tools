@@ -1,5 +1,5 @@
 import getInjectable from '../getInjectable/getInjectable';
-import createContainer from './createContainer';
+import createContainer from '../dependency-injection-container/createContainer';
 
 describe('createContainer.side-effects', () => {
   it('given in side effects are not prevented, when injecting injectable which causes side effects, does not throw', () => {

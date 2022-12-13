@@ -1,6 +1,6 @@
-import lifecycleEnum from './lifecycleEnum';
+import lifecycleEnum from '../dependency-injection-container/lifecycleEnum';
 import getInjectable from '../getInjectable/getInjectable';
-import createContainer from './createContainer';
+import createContainer from '../dependency-injection-container/createContainer';
 
 describe('createContainer.keyed-singleton', () => {
   describe('given key from instantiation parameter', () => {

@@ -1,24 +1,24 @@
 import getInjectable from '../getInjectable/getInjectable';
-import createContainer, { injectionDecoratorToken } from './createContainer';
+import createContainer, {
+  instantiationDecoratorToken,
+} from '../dependency-injection-container/createContainer';
 import getInjectionToken from '../getInjectionToken/getInjectionToken';
 
-describe('createContainer.targeted-decoration', () => {
+describe('createContainer.targeted-decoration-of-instantiation', () => {
   it('given decorator targeting child, when parent is injected, decorates instance and instantiation parameter of only child', () => {
     const decoratorInjectable = getInjectable({
       id: 'some-child-decorator',
-      injectionToken: injectionDecoratorToken,
+      injectionToken: instantiationDecoratorToken,
       decorable: false,
 
       instantiate: () => ({
         decorate:
-          injectToBeDecorated =>
-          (alias, instantiationParameter, ...args) => {
+          instantiationToBeDecorated => (di, instantiationParameter) => {
             const decoratedInstantiationParameter = `decorated-parameter(${instantiationParameter})`;
 
-            return `decorated-instance(${injectToBeDecorated(
-              alias,
+            return `decorated-instance(${instantiationToBeDecorated(
+              di,
               decoratedInstantiationParameter,
-              ...args,
             )})`;
           },
 
@@ -61,18 +61,19 @@ describe('createContainer.targeted-decoration', () => {
 
     const decoratorInjectable = getInjectable({
       id: 'some-injection-token-decorator',
-      injectionToken: injectionDecoratorToken,
+      injectionToken: instantiationDecoratorToken,
       decorable: false,
 
       instantiate: () => ({
-        decorate: injectToBeDecorated => (alias, instantiationParameter) => {
-          const decoratedParameter = `decorated-parameter(${instantiationParameter})`;
+        decorate:
+          instantiationToBeDecorated => (di, instantiationParameter) => {
+            const decoratedParameter = `decorated-parameter(${instantiationParameter})`;
 
-          return `decorated-instance(${injectToBeDecorated(
-            alias,
-            decoratedParameter,
-          )})`;
-        },
+            return `decorated-instance(${instantiationToBeDecorated(
+              di,
+              decoratedParameter,
+            )})`;
+          },
 
         target: someInjectionTokenForTargetedDecoration,
       }),

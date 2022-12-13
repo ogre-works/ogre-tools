@@ -1,7 +1,7 @@
 import getInjectionToken from '../getInjectionToken/getInjectionToken';
 import getInjectable from '../getInjectable/getInjectable';
-import lifecycleEnum from './lifecycleEnum';
-import createContainer from './createContainer';
+import lifecycleEnum from '../dependency-injection-container/lifecycleEnum';
+import createContainer from '../dependency-injection-container/createContainer';
 
 describe('createContainer.injection-token', () => {
   it('given multiple injectables with shared injection token, when injecting using the token, throws', () => {
