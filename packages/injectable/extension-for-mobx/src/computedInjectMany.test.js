@@ -1,4 +1,4 @@
-import { computed, configure, observe, runInAction } from 'mobx';
+import { action, computed, configure, observable, observe, runInAction } from 'mobx';
 import {
   createContainer,
   getInjectable,
@@ -54,14 +54,14 @@ describe('registerMobx', () => {
 
           decorate:
             toBeDecorated =>
-            (alias, instantiationParameter, context = []) => {
-              contextsOfSomeInjectable.push([
-                ...context.map(x => x.injectable.id),
-                alias.id,
-              ]);
+              (alias, instantiationParameter, context = []) => {
+                contextsOfSomeInjectable.push([
+                  ...context.map(x => x.injectable.id),
+                  alias.id,
+                ]);
 
-              return toBeDecorated(alias, instantiationParameter, context);
-            },
+                return toBeDecorated(alias, instantiationParameter, context);
+              },
         }),
 
         decorable: false,
@@ -296,15 +296,15 @@ describe('registerMobx', () => {
         instantiate: () => ({
           decorate:
             toBeDecorated =>
-            (injectable, ...args) => {
-              if (injectable[isInternalOfComputedInjectMany] === true) {
-                throw new Error(
-                  `Tried to decorate an internal of computedInjectMany: "${injectable.id}"`,
-                );
-              }
+              (injectable, ...args) => {
+                if (injectable[isInternalOfComputedInjectMany] === true) {
+                  throw new Error(
+                    `Tried to decorate an internal of computedInjectMany: "${injectable.id}"`,
+                  );
+                }
 
-              return toBeDecorated(injectable, ...args);
-            },
+                return toBeDecorated(injectable, ...args);
+              },
         }),
 
         decorable: false,
@@ -394,6 +394,113 @@ describe('registerMobx', () => {
             'some-injection-token',
             'some-injectable',
           ],
+        ]);
+      });
+    });
+  });
+
+  describe("given the MobX extension is registered, and there is complex injection token and implementations of it, when injected as reactive", () => {
+    let di;
+    let actual;
+    let someFirstInjectionToken;
+    let someOtherInjectable;
+    let reactionCountForFirstToken;
+    let someInjectable;
+    let contextsOfSomeInjectable;
+
+    beforeEach(() => {
+      configure({
+        enforceActions: "never",
+        computedRequiresReaction: false,
+        observableRequiresReaction: false,
+      })
+      contextsOfSomeInjectable = [];
+      reactionCountForFirstToken = 0;
+
+      someFirstInjectionToken = getInjectionToken({
+        id: 'some-injection-token',
+      });
+
+      someInjectable = getInjectable({
+        id: 'some-injectable',
+        instantiate: () => observable({
+          someField: 'some-instance',
+        }),
+        injectionToken: someFirstInjectionToken,
+      });
+
+      const contextSpyDecorator = getInjectable({
+        id: 'context-spy-decorator',
+
+        instantiate: () => ({
+          target: someInjectable,
+
+          decorate:
+            toBeDecorated =>
+              (alias, instantiationParameter, context = []) => {
+                contextsOfSomeInjectable.push([
+                  ...context.map(x => x.injectable.id),
+                  alias.id,
+                ]);
+
+                return toBeDecorated(alias, instantiationParameter, context);
+              },
+        }),
+
+        decorable: false,
+
+        injectionToken: injectionDecoratorToken,
+      });
+
+      someOtherInjectable = getInjectable({
+        id: 'some-other-injectable',
+        instantiate: () => observable({
+          someField: 'some-other-instance',
+        }),
+        injectionToken: someFirstInjectionToken,
+      });
+
+      di = createContainer('some-container');
+
+      di.register(contextSpyDecorator);
+
+      registerMobX(di);
+    });
+
+    describe('given in reactive context and observed as computedInjectMany, when multiple injectables that implement the injection token are registered', () => {
+      beforeEach(() => {
+        const computedInjectMany = di.inject(computedInjectManyInjectable);
+
+        actual = computedInjectMany(someFirstInjectionToken);
+
+        runInAction(() => {
+          di.register(someInjectable, someOtherInjectable);
+        });
+      });
+
+      it('injects reactive instances', () => {
+        expect(actual.get()).toStrictEqual([
+          {
+            someField: 'some-instance'
+          },
+          {
+            someField: 'some-other-instance'
+          },
+        ]);
+      });
+
+      it('given that one of the instances changes an internal MobX observable field, a previous injection returns the new values', () => {
+        action(() => {
+          someInjectable.someField = 'some-new-instance';
+        });
+
+        expect(actual.get()).toStrictEqual([
+          {
+            someField: 'some-new-instance',
+          },
+          {
+            someField: 'some-other-instance'
+          },
         ]);
       });
     });
