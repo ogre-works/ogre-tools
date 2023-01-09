@@ -1,10 +1,17 @@
-import { computed, configure, observe, runInAction } from 'mobx';
+import {
+  computed,
+  configure,
+  observable,
+  observe,
+  reaction,
+  runInAction,
+} from 'mobx';
+
 import {
   createContainer,
   getInjectable,
   getInjectionToken,
   injectionDecoratorToken,
-  instantiationDecoratorToken,
 } from '@ogre-tools/injectable';
 
 import {
@@ -13,15 +20,17 @@ import {
   registerMobX,
 } from './computedInjectMany';
 
-configure({
-  enforceActions: 'always',
-  computedRequiresReaction: true,
-  reactionRequiresObservable: true,
-  observableRequiresReaction: true,
-});
-
 describe('registerMobx', () => {
   let reactiveInstances;
+
+  beforeEach(() => {
+    configure({
+      enforceActions: 'always',
+      computedRequiresReaction: true,
+      reactionRequiresObservable: true,
+      observableRequiresReaction: true,
+    });
+  });
 
   describe('given the MobX extension is registered, and there is injection token and implementations of it, when injected as reactive', () => {
     let di;
@@ -394,6 +403,105 @@ describe('registerMobx', () => {
             'some-injection-token',
             'some-injectable',
           ],
+        ]);
+      });
+    });
+  });
+
+  describe('given observable instances', () => {
+    let di;
+    let someFirstInjectionToken;
+    let someOtherInjectable;
+    let someInjectable;
+
+    beforeEach(() => {
+      configure({
+        computedRequiresReaction: false,
+        observableRequiresReaction: false,
+      });
+
+      someFirstInjectionToken = getInjectionToken({
+        id: 'some-injection-token',
+      });
+
+      someInjectable = getInjectable({
+        id: 'some-injectable',
+
+        instantiate: () =>
+          observable({
+            someField: 'some-instance',
+          }),
+
+        injectionToken: someFirstInjectionToken,
+      });
+
+      someOtherInjectable = getInjectable({
+        id: 'some-other-injectable',
+
+        instantiate: () =>
+          observable({
+            someField: 'some-other-instance',
+          }),
+
+        injectionToken: someFirstInjectionToken,
+      });
+
+      di = createContainer('some-container');
+
+      registerMobX(di);
+    });
+
+    describe('given the injectables are registered', () => {
+      let actual;
+
+      beforeEach(() => {
+        const computedInjectMany = di.inject(computedInjectManyInjectable);
+
+        actual = computedInjectMany(someFirstInjectionToken);
+
+        runInAction(() => {
+          di.register(someInjectable, someOtherInjectable);
+        });
+      });
+
+      it('when questionably accessing instances outside of reactive context, instances are present', () => {
+        expect(actual.get().map(x => x.someField)).toEqual([
+          'some-instance',
+          'some-other-instance',
+        ]);
+      });
+
+      it('given a property of one of the observable instances changes, when questionably accessing instances outside of reactive context, change is present', () => {
+        const someInstance = di.inject(someInjectable);
+
+        runInAction(() => {
+          someInstance.someField = 'some-new-instance';
+        });
+
+        expect(actual.get().map(x => x.someField)).toEqual([
+          'some-new-instance',
+          'some-other-instance',
+        ]);
+      });
+
+      it('given observing reactive changes, when a property of one of the observable instances changes, the change is observed', () => {
+        let someObservation;
+
+        reaction(
+          () => actual.get().map(x => x.someField),
+          change => {
+            someObservation = change;
+          },
+        );
+
+        const someInstance = di.inject(someInjectable);
+        runInAction(() => {
+          someInstance.someField = 'some-new-instance';
+        });
+
+        expect(someObservation).toEqual([
+          'some-new-instance',
+          'some-other-instance',
         ]);
       });
     });
