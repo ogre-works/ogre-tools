@@ -1,0 +1,46 @@
+{
+  "name": "@ogre-tools/generable",
+  "private": false,
+  "version": "14.0.3",
+  "description": "A collection of low abstraction functions in functional programming flavor for generators",
+  "files": [
+    "build",
+    "index.d.ts"
+  ],
+  "types": "./index.d.ts",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ogre-works/ogre-tools"
+  },
+  "main": "build/index.js",
+  "keywords": [
+    "js",
+    "functional-programming",
+    "generators"
+  ],
+  "author": "Ogre Works",
+  "license": "MIT",
+  "peerDependencies": {
+    "lodash": "^4.17.21"
+  },
+  "bugs": {
+    "url": "https://github.com/ogre-works/ogre-tools/issues"
+  },
+  "homepage": "https://github.com/ogre-works/ogre-tools#readme",
+  "publishConfig": {
+    "access": "public"
+  },
+  "prettier": "@ogre-tools/infrastructure-prettier",
+  "scripts": {
+    "build": "ogre-tools-build-js",
+    "test": "ogre-tools-test",
+    "code-style:verify": "ogre-tools-verify-code-style",
+    "code-style:fix": "ogre-tools-fix-code-style"
+  },
+  "devDependencies": {
+    "@ogre-tools/fp": "^14.0.3",
+    "@ogre-tools/infrastructure-jest": "^14.0.3",
+    "@ogre-tools/infrastructure-prettier": "^14.0.3",
+    "@ogre-tools/infrastructure-webpack-for-js": "^14.0.3"
+  }
+}
