@@ -1,15 +1,15 @@
 import every from 'lodash/fp/every';
 import isEmpty from 'lodash/fp/isEmpty';
 import map from 'lodash/fp/map';
-import flow from '../../../doings/flow/flow';
-import getIterator from '../../../doings/getIterator/getIterator';
+import getIterator from '../../shared/getIterator/getIterator';
+import { flow } from '@ogre-tools/fp';
 
 export default (...iterables) => {
   const iterators = getIterators(iterables);
   const iteratorSet = new Set(iterators);
 
   return allAreSync(iterables)
-    ? (function*() {
+    ? (function* () {
         while (!isEmpty(iteratorSet)) {
           for (const iterator of iteratorSet) {
             const { value, done } = iterator.next();
@@ -22,7 +22,7 @@ export default (...iterables) => {
           }
         }
       })()
-    : (async function*() {
+    : (async function* () {
         const nextPromises = getNextPromiseSet(iterators);
 
         while (!isEmpty(nextPromises)) {

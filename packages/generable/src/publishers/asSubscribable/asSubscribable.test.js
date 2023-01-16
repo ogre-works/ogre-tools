@@ -1,9 +1,8 @@
-import flow from '../../../doings/flow/flow';
-import pipeline from '../../../doings/pipeline/pipeline';
-import flushPromises from '../../../test-utils/flushPromises';
 import take from '../../slackers/take/take';
 import asSubscribable from './asSubscribable';
 import forEach from '../../pullers/forEach/forEach';
+import { flow, pipeline } from '@ogre-tools/fp';
+import { flushPromises } from '@ogre-tools/test-utils';
 
 describe('asSubscribable', () => {
   it('given iterable, when subscribed, the subscriber can iterate the iterable', async () => {
@@ -21,7 +20,7 @@ describe('asSubscribable', () => {
   it('given iterable, when not subscribed, the iterable is not iterated', async () => {
     const func = jest.fn();
 
-    const iterable = (function*() {
+    const iterable = (function* () {
       func();
       yield;
     })();
@@ -38,10 +37,7 @@ describe('asSubscribable', () => {
     const actualSubscribable = pipeline(iterable, asSubscribable);
 
     const firstFunc = () => {};
-    const firstSubscriber = flow(
-      take(2),
-      forEach(firstFunc),
-    );
+    const firstSubscriber = flow(take(2), forEach(firstFunc));
 
     actualSubscribable.subscribe(firstSubscriber);
     await flushPromises();

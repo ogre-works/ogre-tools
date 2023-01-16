@@ -1,7 +1,7 @@
-import pipeline from '../../../doings/pipeline/pipeline';
 import asArray from '../../pullers/asArray/asArray';
 import take from '../../slackers/take/take';
 import infinity from './infinity';
+import { pipeline } from '@ogre-tools/fp';
 
 describe('infinity', () => {
   it('given no function call, iterates to infinite number of undefined values', () => {
@@ -23,7 +23,11 @@ describe('infinity', () => {
   });
 
   it('given seed and function, generates infinite number values starting from seed and then accumulating it using function', () => {
-    const actual = pipeline(infinity(2, acc => acc * 2), take(3), asArray);
+    const actual = pipeline(
+      infinity(2, acc => acc * 2),
+      take(3),
+      asArray,
+    );
 
     expect(actual).toEqual([2, 4, 8]);
   });

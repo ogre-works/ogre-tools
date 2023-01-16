@@ -1,7 +1,7 @@
 import add from 'lodash/fp/add';
-import pipeline from '../../../doings/pipeline/pipeline';
 import infinity from '../infinity/infinity';
 import take from '../../slackers/take/take';
+import { pipeline } from '@ogre-tools/fp';
 
 const file = (
   start = 0,

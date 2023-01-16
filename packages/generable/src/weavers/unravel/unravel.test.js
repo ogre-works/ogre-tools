@@ -1,8 +1,8 @@
-import pipeline from '../../../doings/pipeline/pipeline';
 import asArray from '../../pullers/asArray/asArray';
 import tap from '../../slackers/tap/tap';
 import unravel from './unravel';
 import noop from 'lodash/fp/noop';
+import { pipeline } from '@ogre-tools/fp';
 
 describe('unravel', () => {
   it('given multiple output generators, when iterating sync iterable, broadcasts iterations to all outputs', async () => {
@@ -16,11 +16,15 @@ describe('unravel', () => {
 
     const result = await resultPromise;
 
-    expect(result).toEqual([[1, 2, 3], [1, 2, 3], [1, 2, 3]]);
+    expect(result).toEqual([
+      [1, 2, 3],
+      [1, 2, 3],
+      [1, 2, 3],
+    ]);
   });
 
   it('given multiple output generators, when iterating async iterable, broadcasts iterations to all outputs', async () => {
-    const asyncIterable = (async function*() {
+    const asyncIterable = (async function* () {
       yield 1;
       yield 2;
       yield 3;
@@ -34,7 +38,11 @@ describe('unravel', () => {
 
     const result = await resultPromise;
 
-    expect(result).toEqual([[1, 2, 3], [1, 2, 3], [1, 2, 3]]);
+    expect(result).toEqual([
+      [1, 2, 3],
+      [1, 2, 3],
+      [1, 2, 3],
+    ]);
   });
 
   it('given multiple outputs, when iterating, iterates source iterable only once', async () => {

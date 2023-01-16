@@ -1,7 +1,7 @@
-import pipeline from '../../../doings/pipeline/pipeline';
 import asArray from '../../pullers/asArray/asArray';
 import asAsync from '../../slackers/asAsync/asAsync';
 import parallelize from './parallelize';
+import { pipeline } from '@ogre-tools/fp';
 
 describe('parallelize', () => {
   it('given multiple sync iterables, when iterated, synchronously iterates one value from each iterable', () => {
@@ -14,7 +14,11 @@ describe('parallelize', () => {
       asArray,
     );
 
-    expect(result).toEqual([[1, 4, 7], [2, 5, 8], [3, 6, 9]]);
+    expect(result).toEqual([
+      [1, 4, 7],
+      [2, 5, 8],
+      [3, 6, 9],
+    ]);
   });
 
   it('given multiple iterables containing at least one async, when iterated, asynchronously iterates one value from each iterable', async () => {
@@ -27,6 +31,10 @@ describe('parallelize', () => {
       asArray,
     );
 
-    expect(result).toEqual([[1, 4, 7], [2, 5, 8], [3, 6, 9]]);
+    expect(result).toEqual([
+      [1, 4, 7],
+      [2, 5, 8],
+      [3, 6, 9],
+    ]);
   });
 });

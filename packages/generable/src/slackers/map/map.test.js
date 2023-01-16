@@ -1,7 +1,7 @@
-import pipeline from '../../../doings/pipeline/pipeline';
 import asArray from '../../pullers/asArray/asArray';
 import asAsync from '../asAsync/asAsync';
 import map from './map';
+import { pipeline } from '@ogre-tools/fp';
 
 describe('map', () => {
   it('given a mapping function and synchronous iterable, returns new synchronous iterable for mapped values', () => {
@@ -25,7 +25,7 @@ describe('map', () => {
   it('given a mapping function and asynchronous iterable, returns new asynchronous iterable for mapped values', async () => {
     const mappingFunction = x => x * 2;
 
-    const asynchronousIterable = (async function*() {
+    const asynchronousIterable = (async function* () {
       yield 1;
       yield await 2;
       yield Promise.resolve(3);

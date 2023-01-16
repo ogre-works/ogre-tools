@@ -1,5 +1,3 @@
-import pipeline from '../../../doings/pipeline/pipeline';
-import advanceFakeTime from '../../../test-utils/advanceFakeTime/advanceFakeTime';
 import asArray from '../asArray/asArray';
 import asAsync from '../../slackers/asAsync/asAsync';
 import forEach from '../forEach/forEach';
@@ -7,6 +5,8 @@ import range from '../../sources/range/range';
 import regulate from '../../slackers/regulate/regulate';
 import take from '../../slackers/take/take';
 import buffer from './buffer';
+import { pipeline } from '@ogre-tools/fp';
+import { advanceFakeTime } from '@ogre-tools/test-utils';
 
 describe('buffer', () => {
   it('given finite sync iterable, when iterated, yields values and return from iterable', async () => {

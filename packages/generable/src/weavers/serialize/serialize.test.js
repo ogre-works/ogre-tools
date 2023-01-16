@@ -1,8 +1,8 @@
-import delay from '../../../doings/delay/delay';
-import pipeline from '../../../doings/pipeline/pipeline';
 import asArray from '../../pullers/asArray/asArray';
 import asAsync from '../../slackers/asAsync/asAsync';
 import serialize from './serialize';
+import { pipeline } from '@ogre-tools/fp';
+import delay from '../../shared/delay/delay';
 
 describe('serialize', () => {
   it('given multiple sync iterables, when iterated, synchronously iterates one value from each iterable in a serie', () => {
@@ -34,7 +34,7 @@ describe('serialize', () => {
   it('given multiple iterables containing at least one slow async, when iterated, the slow one does not block the fast ones', async () => {
     const syncIterable1 = [1, 2, 3];
 
-    const asyncIterable2 = (async function*() {
+    const asyncIterable2 = (async function* () {
       yield await delay(1, 'slow-value');
     })();
 

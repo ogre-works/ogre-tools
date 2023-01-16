@@ -4,13 +4,13 @@ import invokeMap from 'lodash/fp/invokeMap';
 import map from 'lodash/fp/map';
 import some from 'lodash/fp/some';
 import negate from 'lodash/fp/negate';
-import getIterator from '../../../doings/getIterator/getIterator';
+import getIterator from '../../shared/getIterator/getIterator';
 
 export default (...iterables) => {
   const iterators = getIterators(iterables);
 
   return allAreSync(iterables)
-    ? (function*() {
+    ? (function* () {
         for (
           let nextArray = getNextArraySync(iterators);
           none('done', nextArray);
@@ -19,7 +19,7 @@ export default (...iterables) => {
           yield map('value', nextArray);
         }
       })()
-    : (async function*() {
+    : (async function* () {
         for (
           let nextArray = await getNextArrayAsync(iterators);
           none('done', nextArray);
@@ -38,7 +38,6 @@ const allAreSync = every(iterable => Symbol.iterator in iterable);
 
 const getNextArraySync = invokeMap('next');
 
-const getNextArrayAsync = flow(
-  invokeMap('next'),
-  nextPromises => Promise.all(nextPromises),
+const getNextArrayAsync = flow(invokeMap('next'), nextPromises =>
+  Promise.all(nextPromises),
 );

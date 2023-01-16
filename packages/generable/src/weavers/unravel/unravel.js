@@ -1,7 +1,8 @@
 import over from 'lodash/fp/over';
 
-import pipeline from '../../../doings/pipeline/pipeline';
 import asStream from '../../publishers/asStream/asStream';
+import { pipeline } from '@ogre-tools/fp';
 
-export default (...outputIterables) => inputIterable =>
-  pipeline(inputIterable, asStream, over(outputIterables));
+export default (...outputIterables) =>
+  inputIterable =>
+    pipeline(inputIterable, asStream, over(outputIterables));

@@ -1,7 +1,7 @@
-import advanceFakeTime from '../../../test-utils/advanceFakeTime/advanceFakeTime';
-import delay from '../../../doings/delay/delay';
-import pipeline from '../../../doings/pipeline/pipeline';
 import forEach from './forEach';
+import { pipeline } from '@ogre-tools/fp';
+import delay from '../../shared/delay/delay';
+import { advanceFakeTime } from '@ogre-tools/test-utils';
 
 describe('forEach', () => {
   it('given sync forEach function and sync iterable, calls the function for each iterated value', () => {
@@ -17,7 +17,7 @@ describe('forEach', () => {
   it('given sync forEach function and asynchronous iterable, calls the function for each iterated value', async () => {
     const func = jest.fn();
 
-    const asynchronousIterable = (async function*() {
+    const asynchronousIterable = (async function* () {
       yield 1;
       yield await 2;
       yield Promise.resolve(3);
@@ -34,7 +34,7 @@ describe('forEach', () => {
     const func = jest.fn();
     const asyncForEachFunctionMock = async x => func(x);
 
-    const asynchronousIterable = (async function*() {
+    const asynchronousIterable = (async function* () {
       yield delay(1, 'some-first-value');
       yield delay(3, 'some-second-value');
       yield delay(2, 'some-third-value');

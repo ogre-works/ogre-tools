@@ -1,7 +1,7 @@
-import pipeline from '../../../doings/pipeline/pipeline';
 import asArray from '../../pullers/asArray/asArray';
 import take from '../../slackers/take/take';
 import asStream from './asStream';
+import { pipeline } from '@ogre-tools/fp';
 
 describe('asStream', () => {
   it('given source iterable is already partially iterated, when another iteration pass happens, iteration carries on from next iteration', async () => {
@@ -31,7 +31,7 @@ describe('asStream', () => {
   it('when not iterated, does not iterate source', async () => {
     const func = jest.fn();
 
-    const iterable = (function*() {
+    const iterable = (function* () {
       func();
       yield 1;
     })();

@@ -1,8 +1,8 @@
-import advanceFakeTime from '../../../test-utils/advanceFakeTime/advanceFakeTime';
-import flushPromises from '../../../test-utils/flushPromises';
-import pipeline from '../../../doings/pipeline/pipeline';
 import forEach from '../../pullers/forEach/forEach';
 import regulate from './regulate';
+import { pipeline } from '@ogre-tools/fp';
+import { flushPromises } from '@ogre-tools/test-utils';
+import { advanceFakeTime } from '@ogre-tools/test-utils';
 
 describe('regulate', () => {
   beforeEach(() => {
@@ -12,7 +12,7 @@ describe('regulate', () => {
   it('given regulation milliseconds and sync iterable, when iterated and no time passes, first value is still iterated', async () => {
     const mockFunction = jest.fn();
 
-    const asyncIterable = (async function*() {
+    const asyncIterable = (async function* () {
       yield 1;
       yield 2;
       yield 3;
@@ -28,7 +28,7 @@ describe('regulate', () => {
   it('given regulation milliseconds and sync iterable, when iterated and time passes, iterations are regulated', async () => {
     const mockFunction = jest.fn();
 
-    const asyncIterable = (async function*() {
+    const asyncIterable = (async function* () {
       yield 1;
       yield 2;
       yield 3;
@@ -44,7 +44,7 @@ describe('regulate', () => {
   it('given regulation milliseconds and async iterable, when iterated and time passes, iterations are regulated', async () => {
     const mockFunction = jest.fn();
 
-    const syncIterable = (function*() {
+    const syncIterable = (function* () {
       yield 1;
       yield 2;
       yield 3;
