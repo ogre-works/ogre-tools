@@ -11,6 +11,7 @@ import {
 } from 'lodash/fp';
 
 import matchAll from '../matchAll/matchAll';
+import pipeline from '../pipeline/pipeline';
 
 const replaceTagsWithValues = curry((valuesForTags, oldStringWithTags) => {
   const newStringWithTags = pipeline(
@@ -30,14 +31,13 @@ export default (
   stringWithTags,
   valuesForTags,
   { throwOnMissingTagValues = true } = {},
-) => {
-  return pipeline(
+) =>
+  pipeline(
     stringWithTags,
     tap(protectAgainstNonStringInput),
     replaceTagsWithValues(valuesForTags),
     throwOnMissingTagValues ? tap(protectAgainstMissingValues) : identity,
   );
-};
 
 const replaceTagWithValue = (stringWithTags, { tag, value }) => {
   if (value === undefined) {
@@ -63,17 +63,16 @@ const protectAgainstMissingValues = targetString => {
   }
 };
 
-const toResolvedValuesForTagsFor = valuesForTags => ({
-  match: tagWithCurlyBoys,
-  group: tagWithoutCurlyBoys,
-}) => {
-  const replacementValue = get(tagWithoutCurlyBoys, valuesForTags);
+const toResolvedValuesForTagsFor =
+  valuesForTags =>
+  ({ match: tagWithCurlyBoys, group: tagWithoutCurlyBoys }) => {
+    const replacementValue = get(tagWithoutCurlyBoys, valuesForTags);
 
-  return {
-    tag: tagWithCurlyBoys,
-    value:
-      isObject(replacementValue) || isArray(replacementValue)
-        ? JSON.stringify(replacementValue)
-        : replacementValue,
+    return {
+      tag: tagWithCurlyBoys,
+      value:
+        isObject(replacementValue) || isArray(replacementValue)
+          ? JSON.stringify(replacementValue)
+          : replacementValue,
+    };
   };
-};

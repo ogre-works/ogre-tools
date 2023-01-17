@@ -1,5 +1,5 @@
-import getPromiseStatus from '../../../test-utils/getPromiseStatus/getPromiseStatus';
 import manualTrigger from './manualTrigger';
+import { getPromiseStatus } from '@ogre-tools/test-utils';
 
 describe('manualTrigger', () => {
   it('given manually entered values to yield and return, when iterated, yields and returns the values', async () => {

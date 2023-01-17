@@ -1,5 +1,14 @@
-import { flatten, castArray, map, isUndefined, isEmpty, reject } from 'lodash/fp';
+import {
+  flatten,
+  castArray,
+  map,
+  isUndefined,
+  isEmpty,
+  reject,
+  some,
+} from 'lodash/fp';
 import pipeline from '../pipeline/pipeline';
+import awaitAll from '../awaitAll/awaitAll';
 
 const relationJoin = (currentJoinObjects, constraint, ...constraints) => {
   if (!constraint) {

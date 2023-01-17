@@ -1,5 +1,5 @@
-import getPromiseStatus from '../../test-utils/getPromiseStatus/getPromiseStatus';
 import delay from './delay';
+import { getPromiseStatus } from '@ogre-tools/test-utils';
 
 describe('delay', () => {
   describe('given a delay in milliseconds and a return value', () => {
