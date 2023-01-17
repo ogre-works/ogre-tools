@@ -126,13 +126,4 @@ describe('flow', () => {
       expect(actual).toBe(pipelineBreak);
     });
   });
-
-  it('given function which returns array including promises, returns array with sync values', async () => {
-    const actual = await flow(() => [
-      'some-sync-value',
-      Promise.resolve('some-async-value'),
-    ])();
-
-    expect(actual).toEqual(['some-sync-value', 'some-async-value']);
-  });
 });

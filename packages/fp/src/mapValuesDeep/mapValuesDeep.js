@@ -7,16 +7,20 @@ import {
   map,
   nth,
   reject,
+  some,
   toPairs,
 } from 'lodash/fp';
 import isPrimitive from '../isPrimitive/isPrimitive';
 import pipeline from '../pipeline/pipeline';
+import isPromise from '../isPromise/isPromise';
+import awaitAll from '../awaitAll/awaitAll';
 
 const mapEntries = how => thing =>
   pipeline(
     thing,
     toPairs,
     map(how),
+    stickyAwaitAll,
     reject(valueIsUndefined),
     isArray(thing) ? map(nth(1)) : fromPairs,
   );
@@ -81,3 +85,6 @@ const toEntriesFor =
   };
 
 const valueIsUndefined = flow(nth(1), isUndefined);
+
+const stickyAwaitAll = result =>
+  isArray(result) && some(isPromise, result) ? awaitAll(result) : result;

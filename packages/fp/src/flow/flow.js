@@ -20,15 +20,5 @@ const withSkippingForPipelineBreakFor = f => arg => {
   return f(arg);
 };
 
-const withTentativeAwaitAll = toBeDecorated => arg => {
-  const result = toBeDecorated(arg);
-
-  return isArray(result) && some(isPromise, result) ? awaitAll(result) : result;
-};
-
 const toTentativeAsyncWrapper = toBeDecorated =>
-  flowRight(
-    withTentativeAwait,
-    withTentativeAwaitAll,
-    withSkippingForPipelineBreakFor,
-  )(toBeDecorated);
+  flowRight(withTentativeAwait, withSkippingForPipelineBreakFor)(toBeDecorated);
