@@ -2,7 +2,7 @@ import asArray from '../../pullers/asArray/asArray';
 import debounce from './debounce';
 import delay from '../../shared/delay/delay';
 import { pipeline } from '@ogre-tools/fp';
-import { advanceFakeTime } from '@ogre-tools/test-utils';
+import { advanceFakeTimeSlow } from '@ogre-tools/test-utils';
 
 describe('debounce', () => {
   beforeEach(() => {
@@ -18,7 +18,7 @@ describe('debounce', () => {
 
     const actualPromise = pipeline(asyncIterable, debounce(100), asArray);
 
-    await advanceFakeTime(130);
+    await advanceFakeTimeSlow(130);
 
     const actual = await actualPromise;
 
@@ -36,7 +36,7 @@ describe('debounce', () => {
 
     const actualPromise = pipeline(asyncIterable, debounce(10), asArray);
 
-    await advanceFakeTime(213);
+    await advanceFakeTimeSlow(213);
 
     const actual = await actualPromise;
 

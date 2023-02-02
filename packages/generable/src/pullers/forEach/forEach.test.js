@@ -1,7 +1,7 @@
 import forEach from './forEach';
 import { pipeline } from '@ogre-tools/fp';
 import delay from '../../shared/delay/delay';
-import { advanceFakeTime } from '@ogre-tools/test-utils';
+import { advanceFakeTimeSlow } from '@ogre-tools/test-utils';
 
 describe('forEach', () => {
   it('given sync forEach function and sync iterable, calls the function for each iterated value', () => {
@@ -42,7 +42,7 @@ describe('forEach', () => {
 
     pipeline(asynchronousIterable, forEach(asyncForEachFunctionMock));
 
-    await advanceFakeTime(6);
+    await advanceFakeTimeSlow(6);
 
     expect(func.mock.calls).toEqual([
       ['some-first-value'],

@@ -7,12 +7,12 @@ export default curry((mapper, iterable) => {
   const iterableIsAsync = Symbol.asyncIterator in iterable;
 
   return iterableIsAsync || mapperIsAsync
-    ? (async function*() {
+    ? (async function* () {
         for await (const i of iterable) {
           yield mapperIsFunction ? mapper(i) : mapper;
         }
       })()
-    : (function*() {
+    : (function* () {
         for (const i of iterable) {
           yield mapperIsFunction ? mapper(i) : mapper;
         }

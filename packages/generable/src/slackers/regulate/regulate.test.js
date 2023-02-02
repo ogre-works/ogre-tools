@@ -2,7 +2,7 @@ import forEach from '../../pullers/forEach/forEach';
 import regulate from './regulate';
 import { pipeline } from '@ogre-tools/fp';
 import { flushPromises } from '@ogre-tools/test-utils';
-import { advanceFakeTime } from '@ogre-tools/test-utils';
+import { advanceFakeTimeSlow } from '@ogre-tools/test-utils';
 
 describe('regulate', () => {
   beforeEach(() => {
@@ -36,7 +36,7 @@ describe('regulate', () => {
 
     pipeline(asyncIterable, regulate(10), forEach(mockFunction));
 
-    await advanceFakeTime(11);
+    await advanceFakeTimeSlow(11);
 
     expect(mockFunction.mock.calls).toEqual([[1], [2]]);
   });
@@ -52,7 +52,7 @@ describe('regulate', () => {
 
     pipeline(syncIterable, regulate(10), forEach(mockFunction));
 
-    await advanceFakeTime(11);
+    await advanceFakeTimeSlow(11);
 
     expect(mockFunction.mock.calls).toEqual([[1], [2]]);
   });

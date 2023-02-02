@@ -6,7 +6,7 @@ import regulate from '../../slackers/regulate/regulate';
 import take from '../../slackers/take/take';
 import buffer from './buffer';
 import { pipeline } from '@ogre-tools/fp';
-import { advanceFakeTime } from '@ogre-tools/test-utils';
+import { advanceFakeTimeSlow } from '@ogre-tools/test-utils';
 
 describe('buffer', () => {
   it('given finite sync iterable, when iterated, yields values and return from iterable', async () => {
@@ -96,13 +96,13 @@ describe('buffer', () => {
     const bufferedSlowIterable = pipeline(slowIterable, buffer(3));
 
     const longTime = 100;
-    await advanceFakeTime(longTime);
+    await advanceFakeTimeSlow(longTime);
 
     const func = jest.fn();
     pipeline(bufferedSlowIterable, forEach(func));
 
     const shortTime = 1;
-    await advanceFakeTime(shortTime);
+    await advanceFakeTimeSlow(shortTime);
 
     expect(func.mock.calls).toEqual([[0], [1], [2], [3]]);
   });
