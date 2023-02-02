@@ -28,7 +28,7 @@ export default curry((debounceMilliseconds, iterable) => {
     setUndebouncedReturn();
   };
 
-  return (async function*() {
+  return (async function* () {
     startDebouncingValues(iterable);
 
     while (true) {

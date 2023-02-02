@@ -33,16 +33,18 @@ export default () => {
   };
 };
 
-const produceNextFor = nexts => ({ value, done }) => {
-  const unresolvedNext = last(nexts);
+const produceNextFor =
+  nexts =>
+  ({ value, done }) => {
+    const unresolvedNext = last(nexts);
 
-  unresolvedNext.resolve({
-    value,
-    done,
-  });
+    unresolvedNext.resolve({
+      value,
+      done,
+    });
 
-  nexts.add(getResolvablePromise());
-};
+    nexts.add(getResolvablePromise());
+  };
 
 const last = iterable => [...iterable].slice(-1)[0];
 

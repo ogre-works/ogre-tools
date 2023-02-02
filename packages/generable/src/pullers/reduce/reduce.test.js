@@ -18,7 +18,7 @@ describe('reduce', () => {
 
     const seed = 0;
 
-    const asynchronousIterable = (async function*() {
+    const asynchronousIterable = (async function* () {
       yield 1;
       yield await 2;
       yield Promise.resolve(3);

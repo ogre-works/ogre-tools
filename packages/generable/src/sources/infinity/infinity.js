@@ -1,6 +1,6 @@
 import constant from 'lodash/fp/constant';
 
-const infinity = function*(seed = undefined, reducer = constant(seed)) {
+const infinity = function* (seed = undefined, reducer = constant(seed)) {
   let acc = seed;
 
   while (true) {

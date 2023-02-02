@@ -49,15 +49,14 @@ describe('tap', () => {
     beforeEach(async () => {
       tappingFunctionMock = jest.fn(() => 'return-value-has-no-effect');
 
-      const asynchronousIterable = (async function*() {
+      const asynchronousIterable = (async function* () {
         yield 1;
         yield await 2;
         yield Promise.resolve(3);
       })();
 
-      const iterableForMappedValues = tap(tappingFunctionMock)(
-        asynchronousIterable,
-      );
+      const iterableForMappedValues =
+        tap(tappingFunctionMock)(asynchronousIterable);
 
       const iterator = iterableForMappedValues[Symbol.asyncIterator]();
 

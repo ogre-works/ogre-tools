@@ -4,7 +4,7 @@ export default curry((numberOfItemsToTake, iterable) => {
   let counter = 0;
 
   return Symbol.asyncIterator in iterable
-    ? (async function*() {
+    ? (async function* () {
         for await (const i of iterable) {
           yield i;
 
@@ -13,7 +13,7 @@ export default curry((numberOfItemsToTake, iterable) => {
           }
         }
       })()
-    : (function*() {
+    : (function* () {
         for (const i of iterable) {
           yield i;
 

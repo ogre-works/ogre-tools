@@ -18,7 +18,7 @@ describe('take', () => {
   });
 
   it('given a number of items to take and asynchronous iterable, returns new asynchronous iterable for taken values', async () => {
-    const asynchronousIterable = (async function*() {
+    const asynchronousIterable = (async function* () {
       yield 1;
       yield await 2;
       yield Promise.resolve(3);

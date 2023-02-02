@@ -17,7 +17,7 @@ describe('chunk', () => {
   });
 
   it('given size for chunks and asynchronous iterable, returns new asynchronous iterable for chunked values', async () => {
-    const asynchronousIterable = (async function*() {
+    const asynchronousIterable = (async function* () {
       yield 1;
       yield await 2;
       yield Promise.resolve(3);

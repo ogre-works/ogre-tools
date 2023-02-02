@@ -4,13 +4,13 @@ export default curry((scanningFunction, seed, iterable) => {
   let acc = seed;
 
   return Symbol.asyncIterator in iterable
-    ? (async function*() {
+    ? (async function* () {
         for await (const i of iterable) {
           acc = scanningFunction(acc, i);
           yield acc;
         }
       })()
-    : (function*() {
+    : (function* () {
         for (const i of iterable) {
           acc = scanningFunction(acc, i);
           yield acc;

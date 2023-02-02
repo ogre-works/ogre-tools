@@ -25,15 +25,14 @@ describe('filter', () => {
   it('given a filtering function and asynchronous iterable, returns new asynchronous iterable for filtered values', async () => {
     const filteringFunction = x => x < 3;
 
-    const asynchronousIterable = (async function*() {
+    const asynchronousIterable = (async function* () {
       yield 1;
       yield await 2;
       yield Promise.resolve(3);
     })();
 
-    const iterableForMappedValues = filter(filteringFunction)(
-      asynchronousIterable,
-    );
+    const iterableForMappedValues =
+      filter(filteringFunction)(asynchronousIterable);
 
     const iterator = iterableForMappedValues[Symbol.asyncIterator]();
 

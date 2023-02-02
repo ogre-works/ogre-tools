@@ -54,21 +54,23 @@ const patchIterableToBuffer = async (iterable, doYield, doReturn) => {
   doReturn();
 };
 
-const produceNewNextFor = nexts => async ({ value, done }) => {
-  const unresolvedNext = last(nexts);
+const produceNewNextFor =
+  nexts =>
+  async ({ value, done }) => {
+    const unresolvedNext = last(nexts);
 
-  unresolvedNext.resolve({
-    value,
-    done,
-  });
+    unresolvedNext.resolve({
+      value,
+      done,
+    });
 
-  if (nexts.size > nexts.bufferSize) {
-    nexts.untilBufferHasRoom = getResolvablePromise();
-    await nexts.untilBufferHasRoom;
-  }
+    if (nexts.size > nexts.bufferSize) {
+      nexts.untilBufferHasRoom = getResolvablePromise();
+      await nexts.untilBufferHasRoom;
+    }
 
-  nexts.add(getResolvablePromise());
-};
+    nexts.add(getResolvablePromise());
+  };
 
 const last = iterable => [...iterable].slice(-1)[0];
 

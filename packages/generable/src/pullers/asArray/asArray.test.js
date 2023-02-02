@@ -2,7 +2,7 @@ import asArray from './asArray';
 
 describe('asArray', () => {
   it('given sync iterable, returns array of values in iterable', () => {
-    const syncIterable = (function*() {
+    const syncIterable = (function* () {
       yield 1;
       yield 2;
       yield 3;
@@ -15,7 +15,7 @@ describe('asArray', () => {
   });
 
   it('given async iterable, returns promise for array of values in iterable', async () => {
-    const asyncIterable = (async function*() {
+    const asyncIterable = (async function* () {
       yield 1;
       yield 2;
       yield 3;

@@ -4,7 +4,7 @@ export default curry((chunkSize, iterable) => {
   let chunk = [];
 
   return Symbol.asyncIterator in iterable
-    ? (async function*() {
+    ? (async function* () {
         for await (const i of iterable) {
           chunk = [...chunk, i];
 
@@ -14,7 +14,7 @@ export default curry((chunkSize, iterable) => {
           }
         }
       })()
-    : (function*() {
+    : (function* () {
         for (const i of iterable) {
           chunk = [...chunk, i];
 
