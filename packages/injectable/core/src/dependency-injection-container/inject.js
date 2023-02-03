@@ -109,6 +109,9 @@ const getInstance = ({
     injectMany: (alias, parameter) =>
       di.injectMany(alias, parameter, newContext),
 
+    injectManyWithMeta: (alias, parameter) =>
+      di.injectManyWithMeta(alias, parameter, newContext),
+
     context: newContext,
 
     register: (...injectables) => {

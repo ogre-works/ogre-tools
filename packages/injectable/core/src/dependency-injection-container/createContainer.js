@@ -31,11 +31,22 @@ export default containerId => {
 
   const containerRootContextItem = { injectable: { id: containerId } };
 
-  const nonDecoratedPrivateInjectMany = nonDecoratedPrivateInjectManyFor({
-    containerRootContextItem,
-    getRelatedInjectables,
-    getInject: () => privateInject,
-  });
+  const nonDecoratedPrivateInjectManyForUnknownMeta =
+    nonDecoratedPrivateInjectManyFor({
+      containerRootContextItem,
+      getRelatedInjectables,
+      getInject: () => privateInject,
+    });
+
+  const nonDecoratedPrivateInjectMany =
+    nonDecoratedPrivateInjectManyForUnknownMeta({
+      withMeta: false,
+    });
+
+  const nonDecoratedPrivateInjectManyWithMeta =
+    nonDecoratedPrivateInjectManyForUnknownMeta({
+      withMeta: true,
+    });
 
   const withInjectionDecorators = withInjectionDecoratorsFor({
     injectMany: nonDecoratedPrivateInjectMany,
@@ -55,6 +66,10 @@ export default containerId => {
 
   const decoratedPrivateInjectMany = withInjectionDecorators(
     nonDecoratedPrivateInjectMany,
+  );
+
+  const decoratedPrivateInjectManyWithMeta = withInjectionDecorators(
+    nonDecoratedPrivateInjectManyWithMeta,
   );
 
   const registerSingle = registerSingleFor({
@@ -99,6 +114,7 @@ export default containerId => {
   const privateDi = {
     inject: privateInject,
     injectMany: decoratedPrivateInjectMany,
+    injectManyWithMeta: decoratedPrivateInjectManyWithMeta,
     register,
     deregister,
     decorate,
@@ -135,6 +151,15 @@ export default containerId => {
 
     injectMany: (alias, parameter, customContextItem) =>
       privateDi.injectMany(
+        alias,
+        parameter,
+        customContextItem
+          ? [containerRootContextItem, customContextItem]
+          : [containerRootContextItem],
+      ),
+
+    injectManyWithMeta: (alias, parameter, customContextItem) =>
+      privateDi.injectManyWithMeta(
         alias,
         parameter,
         customContextItem
