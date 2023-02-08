@@ -95,13 +95,15 @@ export function getInjectionToken<
   id: string;
 }): InjectionToken<InjectionInstance, InstantiationParam>;
 
-interface Inject {
+interface InjectWithoutParameter {
   <InjectionInstance>(
     key:
-      | Injectable<InjectionInstance, unknown, void>
+      | Injectable<InjectionInstance, unknown>
       | InjectionToken<InjectionInstance, void>,
   ): InjectionInstance;
+}
 
+interface InjectWithParameter {
   <InjectionInstance, InstantiationParam>(
     key:
       | Injectable<InjectionInstance, unknown, InstantiationParam>
@@ -109,6 +111,8 @@ interface Inject {
     param: InstantiationParam,
   ): InjectionInstance;
 }
+
+type Inject = InjectWithoutParameter & InjectWithParameter;
 
 interface InjectMany {
   <InjectionInstance>(
