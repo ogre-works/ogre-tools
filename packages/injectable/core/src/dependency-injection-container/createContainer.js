@@ -8,17 +8,22 @@ import { deregisterFor } from './deregister';
 import { overrideFor, unoverrideFor } from './override';
 import { decorateFor, decorateFunctionFor } from './decorate';
 import isInjectable from '../getInjectable/isInjectable';
+import { getNamespacedIdFor } from './getNamespacedIdFor';
 
 export default containerId => {
-  let injectableSet = new Set();
-  let overridingInjectables = new Map();
+  const injectableSet = new Set();
+  const overridingInjectables = new Map();
   let sideEffectsArePrevented = false;
-  let alreadyInjected = new Set();
-  let injectablesWithPermittedSideEffects = new Set();
+  const alreadyInjected = new Set();
+  const injectablesWithPermittedSideEffects = new Set();
+  const injectableIdSet = new Set();
 
   const injectableAndRegistrationContext = new Map();
   const instancesByInjectableMap = new Map();
   const injectablesByInjectionToken = new Map();
+  const namespacedIdByInjectableMap = new Map();
+
+  const getNamespacedId = getNamespacedIdFor(injectableAndRegistrationContext);
 
   const getRelatedInjectables = getRelatedInjectablesFor({
     injectablesByInjectionToken,
@@ -46,6 +51,7 @@ export default containerId => {
 
   const withInjectionDecorators = withInjectionDecoratorsFor({
     injectMany: nonDecoratedPrivateInjectMany,
+    namespacedIdByInjectableMap,
   });
 
   const getSideEffectsArePrevented = injectable =>
@@ -61,7 +67,9 @@ export default containerId => {
     injectableAndRegistrationContext,
     injectMany: nonDecoratedPrivateInjectMany,
     getSideEffectsArePrevented,
+    namespacedIdByInjectableMap,
     getDi: () => privateDi,
+    getNamespacedId,
   });
 
   const decoratedPrivateInjectMany = withInjectionDecorators(
@@ -74,8 +82,11 @@ export default containerId => {
 
   const registerSingle = registerSingleFor({
     injectableSet,
+    namespacedIdByInjectableMap,
     instancesByInjectableMap,
     injectablesByInjectionToken,
+    injectableIdSet,
+    injectableAndRegistrationContext,
   });
 
   const purgeInstances = purgeInstancesFor({
@@ -92,11 +103,13 @@ export default containerId => {
     injectablesByInjectionToken,
     overridingInjectables,
     purgeInstances,
+    injectableIdSet,
+    namespacedIdByInjectableMap,
     // Todo: get rid of function usage.
     getDi: () => privateDi,
   });
 
-  const register = registerFor({
+  const privateRegister = registerFor({
     registerSingle,
     injectMany: nonDecoratedPrivateInjectMany,
   });
@@ -115,7 +128,7 @@ export default containerId => {
     inject: privateInject,
     injectMany: decoratedPrivateInjectMany,
     injectManyWithMeta: decoratedPrivateInjectManyWithMeta,
-    register,
+    register: privateRegister,
     deregister,
     decorate,
     decorateFunction,
@@ -157,6 +170,10 @@ export default containerId => {
           ? [containerRootContextItem, customContextItem]
           : [containerRootContextItem],
       ),
+
+    register: (...injectables) => {
+      privateDi.register({ injectables, context: [containerRootContextItem] });
+    },
 
     injectManyWithMeta: (alias, parameter, customContextItem) =>
       privateDi.injectManyWithMeta(

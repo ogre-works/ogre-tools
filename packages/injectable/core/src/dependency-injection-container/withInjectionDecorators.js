@@ -3,7 +3,7 @@ import flow from './fastFlow';
 import { injectionDecoratorToken } from './createContainer';
 
 export const withInjectionDecoratorsFor =
-  ({ injectMany }) =>
+  ({ injectMany, namespacedIdByInjectableMap }) =>
   toBeDecorated =>
   (alias, ...args) => {
     if (alias.decorable === false) {
@@ -14,14 +14,17 @@ export const withInjectionDecoratorsFor =
 
     const injectableCausingCycle = oldContext
       .filter(contextItem => !contextItem.injectable.cannotCauseCycles)
-      .find(contextItem => contextItem.injectable.id === alias.id);
+      .find(contextItem => contextItem.injectable === alias);
 
     const newContext = [...oldContext, { injectable: alias }];
 
     if (injectableCausingCycle) {
       throw new Error(
         `Cycle of injectables encountered: "${newContext
-          .map(x => x.injectable.id)
+          .map(
+            x =>
+              namespacedIdByInjectableMap.get(x.injectable) || x.injectable.id,
+          )
           .join('" -> "')}"`,
       );
     }

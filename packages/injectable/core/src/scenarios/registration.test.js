@@ -37,6 +37,41 @@ describe('createContainer.registration', () => {
     }).toThrow('Tried to register multiple injectables for ID "some-id"');
   });
 
+  it('when registering same injectable twice, throws', () => {
+    const di = createContainer('some-container');
+
+    const someInjectable = getInjectable({
+      id: 'some-id',
+      instantiate: () => 'irrelevant',
+    });
+
+    di.register(someInjectable);
+
+    expect(() => {
+      di.register(someInjectable);
+    }).toThrow('Tried to register same injectable multiple times: "some-id"');
+  });
+
+  it('given injectables with same ID, when late-registering in context with a namespace, throws', () => {
+    const di = createContainer('some-container');
+
+    const someInjectable = getInjectable({
+      id: 'some-id',
+      instantiate: () => 'irrelevant',
+    });
+
+    const someOtherInjectable = getInjectable({
+      id: 'some-id',
+      instantiate: () => 'irrelevant',
+    });
+
+    di.register(someInjectable);
+
+    expect(() => {
+      di.register(someOtherInjectable);
+    }).toThrow('Tried to register multiple injectables for ID "some-id"');
+  });
+
   it('given an injectable does not specify id, when manually registered, throws', () => {
     const di = createContainer('some-container');
 

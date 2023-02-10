@@ -1,10 +1,11 @@
 import { registrationCallbackToken } from './createContainer';
+import { getNamespacedIdFor } from './getNamespacedIdFor';
 
 export const registerFor =
   ({ registerSingle, injectMany }) =>
-  (...injectables) => {
+  ({ injectables, context }) => {
     injectables.forEach(injectable => {
-      registerSingle(injectable);
+      registerSingle(injectable, context);
     });
 
     const callbacks = injectMany(registrationCallbackToken);
@@ -17,21 +18,44 @@ export const registerFor =
   };
 
 export const registerSingleFor =
-  ({ injectableSet, instancesByInjectableMap, injectablesByInjectionToken }) =>
-  injectable => {
-    let injectableId = injectable.id;
+  ({
+    injectableSet,
+    injectableIdSet,
+    instancesByInjectableMap,
+    namespacedIdByInjectableMap,
+    injectablesByInjectionToken,
+    injectableAndRegistrationContext,
+  }) =>
+  (injectable, injectionContext) => {
+    const injectableId = injectable.id;
 
     if (!injectableId) {
       throw new Error('Tried to register injectable without ID.');
     }
 
-    if ([...injectableSet.values()].find(x => x.id === injectableId)) {
+    injectableAndRegistrationContext.set(injectable, injectionContext);
+
+    const getNamespacedId = getNamespacedIdFor(
+      injectableAndRegistrationContext,
+    );
+
+    const namespacedId = getNamespacedId(injectable);
+
+    if (namespacedIdByInjectableMap.has(injectable)) {
       throw new Error(
-        `Tried to register multiple injectables for ID "${injectableId}"`,
+        `Tried to register same injectable multiple times: "${injectable.id}"`,
       );
     }
 
+    if (injectableIdSet.has(namespacedId)) {
+      throw new Error(
+        `Tried to register multiple injectables for ID "${namespacedId}"`,
+      );
+    }
+
+    injectableIdSet.add(namespacedId);
     injectableSet.add(injectable);
+    namespacedIdByInjectableMap.set(injectable, namespacedId);
     instancesByInjectableMap.set(injectable, new Map());
 
     if (injectable.injectionToken) {

@@ -11,12 +11,16 @@ export const privateInjectFor = ({
   instancesByInjectableMap,
   injectableAndRegistrationContext,
   injectMany,
+  namespacedIdByInjectableMap,
   // Todo: get rid of function usage.
   getSideEffectsArePrevented,
   getDi,
+  getNamespacedId,
 }) =>
-  withInjectionDecoratorsFor({ injectMany })(
+  withInjectionDecoratorsFor({ injectMany, namespacedIdByInjectableMap })(
     (alias, instantiationParameter, context = []) => {
+      const checkForNoMatches = checkForNoMatchesFor(getNamespacedId);
+
       const di = getDi();
 
       const relatedInjectables = getRelatedInjectables(alias);
@@ -24,7 +28,7 @@ export const privateInjectFor = ({
       checkForTooManyMatches(relatedInjectables, alias);
 
       if (relatedInjectables.length === 0 && alias.adHoc === true) {
-        di.register(alias);
+        di.register({ injectables: [alias], context });
       } else {
         checkForNoMatches(relatedInjectables, alias, context);
       }
@@ -41,7 +45,7 @@ export const privateInjectFor = ({
       if (getSideEffectsArePrevented(injectable)) {
         throw new Error(
           `Tried to inject "${[...context, { injectable }]
-            .map(item => item.injectable.id)
+            .map(({ injectable }) => getNamespacedId(injectable))
             .join('" -> "')}" when side-effects are prevented.`,
         );
       }
@@ -57,17 +61,18 @@ export const privateInjectFor = ({
     },
   );
 
-const checkForNoMatches = (relatedInjectables, alias, context) => {
-  if (relatedInjectables.length === 0) {
-    const errorContextString = [...context, { injectable: { id: alias.id } }]
-      .map(x => x.injectable.id)
-      .join('" -> "');
+const checkForNoMatchesFor =
+  getNamespacedId => (relatedInjectables, alias, context) => {
+    if (relatedInjectables.length === 0) {
+      const errorContextString = [...context, { injectable: { id: alias.id } }]
+        .map(({ injectable }) => getNamespacedId(injectable))
+        .join('" -> "');
 
-    throw new Error(
-      `Tried to inject non-registered injectable "${errorContextString}".`,
-    );
-  }
-};
+      throw new Error(
+        `Tried to inject non-registered injectable "${errorContextString}".`,
+      );
+    }
+  };
 
 const checkForTooManyMatches = (relatedInjectables, alias) => {
   if (relatedInjectables.length > 1) {
@@ -115,14 +120,7 @@ const getInstance = ({
     context: newContext,
 
     register: (...injectables) => {
-      injectables.forEach(injectableToBeRegistered => {
-        injectableAndRegistrationContext.set(
-          injectableToBeRegistered,
-          newContext,
-        );
-      });
-
-      return di.register(...injectables);
+      di.register({ injectables, context: newContext });
     },
 
     deregister: di.deregister,

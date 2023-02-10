@@ -15,7 +15,7 @@ export const decorateFor =
       }),
     });
 
-    registerSingle(decoratorInjectable);
+    registerSingle(decoratorInjectable, []);
   };
 
 export const decorateFunctionFor =

@@ -8,6 +8,8 @@ export const deregisterFor =
     injectablesByInjectionToken,
     overridingInjectables,
     purgeInstances,
+    injectableIdSet,
+    namespacedIdByInjectableMap,
     // Todo: get rid of function usage.
     getDi,
   }) =>
@@ -28,6 +30,8 @@ export const deregisterFor =
       injectablesByInjectionToken,
       overridingInjectables,
       purgeInstances,
+      injectableIdSet,
+      namespacedIdByInjectableMap,
       di,
     });
 
@@ -43,6 +47,8 @@ export const deregisterSingleFor =
     injectablesByInjectionToken,
     overridingInjectables,
     purgeInstances,
+    injectableIdSet,
+    namespacedIdByInjectableMap,
     di,
   }) =>
   injectable => {
@@ -63,8 +69,10 @@ export const deregisterSingleFor =
       });
 
     purgeInstances(injectable);
-
+    const namespacedId = namespacedIdByInjectableMap.get(injectable);
+    injectableIdSet.delete(namespacedId);
     injectableSet.delete(injectable);
+    namespacedIdByInjectableMap.delete(injectable);
 
     if (injectable.injectionToken) {
       injectablesByInjectionToken
