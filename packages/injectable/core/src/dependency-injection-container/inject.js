@@ -31,15 +31,14 @@ export const privateInjectFor = ({
 
       const originalInjectable = getRelatedInjectables(alias)[0];
 
-      alreadyInjected.add(originalInjectable.id);
+      alreadyInjected.add(originalInjectable);
 
-      const overriddenInjectable = overridingInjectables.get(
-        originalInjectable.id,
-      );
+      const overriddenInjectable =
+        overridingInjectables.get(originalInjectable);
 
       const injectable = overriddenInjectable || originalInjectable;
 
-      if (getSideEffectsArePrevented() && injectable.causesSideEffects) {
+      if (getSideEffectsArePrevented(injectable)) {
         throw new Error(
           `Tried to inject "${[...context, { injectable }]
             .map(item => item.injectable.id)
@@ -100,7 +99,8 @@ const getInstance = ({
   ];
 
   const instanceMap = instancesByInjectableMap.get(
-    injectableToBeInstantiated.id,
+    injectableToBeInstantiated.overriddenInjectable ||
+      injectableToBeInstantiated,
   );
 
   const minimalDi = {

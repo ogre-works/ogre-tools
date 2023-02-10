@@ -7,26 +7,22 @@ import { purgeInstancesFor } from './purgeInstances';
 import { deregisterFor } from './deregister';
 import { overrideFor, unoverrideFor } from './override';
 import { decorateFor, decorateFunctionFor } from './decorate';
+import isInjectable from '../getInjectable/isInjectable';
 
 export default containerId => {
-  let injectableMap = new Map();
+  let injectableSet = new Set();
   let overridingInjectables = new Map();
   let sideEffectsArePrevented = false;
   let alreadyInjected = new Set();
+  let injectablesWithPermittedSideEffects = new Set();
 
   const injectableAndRegistrationContext = new Map();
   const instancesByInjectableMap = new Map();
-  const injectableIdsByInjectionToken = new Map();
-
-  const getInjectablesHavingInjectionToken =
-    getInjectablesHavingInjectionTokenFor({
-      injectableMap,
-      injectableIdsByInjectionToken,
-    });
+  const injectablesByInjectionToken = new Map();
 
   const getRelatedInjectables = getRelatedInjectablesFor({
-    injectableMap,
-    getInjectablesHavingInjectionToken,
+    injectablesByInjectionToken,
+    injectableSet,
   });
 
   const containerRootContextItem = { injectable: { id: containerId } };
@@ -52,6 +48,11 @@ export default containerId => {
     injectMany: nonDecoratedPrivateInjectMany,
   });
 
+  const getSideEffectsArePrevented = injectable =>
+    sideEffectsArePrevented &&
+    injectable.causesSideEffects &&
+    !injectablesWithPermittedSideEffects.has(injectable);
+
   const privateInject = privateInjectFor({
     getRelatedInjectables,
     alreadyInjected,
@@ -59,8 +60,7 @@ export default containerId => {
     instancesByInjectableMap,
     injectableAndRegistrationContext,
     injectMany: nonDecoratedPrivateInjectMany,
-    // Todo: get rid of function usage.
-    getSideEffectsArePrevented: () => sideEffectsArePrevented,
+    getSideEffectsArePrevented,
     getDi: () => privateDi,
   });
 
@@ -73,9 +73,9 @@ export default containerId => {
   );
 
   const registerSingle = registerSingleFor({
-    injectableMap,
+    injectableSet,
     instancesByInjectableMap,
-    injectableIdsByInjectionToken,
+    injectablesByInjectionToken,
   });
 
   const purgeInstances = purgeInstancesFor({
@@ -87,9 +87,9 @@ export default containerId => {
 
   const deregister = deregisterFor({
     injectMany: nonDecoratedPrivateInjectMany,
-    injectableMap,
+    injectableSet,
     injectableAndRegistrationContext,
-    injectableIdsByInjectionToken,
+    injectablesByInjectionToken,
     overridingInjectables,
     purgeInstances,
     // Todo: get rid of function usage.
@@ -131,7 +131,7 @@ export default containerId => {
     },
 
     permitSideEffects: alias => {
-      getRelatedInjectables(alias)[0].permitSideEffects();
+      injectablesWithPermittedSideEffects.add(alias);
     },
 
     purge: purgeInstances,
@@ -171,35 +171,14 @@ export default containerId => {
   return publicDi;
 };
 
-const getInjectablesHavingInjectionTokenFor =
-  ({ injectableMap, injectableIdsByInjectionToken }) =>
-  alias => {
-    const idSetForInjectablesHavingInjectionToken =
-      injectableIdsByInjectionToken.get(alias.id);
-
-    const idsForInjectablesHavingInjectionToken =
-      idSetForInjectablesHavingInjectionToken
-        ? [...idSetForInjectablesHavingInjectionToken.values()]
-        : [];
-
-    return idsForInjectablesHavingInjectionToken.map(injectableId =>
-      injectableMap.get(injectableId),
-    );
-  };
-
 const getRelatedInjectablesFor =
-  ({ injectableMap, getInjectablesHavingInjectionToken }) =>
-  alias => {
-    const injectable = injectableMap.get(alias.id);
-
-    const injectablesHavingInjectionToken = getInjectablesHavingInjectionToken(
-      alias,
-    ).filter(x => x.id !== alias.id);
-
-    return injectable
-      ? [injectable, ...injectablesHavingInjectionToken]
-      : injectablesHavingInjectionToken;
-  };
+  ({ injectablesByInjectionToken, injectableSet }) =>
+  alias =>
+    isInjectable(alias)
+      ? injectableSet.has(alias)
+        ? [alias]
+        : []
+      : [...(injectablesByInjectionToken.get(alias)?.values() || [])];
 
 export const registrationCallbackToken = getInjectionToken({
   id: 'registration-callback-token',

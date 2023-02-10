@@ -25,7 +25,7 @@ export const overrideFor =
       );
     }
 
-    if (alreadyInjected.has(alias.id)) {
+    if (alreadyInjected.has(alias)) {
       throw new Error(
         `Tried to override injectable "${alias.id}", but it was already injected.`,
       );
@@ -33,8 +33,9 @@ export const overrideFor =
 
     const originalInjectable = relatedInjectables[0];
 
-    overridingInjectables.set(originalInjectable.id, {
+    overridingInjectables.set(originalInjectable, {
       ...originalInjectable,
+      overriddenInjectable: originalInjectable,
       causesSideEffects: false,
       instantiate: instantiateStub,
     });
@@ -42,6 +43,6 @@ export const overrideFor =
 
 export const unoverrideFor =
   ({ overridingInjectables }) =>
-  alias => {
-    overridingInjectables.delete(alias.id);
+  injectable => {
+    overridingInjectables.delete(injectable);
   };

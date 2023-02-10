@@ -3,9 +3,9 @@ import { deregistrationCallbackToken } from './createContainer';
 export const deregisterFor =
   ({
     injectMany,
-    injectableMap,
+    injectableSet,
     injectableAndRegistrationContext,
-    injectableIdsByInjectionToken,
+    injectablesByInjectionToken,
     overridingInjectables,
     purgeInstances,
     // Todo: get rid of function usage.
@@ -23,9 +23,9 @@ export const deregisterFor =
     const di = getDi();
 
     const deregisterSingle = deregisterSingleFor({
-      injectableMap,
+      injectableSet,
       injectableAndRegistrationContext,
-      injectableIdsByInjectionToken,
+      injectablesByInjectionToken,
       overridingInjectables,
       purgeInstances,
       di,
@@ -38,25 +38,23 @@ export const deregisterFor =
 
 export const deregisterSingleFor =
   ({
-    injectableMap,
+    injectableSet,
     injectableAndRegistrationContext,
-    injectableIdsByInjectionToken,
+    injectablesByInjectionToken,
     overridingInjectables,
     purgeInstances,
     di,
   }) =>
-  alias => {
-    const relatedInjectable = injectableMap.get(alias.id);
-
-    if (!relatedInjectable) {
+  injectable => {
+    if (!injectableSet.has(injectable)) {
       throw new Error(
-        `Tried to deregister non-registered injectable "${alias.id}".`,
+        `Tried to deregister non-registered injectable "${injectable.id}".`,
       );
     }
 
     [...injectableAndRegistrationContext.entries()]
       .filter(([, context]) =>
-        context.find(contextItem => contextItem.injectable.id === alias.id),
+        context.find(contextItem => contextItem.injectable === injectable),
       )
       .map(x => x[0])
       .forEach(injectable => {
@@ -64,17 +62,15 @@ export const deregisterSingleFor =
         di.deregister(injectable);
       });
 
-    purgeInstances(alias);
+    purgeInstances(injectable);
 
-    injectableMap.delete(alias.id);
+    injectableSet.delete(injectable);
 
-    if (alias.injectionToken) {
-      const tokenId = alias.injectionToken.id;
-
-      const injectableIdSet = injectableIdsByInjectionToken.get(tokenId);
-
-      injectableIdSet.delete(alias.id);
+    if (injectable.injectionToken) {
+      injectablesByInjectionToken
+        .get(injectable.injectionToken)
+        .delete(injectable);
     }
 
-    overridingInjectables.delete(alias.id);
+    overridingInjectables.delete(injectable);
   };

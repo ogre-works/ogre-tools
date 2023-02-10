@@ -3,5 +3,5 @@ export const purgeInstancesFor =
   alias => {
     const injectable = getRelatedInjectables(alias)[0];
 
-    instancesByInjectableMap.get(injectable.id).clear();
+    instancesByInjectableMap.get(injectable).clear();
   };

@@ -17,43 +17,31 @@ export const registerFor =
   };
 
 export const registerSingleFor =
-  ({
-    injectableMap,
-    instancesByInjectableMap,
-    injectableIdsByInjectionToken,
-  }) =>
-  externalInjectable => {
-    let injectableId = externalInjectable.id;
+  ({ injectableSet, instancesByInjectableMap, injectablesByInjectionToken }) =>
+  injectable => {
+    let injectableId = injectable.id;
 
     if (!injectableId) {
       throw new Error('Tried to register injectable without ID.');
     }
 
-    if (injectableMap.has(injectableId)) {
+    if ([...injectableSet.values()].find(x => x.id === injectableId)) {
       throw new Error(
         `Tried to register multiple injectables for ID "${injectableId}"`,
       );
     }
 
-    const internalInjectable = {
-      ...externalInjectable,
+    injectableSet.add(injectable);
+    instancesByInjectableMap.set(injectable, new Map());
 
-      permitSideEffects: function () {
-        this.causesSideEffects = false;
-      },
-    };
+    if (injectable.injectionToken) {
+      const token = injectable.injectionToken;
 
-    injectableMap.set(internalInjectable.id, internalInjectable);
-    instancesByInjectableMap.set(internalInjectable.id, new Map());
+      const injectablesSet =
+        injectablesByInjectionToken.get(token) || new Set();
 
-    if (externalInjectable.injectionToken) {
-      const tokenId = externalInjectable.injectionToken.id;
+      injectablesSet.add(injectable);
 
-      const injectableIdsSet =
-        injectableIdsByInjectionToken.get(tokenId) || new Set();
-
-      injectableIdsSet.add(injectableId);
-
-      injectableIdsByInjectionToken.set(tokenId, injectableIdsSet);
+      injectablesByInjectionToken.set(token, injectablesSet);
     }
   };
