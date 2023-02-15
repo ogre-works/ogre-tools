@@ -56,6 +56,7 @@ export interface Injectable<
   readonly lifecycle: ILifecycle<InstantiationParam>;
   readonly decorable?: boolean;
   readonly tags?: any[];
+  readonly scope?: boolean;
 }
 
 type InjectableLifecycle<InstantiationParam> = InstantiationParam extends void
