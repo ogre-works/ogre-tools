@@ -14,6 +14,7 @@ import withInjectables, { DiContextProvider } from './withInjectables';
 import asyncFn from '@async-fn/jest';
 import { observable, runInAction } from 'mobx';
 import { observer } from 'mobx-react';
+import registerInjectableReact from '../registerInjectableReact/registerInjectableReact';
 
 const flushPromises = () => new Promise(flushMicroTasks);
 
@@ -30,6 +31,8 @@ describe('withInjectables', () => {
 
   beforeEach(() => {
     di = createContainer('some-container');
+
+    registerInjectableReact(di);
 
     mount = mountFor(di);
   });

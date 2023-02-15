@@ -24,20 +24,6 @@ describe('createContainer.prevent-overrides-of-already-injected-injectables', ()
     }).toThrow(expectedError);
   });
 
-  it('given adHoc-injectable and already injected, when overridden, throws', () => {
-    const someInjectable = getInjectable({
-      id: 'some-injectable',
-      instantiate: () => 'irrelevant',
-      adHoc: true,
-    });
-
-    di.inject(someInjectable);
-
-    expect(() => {
-      di.override(someInjectable, () => 'irrelevant');
-    }).toThrow(expectedError);
-  });
-
   it('given injectable and already injected using an injection token, when overridden, throws', () => {
     const someInjectionToken = getInjectionToken({ id: 'irrelevant' });
 

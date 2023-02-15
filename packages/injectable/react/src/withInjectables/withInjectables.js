@@ -11,9 +11,8 @@ const { Provider: DiContextProvider, Consumer: DiContextConsumer } =
 
 export { DiContextProvider };
 
-const componentNameMapInjectable = getInjectable({
+export const componentNameMapInjectable = getInjectable({
   id: 'component-name-map',
-  adHoc: true,
   instantiate: () => new Map(),
 });
 

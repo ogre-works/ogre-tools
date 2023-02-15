@@ -27,11 +27,7 @@ export const privateInjectFor = ({
 
       checkForTooManyMatches(relatedInjectables, alias);
 
-      if (relatedInjectables.length === 0 && alias.adHoc === true) {
-        di.register({ injectables: [alias], context });
-      } else {
-        checkForNoMatches(relatedInjectables, alias, context);
-      }
+      checkForNoMatches(relatedInjectables, alias, context);
 
       const originalInjectable = getRelatedInjectables(alias)[0];
 

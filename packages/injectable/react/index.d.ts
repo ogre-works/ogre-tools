@@ -66,3 +66,5 @@ type AsyncComputedParams<T> = {
 export function asyncComputed<T>(
   configuration: AsyncComputedParams<T>,
 ): IAsyncComputed<T>;
+
+export function registerInjectableReact(di: DiContainer): void;
