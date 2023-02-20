@@ -3,6 +3,21 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [15.0.0](https://github.com/ogre-works/ogre-tools/compare/v14.0.3...v15.0.0) (2023-02-20)
+
+### ⚠ BREAKING CHANGES
+
+- `injectable-react` now requires `registerInjectableReact(di)` to work.
+- Identify injectables and tokens by reference instead of id to permit namespaces later
+
+### Features
+
+- Identify injectables and tokens by reference instead of id to permit namespaces later ([72487e2](https://github.com/ogre-works/ogre-tools/commit/72487e204d8a8c022405b6d51ea4480e716e9b6e))
+- Include "scope" of injectable in typing ([6a81e7c](https://github.com/ogre-works/ogre-tools/commit/6a81e7c3b7075f0b820b02063e898eec33fa4246))
+- Introduce "di.injectManyWithMeta()" to permit reuse of injectable id in implementation code ([94fed1e](https://github.com/ogre-works/ogre-tools/commit/94fed1e267f5deeb7dd3344fd8bb95aad73cf65e))
+- Introduce scopes for injectables to initially serve as namespaces ([d773e34](https://github.com/ogre-works/ogre-tools/commit/d773e34af86d40d7cc46ef11aa0c850ff7c1c76e))
+- Remove too complex concept of "ad-hoc"-injectables (ie. injectable without registration) ([3baaf04](https://github.com/ogre-works/ogre-tools/commit/3baaf049bff802f015c5dc8497aa6c3e01f91cfe))
+
 ### [14.0.3](https://github.com/ogre-works/ogre-tools/compare/v14.0.2...v14.0.3) (2022-11-23)
 
 **Note:** Version bump only for package @ogre-tools/injectable

@@ -1,7 +1,7 @@
 {
   "name": "@ogre-tools/infrastructure-jest",
   "private": true,
-  "version": "14.0.3",
+  "version": "15.0.0",
   "description": "Shared jest configuration",
   "repository": {
     "type": "git",

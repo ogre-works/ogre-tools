@@ -3,6 +3,21 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [15.0.0](https://github.com/ogre-works/ogre-tools/compare/v14.0.3...v15.0.0) (2023-02-20)
+
+### ⚠ BREAKING CHANGES
+
+- Make flow not automatically await for promises in arrays
+
+### Features
+
+- Introduce combinations in fp ([88f0617](https://github.com/ogre-works/ogre-tools/commit/88f061776e6c9027241c8876d07b159c99286ee5))
+- Introduce matchAll in fp ([000b23e](https://github.com/ogre-works/ogre-tools/commit/000b23e75fa0c4ff51ab9c44e163ece13c67e0bc))
+- Introduce movingWindow in fp ([1f212c0](https://github.com/ogre-works/ogre-tools/commit/1f212c00e1c5d23b4c733564aacfb0ccf127c412))
+- Introduce relationJoin in fp ([09ee015](https://github.com/ogre-works/ogre-tools/commit/09ee015b07d7637b659e9d0ed2beab9774d98d6c))
+- Introduce replaceTagsWithValues in fp ([235be79](https://github.com/ogre-works/ogre-tools/commit/235be79a8db6e320ea1203513cf6c1ab4fbde88e))
+- Make flow not automatically await for promises in arrays ([9752ef4](https://github.com/ogre-works/ogre-tools/commit/9752ef46d863fbbaaaeda0e01a683a53cb6b4b77))
+
 ### [14.0.3](https://github.com/ogre-works/ogre-tools/compare/v14.0.2...v14.0.3) (2022-11-23)
 
 **Note:** Version bump only for package @ogre-tools/fp

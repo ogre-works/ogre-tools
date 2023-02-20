@@ -3,6 +3,16 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [15.0.0](https://github.com/ogre-works/ogre-tools/compare/v14.0.3...v15.0.0) (2023-02-20)
+
+### ⚠ BREAKING CHANGES
+
+- `injectable-react` now requires `registerInjectableReact(di)` to work.
+
+### Features
+
+- Remove too complex concept of "ad-hoc"-injectables (ie. injectable without registration) ([3baaf04](https://github.com/ogre-works/ogre-tools/commit/3baaf049bff802f015c5dc8497aa6c3e01f91cfe))
+
 ### [14.0.3](https://github.com/ogre-works/ogre-tools/compare/v14.0.2...v14.0.3) (2022-11-23)
 
 **Note:** Version bump only for package @ogre-tools/injectable-react
