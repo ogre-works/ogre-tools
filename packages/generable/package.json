@@ -21,7 +21,8 @@
   "author": "Ogre Works",
   "license": "MIT",
   "peerDependencies": {
-    "lodash": "^4.17.21"
+    "lodash": "^4.17.21",
+    "@ogre-tools/fp": "*"
   },
   "bugs": {
     "url": "https://github.com/ogre-works/ogre-tools/issues"
@@ -38,7 +39,6 @@
     "code-style:fix": "ogre-tools-fix-code-style"
   },
   "devDependencies": {
-    "@ogre-tools/fp": "^14.0.3",
     "@ogre-tools/infrastructure-jest": "^14.0.3",
     "@ogre-tools/infrastructure-prettier": "^14.0.3",
     "@ogre-tools/infrastructure-webpack-for-js": "^14.0.3"
