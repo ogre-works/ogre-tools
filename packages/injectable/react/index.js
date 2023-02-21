@@ -3,7 +3,7 @@ import withInjectables, {
 } from './src/withInjectables/withInjectables';
 
 import asyncComputed from './src/asyncComputed/asyncComputed';
-import { registerInjectableReact } from './index';
+import registerInjectableReact from './src/registerInjectableReact/registerInjectableReact';
 
 export {
   withInjectables,
