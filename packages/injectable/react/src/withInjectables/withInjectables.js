@@ -62,7 +62,7 @@ export default (Component, { getPlaceholder = constant(null), getProps }) =>
                 const syncProps = observablePropsPromise.value;
 
                 if (!syncProps) {
-                  return getPlaceholder();
+                  return getPlaceholder(props);
                 }
 
                 return <Component {...refProps} {...syncProps} />;

@@ -14,6 +14,16 @@ exports[`withInjectables given component and sync dependencies, when rendered, r
 </body>
 `;
 
+exports[`withInjectables given component with props, placeholder and async dependencies, when rendered renders as placeholder using the props 1`] = `
+<body>
+  <div>
+    <div
+      data-testid="some-placeholder-with-props(some-prop-value)"
+    />
+  </div>
+</body>
+`;
+
 exports[`withInjectables given component, no placeholder and async dependencies, when rendered when the dependency resolves renders 1`] = `
 <body>
   <div>

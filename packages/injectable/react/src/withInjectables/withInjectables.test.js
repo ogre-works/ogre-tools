@@ -359,6 +359,56 @@ describe('withInjectables', () => {
     });
   });
 
+  describe('given component with props, placeholder and async dependencies, when rendered', () => {
+    let rendered;
+    let asyncDependencyMock;
+
+    beforeEach(async () => {
+      asyncDependencyMock = asyncFn();
+
+      const injectable = getInjectable({
+        id: 'some-injectable-id',
+
+        lifecycle: lifecycleEnum.transient,
+
+        instantiate: () => asyncDependencyMock(),
+      });
+
+      di.register(injectable);
+
+      const DumbTestComponent = ({ someDependency, ...props }) => (
+        <div data-testid="some-dumb-test-component" {...props}>
+          Some content: "{someDependency}"
+        </div>
+      );
+
+      const SmartTestComponent = withInjectables(DumbTestComponent, {
+        getProps: async (di, props) => ({
+          someDependency: await di.inject(injectable),
+          ...props,
+        }),
+
+        getPlaceholder: props => (
+          <div data-testid={`some-placeholder-with-props(${props.someProp})`} />
+        ),
+      });
+
+      rendered = mount(
+        <SmartTestComponent data-some-prop-test someProp="some-prop-value" />,
+      );
+    });
+
+    it('renders as placeholder using the props', () => {
+      expect(rendered.baseElement).toMatchSnapshot();
+    });
+
+    it('has placeholder using props', () => {
+      expect(
+        rendered.queryByTestId('some-placeholder-with-props(some-prop-value)'),
+      ).toBeInTheDocument();
+    });
+  });
+
   describe('given component, no placeholder and async dependencies, when rendered', () => {
     let rendered;
     let asyncDependencyMock;

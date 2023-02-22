@@ -20,7 +20,7 @@ export interface WithInjectablesAsyncOptions<
   Props extends object,
 > {
   getProps: (di: DiContainer, props: Props) => Promise<Props & Dependencies>;
-  getPlaceholder: () => JSX.Element;
+  getPlaceholder: React.FunctionComponent<Props>;
 }
 
 export interface WithInjectables {
