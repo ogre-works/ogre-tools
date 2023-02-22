@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [15.1.0](https://github.com/ogre-works/ogre-tools/compare/v15.0.1...v15.1.0) (2023-02-22)
+
+### Features
+
+- Make placeholder of withInjectables able to be more specialized by passing props to it ([d3fa8aa](https://github.com/ogre-works/ogre-tools/commit/d3fa8aa8528533942c612cf92cf54cad70ad212d))
+
 ### [15.0.1](https://github.com/ogre-works/ogre-tools/compare/v15.0.0...v15.0.1) (2023-02-21)
 
 ### Bug Fixes
