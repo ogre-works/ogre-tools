@@ -279,6 +279,63 @@ describe('withInjectables', () => {
     });
   });
 
+  it('given anonymous component, injecting a token, when rendered, works', () => {
+    const someInjectionToken = getInjectionToken({
+      id: 'some-injection-token',
+    });
+
+    const injectable = getInjectable({
+      id: 'some-injectable-id',
+      instantiate: () => 42,
+      injectionToken: someInjectionToken,
+    });
+
+    di.register(injectable);
+
+    const SmartTestComponent = withInjectables(() => 'irrelevant', {
+      getProps: (di, props) => ({
+        someDependency: di.injectMany(someInjectionToken),
+        ...props,
+      }),
+    });
+
+    const rendered = mount(<SmartTestComponent data-some-prop-test />);
+
+    expect(rendered.baseElement).toMatchSnapshot();
+  });
+
+  it('given component, and rendered, when re-rendered, works', () => {
+    const someObservable = observable.box(24);
+
+    const injectable = getInjectable({
+      id: 'some-injectable-id',
+      instantiate: () => someObservable,
+    });
+
+    di.register(injectable);
+
+    const SmartTestComponent = withInjectables(() => 'irrelevant', {
+      getProps: (di, props) => ({
+        someObservable: di.inject(injectable),
+        ...props,
+      }),
+    });
+
+    const TestComponent = observer(() => (
+      <SmartTestComponent data-some-prop-test={someObservable.get()} />
+    ));
+
+    const rendered = mount(<TestComponent />);
+
+    act(() => {
+      runInAction(() => {
+        someObservable.set(42);
+      });
+    });
+
+    expect(rendered.baseElement).toMatchSnapshot();
+  });
+
   describe('given component, placeholder and async dependencies, when rendered', () => {
     let rendered;
     let asyncDependencyMock;

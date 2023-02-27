@@ -143,4 +143,27 @@ describe('injection with meta data', () => {
       'Cycle of injectables encountered: "some-container" -> "some-custom-context-id" -> "some-injection-token" -> "some-parent-injectable" -> "some-child-injectable" -> "some-parent-injectable"',
     );
   });
+
+  it('given injectables, when injecting many with custom root context, works', () => {
+    const injectionToken = getInjectionToken({ id: 'some-injection-token' });
+
+    const someInjectable = getInjectable({
+      id: 'some-injectable',
+      instantiate: () => 42,
+      injectionToken,
+    });
+
+    const di = createContainer('some-container');
+
+    di.register(someInjectable);
+
+    const actual = di.injectManyWithMeta(injectionToken, undefined, {
+      injectable: {
+        id: 'some-custom-context-id',
+        lifecycle: lifecycleEnum.transient,
+      },
+    });
+
+    expect(actual).toEqual([{ instance: 42, meta: { id: 'some-injectable' } }]);
+  });
 });

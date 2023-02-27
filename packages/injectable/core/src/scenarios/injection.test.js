@@ -81,6 +81,26 @@ describe('createContainer.injection', () => {
     );
   });
 
+  it('given injectable, when injected with custom root context, works', () => {
+    const someInjectable = getInjectable({
+      id: 'some-injectable',
+      instantiate: () => 42,
+    });
+
+    const di = createContainer('some-container');
+
+    di.register(someInjectable);
+
+    const actual = di.inject(someInjectable, undefined, {
+      injectable: {
+        id: 'some-custom-context-id',
+        lifecycle: lifecycleEnum.transient,
+      },
+    });
+
+    expect(actual).toBe(42);
+  });
+
   xit('given async injectables with a dependency cycle, when injected, throws', () => {
     const childInjectable = getInjectable({
       id: 'some-child-injectable',

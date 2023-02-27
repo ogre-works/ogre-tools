@@ -206,4 +206,27 @@ describe('createContainer.injection-token', () => {
       'Cycle of injectables encountered: "some-container" -> "some-custom-context-id" -> "some-injection-token" -> "some-parent-injectable" -> "some-child-injectable" -> "some-parent-injectable"',
     );
   });
+
+  it('given injectables, when injecting many with custom root context, works', () => {
+    const injectionToken = getInjectionToken({ id: 'some-injection-token' });
+
+    const someInjectable = getInjectable({
+      id: 'some-some-injectable',
+      instantiate: () => 42,
+      injectionToken,
+    });
+
+    const di = createContainer('some-container');
+
+    di.register(someInjectable);
+
+    const actual = di.injectMany(injectionToken, undefined, {
+      injectable: {
+        id: 'some-custom-context-id',
+        lifecycle: lifecycleEnum.transient,
+      },
+    });
+
+    expect(actual).toEqual([42]);
+  });
 });

@@ -1,5 +1,13 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`withInjectables given anonymous component, injecting a token, when rendered, works 1`] = `
+<body>
+  <div>
+    irrelevant
+  </div>
+</body>
+`;
+
 exports[`withInjectables given component and sync dependencies, when rendered, renders with dependencies 1`] = `
 <body>
   <div>
@@ -20,6 +28,14 @@ exports[`withInjectables given component with props, placeholder and async depen
     <div
       data-testid="some-placeholder-with-props(some-prop-value)"
     />
+  </div>
+</body>
+`;
+
+exports[`withInjectables given component, and rendered, when re-rendered, works 1`] = `
+<body>
+  <div>
+    irrelevant
   </div>
 </body>
 `;
