@@ -1,7 +1,7 @@
 {
   "name": "@ogre-tools/test-utils",
   "private": false,
-  "version": "15.1.0",
+  "version": "15.1.1",
   "description": "A collection of test-utils for Ogre-tools.",
   "files": [
     "build",
@@ -38,9 +38,9 @@
     "code-style:fix": "ogre-tools-fix-code-style"
   },
   "devDependencies": {
-    "@ogre-tools/infrastructure-babel-for-js": "*",
-    "@ogre-tools/infrastructure-jest": "*",
-    "@ogre-tools/infrastructure-prettier": "*",
-    "@ogre-tools/infrastructure-webpack-for-js": "*"
+    "@ogre-tools/infrastructure-babel-for-js": "^15.1.1",
+    "@ogre-tools/infrastructure-jest": "^15.1.1",
+    "@ogre-tools/infrastructure-prettier": "^15.1.1",
+    "@ogre-tools/infrastructure-webpack-for-js": "^15.1.1"
   }
 }

@@ -1,7 +1,7 @@
 {
   "name": "@ogre-tools/fp",
   "private": false,
-  "version": "15.1.0",
+  "version": "15.1.1",
   "description": "A collection of low abstraction functions in functional programming flavor",
   "files": [
     "build",
@@ -37,8 +37,8 @@
     "code-style:fix": "ogre-tools-fix-code-style"
   },
   "devDependencies": {
-    "@ogre-tools/infrastructure-jest": "*",
-    "@ogre-tools/infrastructure-prettier": "*",
-    "@ogre-tools/infrastructure-webpack-for-js": "*"
+    "@ogre-tools/infrastructure-jest": "^15.1.1",
+    "@ogre-tools/infrastructure-prettier": "^15.1.1",
+    "@ogre-tools/infrastructure-webpack-for-js": "^15.1.1"
   }
 }
