@@ -38,9 +38,9 @@
     "code-style:fix": "ogre-tools-fix-code-style"
   },
   "devDependencies": {
-    "@ogre-tools/infrastructure-babel-for-js": "^15.1.0",
-    "@ogre-tools/infrastructure-jest": "^15.1.0",
-    "@ogre-tools/infrastructure-prettier": "^15.1.0",
-    "@ogre-tools/infrastructure-webpack-for-js": "^15.1.0"
+    "@ogre-tools/infrastructure-babel-for-js": "*",
+    "@ogre-tools/infrastructure-jest": "*",
+    "@ogre-tools/infrastructure-prettier": "*",
+    "@ogre-tools/infrastructure-webpack-for-js": "*"
   }
 }
