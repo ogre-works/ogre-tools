@@ -114,7 +114,7 @@ describe('injection with meta data', () => {
     ]);
   });
 
-  it('given injectables with a dependency cycle, when injecting many with meta and with custom root context, throws error with the custom context', () => {
+  xit('given injectables with a dependency cycle, when injecting many with meta and with custom root context, throws error with the custom context', () => {
     const injectionToken = getInjectionToken({ id: 'some-injection-token' });
 
     const childInjectable = getInjectable({

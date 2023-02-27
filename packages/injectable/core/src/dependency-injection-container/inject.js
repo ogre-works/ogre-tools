@@ -11,13 +11,12 @@ export const privateInjectFor = ({
   instancesByInjectableMap,
   injectableAndRegistrationContext,
   injectMany,
-  namespacedIdByInjectableMap,
   // Todo: get rid of function usage.
   getSideEffectsArePrevented,
   getDi,
   getNamespacedId,
 }) =>
-  withInjectionDecoratorsFor({ injectMany, namespacedIdByInjectableMap })(
+  withInjectionDecoratorsFor({ injectMany })(
     (alias, instantiationParameter, context = []) => {
       const checkForNoMatches = checkForNoMatchesFor(getNamespacedId);
 

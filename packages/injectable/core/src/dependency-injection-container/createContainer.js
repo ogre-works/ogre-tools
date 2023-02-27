@@ -51,7 +51,6 @@ export default containerId => {
 
   const withInjectionDecorators = withInjectionDecoratorsFor({
     injectMany: nonDecoratedPrivateInjectMany,
-    namespacedIdByInjectableMap,
   });
 
   const getSideEffectsArePrevented = injectable =>
@@ -67,7 +66,6 @@ export default containerId => {
     injectableAndRegistrationContext,
     injectMany: nonDecoratedPrivateInjectMany,
     getSideEffectsArePrevented,
-    namespacedIdByInjectableMap,
     getDi: () => privateDi,
     getNamespacedId,
   });

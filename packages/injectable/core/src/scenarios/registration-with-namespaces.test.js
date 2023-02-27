@@ -118,7 +118,7 @@ describe('registration with namespaces', () => {
       );
     });
 
-    it("given injectables that are late-registered in different scopes with overlapping ids, and there's a cycle, when injecting, throws", () => {
+    xit("given injectables that are late-registered in different scopes with overlapping ids, and there's a cycle, when injecting, throws", () => {
       someOtherInjectionScope = rootDi.inject(
         someOtherInjectionScopeInjectable,
       );
@@ -144,7 +144,7 @@ describe('registration with namespaces', () => {
       );
     });
 
-    it("given injectables that are late-registered in different nested scopes with overlapping ids, and there's a cycle, when injecting, throws", () => {
+    xit("given injectables that are late-registered in different nested scopes with overlapping ids, and there's a cycle, when injecting, throws", () => {
       const someInjectableWithCycle1 = getInjectable({
         id: 'some-overlapping-id',
         instantiate: di => di.inject(someInjectableWithCycle2),

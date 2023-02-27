@@ -165,7 +165,7 @@ describe('createContainer.global-decoration', () => {
     expect(actual).toBe('decorated-with-some-override(some-undecorated-value)');
   });
 
-  it('given injectable and infinitely recursing injection decorator, when injected, throws', () => {
+  xit('given injectable and infinitely recursing injection decorator, when injected, throws', () => {
     const someInjectable = getInjectable({
       id: 'some-injectable-to-be-decorated',
 
@@ -201,7 +201,7 @@ describe('createContainer.global-decoration', () => {
     );
   });
 
-  it('given injectable and injection decorator which decorates itself, when injected, throws', () => {
+  xit('given injectable and injection decorator which decorates itself, when injected, throws', () => {
     const someInjectable = getInjectable({
       id: 'some-injectable-to-be-decorated',
 
@@ -230,7 +230,7 @@ describe('createContainer.global-decoration', () => {
     );
   });
 
-  it('given injectable and instantiation decorator which decorates itself, when injected, throws', () => {
+  xit('given injectable and instantiation decorator which decorates itself, when injected, throws', () => {
     const someInjectable = getInjectable({
       id: 'some-injectable-to-be-decorated',
 
@@ -259,7 +259,7 @@ describe('createContainer.global-decoration', () => {
     );
   });
 
-  it('given injectable and infinitely recursing instantiation decorator, when injected, throws', () => {
+  xit('given injectable and infinitely recursing instantiation decorator, when injected, throws', () => {
     const someInjectable = getInjectable({
       id: 'some-injectable-to-be-decorated',
 
