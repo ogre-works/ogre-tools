@@ -1,3 +1,4 @@
-module.exports = require('@ogre-tools/infrastructure-jest')(
-  __dirname,
-).configForNode;
+module.exports =
+  require('@ogre-tools/infrastructure-jest').monorepoPackageConfig(
+    __dirname,
+  ).configForNode;
