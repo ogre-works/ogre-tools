@@ -1,6 +1,7 @@
 import { nonStoredInstanceKey } from './lifecycleEnum';
 import { withInjectionDecoratorsFor } from './withInjectionDecoratorsFor';
 import { withInstantiationDecoratorsFor } from './withInstantiationDecoratorsFor';
+import { checkForTooManyMatches } from './checkForTooManyMatches';
 
 export const privateInjectFor = ({
   getRelatedInjectables,
@@ -54,18 +55,6 @@ export const privateInjectFor = ({
       });
     },
   );
-
-const checkForTooManyMatches = (relatedInjectables, alias) => {
-  if (relatedInjectables.length > 1) {
-    throw new Error(
-      `Tried to inject single injectable for injection token "${
-        alias.id
-      }" but found multiple injectables: "${relatedInjectables
-        .map(relatedInjectable => relatedInjectable.id)
-        .join('", "')}"`,
-    );
-  }
-};
 
 const getInstance = ({
   di,
