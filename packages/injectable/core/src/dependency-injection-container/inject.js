@@ -8,7 +8,6 @@ export const privateInjectFor = ({
   alreadyInjected,
   overridingInjectables,
   instancesByInjectableMap,
-  injectableAndRegistrationContext,
   injectMany,
   getDi,
   setDependee,
@@ -37,12 +36,11 @@ export const privateInjectFor = ({
       checkForSideEffects(injectable, context);
 
       return getInstance({
+        di,
         injectable,
         instantiationParameter,
-        di,
-        instancesByInjectableMap,
         context,
-        injectableAndRegistrationContext,
+        instancesByInjectableMap,
       });
     },
   );
