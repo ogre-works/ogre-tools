@@ -5,7 +5,7 @@ export const nonDecoratedPrivateInjectManyFor =
     containerRootContextItem,
     getRelatedInjectables,
     getInject,
-    dependersMap,
+    setDependency,
   }) =>
   ({ withMeta }) =>
   (
@@ -14,11 +14,7 @@ export const nonDecoratedPrivateInjectManyFor =
     oldContext = [containerRootContextItem],
     source,
   ) => {
-    if (!dependersMap.has(injectionToken)) {
-      dependersMap.set(injectionToken, new Set());
-    }
-
-    dependersMap.get(injectionToken).add(source);
+    setDependency({ dependency: injectionToken, depender: source });
 
     const inject = getInject();
 

@@ -13,11 +13,11 @@ export const privateInjectFor = ({
   getSideEffectsArePrevented,
   getDi,
   getNamespacedId,
-  dependersMap,
+  setDependency,
   checkForNoMatches,
   checkForCycles,
 }) =>
-  withInjectionDecoratorsFor({ injectMany, dependersMap, checkForCycles })(
+  withInjectionDecoratorsFor({ injectMany, setDependency, checkForCycles })(
     (alias, instantiationParameter, context = []) => {
       const di = getDi();
 
