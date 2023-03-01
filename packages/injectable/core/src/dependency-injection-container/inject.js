@@ -72,7 +72,6 @@ const getInstance = ({
   instantiationParameter,
   context: oldContext,
   instancesByInjectableMap,
-  injectableAndRegistrationContext,
 }) => {
   const newContext = [
     ...oldContext,
