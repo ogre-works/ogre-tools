@@ -6,7 +6,7 @@ export const withInjectionDecoratorsFor =
   ({ injectMany, checkForCycles, setDependency }) =>
   toBeDecorated =>
   (alias, parameter, oldContext, source) => {
-    setDependency({ dependency: alias, depender: source });
+    setDependency({ dependency: alias, dependee: source });
 
     checkForCycles(alias);
 

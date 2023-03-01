@@ -14,7 +14,7 @@ export const nonDecoratedPrivateInjectManyFor =
     oldContext = [containerRootContextItem],
     source,
   ) => {
-    setDependency({ dependency: injectionToken, depender: source });
+    setDependency({ dependency: injectionToken, dependee: source });
 
     const inject = getInject();
 

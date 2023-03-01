@@ -25,7 +25,7 @@ export default containerId => {
   const instancesByInjectableMap = new Map();
   const injectablesByInjectionToken = new Map();
   const namespacedIdByInjectableMap = new Map();
-  const dependersMap = new Map();
+  const dependeesMap = new Map();
 
   const getNamespacedId = getNamespacedIdFor(injectableAndRegistrationContext);
 
@@ -36,7 +36,7 @@ export default containerId => {
 
   const containerRootContextItem = { injectable: { id: containerId } };
 
-  const setDependency = setDependencyFor({ dependersMap });
+  const setDependency = setDependencyFor({ dependeesMap });
   const nonDecoratedPrivateInjectManyForUnknownMeta =
     nonDecoratedPrivateInjectManyFor({
       containerRootContextItem,
@@ -55,7 +55,7 @@ export default containerId => {
       withMeta: true,
     });
 
-  const checkForCycles = checkForCyclesFor({ dependersMap, getNamespacedId });
+  const checkForCycles = checkForCyclesFor({ dependeesMap, getNamespacedId });
 
   const withInjectionDecorators = withInjectionDecoratorsFor({
     injectMany: nonDecoratedPrivateInjectMany,

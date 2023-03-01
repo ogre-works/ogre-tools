@@ -1,4 +1,4 @@
-const getCycleFor = dependersMap => {
+const getCycleFor = dependeesMap => {
   const getCycle = (
     reference,
     rootReference = reference,
@@ -15,26 +15,26 @@ const getCycleFor = dependersMap => {
 
     visited.add(reference);
 
-    const dependers = dependersMap.get(reference);
+    const dependees = dependeesMap.get(reference);
 
     // Todo: this should never be possible?
-    if (!dependers) {
+    if (!dependees) {
       return;
     }
 
-    if (dependers.size === 0) {
+    if (dependees.size === 0) {
       return;
     }
 
-    if (dependers.has(rootReference)) {
+    if (dependees.has(rootReference)) {
       return [rootReference, ...path];
     }
 
-    for (const depender of dependers) {
+    for (const dependee of dependees) {
       const cycle = getCycle(
-        depender,
+        dependee,
         rootReference,
-        [depender, ...path],
+        [dependee, ...path],
         visited,
       );
 
@@ -47,8 +47,8 @@ const getCycleFor = dependersMap => {
   return reference => getCycle(reference);
 };
 
-export const checkForCyclesFor = ({ dependersMap, getNamespacedId }) => {
-  const getCycle = getCycleFor(dependersMap);
+export const checkForCyclesFor = ({ dependeesMap, getNamespacedId }) => {
+  const getCycle = getCycleFor(dependeesMap);
 
   return alias => {
     const cycle = getCycle(alias);

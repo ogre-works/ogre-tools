@@ -1,9 +1,9 @@
 export const setDependencyFor =
-  ({ dependersMap }) =>
-  ({ dependency, depender }) => {
-    if (!dependersMap.has(dependency)) {
-      dependersMap.set(dependency, new Set());
+  ({ dependeesMap }) =>
+  ({ dependency, dependee }) => {
+    if (!dependeesMap.has(dependency)) {
+      dependeesMap.set(dependency, new Set());
     }
 
-    dependersMap.get(dependency).add(depender);
+    dependeesMap.get(dependency).add(dependee);
   };
