@@ -1,8 +1,6 @@
 import { nonStoredInstanceKey } from './lifecycleEnum';
-import flow from './fastFlow';
-import { instantiationDecoratorToken } from './createContainer';
-import { isRelevantDecoratorFor } from './isRelevantDecoratorFor';
 import { withInjectionDecoratorsFor } from './withInjectionDecorators';
+import { withInstantiationDecoratorsFor } from './withInstantiationDecoratorsFor';
 
 export const privateInjectFor = ({
   getRelatedInjectables,
@@ -154,30 +152,4 @@ const getInstance = ({
   }
 
   return newInstance;
-};
-
-const withInstantiationDecoratorsFor = ({ injectMany, injectable }) => {
-  const isRelevantDecorator = isRelevantDecoratorFor(injectable);
-
-  return toBeDecorated =>
-    (...args) => {
-      if (injectable.decorable === false) {
-        return toBeDecorated(...args);
-      }
-
-      const [{ context }] = args;
-
-      const decorators = injectMany(
-        instantiationDecoratorToken,
-        undefined,
-        context,
-        injectable,
-      )
-        .filter(isRelevantDecorator)
-        .map(x => x.decorate);
-
-      const decorated = flow(...decorators)(toBeDecorated);
-
-      return decorated(...args);
-    };
 };
