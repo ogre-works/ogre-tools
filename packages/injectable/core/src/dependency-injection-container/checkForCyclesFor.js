@@ -1,4 +1,4 @@
-const getCycleFor = dependeesMap => {
+const getCycleFor = dependeesByDependencyMap => {
   const getCycle = (
     reference,
     rootReference = reference,
@@ -15,7 +15,7 @@ const getCycleFor = dependeesMap => {
 
     visited.add(reference);
 
-    const dependees = dependeesMap.get(reference);
+    const dependees = dependeesByDependencyMap.get(reference);
 
     // Todo: this should never be possible?
     if (!dependees) {
@@ -47,8 +47,11 @@ const getCycleFor = dependeesMap => {
   return reference => getCycle(reference);
 };
 
-export const checkForCyclesFor = ({ dependeesMap, getNamespacedId }) => {
-  const getCycle = getCycleFor(dependeesMap);
+export const checkForCyclesFor = ({
+  dependeesByDependencyMap,
+  getNamespacedId,
+}) => {
+  const getCycle = getCycleFor(dependeesByDependencyMap);
 
   return alias => {
     const cycle = getCycle(alias);
