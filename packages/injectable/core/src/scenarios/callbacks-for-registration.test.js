@@ -1,6 +1,6 @@
 import getInjectable from '../getInjectable/getInjectable';
 import { createContainer } from '../../index';
-import { registrationCallbackToken } from '../dependency-injection-container/createContainer';
+import { registrationCallbackToken } from '../dependency-injection-container/tokens';
 
 describe('createContainer.callbacks-for-registration', () => {
   describe('given there is a callback for registration, and an injectable', () => {

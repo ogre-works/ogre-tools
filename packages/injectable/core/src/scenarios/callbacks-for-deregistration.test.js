@@ -1,8 +1,8 @@
 import { get } from 'lodash/fp';
 import getInjectable from '../getInjectable/getInjectable';
 import { createContainer } from '../../index';
-import { deregistrationCallbackToken } from '../dependency-injection-container/createContainer';
 import getInjectionToken from '../getInjectionToken/getInjectionToken';
+import { deregistrationCallbackToken } from '../dependency-injection-container/tokens';
 
 describe('createContainer.callbacks-for-deregistration', () => {
   describe('given there is an injectable and callback for deregistration', () => {

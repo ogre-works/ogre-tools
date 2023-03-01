@@ -1,5 +1,5 @@
 import getInjectable from '../getInjectable/getInjectable';
-import { injectionDecoratorToken } from './createContainer';
+import { injectionDecoratorToken } from './tokens';
 
 export const decorateFor =
   ({ registerSingle }) =>

@@ -1,9 +1,8 @@
 import { identity } from 'lodash/fp';
 import getInjectable from '../getInjectable/getInjectable';
-import createContainer, {
-  injectionDecoratorToken,
-} from '../dependency-injection-container/createContainer';
+import createContainer from '../dependency-injection-container/createContainer';
 import { instantiationDecoratorToken } from '../../index';
+import { injectionDecoratorToken } from '../dependency-injection-container/tokens';
 
 describe('createContainer.global-decoration', () => {
   it('given global decorator and child injectable, when parent is injected, decorates instances and instantiation parameters of both parent and child', () => {

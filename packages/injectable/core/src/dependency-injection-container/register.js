@@ -1,5 +1,5 @@
-import { registrationCallbackToken } from './createContainer';
 import { getNamespacedIdFor } from './getNamespacedIdFor';
+import { registrationCallbackToken } from './tokens';
 
 export const registerFor =
   ({ registerSingle, injectMany }) =>

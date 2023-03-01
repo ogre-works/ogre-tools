@@ -1,4 +1,3 @@
-import getInjectionToken from '../getInjectionToken/getInjectionToken';
 import { privateInjectFor } from './privateInjectFor';
 import { withInjectionDecoratorsFor } from './withInjectionDecoratorsFor';
 import { privateInjectManyFor as nonDecoratedPrivateInjectManyFor } from './privateInjectManyFor';
@@ -223,23 +222,3 @@ export default containerId => {
 
   return publicDi;
 };
-
-export const registrationCallbackToken = getInjectionToken({
-  id: 'registration-callback-token',
-  decorable: false,
-});
-
-export const deregistrationCallbackToken = getInjectionToken({
-  id: 'deregistration-callback-token',
-  decorable: false,
-});
-
-export const instantiationDecoratorToken = getInjectionToken({
-  id: 'instantiate-decorator-token',
-  decorable: false,
-});
-
-export const injectionDecoratorToken = getInjectionToken({
-  id: 'injection-decorator-token',
-  decorable: false,
-});

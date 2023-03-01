@@ -1,8 +1,7 @@
 import getInjectable from '../getInjectable/getInjectable';
-import createContainer, {
-  injectionDecoratorToken,
-} from '../dependency-injection-container/createContainer';
+import createContainer from '../dependency-injection-container/createContainer';
 import getInjectionToken from '../getInjectionToken/getInjectionToken';
+import { injectionDecoratorToken } from '../dependency-injection-container/tokens';
 
 describe('createContainer.targeted-decoration', () => {
   it('given decorator targeting child, when parent is injected, decorates instance and instantiation parameter of only child', () => {

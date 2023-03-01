@@ -1,4 +1,4 @@
-import { deregistrationCallbackToken } from './createContainer';
+import { deregistrationCallbackToken } from './tokens';
 
 export const deregisterFor =
   ({

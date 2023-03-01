@@ -1,6 +1,6 @@
 import { isRelevantDecoratorFor } from './isRelevantDecoratorFor';
 import flow from './fastFlow';
-import { injectionDecoratorToken } from './createContainer';
+import { injectionDecoratorToken } from './tokens';
 
 export const withInjectionDecoratorsFor =
   ({ injectMany, checkForCycles, setDependee }) =>
