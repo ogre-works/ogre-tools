@@ -7,12 +7,12 @@ import { purgeInstancesFor } from './purgeInstances';
 import { deregisterFor } from './deregister';
 import { overrideFor, unoverrideFor } from './override';
 import { decorateFor, decorateFunctionFor } from './decorate';
-import isInjectable from '../getInjectable/isInjectable';
 import { getNamespacedIdFor } from './getNamespacedIdFor';
 import { checkForNoMatchesFor } from './checkForNoMatchesFor';
 import { checkForCyclesFor } from './checkForCyclesFor';
 import { setDependeeFor } from './setDependeeFor';
 import { checkForSideEffectsFor } from './checkForSideEffectsFor';
+import { getRelatedInjectablesFor } from './getRelatedInjectablesFor';
 
 export default containerId => {
   const injectableSet = new Set();
@@ -225,15 +225,6 @@ export default containerId => {
 
   return publicDi;
 };
-
-const getRelatedInjectablesFor =
-  ({ injectablesByInjectionToken, injectableSet }) =>
-  alias =>
-    isInjectable(alias)
-      ? injectableSet.has(alias)
-        ? [alias]
-        : []
-      : [...(injectablesByInjectionToken.get(alias)?.values() || [])];
 
 export const registrationCallbackToken = getInjectionToken({
   id: 'registration-callback-token',
