@@ -5,17 +5,17 @@ import { injectionDecoratorToken } from './createContainer';
 export const withInjectionDecoratorsFor =
   ({ injectMany, dependersMap, checkForCycles }) =>
   toBeDecorated =>
-  (alias, parameter, oldContext, injectingInjectable) => {
+  (alias, parameter, oldContext, source) => {
     if (!dependersMap.has(alias)) {
       dependersMap.set(alias, new Set());
     }
 
-    dependersMap.get(alias).add(injectingInjectable);
+    dependersMap.get(alias).add(source);
 
     checkForCycles(alias);
 
     if (alias.decorable === false) {
-      return toBeDecorated(alias, parameter, oldContext, injectingInjectable);
+      return toBeDecorated(alias, parameter, oldContext, source);
     }
 
     const newContext = [...oldContext, { injectable: alias }];
@@ -26,12 +26,12 @@ export const withInjectionDecoratorsFor =
       injectionDecoratorToken,
       undefined,
       newContext,
-      injectingInjectable,
+      source,
     )
       .filter(isRelevantDecorator)
       .map(x => x.decorate);
 
     const decorated = flow(...decorators)(toBeDecorated);
 
-    return decorated(alias, parameter, oldContext, injectingInjectable);
+    return decorated(alias, parameter, oldContext, source);
   };
