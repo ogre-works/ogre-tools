@@ -11,7 +11,7 @@ import isInjectable from '../getInjectable/isInjectable';
 import { getNamespacedIdFor } from './getNamespacedIdFor';
 import { checkForNoMatchesFor } from './checkForNoMatchesFor';
 import { checkForCyclesFor } from './checkForCyclesFor';
-import { setDependencyFor } from './setDependencyFor';
+import { setDependeeFor } from './setDependeeFor';
 
 export default containerId => {
   const injectableSet = new Set();
@@ -36,13 +36,13 @@ export default containerId => {
 
   const containerRootContextItem = { injectable: { id: containerId } };
 
-  const setDependency = setDependencyFor({ dependeesMap });
+  const setDependee = setDependeeFor({ dependeesMap });
   const nonDecoratedPrivateInjectManyForUnknownMeta =
     nonDecoratedPrivateInjectManyFor({
       containerRootContextItem,
       getRelatedInjectables,
       getInject: () => privateInject,
-      setDependency,
+      setDependee,
     });
 
   const nonDecoratedPrivateInjectMany =
@@ -59,7 +59,7 @@ export default containerId => {
 
   const withInjectionDecorators = withInjectionDecoratorsFor({
     injectMany: nonDecoratedPrivateInjectMany,
-    setDependency,
+    setDependee,
     checkForCycles,
   });
 
@@ -80,7 +80,7 @@ export default containerId => {
     getSideEffectsArePrevented,
     getDi: () => privateDi,
     getNamespacedId,
-    setDependency,
+    setDependee,
     checkForNoMatches,
     checkForCycles,
   });

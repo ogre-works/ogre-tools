@@ -3,10 +3,10 @@ import flow from './fastFlow';
 import { injectionDecoratorToken } from './createContainer';
 
 export const withInjectionDecoratorsFor =
-  ({ injectMany, checkForCycles, setDependency }) =>
+  ({ injectMany, checkForCycles, setDependee }) =>
   toBeDecorated =>
   (alias, parameter, oldContext, source) => {
-    setDependency({ dependency: alias, dependee: source });
+    setDependee({ dependency: alias, dependee: source });
 
     checkForCycles(alias);
 
