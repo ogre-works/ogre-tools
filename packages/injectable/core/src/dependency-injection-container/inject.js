@@ -15,8 +15,9 @@ export const privateInjectFor = ({
   getNamespacedId,
   dependersMap,
   checkForNoMatches,
+  checkForCycles,
 }) =>
-  withInjectionDecoratorsFor({ injectMany, dependersMap, getNamespacedId })(
+  withInjectionDecoratorsFor({ injectMany, dependersMap, checkForCycles })(
     (alias, instantiationParameter, context = []) => {
       const di = getDi();
 

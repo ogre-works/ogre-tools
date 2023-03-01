@@ -10,6 +10,7 @@ import { decorateFor, decorateFunctionFor } from './decorate';
 import isInjectable from '../getInjectable/isInjectable';
 import { getNamespacedIdFor } from './getNamespacedIdFor';
 import { checkForNoMatchesFor } from './checkForNoMatchesFor';
+import { checkForCyclesFor } from './checkForCyclesFor';
 
 export default containerId => {
   const injectableSet = new Set();
@@ -52,10 +53,12 @@ export default containerId => {
       withMeta: true,
     });
 
+  const checkForCycles = checkForCyclesFor({ dependersMap, getNamespacedId });
+
   const withInjectionDecorators = withInjectionDecoratorsFor({
     injectMany: nonDecoratedPrivateInjectMany,
     dependersMap,
-    getNamespacedId,
+    checkForCycles,
   });
 
   const getSideEffectsArePrevented = injectable =>
@@ -77,6 +80,7 @@ export default containerId => {
     getNamespacedId,
     dependersMap,
     checkForNoMatches,
+    checkForCycles,
   });
 
   const decoratedPrivateInjectMany = withInjectionDecorators(
