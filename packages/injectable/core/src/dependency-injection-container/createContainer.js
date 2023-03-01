@@ -9,6 +9,7 @@ import { overrideFor, unoverrideFor } from './override';
 import { decorateFor, decorateFunctionFor } from './decorate';
 import isInjectable from '../getInjectable/isInjectable';
 import { getNamespacedIdFor } from './getNamespacedIdFor';
+import { checkForNoMatchesFor } from './checkForNoMatchesFor';
 
 export default containerId => {
   const injectableSet = new Set();
@@ -62,6 +63,8 @@ export default containerId => {
     injectable.causesSideEffects &&
     !injectablesWithPermittedSideEffects.has(injectable);
 
+  const checkForNoMatches = checkForNoMatchesFor(getNamespacedId);
+
   const privateInject = privateInjectFor({
     getRelatedInjectables,
     alreadyInjected,
@@ -73,6 +76,7 @@ export default containerId => {
     getDi: () => privateDi,
     getNamespacedId,
     dependersMap,
+    checkForNoMatches,
   });
 
   const decoratedPrivateInjectMany = withInjectionDecorators(
