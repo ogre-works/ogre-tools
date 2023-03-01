@@ -1,6 +1,6 @@
 import { isPromise } from '@ogre-tools/fp';
 
-export const nonDecoratedPrivateInjectManyFor =
+export const privateInjectManyFor =
   ({
     containerRootContextItem,
     getRelatedInjectables,
