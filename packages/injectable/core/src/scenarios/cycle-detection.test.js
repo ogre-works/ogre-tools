@@ -1,7 +1,7 @@
 import createContainer from '../dependency-injection-container/createContainer';
 import getInjectable from '../getInjectable/getInjectable';
 
-xdescribe('cycle-detection', () => {
+describe('cycle-detection', () => {
   describe('given no cycle and injected', () => {
     let di;
     let goodInjectable;
@@ -51,21 +51,21 @@ xdescribe('cycle-detection', () => {
       expect(actual).toBe('some-good-result');
     });
 
-    it('given only bad work is done, throws context of bad work', () => {
+    it('given only bad work is done, throws error about only the cycle', () => {
       expect(() => {
         di.inject(badInjectable);
       }).toThrow(
-        'Cycle of injectables encountered: "some-container" -> "some-bad-injectable" -> "some-worker-injectable" -> "some-cyclical-injectable-1" -> "some-cyclical-injectable-2" -> "some-cyclical-injectable-1"',
+        'Cycle of injectables encountered: "some-cyclical-injectable-1" -> "some-cyclical-injectable-2" -> "some-cyclical-injectable-1"',
       );
     });
 
-    fit('given good work is done, but then bad work is done, throws context of bad work', () => {
+    it('given good work is done, but then bad work is done, throws error about only the cycle', () => {
       di.inject(goodInjectable);
 
       expect(() => {
         di.inject(badInjectable);
       }).toThrow(
-        'Cycle of injectables encountered: "some-container" -> "some-bad-injectable" -> "some-worker-injectable" -> "some-cyclical-injectable-1" -> "some-cyclical-injectable-2" -> "some-cyclical-injectable-1"',
+        'Cycle of injectables encountered: "some-cyclical-injectable-1" -> "some-cyclical-injectable-2" -> "some-cyclical-injectable-1"',
       );
     });
   });

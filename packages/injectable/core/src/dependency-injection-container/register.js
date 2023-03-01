@@ -3,12 +3,17 @@ import { getNamespacedIdFor } from './getNamespacedIdFor';
 
 export const registerFor =
   ({ registerSingle, injectMany }) =>
-  ({ injectables, context }) => {
+  ({ injectables, context, source }) => {
     injectables.forEach(injectable => {
       registerSingle(injectable, context);
     });
 
-    const callbacks = injectMany(registrationCallbackToken);
+    const callbacks = injectMany(
+      registrationCallbackToken,
+      undefined,
+      context,
+      source,
+    );
 
     injectables.forEach(injectable => {
       callbacks.forEach(callback => {

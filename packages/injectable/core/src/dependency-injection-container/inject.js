@@ -15,8 +15,9 @@ export const privateInjectFor = ({
   getSideEffectsArePrevented,
   getDi,
   getNamespacedId,
+  dependersMap,
 }) =>
-  withInjectionDecoratorsFor({ injectMany })(
+  withInjectionDecoratorsFor({ injectMany, dependersMap, getNamespacedId })(
     (alias, instantiationParameter, context = []) => {
       const checkForNoMatches = checkForNoMatchesFor(getNamespacedId);
 
@@ -104,21 +105,37 @@ const getInstance = ({
   );
 
   const minimalDi = {
-    inject: (alias, parameter) => di.inject(alias, parameter, newContext),
+    inject: (alias, parameter) =>
+      di.inject(alias, parameter, newContext, injectableToBeInstantiated),
 
     injectMany: (alias, parameter) =>
-      di.injectMany(alias, parameter, newContext),
+      di.injectMany(alias, parameter, newContext, injectableToBeInstantiated),
 
     injectManyWithMeta: (alias, parameter) =>
-      di.injectManyWithMeta(alias, parameter, newContext),
+      di.injectManyWithMeta(
+        alias,
+        parameter,
+        newContext,
+        injectableToBeInstantiated,
+      ),
 
     context: newContext,
 
     register: (...injectables) => {
-      di.register({ injectables, context: newContext });
+      di.register({
+        injectables,
+        context: newContext,
+        source: injectableToBeInstantiated,
+      });
     },
 
-    deregister: di.deregister,
+    deregister: (...injectables) => {
+      di.deregister({
+        injectables,
+        context: newContext,
+        source: injectableToBeInstantiated,
+      });
+    },
   };
 
   const instanceKey = injectableToBeInstantiated.lifecycle.getInstanceKey(
@@ -168,6 +185,7 @@ const withInstantiationDecoratorsFor = ({ injectMany, injectable }) => {
         instantiationDecoratorToken,
         undefined,
         context,
+        injectable,
       )
         .filter(isRelevantDecorator)
         .map(x => x.decorate);

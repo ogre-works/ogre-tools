@@ -129,7 +129,7 @@ describe('createContainer.injection-token', () => {
     expect(actual).toEqual([]);
   });
 
-  xit('given injectables with a dependency cycle, when injecting many, throws', () => {
+  it('given injectables with a dependency cycle, when injecting many, throws', () => {
     const someInjectionToken = getInjectionToken({
       id: 'some-injection-token',
     });
@@ -157,7 +157,7 @@ describe('createContainer.injection-token', () => {
     expect(() => {
       di.injectMany(someInjectionToken);
     }).toThrow(
-      'Cycle of injectables encountered: "some-container" -> "some-injection-token" -> "some-parent-injectable" -> "some-other-injection-token" -> "some-child-injectable" -> "some-injection-token"',
+      'Cycle of injectables encountered: "some-injection-token" -> "some-parent-injectable" -> "some-other-injection-token" -> "some-child-injectable" -> "some-injection-token"',
     );
   });
 
@@ -177,12 +177,12 @@ describe('createContainer.injection-token', () => {
     expect(di.inject(injectionToken)).toBe('some-instance');
   });
 
-  xit('given injectables with a dependency cycle, when injecting many with custom root context, throws error with the custom context', () => {
+  it('given injectables with a dependency cycle, when injecting many with custom root context, throws error with the custom context', () => {
     const injectionToken = getInjectionToken({ id: 'some-injection-token' });
 
     const childInjectable = getInjectable({
       id: 'some-child-injectable',
-      instantiate: di => di.inject(parentInjectable),
+      instantiate: di => di.context,
     });
 
     const parentInjectable = getInjectable({
@@ -195,16 +195,21 @@ describe('createContainer.injection-token', () => {
 
     di.register(parentInjectable, childInjectable);
 
-    expect(() => {
-      di.injectMany(injectionToken, undefined, {
+    const actualContext = di
+      .inject(injectionToken, undefined, {
         injectable: {
           id: 'some-custom-context-id',
           lifecycle: lifecycleEnum.transient,
         },
-      });
-    }).toThrow(
-      'Cycle of injectables encountered: "some-container" -> "some-custom-context-id" -> "some-injection-token" -> "some-parent-injectable" -> "some-child-injectable" -> "some-parent-injectable"',
-    );
+      })
+      .map(x => x.injectable.id);
+
+    expect(actualContext).toEqual([
+      'some-container',
+      'some-custom-context-id',
+      'some-parent-injectable',
+      'some-child-injectable',
+    ]);
   });
 
   it('given injectables, when injecting many with custom root context, works', () => {

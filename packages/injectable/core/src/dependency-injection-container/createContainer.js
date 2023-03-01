@@ -22,6 +22,7 @@ export default containerId => {
   const instancesByInjectableMap = new Map();
   const injectablesByInjectionToken = new Map();
   const namespacedIdByInjectableMap = new Map();
+  const dependersMap = new Map();
 
   const getNamespacedId = getNamespacedIdFor(injectableAndRegistrationContext);
 
@@ -37,6 +38,7 @@ export default containerId => {
       containerRootContextItem,
       getRelatedInjectables,
       getInject: () => privateInject,
+      dependersMap,
     });
 
   const nonDecoratedPrivateInjectMany =
@@ -51,6 +53,8 @@ export default containerId => {
 
   const withInjectionDecorators = withInjectionDecoratorsFor({
     injectMany: nonDecoratedPrivateInjectMany,
+    dependersMap,
+    getNamespacedId,
   });
 
   const getSideEffectsArePrevented = injectable =>
@@ -68,6 +72,7 @@ export default containerId => {
     getSideEffectsArePrevented,
     getDi: () => privateDi,
     getNamespacedId,
+    dependersMap,
   });
 
   const decoratedPrivateInjectMany = withInjectionDecorators(
@@ -158,6 +163,7 @@ export default containerId => {
         customContextItem
           ? [containerRootContextItem, customContextItem]
           : [containerRootContextItem],
+        containerRootContextItem.injectable,
       ),
 
     injectMany: (alias, parameter, customContextItem) =>
@@ -167,10 +173,23 @@ export default containerId => {
         customContextItem
           ? [containerRootContextItem, customContextItem]
           : [containerRootContextItem],
+        containerRootContextItem.injectable,
       ),
 
     register: (...injectables) => {
-      privateDi.register({ injectables, context: [containerRootContextItem] });
+      privateDi.register({
+        injectables,
+        context: [containerRootContextItem],
+        source: containerRootContextItem.injectable,
+      });
+    },
+
+    deregister: (...injectables) => {
+      privateDi.deregister({
+        injectables,
+        context: [containerRootContextItem],
+        source: containerRootContextItem.injectable,
+      });
     },
 
     injectManyWithMeta: (alias, parameter, customContextItem) =>
@@ -180,6 +199,7 @@ export default containerId => {
         customContextItem
           ? [containerRootContextItem, customContextItem]
           : [containerRootContextItem],
+        containerRootContextItem.injectable,
       ),
   };
 

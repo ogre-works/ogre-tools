@@ -1,13 +1,25 @@
 import { isPromise } from '@ogre-tools/fp';
 
 export const nonDecoratedPrivateInjectManyFor =
-  ({ containerRootContextItem, getRelatedInjectables, getInject }) =>
+  ({
+    containerRootContextItem,
+    getRelatedInjectables,
+    getInject,
+    dependersMap,
+  }) =>
   ({ withMeta }) =>
   (
     injectionToken,
     instantiationParameter,
     oldContext = [containerRootContextItem],
+    source,
   ) => {
+    if (!dependersMap.has(injectionToken)) {
+      dependersMap.set(injectionToken, new Set());
+    }
+
+    dependersMap.get(injectionToken).add(source);
+
     const inject = getInject();
 
     const newContext = [...oldContext, { injectable: injectionToken }];
@@ -15,7 +27,12 @@ export const nonDecoratedPrivateInjectManyFor =
     const relatedInjectables = getRelatedInjectables(injectionToken);
 
     const injected = relatedInjectables.map(injectable => {
-      const instance = inject(injectable, instantiationParameter, newContext);
+      const instance = inject(
+        injectable,
+        instantiationParameter,
+        newContext,
+        injectionToken,
+      );
 
       if (!withMeta) {
         return instance;

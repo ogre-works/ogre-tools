@@ -1,16 +1,30 @@
 import { isRelevantDecoratorFor } from './isRelevantDecoratorFor';
 import flow from './fastFlow';
 import { injectionDecoratorToken } from './createContainer';
+import { getCycleFor } from './getCycleFor';
 
 export const withInjectionDecoratorsFor =
-  ({ injectMany }) =>
+  ({ injectMany, dependersMap, getNamespacedId }) =>
   toBeDecorated =>
-  (alias, ...args) => {
-    if (alias.decorable === false) {
-      return toBeDecorated(alias, ...args);
+  (alias, parameter, oldContext, injectingInjectable) => {
+    if (!dependersMap.has(alias)) {
+      dependersMap.set(alias, new Set());
     }
 
-    const [, oldContext] = args;
+    dependersMap.get(alias).add(injectingInjectable);
+
+    const cycle = getCycleFor(dependersMap)(alias);
+
+    if (cycle)
+      throw new Error(
+        `Cycle of injectables encountered: "${cycle
+          .map(getNamespacedId)
+          .join('" -> "')}"`,
+      );
+
+    if (alias.decorable === false) {
+      return toBeDecorated(alias, parameter, oldContext, injectingInjectable);
+    }
 
     const newContext = [...oldContext, { injectable: alias }];
 
@@ -20,11 +34,12 @@ export const withInjectionDecoratorsFor =
       injectionDecoratorToken,
       undefined,
       newContext,
+      injectingInjectable,
     )
       .filter(isRelevantDecorator)
       .map(x => x.decorate);
 
     const decorated = flow(...decorators)(toBeDecorated);
 
-    return decorated(alias, ...args);
+    return decorated(alias, parameter, oldContext, injectingInjectable);
   };

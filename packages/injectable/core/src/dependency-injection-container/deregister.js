@@ -13,8 +13,13 @@ export const deregisterFor =
     // Todo: get rid of function usage.
     getDi,
   }) =>
-  (...injectables) => {
-    const callbacks = injectMany(deregistrationCallbackToken);
+  ({ injectables, context, source }) => {
+    const callbacks = injectMany(
+      deregistrationCallbackToken,
+      undefined,
+      context,
+      source,
+    );
 
     injectables.forEach(injectable => {
       callbacks.forEach(callback => {
@@ -65,7 +70,11 @@ export const deregisterSingleFor =
       .map(x => x[0])
       .forEach(injectable => {
         injectableAndRegistrationContext.delete(injectable);
-        di.deregister(injectable);
+        di.deregister({
+          injectables: [injectable],
+          context: [],
+          source: { id: 'lol' },
+        });
       });
 
     purgeInstances(injectable);

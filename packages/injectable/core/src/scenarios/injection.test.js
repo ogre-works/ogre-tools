@@ -32,7 +32,7 @@ describe('createContainer.injection', () => {
     expect(actual).toBe('some-child-instance');
   });
 
-  xit('given sync injectables with a dependency cycle, when injected, throws', () => {
+  it('given sync injectables with a dependency cycle, when injected, throws', () => {
     const childInjectable = getInjectable({
       id: 'some-child-injectable',
       instantiate: di => di.inject(parentInjectable),
@@ -50,11 +50,11 @@ describe('createContainer.injection', () => {
     expect(() => {
       di.inject(parentInjectable);
     }).toThrow(
-      'Cycle of injectables encountered: "some-container" -> "some-parent-injectable" -> "some-child-injectable" -> "some-parent-injectable"',
+      'Cycle of injectables encountered: "some-parent-injectable" -> "some-child-injectable" -> "some-parent-injectable"',
     );
   });
 
-  xit('given sync injectables with a dependency cycle, when injected with custom root context, throws error with the custom context', () => {
+  it('given sync injectables with a dependency cycle, when injected with custom root context, throws error with the custom context', () => {
     const childInjectable = getInjectable({
       id: 'some-child-injectable',
       instantiate: di => di.inject(parentInjectable),
@@ -77,7 +77,7 @@ describe('createContainer.injection', () => {
         },
       });
     }).toThrow(
-      'Cycle of injectables encountered: "some-container" -> "some-custom-context-id" -> "some-parent-injectable" -> "some-child-injectable" -> "some-parent-injectable"',
+      'Cycle of injectables encountered: "some-parent-injectable" -> "some-child-injectable" -> "some-parent-injectable"',
     );
   });
 
@@ -101,7 +101,7 @@ describe('createContainer.injection', () => {
     expect(actual).toBe(42);
   });
 
-  xit('given async injectables with a dependency cycle, when injected, throws', () => {
+  it('given async injectables with a dependency cycle, when injected, throws', () => {
     const childInjectable = getInjectable({
       id: 'some-child-injectable',
       instantiate: async di => await di.inject(parentInjectable),
@@ -119,7 +119,7 @@ describe('createContainer.injection', () => {
     const actualPromise = di.inject(parentInjectable);
 
     return expect(actualPromise).rejects.toThrow(
-      'Cycle of injectables encountered: "some-container" -> "some-parent-injectable" -> "some-child-injectable" -> "some-parent-injectable"',
+      'Cycle of injectables encountered: "some-parent-injectable" -> "some-child-injectable" -> "some-parent-injectable"',
     );
   });
 });

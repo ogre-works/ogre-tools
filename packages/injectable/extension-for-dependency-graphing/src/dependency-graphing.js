@@ -57,70 +57,77 @@ const plantUmlExtractorInjectable = getInjectable({
   id: 'plant-uml-extractor',
 
   instantiate: di => ({
-    decorate: toBeDecorated => (alias, instantiationParameter, context) => {
-      const instance = toBeDecorated(alias, instantiationParameter, context);
+    decorate:
+      toBeDecorated => (alias, instantiationParameter, context, source) => {
+        const instance = toBeDecorated(
+          alias,
+          instantiationParameter,
+          context,
+          source,
+        );
 
-      const graphState = di.inject(dependencyGraphStateInjectable);
-      const injectableName = alias.id;
-      const injectableId = camelCase(injectableName);
+        const graphState = di.inject(dependencyGraphStateInjectable);
+        const injectableName = alias.id;
+        const injectableId = camelCase(injectableName);
 
-      if (!graphState.nodes.has(injectableId)) {
-        graphState.nodes.set(injectableId, {
-          id: injectableId,
-          name: injectableName,
-          tags: new Set([injectableName]),
-          infos: new Set(),
-        });
-      }
+        if (!graphState.nodes.has(injectableId)) {
+          graphState.nodes.set(injectableId, {
+            id: injectableId,
+            name: injectableName,
+            tags: new Set([injectableName]),
+            infos: new Set(),
+          });
+        }
 
-      const node = graphState.nodes.get(injectableId);
+        const node = graphState.nodes.get(injectableId);
 
-      if (isInjectionToken(alias)) {
-        node.isInjectionToken = true;
-        node.lifecycle = lifecycleEnumForDependencyGraphing.injectionToken;
-        node.infos.add('Token');
-      } else {
-        node.lifecycle = lifecycleEnumForDependencyGraphing[alias.lifecycle.id];
-      }
+        if (isInjectionToken(alias)) {
+          node.isInjectionToken = true;
+          node.lifecycle = lifecycleEnumForDependencyGraphing.injectionToken;
+          node.infos.add('Token');
+        } else {
+          node.lifecycle =
+            lifecycleEnumForDependencyGraphing[alias.lifecycle.id];
+        }
 
-      const instanceIsAsync = isPromise(instance);
+        const instanceIsAsync = isPromise(instance);
 
-      if (instanceIsAsync) {
-        node.isAsync = true;
-        node.infos.add('Async');
-      }
+        if (instanceIsAsync) {
+          node.isAsync = true;
+          node.infos.add('Async');
+        }
 
-      const parentContext = last(context);
-      let link;
+        const parentContext = last(context);
+        let link;
 
-      const parentId = camelCase(parentContext.injectable.id);
-      const dependencyId = camelCase(alias.id);
+        const parentId = camelCase(parentContext.injectable.id);
+        const dependencyId = camelCase(alias.id);
 
-      const linkId = `${parentId}/${dependencyId}`;
+        const linkId = `${parentId}/${dependencyId}`;
 
-      const descendantIds = context.map(get('injectable.id'));
-      const dependencyNode = graphState.nodes.get(dependencyId);
-      descendantIds.forEach(descendantId =>
-        dependencyNode.tags.add(descendantId),
-      );
+        const descendantIds = context.map(get('injectable.id'));
+        const dependencyNode = graphState.nodes.get(dependencyId);
+        descendantIds.forEach(descendantId =>
+          dependencyNode.tags.add(descendantId),
+        );
 
-      if (!graphState.links.has(linkId)) {
-        graphState.links.set(linkId, {
-          parentId,
-          dependencyId,
-          infos: new Set(),
-        });
-      }
+        if (!graphState.links.has(linkId)) {
+          graphState.links.set(linkId, {
+            parentId,
+            dependencyId,
+            infos: new Set(),
+          });
+        }
 
-      link = graphState.links.get(linkId);
+        link = graphState.links.get(linkId);
 
-      if (instanceIsAsync) {
-        link.isAsync = true;
-        link.infos.add('Async');
-      }
+        if (instanceIsAsync) {
+          link.isAsync = true;
+          link.infos.add('Async');
+        }
 
-      return pipeline(instance, tap(customizeFor(di, node, link)));
-    },
+        return pipeline(instance, tap(customizeFor(di, node, link)));
+      },
   }),
 
   decorable: false,
