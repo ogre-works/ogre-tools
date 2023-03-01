@@ -1,6 +1,6 @@
 import getInjectionToken from '../getInjectionToken/getInjectionToken';
 import { privateInjectFor } from './inject';
-import { withInjectionDecoratorsFor } from './withInjectionDecorators';
+import { withInjectionDecoratorsFor } from './withInjectionDecoratorsFor';
 import { nonDecoratedPrivateInjectManyFor } from './injectMany';
 import { registerFor, registerSingleFor } from './register';
 import { purgeInstancesFor } from './purgeInstances';

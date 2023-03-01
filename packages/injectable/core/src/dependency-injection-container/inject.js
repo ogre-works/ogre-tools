@@ -1,5 +1,5 @@
 import { nonStoredInstanceKey } from './lifecycleEnum';
-import { withInjectionDecoratorsFor } from './withInjectionDecorators';
+import { withInjectionDecoratorsFor } from './withInjectionDecoratorsFor';
 import { withInstantiationDecoratorsFor } from './withInstantiationDecoratorsFor';
 
 export const privateInjectFor = ({
