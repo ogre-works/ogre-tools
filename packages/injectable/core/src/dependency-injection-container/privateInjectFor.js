@@ -1,49 +1,43 @@
 import { nonStoredInstanceKey } from './lifecycleEnum';
-import { withInjectionDecoratorsFor } from './withInjectionDecoratorsFor';
 import { withInstantiationDecoratorsFor } from './withInstantiationDecoratorsFor';
 import { checkForTooManyMatches } from './checkForTooManyMatches';
 
-export const privateInjectFor = ({
-  getRelatedInjectables,
-  alreadyInjected,
-  overridingInjectables,
-  instancesByInjectableMap,
-  injectMany,
-  getDi,
-  setDependee,
-  checkForNoMatches,
-  checkForCycles,
-  checkForSideEffects,
-}) =>
-  withInjectionDecoratorsFor({ injectMany, setDependee, checkForCycles })(
-    (alias, instantiationParameter, context = []) => {
-      const di = getDi();
+export const privateInjectFor =
+  ({
+    getRelatedInjectables,
+    alreadyInjected,
+    overridingInjectables,
+    instancesByInjectableMap,
+    getDi,
+    checkForNoMatches,
+    checkForSideEffects,
+  }) =>
+  (alias, instantiationParameter, context = []) => {
+    const di = getDi();
 
-      const relatedInjectables = getRelatedInjectables(alias);
+    const relatedInjectables = getRelatedInjectables(alias);
 
-      checkForTooManyMatches(relatedInjectables, alias);
-      checkForNoMatches(relatedInjectables, alias, context);
+    checkForTooManyMatches(relatedInjectables, alias);
+    checkForNoMatches(relatedInjectables, alias, context);
 
-      const originalInjectable = getRelatedInjectables(alias)[0];
+    const originalInjectable = getRelatedInjectables(alias)[0];
 
-      alreadyInjected.add(originalInjectable);
+    alreadyInjected.add(originalInjectable);
 
-      const overriddenInjectable =
-        overridingInjectables.get(originalInjectable);
+    const overriddenInjectable = overridingInjectables.get(originalInjectable);
 
-      const injectable = overriddenInjectable || originalInjectable;
+    const injectable = overriddenInjectable || originalInjectable;
 
-      checkForSideEffects(injectable, context);
+    checkForSideEffects(injectable, context);
 
-      return getInstance({
-        di,
-        injectable,
-        instantiationParameter,
-        context,
-        instancesByInjectableMap,
-      });
-    },
-  );
+    return getInstance({
+      di,
+      injectable,
+      instantiationParameter,
+      context,
+      instancesByInjectableMap,
+    });
+  };
 
 const getInstance = ({
   di,

@@ -42,7 +42,7 @@ export default containerId => {
     nonDecoratedPrivateInjectManyFor({
       containerRootContextItem,
       getRelatedInjectables,
-      getInject: () => privateInject,
+      getInject: () => decoratedPrivateInject,
       setDependee,
     });
 
@@ -79,21 +79,19 @@ export default containerId => {
     getNamespacedId,
   });
 
-  const privateInject = privateInjectFor({
+  const nonDecoratedPrivateInject = privateInjectFor({
     getRelatedInjectables,
     alreadyInjected,
     overridingInjectables,
     instancesByInjectableMap,
-    injectableAndRegistrationContext,
-    injectMany: nonDecoratedPrivateInjectMany,
-    getSideEffectsArePrevented,
     getDi: () => privateDi,
-    getNamespacedId,
-    setDependee,
     checkForNoMatches,
-    checkForCycles,
     checkForSideEffects,
   });
+
+  const decoratedPrivateInject = withInjectionDecorators(
+    nonDecoratedPrivateInject,
+  );
 
   const decoratedPrivateInjectMany = withInjectionDecorators(
     nonDecoratedPrivateInjectMany,
@@ -148,7 +146,7 @@ export default containerId => {
   const decorateFunction = decorateFunctionFor({ decorate });
 
   const privateDi = {
-    inject: privateInject,
+    inject: decoratedPrivateInject,
     injectMany: decoratedPrivateInjectMany,
     injectManyWithMeta: decoratedPrivateInjectManyWithMeta,
     register: privateRegister,
