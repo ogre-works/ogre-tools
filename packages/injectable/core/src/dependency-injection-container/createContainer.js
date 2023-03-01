@@ -12,6 +12,7 @@ import { getNamespacedIdFor } from './getNamespacedIdFor';
 import { checkForNoMatchesFor } from './checkForNoMatchesFor';
 import { checkForCyclesFor } from './checkForCyclesFor';
 import { setDependeeFor } from './setDependeeFor';
+import { checkForSideEffectsFor } from './checkForSideEffectsFor';
 
 export default containerId => {
   const injectableSet = new Set();
@@ -73,6 +74,11 @@ export default containerId => {
 
   const checkForNoMatches = checkForNoMatchesFor(getNamespacedId);
 
+  const checkForSideEffects = checkForSideEffectsFor({
+    getSideEffectsArePrevented,
+    getNamespacedId,
+  });
+
   const privateInject = privateInjectFor({
     getRelatedInjectables,
     alreadyInjected,
@@ -86,6 +92,7 @@ export default containerId => {
     setDependee,
     checkForNoMatches,
     checkForCycles,
+    checkForSideEffects,
   });
 
   const decoratedPrivateInjectMany = withInjectionDecorators(

@@ -10,13 +10,11 @@ export const privateInjectFor = ({
   instancesByInjectableMap,
   injectableAndRegistrationContext,
   injectMany,
-  // Todo: get rid of function usage.
-  getSideEffectsArePrevented,
   getDi,
-  getNamespacedId,
   setDependee,
   checkForNoMatches,
   checkForCycles,
+  checkForSideEffects,
 }) =>
   withInjectionDecoratorsFor({ injectMany, setDependee, checkForCycles })(
     (alias, instantiationParameter, context = []) => {
@@ -25,7 +23,6 @@ export const privateInjectFor = ({
       const relatedInjectables = getRelatedInjectables(alias);
 
       checkForTooManyMatches(relatedInjectables, alias);
-
       checkForNoMatches(relatedInjectables, alias, context);
 
       const originalInjectable = getRelatedInjectables(alias)[0];
@@ -37,13 +34,7 @@ export const privateInjectFor = ({
 
       const injectable = overriddenInjectable || originalInjectable;
 
-      if (getSideEffectsArePrevented(injectable)) {
-        throw new Error(
-          `Tried to inject "${[...context, { injectable }]
-            .map(({ injectable }) => getNamespacedId(injectable))
-            .join('" -> "')}" when side-effects are prevented.`,
-        );
-      }
+      checkForSideEffects(injectable, context);
 
       return getInstance({
         injectable,
