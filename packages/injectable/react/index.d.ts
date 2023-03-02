@@ -1,9 +1,12 @@
 /// <reference types="react" />
-import type { DiContainer } from '@ogre-tools/injectable';
+import type {
+  DiContainer,
+  DiContainerForInjection,
+} from '@ogre-tools/injectable';
 import { IComputedValue } from 'mobx';
 
 interface DiContainerProviderProps {
-  di: DiContainer;
+  di: DiContainer | DiContainerForInjection;
 }
 
 export const DiContextProvider: React.Provider<DiContainerProviderProps>;
