@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+### [15.1.2](https://github.com/ogre-works/ogre-tools/compare/v15.1.1...v15.1.2) (2023-03-02)
+
+### Bug Fixes
+
+- Fix injectable-utils entrypoint ([6a668b5](https://github.com/ogre-works/ogre-tools/commit/6a668b56b58bdeca0e2d6607b52de832fdaa4bcf))
+
 ### [15.1.1](https://github.com/ogre-works/ogre-tools/compare/v15.1.0...v15.1.1) (2023-02-27)
 
 **Note:** Version bump only for package @ogre-tools/injectable-utils
