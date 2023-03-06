@@ -133,6 +133,8 @@ export default containerId => {
     namespacedIdByInjectableMap,
     // Todo: get rid of function usage.
     getDi: () => privateDi,
+    dependenciesByDependencyMap,
+    dependeesByDependencyMap,
   });
 
   const privateRegister = registerFor({

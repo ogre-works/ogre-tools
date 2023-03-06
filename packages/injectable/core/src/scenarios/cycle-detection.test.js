@@ -6,6 +6,7 @@ describe('cycle-detection', () => {
     let di;
     let goodInjectable;
     let badInjectable;
+    let someCyclicalInjectable1;
 
     beforeEach(() => {
       di = createContainer('some-container');
@@ -20,7 +21,7 @@ describe('cycle-detection', () => {
         instantiate: di => di.inject(workerInjectable)(false),
       });
 
-      const someCyclicalInjectable1 = getInjectable({
+      someCyclicalInjectable1 = getInjectable({
         id: 'some-cyclical-injectable-1',
         instantiate: di => di.inject(someCyclicalInjectable2),
       });
@@ -67,6 +68,20 @@ describe('cycle-detection', () => {
       }).toThrow(
         'Cycle of injectables encountered: "some-cyclical-injectable-1" -> "some-cyclical-injectable-2" -> "some-cyclical-injectable-1"',
       );
+    });
+
+    it('given bad work is done, but the cycle in bad work is deregistered, when doing bad work again, does not throw', () => {
+      try {
+        di.inject(badInjectable);
+      } catch (e) {}
+
+      di.deregister(someCyclicalInjectable1);
+      someCyclicalInjectable1.instantiate = () => 'no-longer-cyclical-instance';
+      di.register(someCyclicalInjectable1);
+
+      expect(() => {
+        di.inject(badInjectable);
+      }).not.toThrow();
     });
   });
 });

@@ -12,6 +12,8 @@ export const deregisterFor =
     namespacedIdByInjectableMap,
     // Todo: get rid of function usage.
     getDi,
+    dependenciesByDependencyMap,
+    dependeesByDependencyMap,
   }) =>
   ({ injectables, context, source }) => {
     const callbacks = injectMany(
@@ -41,6 +43,9 @@ export const deregisterFor =
     });
 
     injectables.forEach(injectable => {
+      dependenciesByDependencyMap.delete(injectable);
+      dependeesByDependencyMap.delete(injectable);
+
       deregisterSingle(injectable);
     });
   };
@@ -70,10 +75,9 @@ export const deregisterSingleFor =
       .map(x => x[0])
       .forEach(injectable => {
         injectableAndRegistrationContext.delete(injectable);
+
         di.deregister({
           injectables: [injectable],
-          context: [],
-          source: { id: 'lol' },
         });
       });
 
