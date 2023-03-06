@@ -15,13 +15,27 @@ describe('createContainer.performance', () => {
   beforeEach(() => {
     di = createContainer('some-container-id');
 
-    injectables = range(0, 10000).map(x =>
-      getInjectable({
-        id: 'some-id-' + x,
-        injectionToken: someInjectionToken,
+    injectables = range(0, 10000).flatMap(x => {
+      const child = getInjectable({
+        id: `some-child-id-${x}`,
         instantiate: () => {},
-      }),
-    );
+      });
+
+      // Note: multiple parents to deliberately trigger cycle-detection.
+      const parent = getInjectable({
+        id: `some-parent-id-${x}`,
+        injectionToken: someInjectionToken,
+        instantiate: di => di.inject(child),
+      });
+
+      const parent2 = getInjectable({
+        id: `some-parent-2-id-${x}`,
+        injectionToken: someInjectionToken,
+        instantiate: di => di.inject(child),
+      });
+
+      return [parent, parent2, child];
+    });
   });
 
   describe('when registering', () => {
@@ -38,7 +52,7 @@ describe('createContainer.performance', () => {
 
     it('is quick enough', () => {
       // TODO: Figure out way to make it even faster
-      expect(p2 - p1).toBeLessThan(20);
+      expect(p2 - p1).toBeLessThan(40);
     });
 
     it('when injecting, is quick enough', () => {
@@ -49,7 +63,7 @@ describe('createContainer.performance', () => {
       const p2 = performance.now();
 
       // TODO: Figure out way to make it even faster
-      expect(p2 - p1).toBeLessThan(60);
+      expect(p2 - p1).toBeLessThan(200);
     });
   });
 
@@ -81,7 +95,7 @@ describe('createContainer.performance', () => {
 
     it('is quick enough', () => {
       // TODO: Figure out way to make it even faster
-      expect(p2 - p1).toBeLessThan(20);
+      expect(p2 - p1).toBeLessThan(40);
     });
 
     it('when injecting, is quick enough', () => {
@@ -91,7 +105,7 @@ describe('createContainer.performance', () => {
       const p2 = performance.now();
 
       // TODO: Figure out way to make it even faster
-      expect(p2 - p1).toBeLessThan(60);
+      expect(p2 - p1).toBeLessThan(200);
     });
   });
 });
