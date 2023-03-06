@@ -26,6 +26,7 @@ export default containerId => {
   const injectablesByInjectionToken = new Map();
   const namespacedIdByInjectableMap = new Map();
   const dependeesByDependencyMap = new Map();
+  const dependenciesByDependencyMap = new Map();
 
   const getNamespacedId = getNamespacedIdFor(injectableAndRegistrationContext);
 
@@ -36,7 +37,11 @@ export default containerId => {
 
   const containerRootContextItem = { injectable: { id: containerId } };
 
-  const setDependee = setDependeeFor({ dependeesByDependencyMap });
+  const setDependee = setDependeeFor({
+    dependeesByDependencyMap,
+    dependenciesByDependencyMap,
+  });
+
   const nonDecoratedPrivateInjectManyForUnknownMeta =
     nonDecoratedPrivateInjectManyFor({
       containerRootContextItem,
@@ -64,6 +69,7 @@ export default containerId => {
     injectMany: nonDecoratedPrivateInjectMany,
     setDependee,
     checkForCycles,
+    dependenciesByDependencyMap,
   });
 
   const getSideEffectsArePrevented = injectable =>
