@@ -1,8 +1,8 @@
-const getCycleFor = dependeesByDependencyMap => {
-  const getCycle = (
+const cycleFunctionsFor = dependeesByDependencyMap => {
+  const getOrVerifyCycle = (
     reference,
+    path,
     rootReference = reference,
-    path = [reference],
     visited = new Set(),
   ) => {
     if (rootReference.cannotCauseCycles) {
@@ -27,14 +27,14 @@ const getCycleFor = dependeesByDependencyMap => {
     }
 
     if (dependees.has(rootReference)) {
-      return [rootReference, ...path];
+      return path ? [rootReference, ...path] : true;
     }
 
     for (const dependee of dependees) {
-      const cycle = getCycle(
+      const cycle = getOrVerifyCycle(
         dependee,
+        path ? [dependee, ...path] : undefined,
         rootReference,
-        [dependee, ...path],
         visited,
       );
 
@@ -44,16 +44,23 @@ const getCycleFor = dependeesByDependencyMap => {
     }
   };
 
-  return reference => getCycle(reference);
+  return {
+    hasCycle: alias => getOrVerifyCycle(alias),
+    getCycle: alias => getOrVerifyCycle(alias, [alias]),
+  };
 };
 
 export const checkForCyclesFor = ({
   dependeesByDependencyMap,
   getNamespacedId,
 }) => {
-  const getCycle = getCycleFor(dependeesByDependencyMap);
+  const { getCycle, hasCycle } = cycleFunctionsFor(dependeesByDependencyMap);
 
   return alias => {
+    if (!hasCycle(alias)) {
+      return;
+    }
+
     const cycle = getCycle(alias);
 
     if (cycle) {
