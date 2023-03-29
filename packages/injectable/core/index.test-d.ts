@@ -6,10 +6,34 @@ import {
   DiContainerForInjection,
   getInjectable,
   getInjectionToken,
+  instantiationDecoratorToken,
+  createInstantiationTargetDecorator,
   lifecycleEnum,
 } from '.';
 
 const di = createContainer('some-container');
+
+const someGetNumberInjectionToken = getInjectionToken<() => number>({
+  id: "some-get-number-token",
+});
+
+const decorateSomeGetNumberInjectable = getInjectable({
+  id: "decorate-some-get-number",
+  decorable: false,
+  instantiate: () => createInstantiationTargetDecorator({
+    target: someGetNumberInjectionToken,
+    decorate: (someGetNumberInstantiate) => (di) => {
+      const someGetNumber = someGetNumberInstantiate(di);
+
+      return () => {
+        console.log("some other thing");
+
+        return someGetNumber();
+      }
+    },
+  }),
+  injectionToken: instantiationDecoratorToken,
+})
 
 // given injectable with unspecified type for instantiation parameter, argument typing is OK
 const someInjectableForTypingOfInstantiate = getInjectable({
