@@ -7,21 +7,18 @@ import createContainer from './src/dependency-injection-container/createContaine
 
 import isInjectable from './src/getInjectable/isInjectable';
 import isInjectionToken from './src/getInjectionToken/isInjectionToken';
-import {
+
+export {
   deregistrationCallbackToken,
   injectionDecoratorToken,
+  createInstantiationTargetDecorator,
   instantiationDecoratorToken,
   registrationCallbackToken,
 } from './src/dependency-injection-container/tokens';
-
 export {
   createContainer,
   getInjectable,
   getInjectionToken,
-  injectionDecoratorToken,
-  instantiationDecoratorToken,
-  registrationCallbackToken,
-  deregistrationCallbackToken,
   isInjectable,
   isInjectionToken,
   lifecycleEnum,
