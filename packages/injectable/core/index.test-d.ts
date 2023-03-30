@@ -80,12 +80,12 @@ const decoratorForParameterInjectable = getInjectable({
   id: 'decorator-for-parameter-injectable',
 
   instantiate: () =>
-    createInstantiationTargetDecorator<string, unknown, number>({
+    createInstantiationTargetDecorator({
       target: someParameterInjectableToBeDecorated,
 
       decorate: toBeDecorated => (di, param) => {
-        // expectType<number>(param);
-        // expectType<Instantiate<string, number>>(toBeDecorated);
+        expectType<number>(param);
+        expectType<Instantiate<string, number>>(toBeDecorated);
 
         const instance = toBeDecorated(di, param);
 
