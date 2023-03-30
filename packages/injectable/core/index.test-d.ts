@@ -9,31 +9,92 @@ import {
   instantiationDecoratorToken,
   createInstantiationTargetDecorator,
   lifecycleEnum,
+  Instantiate,
+  Injectable,
 } from '.';
 
 const di = createContainer('some-container');
 
-const someGetNumberInjectionToken = getInjectionToken<() => number>({
-  id: "some-get-number-token",
+type GetNumber = () => number;
+const someGetNumberInjectionToken = getInjectionToken<GetNumber>({
+  id: 'some-get-number-token',
 });
 
-const decorateSomeGetNumberInjectable = getInjectable({
-  id: "decorate-some-get-number",
-  decorable: false,
-  instantiate: () => createInstantiationTargetDecorator({
-    target: someGetNumberInjectionToken,
-    decorate: (someGetNumberInstantiate) => (di) => {
-      const someGetNumber = someGetNumberInstantiate(di);
+// given injectable and decorator targeting a token, typing is ok
+const decoratorForToken = getInjectable({
+  id: 'decorator-for-token',
 
-      return () => {
-        console.log("some other thing");
+  instantiate: () =>
+    createInstantiationTargetDecorator({
+      target: someGetNumberInjectionToken,
 
-        return someGetNumber();
-      }
-    },
-  }),
+      decorate: toBeDecorated => di => {
+        expectType<Instantiate<GetNumber, void>>(toBeDecorated);
+
+        const instance = toBeDecorated(di);
+
+        return instance;
+      },
+    }),
+
   injectionToken: instantiationDecoratorToken,
-})
+});
+
+// given injectable without instantiation paramater and decorator targeting the injectable, typing is ok
+const someInjectableToBeDecorated = getInjectable({
+  id: 'some-injectable-to-be-decorated',
+  instantiate: () => () => 42,
+});
+
+const decoratorForInjectable = getInjectable({
+  id: 'decorator-for-injectable',
+
+  instantiate: () =>
+    createInstantiationTargetDecorator({
+      target: someInjectableToBeDecorated,
+
+      decorate: toBeDecorated => di => {
+        expectType<Instantiate<() => 42, void>>(toBeDecorated);
+
+        const instance = toBeDecorated(di);
+
+        return instance;
+      },
+    }),
+
+  injectionToken: instantiationDecoratorToken,
+});
+
+// given injectable with instantiation paramater and decorator targeting the injectable, typing is ok
+const someParameterInjectableToBeDecorated = getInjectable({
+  id: 'some-parameter-injectable-to-be-decorated',
+  instantiate: (di, parameter: number) => `some-instance-${parameter}`,
+  lifecycle: lifecycleEnum.transient,
+});
+
+expectType<Injectable<string, unknown, number>>(
+  someParameterInjectableToBeDecorated,
+);
+
+const decoratorForParameterInjectable = getInjectable({
+  id: 'decorator-for-parameter-injectable',
+
+  instantiate: () =>
+    createInstantiationTargetDecorator<string, unknown, number>({
+      target: someParameterInjectableToBeDecorated,
+
+      decorate: toBeDecorated => (di, param) => {
+        // expectType<number>(param);
+        // expectType<Instantiate<string, number>>(toBeDecorated);
+
+        const instance = toBeDecorated(di, param);
+
+        return instance;
+      },
+    }),
+
+  injectionToken: instantiationDecoratorToken,
+});
 
 // given injectable with unspecified type for instantiation parameter, argument typing is OK
 const someInjectableForTypingOfInstantiate = getInjectable({
