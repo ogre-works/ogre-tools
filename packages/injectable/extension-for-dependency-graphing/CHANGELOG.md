@@ -3,6 +3,16 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [15.2.0](https://github.com/ogre-works/ogre-tools/compare/v15.1.1...v15.2.0) (2023-03-30)
+
+### Features
+
+- Restore cycle detection ([f603234](https://github.com/ogre-works/ogre-tools/commit/f603234635c5026fbd3ab63cf623775dfd54e456))
+
+### Bug Fixes
+
+- Improve typing of injectionDecoratorToken and instantiationDecoratorToken ([b204cf1](https://github.com/ogre-works/ogre-tools/commit/b204cf107e6fb8cb8c6dabd3af517b595dc97607))
+
 ### [15.1.2](https://github.com/ogre-works/ogre-tools/compare/v15.1.1...v15.1.2) (2023-03-02)
 
 **Note:** Version bump only for package @ogre-tools/injectable-extensions-for-dependency-graphing

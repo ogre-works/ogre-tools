@@ -1,7 +1,7 @@
 {
   "name": "@ogre-tools/generable",
   "private": false,
-  "version": "15.1.2",
+  "version": "15.2.0",
   "description": "A collection of low abstraction functions in functional programming flavor for generators",
   "files": [
     "build",
@@ -38,8 +38,8 @@
     "code-style:fix": "ogre-tools-fix-code-style"
   },
   "devDependencies": {
-    "@ogre-tools/infrastructure-jest": "^15.1.2",
-    "@ogre-tools/infrastructure-prettier": "^15.1.2",
-    "@ogre-tools/infrastructure-webpack-for-js": "^15.1.2"
+    "@ogre-tools/infrastructure-jest": "^15.2.0",
+    "@ogre-tools/infrastructure-prettier": "^15.2.0",
+    "@ogre-tools/infrastructure-webpack-for-js": "^15.2.0"
   }
 }
