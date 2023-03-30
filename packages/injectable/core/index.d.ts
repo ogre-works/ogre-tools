@@ -200,18 +200,41 @@ export type InstantiationTargetDecorator<
   InjectionTokenInstance = InjectionInstance,
   InstantiationParam = void,
 > = {
-  decorate: (instantiate: Instantiate<InjectionInstance, InstantiationParam>) => Instantiate<InjectionInstance, InstantiationParam>;
-  target: InjectionToken<InjectionInstance, InstantiationParam> | Injectable<InjectionInstance, InjectionTokenInstance, InstantiationParam>;
+  decorate: (
+    instantiate: Instantiate<InjectionInstance, InstantiationParam>,
+  ) => Instantiate<InjectionInstance, InstantiationParam>;
+
+  target:
+    | InjectionToken<InjectionInstance, InstantiationParam>
+    | Injectable<InjectionInstance, InjectionTokenInstance, InstantiationParam>;
 };
 
 export const createInstantiationTargetDecorator: <
   InjectionInstance extends InjectionTokenInstance,
   InjectionTokenInstance = InjectionInstance,
   InstantiationParam = void,
->(desc: InstantiationTargetDecorator<InjectionInstance, InjectionTokenInstance, InstantiationParam>) => InstantiationTargetDecorator<InjectionInstance, InjectionTokenInstance, InstantiationParam>;
+>(
+  desc: InstantiationTargetDecorator<
+    InjectionInstance,
+    InjectionTokenInstance,
+    InstantiationParam
+  >,
+) => InstantiationTargetDecorator<
+  InjectionInstance,
+  InjectionTokenInstance,
+  InstantiationParam
+>;
 
-export const injectionDecoratorToken: InjectionToken<InjectionTargetDecorator<any>, void>;
-export const instantiationDecoratorToken: InjectionToken<InstantiationTargetDecorator<any, any>, void>;
+export const injectionDecoratorToken: InjectionToken<
+  InjectionTargetDecorator<any>,
+  void
+>;
+
+export const instantiationDecoratorToken: InjectionToken<
+  InstantiationTargetDecorator<any, any>,
+  void
+>;
+
 export const registrationCallbackToken: RegistrationCallback;
 export const deregistrationCallbackToken: RegistrationCallback;
 export const isInjectable: (thing: any) => boolean;
