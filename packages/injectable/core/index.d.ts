@@ -231,7 +231,7 @@ export const injectionDecoratorToken: InjectionToken<
 >;
 
 export const instantiationDecoratorToken: InjectionToken<
-  InstantiationTargetDecorator<any, any>,
+  InstantiationTargetDecorator<any, any, any>,
   void
 >;
 
