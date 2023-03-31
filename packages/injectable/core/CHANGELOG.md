@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+### [15.2.1](https://github.com/ogre-works/ogre-tools/compare/v15.2.0...v15.2.1) (2023-03-31)
+
+### Bug Fixes
+
+- Change the typing of injectionDecoratorToken ([e0b8871](https://github.com/ogre-works/ogre-tools/commit/e0b8871b1f48a7dab61d8ad00fdab91c016ed2fc))
+
 ## [15.2.0](https://github.com/ogre-works/ogre-tools/compare/v15.1.1...v15.2.0) (2023-03-30)
 
 ### Features

@@ -3,6 +3,10 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+### [15.2.1](https://github.com/ogre-works/ogre-tools/compare/v15.2.0...v15.2.1) (2023-03-31)
+
+**Note:** Version bump only for package @ogre-tools/injectable-extension-for-auto-registration
+
 ## [15.2.0](https://github.com/ogre-works/ogre-tools/compare/v15.1.1...v15.2.0) (2023-03-30)
 
 **Note:** Version bump only for package @ogre-tools/injectable-extension-for-auto-registration
