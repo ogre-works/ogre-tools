@@ -11,6 +11,7 @@ import {
   lifecycleEnum,
   Instantiate,
   Injectable,
+  injectionDecoratorToken,
 } from '.';
 
 const di = createContainer('some-container');
@@ -94,6 +95,23 @@ const decoratorForParameterInjectable = getInjectable({
     }),
 
   injectionToken: instantiationDecoratorToken,
+});
+
+const decoratorForInjectionParameterInjectable = getInjectable({
+  id: 'decorator-for-parameter-injectable',
+
+  instantiate: () => ({
+    decorate: toBeDecorated => (di, param) => {
+      expectType<unknown>(param);
+      expectType<Instantiate<unknown, unknown>>(toBeDecorated);
+
+      const instance = toBeDecorated(di, param);
+
+      return instance;
+    },
+  }),
+
+  injectionToken: injectionDecoratorToken,
 });
 
 // given injectable with unspecified type for instantiation parameter, argument typing is OK

@@ -191,8 +191,10 @@ export const lifecycleEnum: {
 
 type RegistrationCallback = (injectable: Injectable<any, any, any>) => void;
 
-export type InjectionTargetDecorator<InjectionInstance> = {
-  decorate: (instance: InjectionInstance) => InjectionInstance;
+export type InjectionTargetDecorator<InjectionInstance, InstantiationParam> = {
+  decorate: (
+    instantiate: Instantiate<InjectionInstance, InstantiationParam>,
+  ) => Instantiate<InjectionInstance, InstantiationParam>;
 };
 
 export type InstantiationTargetDecorator<
@@ -226,7 +228,7 @@ export const createInstantiationTargetDecorator: <
 >;
 
 export const injectionDecoratorToken: InjectionToken<
-  InjectionTargetDecorator<any>,
+  InjectionTargetDecorator<unknown, unknown>,
   void
 >;
 
