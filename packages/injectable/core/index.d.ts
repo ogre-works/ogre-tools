@@ -242,4 +242,7 @@ export const deregistrationCallbackToken: RegistrationCallback;
 export const isInjectable: (thing: any) => boolean;
 export const isInjectionToken: (thing: any) => boolean;
 
-export function createContainer(containerId: string): DiContainer;
+export function createContainer(
+  containerId: string,
+  options?: { detectCycles?: boolean },
+): DiContainer;

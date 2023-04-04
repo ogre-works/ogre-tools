@@ -2,40 +2,27 @@ import createContainer from '../dependency-injection-container/createContainer';
 import getInjectable from '../getInjectable/getInjectable';
 
 describe('cycle-detection', () => {
+  it('given di with cycle detection disabled,  only bad work is done, throws error about maximum call stack size exceeded', () => {
+    const di = createContainer('some-container', { detectCycles: false });
+
+    di.register(
+      goodInjectable,
+      badInjectable,
+      workerInjectable,
+      someCyclicalInjectable1,
+      someCyclicalInjectable2,
+    );
+
+    expect(() => {
+      di.inject(badInjectable);
+    }).toThrow('Maximum call stack size exceeded');
+  });
+
   describe('given no cycle and injected', () => {
     let di;
-    let goodInjectable;
-    let badInjectable;
-    let someCyclicalInjectable1;
 
     beforeEach(() => {
       di = createContainer('some-container');
-
-      goodInjectable = getInjectable({
-        id: 'some-good-injectable',
-        instantiate: di => di.inject(workerInjectable)(true),
-      });
-
-      badInjectable = getInjectable({
-        id: 'some-bad-injectable',
-        instantiate: di => di.inject(workerInjectable)(false),
-      });
-
-      someCyclicalInjectable1 = getInjectable({
-        id: 'some-cyclical-injectable-1',
-        instantiate: di => di.inject(someCyclicalInjectable2),
-      });
-
-      const someCyclicalInjectable2 = getInjectable({
-        id: 'some-cyclical-injectable-2',
-        instantiate: di => di.inject(someCyclicalInjectable1),
-      });
-
-      const workerInjectable = getInjectable({
-        id: 'some-worker-injectable',
-        instantiate: di => good =>
-          good ? 'some-good-result' : di.inject(someCyclicalInjectable1),
-      });
 
       di.register(
         goodInjectable,
@@ -84,4 +71,30 @@ describe('cycle-detection', () => {
       }).not.toThrow();
     });
   });
+});
+
+const goodInjectable = getInjectable({
+  id: 'some-good-injectable',
+  instantiate: di => di.inject(workerInjectable)(true),
+});
+
+const badInjectable = getInjectable({
+  id: 'some-bad-injectable',
+  instantiate: di => di.inject(workerInjectable)(false),
+});
+
+const someCyclicalInjectable1 = getInjectable({
+  id: 'some-cyclical-injectable-1',
+  instantiate: di => di.inject(someCyclicalInjectable2),
+});
+
+const someCyclicalInjectable2 = getInjectable({
+  id: 'some-cyclical-injectable-2',
+  instantiate: di => di.inject(someCyclicalInjectable1),
+});
+
+const workerInjectable = getInjectable({
+  id: 'some-worker-injectable',
+  instantiate: di => good =>
+    good ? 'some-good-result' : di.inject(someCyclicalInjectable1),
 });

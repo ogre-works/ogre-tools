@@ -12,8 +12,9 @@ import { checkForCyclesFor } from './checkForCyclesFor';
 import { setDependeeFor } from './setDependeeFor';
 import { checkForSideEffectsFor } from './checkForSideEffectsFor';
 import { getRelatedInjectablesFor } from './getRelatedInjectablesFor';
+import { noop } from 'lodash/fp';
 
-export default containerId => {
+export default (containerId, { detectCycles = true } = {}) => {
   const injectableSet = new Set();
   const overridingInjectables = new Map();
   let sideEffectsArePrevented = false;
@@ -60,10 +61,12 @@ export default containerId => {
       withMeta: true,
     });
 
-  const checkForCycles = checkForCyclesFor({
-    dependeesByDependencyMap,
-    getNamespacedId,
-  });
+  const checkForCycles = detectCycles
+    ? checkForCyclesFor({
+        dependeesByDependencyMap,
+        getNamespacedId,
+      })
+    : noop;
 
   const withInjectionDecorators = withInjectionDecoratorsFor({
     injectMany: nonDecoratedPrivateInjectMany,
