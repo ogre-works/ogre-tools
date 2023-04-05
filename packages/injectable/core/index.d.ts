@@ -253,6 +253,11 @@ export interface CreateInjectionTargetDecorator {
 
 export const createInjectionTargetDecorator: CreateInjectionTargetDecorator;
 
+/**
+ * This is used for decorating the injection of injectables.
+ * If a target is used then only the injections related to that alias (either injectable or injectionToken) will be decorated by an implementation of this token.
+ * This kind of decorator does not respect the lifecycle of the injectables but instead is called on every call to `di.inject`
+ */
 export const injectionDecoratorToken: InjectionToken<
   InjectionTargetDecorator<any, any, any>,
   void
@@ -309,6 +314,11 @@ export interface CreateInstantiationTargetDecorator {
 
 export const createInstantiationTargetDecorator: CreateInstantiationTargetDecorator;
 
+/**
+ * This is used for decorating the instantiation of injectables.
+ * If a target is used then only the instantiations related to that alias (either injectable or injectionToken) will be decorated by an implementation of this token.
+ * This kind of decorator respects the lifecycle of the injectables.
+ */
 export const instantiationDecoratorToken: InjectionToken<
   InstantiationTargetDecorator<any, any, any>,
   void
