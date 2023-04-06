@@ -96,24 +96,38 @@ export function getInjectionToken<
   id: string;
 }): InjectionToken<InjectionInstance, InstantiationParam>;
 
-interface InjectWithoutParameter {
-  <InjectionInstance>(
-    key:
-      | Injectable<InjectionInstance, unknown>
-      | InjectionToken<InjectionInstance, void>,
-  ): InjectionInstance;
-}
+export type InjectWithoutParameter = <InjectionInstance>(
+  key:
+    | Injectable<InjectionInstance, unknown>
+    | InjectionToken<InjectionInstance, void>,
+) => InjectionInstance
 
-interface InjectWithParameter {
-  <InjectionInstance, InstantiationParam>(
-    key:
-      | Injectable<InjectionInstance, unknown, InstantiationParam>
-      | InjectionToken<InjectionInstance, InstantiationParam>,
-    param: InstantiationParam,
-  ): InjectionInstance;
-}
+export type InjectWithParameter = <InjectionInstance, InstantiationParam>(
+  key:
+    | Injectable<InjectionInstance, unknown, InstantiationParam>
+    | InjectionToken<InjectionInstance, InstantiationParam>,
+  param: InstantiationParam,
+) => InjectionInstance;
 
-type Inject = InjectWithoutParameter & InjectWithParameter;
+export type Inject = InjectWithoutParameter & InjectWithParameter;
+
+export type SpecificInjectWithoutParameter<InjectionInstance> = (
+  key:
+    | Injectable<InjectionInstance, unknown>
+    | InjectionToken<InjectionInstance, void>,
+) => InjectionInstance;
+
+export type SpecificInjectWithParameter<InjectionInstance, InstantiationParam> = (
+  key:
+    | Injectable<InjectionInstance, unknown, InstantiationParam>
+    | InjectionToken<InjectionInstance, InstantiationParam>,
+  param: InstantiationParam,
+) => InjectionInstance;
+
+export type SpecificInject<InjectionInstance, InstantiationParam> =
+  InstantiationParam extends void
+    ? SpecificInjectWithoutParameter<InjectionInstance>
+    : SpecificInjectWithParameter<InjectionInstance, InstantiationParam>;
 
 interface InjectMany {
   <InjectionInstance>(
@@ -191,13 +205,65 @@ export const lifecycleEnum: {
 
 type RegistrationCallback = (injectable: Injectable<any, any, any>) => void;
 
-export type InjectionTargetDecorator<InjectionInstance, InstantiationParam> = {
-  decorate: (
-    instantiate: Instantiate<InjectionInstance, InstantiationParam>,
-  ) => Instantiate<InjectionInstance, InstantiationParam>;
+export type SpecificInjectionTargetDecorator<
+  InjectionInstance extends InjectionTokenInstance,
+  InjectionTokenInstance = InjectionInstance,
+  InstantiationParam = void,
+> = {
+  decorate: (inject: SpecificInject<InjectionInstance, InstantiationParam>) => SpecificInject<InjectionInstance, InstantiationParam>;
+  target:
+    | InjectionToken<InjectionInstance, InstantiationParam>
+    | Injectable<InjectionInstance, InjectionTokenInstance, InstantiationParam>;
+}
+
+export type GeneralInjectionTargetDecorator = {
+  decorate: (inject: SpecificInject<unknown, unknown>) => SpecificInject<unknown, unknown>;
 };
 
-export type InstantiationTargetDecorator<
+export type InjectionTargetDecorator<
+  InjectionInstance extends InjectionTokenInstance,
+  InjectionTokenInstance = InjectionInstance,
+  InstantiationParam = void,
+> =
+  | GeneralInjectionTargetDecorator
+  | SpecificInjectionTargetDecorator<
+    InjectionInstance,
+    InjectionTokenInstance,
+    InstantiationParam
+  >;
+
+export interface CreateInjectionTargetDecorator {
+  <
+    InjectionInstance extends InjectionTokenInstance,
+    InjectionTokenInstance = InjectionInstance,
+    InstantiationParam = void,
+  >(
+    desc: SpecificInjectionTargetDecorator<
+      InjectionInstance,
+      InjectionTokenInstance,
+      InstantiationParam
+    >
+  ): SpecificInjectionTargetDecorator<
+    InjectionInstance,
+    InjectionTokenInstance,
+    InstantiationParam
+  >;
+  (desc: GeneralInjectionTargetDecorator): GeneralInjectionTargetDecorator;
+}
+
+export const createInjectionTargetDecorator: CreateInjectionTargetDecorator;
+
+/**
+ * This is used for decorating the injection of injectables.
+ * If a target is used then only the injections related to that alias (either injectable or injectionToken) will be decorated by an implementation of this token.
+ * This kind of decorator does not respect the lifecycle of the injectables but instead is called on every call to `di.inject`
+ */
+export const injectionDecoratorToken: InjectionToken<
+  InjectionTargetDecorator<any, any, any>,
+  void
+>;
+
+export type SpecificInstantiationTargetDecorator<
   InjectionInstance extends InjectionTokenInstance,
   InjectionTokenInstance = InjectionInstance,
   InstantiationParam = void,
@@ -211,27 +277,48 @@ export type InstantiationTargetDecorator<
     | Injectable<InjectionInstance, InjectionTokenInstance, InstantiationParam>;
 };
 
-export const createInstantiationTargetDecorator: <
+export type GeneralInstantiationTargetDecorator = {
+  decorate: (
+    instantiate: Instantiate<unknown, unknown>,
+  ) => Instantiate<unknown, unknown>;
+};
+
+export type InstantiationTargetDecorator<
   InjectionInstance extends InjectionTokenInstance,
   InjectionTokenInstance = InjectionInstance,
   InstantiationParam = void,
->(
-  desc: InstantiationTargetDecorator<
+> =
+  | GeneralInstantiationTargetDecorator
+  | SpecificInstantiationTargetDecorator<
     InjectionInstance,
     InjectionTokenInstance,
     InstantiationParam
-  >,
-) => InstantiationTargetDecorator<
-  InjectionInstance,
-  InjectionTokenInstance,
-  InstantiationParam
->;
+  >;
 
-export const injectionDecoratorToken: InjectionToken<
-  InjectionTargetDecorator<unknown, unknown>,
-  void
->;
+export interface CreateInstantiationTargetDecorator {
+  <
+    InjectionInstance extends InjectionTokenInstance,
+    InjectionTokenInstance = InjectionInstance,
+    InstantiationParam = void,
+  >(desc: SpecificInstantiationTargetDecorator<
+    InjectionInstance,
+    InjectionTokenInstance,
+    InstantiationParam
+  >): SpecificInstantiationTargetDecorator<
+    InjectionInstance,
+    InjectionTokenInstance,
+    InstantiationParam
+  >;
+  (desc: GeneralInstantiationTargetDecorator): GeneralInstantiationTargetDecorator;
+}
 
+export const createInstantiationTargetDecorator: CreateInstantiationTargetDecorator;
+
+/**
+ * This is used for decorating the instantiation of injectables.
+ * If a target is used then only the instantiations related to that alias (either injectable or injectionToken) will be decorated by an implementation of this token.
+ * This kind of decorator respects the lifecycle of the injectables.
+ */
 export const instantiationDecoratorToken: InjectionToken<
   InstantiationTargetDecorator<any, any, any>,
   void

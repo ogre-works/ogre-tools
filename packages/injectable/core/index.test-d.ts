@@ -12,6 +12,10 @@ import {
   Instantiate,
   Injectable,
   injectionDecoratorToken,
+  Inject,
+  createInjectionTargetDecorator,
+  SpecificInject,
+  InjectionToken,
 } from '.';
 
 const di = createContainer('some-container');
@@ -66,7 +70,7 @@ const decoratorForInjectable = getInjectable({
   injectionToken: instantiationDecoratorToken,
 });
 
-// given injectable with instantiation paramater and decorator targeting the injectable, typing is ok
+// given injectable with instantiation parameter and decorator targeting the injectable, typing is ok
 const someParameterInjectableToBeDecorated = getInjectable({
   id: 'some-parameter-injectable-to-be-decorated',
   instantiate: (di, parameter: number) => `some-instance-${parameter}`,
@@ -97,18 +101,52 @@ const decoratorForParameterInjectable = getInjectable({
   injectionToken: instantiationDecoratorToken,
 });
 
+const decoratorWithoutTargetInjectable = getInjectable({
+  id: 'decorator-without-target',
+
+  instantiate: () =>
+    createInstantiationTargetDecorator({
+      decorate: toBeDecorated => (di, param) => {
+        expectType<unknown>(param);
+        expectType<Instantiate<unknown, unknown>>(toBeDecorated);
+
+        const instance = toBeDecorated(di, param);
+
+        return instance;
+      },
+    }),
+
+  injectionToken: instantiationDecoratorToken,
+});
+
 const decoratorForInjectionParameterInjectable = getInjectable({
   id: 'decorator-for-parameter-injectable',
 
-  instantiate: () => ({
-    decorate: toBeDecorated => (di, param) => {
+  instantiate: () => createInjectionTargetDecorator({
+    decorate: injectionToBeDecorated => (key, param) => {
+      expectType<SpecificInject<unknown, unknown>>(injectionToBeDecorated);
+      expectType<Injectable<unknown, unknown, unknown> | InjectionToken<unknown, unknown>>(key);
       expectType<unknown>(param);
-      expectType<Instantiate<unknown, unknown>>(toBeDecorated);
 
-      const instance = toBeDecorated(di, param);
-
-      return instance;
+      return injectionToBeDecorated(key, param);
     },
+  }),
+
+  injectionToken: injectionDecoratorToken,
+});
+
+const decoratorForSpecificInjectionParameterInjectable = getInjectable({
+  id: 'decorator-for-parameter-injectable',
+
+  instantiate: () => createInjectionTargetDecorator({
+    decorate: injectionToBeDecorated => (key, param) => {
+      expectType<SpecificInject<string, number>>(injectionToBeDecorated);
+      expectType<Injectable<string, unknown, number> | InjectionToken<string, number>>(key);
+      expectType<number>(param);
+
+      return injectionToBeDecorated(key, param);
+    },
+    target: someParameterInjectableToBeDecorated,
   }),
 
   injectionToken: injectionDecoratorToken,

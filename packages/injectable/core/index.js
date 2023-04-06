@@ -9,6 +9,7 @@ import isInjectable from './src/getInjectable/isInjectable';
 import isInjectionToken from './src/getInjectionToken/isInjectionToken';
 
 export { createInstantiationTargetDecorator } from './src/dependency-injection-container/createInstantiationTargetDecorator';
+export { createInjectionTargetDecorator } from './src/dependency-injection-container/createInjectionTargetDecorator';
 
 export {
   deregistrationCallbackToken,
