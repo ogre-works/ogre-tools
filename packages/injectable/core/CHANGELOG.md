@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [15.4.0](https://github.com/ogre-works/ogre-tools/compare/v15.3.1...v15.4.0) (2023-04-11)
+
+### Features
+
+- Introduce access to already injected instances ([a8ecc66](https://github.com/ogre-works/ogre-tools/commit/a8ecc66db8603ea416bd9f1e58a0d10937fd609a))
+
 ### [15.3.1](https://github.com/ogre-works/ogre-tools/compare/v15.3.0...v15.3.1) (2023-04-06)
 
 ### Bug Fixes
