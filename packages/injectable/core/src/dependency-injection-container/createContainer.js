@@ -229,6 +229,11 @@ export default (containerId, { detectCycles = true } = {}) => {
           : [containerRootContextItem],
         containerRootContextItem.injectable,
       ),
+
+    getInstances: alias =>
+      getRelatedInjectables(alias).flatMap(injectable => [
+        ...instancesByInjectableMap.get(injectable).values(),
+      ]),
   };
 
   return publicDi;

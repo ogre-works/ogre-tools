@@ -111,6 +111,12 @@ export type InjectWithParameter = <InjectionInstance, InstantiationParam>(
 
 export type Inject = InjectWithoutParameter & InjectWithParameter;
 
+export type GetInstances = <InjectionInstance>(
+  alias:
+    | Injectable<InjectionInstance, unknown>
+    | InjectionToken<InjectionInstance, void>,
+) => InjectionInstance[];
+
 export type SpecificInjectWithoutParameter<InjectionInstance> = (
   key:
     | Injectable<InjectionInstance, unknown>
@@ -180,6 +186,7 @@ export interface DiContainerForInjection {
   register(...injectables: Injectable<any, any, any>[]): void;
   deregister(...injectables: Injectable<any, any, any>[]): void;
   context: ContextItem[];
+  getInstances: GetInstances;
 }
 
 export interface ILifecycle<InstantiationParam> {
