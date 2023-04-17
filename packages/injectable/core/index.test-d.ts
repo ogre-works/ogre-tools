@@ -421,6 +421,20 @@ expectType<(instantiationParameter: { some: string }) => number>(
   ),
 );
 
+// given injectable that creates a factory as part of instantiate, typing is ok
+getInjectable({
+  id: 'some-injectable',
+  instantiate: di => {
+    const factory = di.injectFactory(
+      getInjectionToken<number, string>({
+        id: 'some-token',
+      }),
+    );
+
+    expectType<(instantiationParameter: string) => number>(factory);
+  },
+});
+
 // given injectable that is singleton, when used to inject a factory, typing is not ok
 expectError(
   di.injectFactory(

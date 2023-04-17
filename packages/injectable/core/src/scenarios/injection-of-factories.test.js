@@ -10,7 +10,7 @@ describe('injection-of-factories', () => {
     let someInjectionToken;
 
     beforeEach(() => {
-      di = createContainer('irrelevant');
+      di = createContainer('some-container');
 
       someInjectionToken = getInjectionToken({
         id: 'some-injection-token',
@@ -55,6 +55,87 @@ describe('injection-of-factories', () => {
         const actualInstance = factory('some-key');
 
         expect(actualInstance).toBe('some-instance-for-some-key');
+      });
+    });
+
+    describe('given injecting an injectable which uses a factory as part of instantiate', () => {
+      let factory;
+
+      beforeEach(() => {
+        const someKeyedInjectable = getInjectable({
+          id: 'some-keyed-injectable',
+
+          instantiate: (di, key) => ({
+            instance: `some-instance-for-${key}`,
+            context: di.context,
+          }),
+
+          lifecycle: lifecycleEnum.keyedSingleton({
+            getInstanceKey: (di, key) => key,
+          }),
+        });
+
+        const injectableUsingFactory = getInjectable({
+          id: 'some-injectable-using-factory',
+          instantiate: di => di.injectFactory(someKeyedInjectable),
+        });
+
+        di.register(someKeyedInjectable, injectableUsingFactory);
+
+        factory = di.inject(injectableUsingFactory);
+      });
+
+      describe('when factory is used', () => {
+        let actual;
+
+        beforeEach(() => {
+          actual = factory('some-key');
+        });
+
+        it('instance is expected', () => {
+          expect(actual.instance).toBe('some-instance-for-some-key');
+        });
+
+        it('context is expected', () => {
+          expect(actual.context.map(x => x.injectable.id)).toEqual([
+            'some-container',
+            'some-injectable-using-factory',
+            'some-keyed-injectable',
+          ]);
+        });
+      });
+    });
+
+    describe('given injecting an injectable which uses a factory as part of instantiate which causes a cycle', () => {
+      let factory;
+
+      beforeEach(() => {
+        const someKeyedInjectable = getInjectable({
+          id: 'some-keyed-injectable',
+
+          instantiate: (di, key) => di.inject(injectableUsingFactory)(key),
+
+          lifecycle: lifecycleEnum.keyedSingleton({
+            getInstanceKey: (di, key) => key,
+          }),
+        });
+
+        const injectableUsingFactory = getInjectable({
+          id: 'some-injectable-using-factory',
+          instantiate: di => di.injectFactory(someKeyedInjectable),
+        });
+
+        di.register(someKeyedInjectable, injectableUsingFactory);
+
+        factory = di.inject(injectableUsingFactory);
+      });
+
+      it('when factory is used, throws', () => {
+        expect(() => {
+          factory('some-key');
+        }).toThrow(
+          'Cycle of injectables encountered: "some-injectable-using-factory" -> "some-keyed-injectable" -> "some-injectable-using-factory"',
+        );
       });
     });
   });

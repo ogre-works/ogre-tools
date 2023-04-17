@@ -159,6 +159,10 @@ export default (containerId, { detectCycles = true } = {}) => {
     inject: decoratedPrivateInject,
     injectMany: decoratedPrivateInjectMany,
     injectManyWithMeta: decoratedPrivateInjectManyWithMeta,
+
+    injectFactory: alias => instantiationParameter =>
+      publicInject(alias, instantiationParameter),
+
     register: privateRegister,
     deregister,
     decorate,
@@ -205,9 +209,6 @@ export default (containerId, { detectCycles = true } = {}) => {
           : [containerRootContextItem],
         containerRootContextItem.injectable,
       ),
-
-    injectFactory: alias => instantiationParameter =>
-      publicInject(alias, instantiationParameter),
 
     register: (...injectables) => {
       privateDi.register({

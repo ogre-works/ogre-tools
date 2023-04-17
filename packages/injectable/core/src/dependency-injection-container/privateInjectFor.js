@@ -60,9 +60,11 @@ const getInstance = ({
       injectableToBeInstantiated,
   );
 
+  const minimalInject = (alias, parameter) =>
+    di.inject(alias, parameter, newContext, injectableToBeInstantiated);
+
   const minimalDi = {
-    inject: (alias, parameter) =>
-      di.inject(alias, parameter, newContext, injectableToBeInstantiated),
+    inject: minimalInject,
 
     injectMany: (alias, parameter) =>
       di.injectMany(alias, parameter, newContext, injectableToBeInstantiated),
@@ -74,6 +76,9 @@ const getInstance = ({
         newContext,
         injectableToBeInstantiated,
       ),
+
+    injectFactory: alias => instantiationParameter =>
+      minimalInject(alias, instantiationParameter),
 
     context: newContext,
 
