@@ -181,18 +181,20 @@ export default (containerId, { detectCycles = true } = {}) => {
     purge: purgeInstances,
   };
 
+  const publicInject = (alias, parameter, customContextItem) =>
+    privateDi.inject(
+      alias,
+      parameter,
+      customContextItem
+        ? [containerRootContextItem, customContextItem]
+        : [containerRootContextItem],
+      containerRootContextItem.injectable,
+    );
+
   const publicDi = {
     ...privateDi,
 
-    inject: (alias, parameter, customContextItem) =>
-      privateDi.inject(
-        alias,
-        parameter,
-        customContextItem
-          ? [containerRootContextItem, customContextItem]
-          : [containerRootContextItem],
-        containerRootContextItem.injectable,
-      ),
+    inject: publicInject,
 
     injectMany: (alias, parameter, customContextItem) =>
       privateDi.injectMany(
@@ -203,6 +205,9 @@ export default (containerId, { detectCycles = true } = {}) => {
           : [containerRootContextItem],
         containerRootContextItem.injectable,
       ),
+
+    injectFactory: alias => instantiationParameter =>
+      publicInject(alias, instantiationParameter),
 
     register: (...injectables) => {
       privateDi.register({

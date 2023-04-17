@@ -100,7 +100,7 @@ export type InjectWithoutParameter = <InjectionInstance>(
   key:
     | Injectable<InjectionInstance, unknown>
     | InjectionToken<InjectionInstance, void>,
-) => InjectionInstance
+) => InjectionInstance;
 
 export type InjectWithParameter = <InjectionInstance, InstantiationParam>(
   key:
@@ -110,6 +110,12 @@ export type InjectWithParameter = <InjectionInstance, InstantiationParam>(
 ) => InjectionInstance;
 
 export type Inject = InjectWithoutParameter & InjectWithParameter;
+
+export type InjectFactory = <InjectionInstance, InstantiationParam extends {}>(
+  alias:
+    | Injectable<InjectionInstance, unknown, InstantiationParam>
+    | InjectionToken<InjectionInstance, InstantiationParam>,
+) => (param: InstantiationParam) => InjectionInstance;
 
 export type GetInstances = <InjectionInstance>(
   alias:
@@ -123,12 +129,13 @@ export type SpecificInjectWithoutParameter<InjectionInstance> = (
     | InjectionToken<InjectionInstance, void>,
 ) => InjectionInstance;
 
-export type SpecificInjectWithParameter<InjectionInstance, InstantiationParam> = (
-  key:
-    | Injectable<InjectionInstance, unknown, InstantiationParam>
-    | InjectionToken<InjectionInstance, InstantiationParam>,
-  param: InstantiationParam,
-) => InjectionInstance;
+export type SpecificInjectWithParameter<InjectionInstance, InstantiationParam> =
+  (
+    key:
+      | Injectable<InjectionInstance, unknown, InstantiationParam>
+      | InjectionToken<InjectionInstance, InstantiationParam>,
+    param: InstantiationParam,
+  ) => InjectionInstance;
 
 export type SpecificInject<InjectionInstance, InstantiationParam> =
   InstantiationParam extends void
@@ -181,6 +188,7 @@ interface ContextItem {
 
 export interface DiContainerForInjection {
   inject: Inject;
+  injectFactory: InjectFactory;
   injectMany: InjectMany;
   injectManyWithMeta: InjectManyWithMeta;
   register(...injectables: Injectable<any, any, any>[]): void;
@@ -217,14 +225,18 @@ export type SpecificInjectionTargetDecorator<
   InjectionTokenInstance = InjectionInstance,
   InstantiationParam = void,
 > = {
-  decorate: (inject: SpecificInject<InjectionInstance, InstantiationParam>) => SpecificInject<InjectionInstance, InstantiationParam>;
+  decorate: (
+    inject: SpecificInject<InjectionInstance, InstantiationParam>,
+  ) => SpecificInject<InjectionInstance, InstantiationParam>;
   target:
     | InjectionToken<InjectionInstance, InstantiationParam>
     | Injectable<InjectionInstance, InjectionTokenInstance, InstantiationParam>;
-}
+};
 
 export type GeneralInjectionTargetDecorator = {
-  decorate: (inject: SpecificInject<unknown, unknown>) => SpecificInject<unknown, unknown>;
+  decorate: (
+    inject: SpecificInject<unknown, unknown>,
+  ) => SpecificInject<unknown, unknown>;
 };
 
 export type InjectionTargetDecorator<
@@ -234,10 +246,10 @@ export type InjectionTargetDecorator<
 > =
   | GeneralInjectionTargetDecorator
   | SpecificInjectionTargetDecorator<
-    InjectionInstance,
-    InjectionTokenInstance,
-    InstantiationParam
-  >;
+      InjectionInstance,
+      InjectionTokenInstance,
+      InstantiationParam
+    >;
 
 export interface CreateInjectionTargetDecorator {
   <
@@ -249,7 +261,7 @@ export interface CreateInjectionTargetDecorator {
       InjectionInstance,
       InjectionTokenInstance,
       InstantiationParam
-    >
+    >,
   ): SpecificInjectionTargetDecorator<
     InjectionInstance,
     InjectionTokenInstance,
@@ -297,26 +309,30 @@ export type InstantiationTargetDecorator<
 > =
   | GeneralInstantiationTargetDecorator
   | SpecificInstantiationTargetDecorator<
-    InjectionInstance,
-    InjectionTokenInstance,
-    InstantiationParam
-  >;
+      InjectionInstance,
+      InjectionTokenInstance,
+      InstantiationParam
+    >;
 
 export interface CreateInstantiationTargetDecorator {
   <
     InjectionInstance extends InjectionTokenInstance,
     InjectionTokenInstance = InjectionInstance,
     InstantiationParam = void,
-  >(desc: SpecificInstantiationTargetDecorator<
-    InjectionInstance,
-    InjectionTokenInstance,
-    InstantiationParam
-  >): SpecificInstantiationTargetDecorator<
+  >(
+    desc: SpecificInstantiationTargetDecorator<
+      InjectionInstance,
+      InjectionTokenInstance,
+      InstantiationParam
+    >,
+  ): SpecificInstantiationTargetDecorator<
     InjectionInstance,
     InjectionTokenInstance,
     InstantiationParam
   >;
-  (desc: GeneralInstantiationTargetDecorator): GeneralInstantiationTargetDecorator;
+  (
+    desc: GeneralInstantiationTargetDecorator,
+  ): GeneralInstantiationTargetDecorator;
 }
 
 export const createInstantiationTargetDecorator: CreateInstantiationTargetDecorator;

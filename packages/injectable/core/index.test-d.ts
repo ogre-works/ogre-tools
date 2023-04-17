@@ -122,15 +122,19 @@ const decoratorWithoutTargetInjectable = getInjectable({
 const decoratorForInjectionParameterInjectable = getInjectable({
   id: 'decorator-for-parameter-injectable',
 
-  instantiate: () => createInjectionTargetDecorator({
-    decorate: injectionToBeDecorated => (key, param) => {
-      expectType<SpecificInject<unknown, unknown>>(injectionToBeDecorated);
-      expectType<Injectable<unknown, unknown, unknown> | InjectionToken<unknown, unknown>>(key);
-      expectType<unknown>(param);
+  instantiate: () =>
+    createInjectionTargetDecorator({
+      decorate: injectionToBeDecorated => (key, param) => {
+        expectType<SpecificInject<unknown, unknown>>(injectionToBeDecorated);
+        expectType<
+          | Injectable<unknown, unknown, unknown>
+          | InjectionToken<unknown, unknown>
+        >(key);
+        expectType<unknown>(param);
 
-      return injectionToBeDecorated(key, param);
-    },
-  }),
+        return injectionToBeDecorated(key, param);
+      },
+    }),
 
   injectionToken: injectionDecoratorToken,
 });
@@ -138,16 +142,19 @@ const decoratorForInjectionParameterInjectable = getInjectable({
 const decoratorForSpecificInjectionParameterInjectable = getInjectable({
   id: 'decorator-for-parameter-injectable',
 
-  instantiate: () => createInjectionTargetDecorator({
-    decorate: injectionToBeDecorated => (key, param) => {
-      expectType<SpecificInject<string, number>>(injectionToBeDecorated);
-      expectType<Injectable<string, unknown, number> | InjectionToken<string, number>>(key);
-      expectType<number>(param);
+  instantiate: () =>
+    createInjectionTargetDecorator({
+      decorate: injectionToBeDecorated => (key, param) => {
+        expectType<SpecificInject<string, number>>(injectionToBeDecorated);
+        expectType<
+          Injectable<string, unknown, number> | InjectionToken<string, number>
+        >(key);
+        expectType<number>(param);
 
-      return injectionToBeDecorated(key, param);
-    },
-    target: someParameterInjectableToBeDecorated,
-  }),
+        return injectionToBeDecorated(key, param);
+      },
+      target: someParameterInjectableToBeDecorated,
+    }),
 
   injectionToken: injectionDecoratorToken,
 });
@@ -375,6 +382,51 @@ expectType<number[]>(
   di.getInstances(
     getInjectionToken<number>({
       id: 'some-token',
+    }),
+  ),
+);
+
+// given token with instantiation parameter, when used to inject a factory, typing is ok
+expectType<(instantiationParameter: string) => number>(
+  di.injectFactory(
+    getInjectionToken<number, string>({
+      id: 'some-token',
+    }),
+  ),
+);
+
+// given injectable that is keyed singleton, when used to inject a factory, typing is ok
+expectType<(instantiationParameter: string) => number>(
+  di.injectFactory(
+    getInjectable({
+      id: 'some-injectable',
+      instantiate: (di, key: string) => 42,
+
+      lifecycle: lifecycleEnum.keyedSingleton({
+        getInstanceKey: (di, key: string) => key,
+      }),
+    }),
+  ),
+);
+
+// given injectable that is transient, when used to inject a factory, typing is ok
+expectType<(instantiationParameter: { some: string }) => number>(
+  di.injectFactory(
+    getInjectable({
+      id: 'some-injectable',
+      instantiate: (di, instantiationParameter: { some: string }) => 42,
+
+      lifecycle: lifecycleEnum.transient,
+    }),
+  ),
+);
+
+// given injectable that is singleton, when used to inject a factory, typing is not ok
+expectError(
+  di.injectFactory(
+    getInjectable({
+      id: 'some-injectable',
+      instantiate: () => 'irrelevant',
     }),
   ),
 );
