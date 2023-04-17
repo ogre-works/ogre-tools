@@ -3,6 +3,10 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [15.5.0](https://github.com/ogre-works/ogre-tools/compare/v15.4.0...v15.5.0) (2023-04-17)
+
+**Note:** Version bump only for package @ogre-tools/injectable-react
+
 ## [15.4.0](https://github.com/ogre-works/ogre-tools/compare/v15.3.1...v15.4.0) (2023-04-11)
 
 **Note:** Version bump only for package @ogre-tools/injectable-react

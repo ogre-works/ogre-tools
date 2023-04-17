@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [15.5.0](https://github.com/ogre-works/ogre-tools/compare/v15.4.0...v15.5.0) (2023-04-17)
+
+### Features
+
+- Introduce di.injectFactory() ([c21a5fa](https://github.com/ogre-works/ogre-tools/commit/c21a5faa347669e094c5a381cd73ab3b5aa79273))
+
 ## [15.4.0](https://github.com/ogre-works/ogre-tools/compare/v15.3.1...v15.4.0) (2023-04-11)
 
 ### Features
