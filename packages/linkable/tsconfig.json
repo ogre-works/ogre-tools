@@ -1,0 +1,9 @@
+{
+  "extends": "@ogre-tools/infrastructure-typescript/config/base.json",
+
+  "files": ["./index.ts"],
+
+  "compilerOptions": {
+    "declarationDir": "./build"
+  },
+}

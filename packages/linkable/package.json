@@ -1,0 +1,40 @@
+{
+  "name": "@ogre-tools/linkable",
+  "private": false,
+  "version": "1.0.0",
+  "description": "Like 'npm link', but (naively) imitates results of 'npm pack' as symlinks to make development easier.",
+  "type": "commonjs",
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ogre-works/ogre-tools.git"
+  },
+  "main": "build/index.js",
+  "author": "Ogre Works",
+  "license": "MIT",
+  "homepage": "https://github.com/ogre-works/ogre-tools#readme",
+  "dependencies": {
+    "@ogre-tools/fp": "^15.3.1",
+    "@ogre-tools/injectable": "^15.3.1",
+    "@ogre-tools/injectable-extension-for-auto-registration": "^15.3.1",
+    "fs-extra": "^9.0.1",
+    "fast-glob": "^3.2.12",
+    "lodash": "^4.17.21"
+  },
+  "devDependencies": {
+    "@async-fn/jest": "^1.6.4",
+    "@ogre-tools/test-utils": "^15.3.1"
+  },
+  "scripts": {
+    "build": "ogre-tools-build-js",
+    "test": "ogre-tools-test",
+    "code-style:verify": "ogre-tools-verify-code-style",
+    "code-style:fix": "ogre-tools-fix-code-style"
+  },
+  "bin": {
+    "linkable": "./build/index.js"
+  }
+}
