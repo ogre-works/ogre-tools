@@ -30,7 +30,7 @@
     "webpack-shebang-plugin": "^1.1.8"
   },
   "scripts": {
-    "build": "ogre-tools-build-js",
+    "build": "ogre-tools-build-ts",
     "test": "ogre-tools-test",
     "code-style:verify": "ogre-tools-verify-code-style",
     "code-style:fix": "ogre-tools-fix-code-style"
