@@ -1,14 +1,17 @@
-import { getInjectable } from "@ogre-tools/injectable";
-import { dirname } from "path";
-import { ensureDirectoryInjectable } from "../ensure-directory.injectable";
-import { symlinkInjectable } from "../symlink.injectable";
-import statInjectable from "../stat.injectable";
-import { pipeline } from "@ogre-tools/fp";
+import { getInjectable } from '@ogre-tools/injectable';
+import { dirname } from 'path';
+import { ensureDirectoryInjectable } from '../ensure-directory.injectable';
+import { symlinkInjectable } from '../symlink.injectable';
+import statInjectable from '../stat.injectable';
+import { pipeline } from '@ogre-tools/fp';
 
-export type CreateSymlink = (config: { target: string; source: string }) => Promise<void>;
+export type CreateSymlink = (config: {
+  target: string;
+  source: string;
+}) => Promise<void>;
 
 export const createSymlinkInjectable = getInjectable({
-  id: "create-symlink",
+  id: 'create-symlink',
 
   instantiate: (di): CreateSymlink => {
     const ensureDirectory = di.inject(ensureDirectoryInjectable);
@@ -20,7 +23,7 @@ export const createSymlinkInjectable = getInjectable({
 
       const { isDirectory } = await stat(target);
 
-      const dirOrFile = isDirectory() ? "dir" : "file";
+      const dirOrFile = isDirectory() ? 'dir' : 'file';
 
       return symlink(target, source, dirOrFile);
     };

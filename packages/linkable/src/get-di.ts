@@ -1,13 +1,15 @@
-import { autoRegister } from "@ogre-tools/injectable-extension-for-auto-registration";
-import { createContainer } from "@ogre-tools/injectable";
+import { autoRegister } from '@ogre-tools/injectable-extension-for-auto-registration';
+import { createContainer } from '@ogre-tools/injectable';
 
 export const getDi = () => {
-  const di = createContainer("linkable");
+  const di = createContainer('linkable');
 
   autoRegister({
     di,
     targetModule: module,
-    getRequireContexts: () => [require.context("./", true, /\.injectable\.(ts|tsx)$/)],
+    getRequireContexts: () => [
+      require.context('./', true, /\.injectable\.(ts|tsx)$/),
+    ],
   });
 
   return di;

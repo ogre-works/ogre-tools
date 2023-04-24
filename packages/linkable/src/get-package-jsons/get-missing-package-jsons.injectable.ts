@@ -1,20 +1,20 @@
-import { pipeline } from "@ogre-tools/fp";
-import { map, filter } from "lodash/fp";
-import { awaitAll } from "../await-all";
-import { getInjectable } from "@ogre-tools/injectable";
-import { existsInjectable } from "../shared/fs/exists.injectable";
+import { pipeline } from '@ogre-tools/fp';
+import { map, filter } from 'lodash/fp';
+import { awaitAll } from '../await-all';
+import { getInjectable } from '@ogre-tools/injectable';
+import { existsInjectable } from '../shared/fs/exists.injectable';
 
 export const getMissingPackageJsonsInjectable = getInjectable({
-  id: "get-missing-package-jsons",
+  id: 'get-missing-package-jsons',
 
-  instantiate: (di) => {
+  instantiate: di => {
     const exists = di.inject(existsInjectable);
 
     return async (packageJsonPaths: string[]) =>
       pipeline(
         packageJsonPaths,
 
-        map(async (packageJsonPath) => ({
+        map(async packageJsonPath => ({
           packageJsonPath,
           exists: await exists(packageJsonPath),
         })),

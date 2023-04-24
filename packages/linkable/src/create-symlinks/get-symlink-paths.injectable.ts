@@ -1,22 +1,26 @@
-import { filter, flatten, map, partition, uniq, uniqBy } from "lodash/fp";
-import type { PackageJsonAndPath } from "../shared/package-json-and-path";
-import { globInjectable } from "../shared/fs/glob.injectable";
-import { resolvePathInjectable } from "../shared/path/resolve-path.injectable";
-import { awaitAll } from "../await-all";
-import { getInjectable } from "@ogre-tools/injectable";
-import { pipeline } from "@ogre-tools/fp";
-import { getLinkDirectoryInjectable } from "../ensure-empty-link-directories/get-link-directory.injectable";
-import path from "path";
-import { existsInjectable } from "../shared/fs/exists.injectable";
+import { filter, flatten, map, partition, uniq, uniqBy } from 'lodash/fp';
+import type { PackageJsonAndPath } from '../shared/package-json-and-path';
+import { globInjectable } from '../shared/fs/glob.injectable';
+import { resolvePathInjectable } from '../shared/path/resolve-path.injectable';
+import { awaitAll } from '../await-all';
+import { getInjectable } from '@ogre-tools/injectable';
+import { pipeline } from '@ogre-tools/fp';
+import { getLinkDirectoryInjectable } from '../ensure-empty-link-directories/get-link-directory.injectable';
+import path from 'path';
+import { existsInjectable } from '../shared/fs/exists.injectable';
 
-const shouldBeGlobbed = (possibleGlobString: string) => possibleGlobString.includes("*");
-const simplifyGlobbing = new RegExp("(\\/\\*\\/\\*\\*|\\/\\*\\*|\\/\\*\\*\\/\\*|\\/\\*)$");
-const toAvoidableGlobStrings = (reference: string) => reference.replace(simplifyGlobbing, "");
+const shouldBeGlobbed = (possibleGlobString: string) =>
+  possibleGlobString.includes('*');
+const simplifyGlobbing = new RegExp(
+  '(\\/\\*\\/\\*\\*|\\/\\*\\*|\\/\\*\\*\\/\\*|\\/\\*)$',
+);
+const toAvoidableGlobStrings = (reference: string) =>
+  reference.replace(simplifyGlobbing, '');
 
 export const getSymlinkPathsInjectable = getInjectable({
-  id: "get-symlink-paths",
+  id: 'get-symlink-paths',
 
-  instantiate: (di) => {
+  instantiate: di => {
     const glob = di.inject(globInjectable);
     const resolvePath = di.inject(resolvePathInjectable);
     const getLinkDirectory = di.inject(getLinkDirectoryInjectable);
@@ -31,7 +35,8 @@ export const getSymlinkPathsInjectable = getInjectable({
 
           const fileStrings = content.files.map(toAvoidableGlobStrings);
 
-          const [toBeGlobbed, toNotBeGlobbed] = partition(shouldBeGlobbed)(fileStrings);
+          const [toBeGlobbed, toNotBeGlobbed] =
+            partition(shouldBeGlobbed)(fileStrings);
 
           const moduleDirectory = path.dirname(packageJsonPath);
 
@@ -46,7 +51,7 @@ export const getSymlinkPathsInjectable = getInjectable({
 
             uniq,
 
-            map(async (fileOrDirectory) => ({
+            map(async fileOrDirectory => ({
               fileOrDirectory,
               exists: await exists(fileOrDirectory),
             })),
@@ -70,10 +75,10 @@ export const getSymlinkPathsInjectable = getInjectable({
           return [
             {
               target: packageJsonPath,
-              source: resolvePath(linkDirectory, "package.json"),
+              source: resolvePath(linkDirectory, 'package.json'),
             },
 
-            ...globbeds.map((fileString) => ({
+            ...globbeds.map(fileString => ({
               target: resolvePath(moduleDirectory, fileString),
               source: resolvePath(linkDirectory, fileString),
             })),
@@ -86,7 +91,7 @@ export const getSymlinkPathsInjectable = getInjectable({
 
         flatten,
 
-        uniqBy((x) => x.source),
+        uniqBy(x => x.source),
       );
   },
 });

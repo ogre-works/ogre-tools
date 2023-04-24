@@ -1,15 +1,15 @@
-import { getInjectable } from "@ogre-tools/injectable";
-import { resolvePathInjectable } from "../shared/path/resolve-path.injectable";
-import { workingDirectoryInjectable } from "../shared/working-directory.injectable";
+import { getInjectable } from '@ogre-tools/injectable';
+import { resolvePathInjectable } from '../shared/path/resolve-path.injectable';
+import { workingDirectoryInjectable } from '../shared/working-directory.injectable';
 
 const configFilePathInjectable = getInjectable({
-  id: "config-file-path",
+  id: 'config-file-path',
 
-  instantiate: (di) => {
+  instantiate: di => {
     const resolvePath = di.inject(resolvePathInjectable);
     const workingDirectory = di.inject(workingDirectoryInjectable);
 
-    return resolvePath(workingDirectory, ".linkable.json");
+    return resolvePath(workingDirectory, '.linkable.json');
   },
 });
 

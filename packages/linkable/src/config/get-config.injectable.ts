@@ -1,14 +1,14 @@
-import { getInjectable } from "@ogre-tools/injectable";
-import { existsInjectable } from "../shared/fs/exists.injectable";
-import { readJsonFileInjectable } from "../shared/fs/read-json-file.injectable";
-import configFilePathInjectable from "./config-file-path.injectable";
+import { getInjectable } from '@ogre-tools/injectable';
+import { existsInjectable } from '../shared/fs/exists.injectable';
+import { readJsonFileInjectable } from '../shared/fs/read-json-file.injectable';
+import configFilePathInjectable from './config-file-path.injectable';
 
 export type Config = string[];
 
 const getConfigInjectable = getInjectable({
-  id: "get-config",
+  id: 'get-config',
 
-  instantiate: (di) => {
+  instantiate: di => {
     const exists = di.inject(existsInjectable);
     const readJsonFile = di.inject(readJsonFileInjectable);
     const configFilePath = di.inject(configFilePathInjectable);
