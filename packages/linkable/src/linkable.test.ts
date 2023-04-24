@@ -456,10 +456,13 @@ describe('creation of "npm pack" -like symlinks', () => {
 
               it('calls to detect if file or directory exists', () => {
                 expect(existsMock.mock.calls).toEqual([
-                  ['some-build-directory'],
-                  ['some-file'],
-                  ['some-non-existing-file.txt'],
-                  ['some-other-build-directory'],
+                  ['/some-directory/some-module/some-build-directory'],
+                  ['/some-directory/some-module/some-file'],
+                  ['/some-directory/some-module/some-non-existing-file.txt'],
+
+                  [
+                    '/some-other-directory/some-other-module/some-other-build-directory',
+                  ],
                 ]);
               });
 

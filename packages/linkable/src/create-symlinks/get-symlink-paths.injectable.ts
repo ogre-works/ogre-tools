@@ -1,4 +1,4 @@
-import { filter, flatten, map, partition, uniq, uniqBy } from 'lodash/fp';
+import { filter, flatten, map, partition, uniq, uniqBy, tap } from 'lodash/fp';
 import type { PackageJsonAndPath } from '../shared/package-json-and-path';
 import { globInjectable } from '../shared/fs/glob.injectable';
 import { resolvePathInjectable } from '../shared/path/resolve-path.injectable';
@@ -53,7 +53,10 @@ export const getSymlinkPathsInjectable = getInjectable({
 
             map(async fileOrDirectory => ({
               fileOrDirectory,
-              exists: await exists(fileOrDirectory),
+
+              exists: await exists(
+                resolvePath(moduleDirectory, fileOrDirectory),
+              ),
             })),
 
             awaitAll,
@@ -72,16 +75,18 @@ export const getSymlinkPathsInjectable = getInjectable({
             awaitAll,
           );
 
+          const globbedFiles = globbeds.map(fileString => ({
+            target: resolvePath(moduleDirectory, fileString),
+            source: resolvePath(linkDirectory, fileString),
+          }));
+
           return [
             {
               target: packageJsonPath,
               source: resolvePath(linkDirectory, 'package.json'),
             },
 
-            ...globbeds.map(fileString => ({
-              target: resolvePath(moduleDirectory, fileString),
-              source: resolvePath(linkDirectory, fileString),
-            })),
+            ...globbedFiles,
 
             ...notGlobbedFilesOrDirectories,
           ];
