@@ -1,4 +1,3 @@
-#!/usr/bin/env node
 import { getDi } from './src/get-di';
 import { createLinksInjectable } from './src/create-links.injectable';
 
