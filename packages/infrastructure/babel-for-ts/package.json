@@ -1,7 +1,7 @@
 {
   "name": "@ogre-tools/infrastructure-babel-for-ts",
   "private": true,
-  "version": "15.6.0",
+  "version": "15.6.1",
   "description": "Shared babel configuration",
   "repository": {
     "type": "git",
