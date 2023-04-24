@@ -3,6 +3,10 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [15.6.0](https://github.com/ogre-works/ogre-tools/compare/v15.5.1...v15.6.0) (2023-04-24)
+
+**Note:** Version bump only for package @ogre-tools/infrastructure-babel-for-js
+
 ### [15.5.1](https://github.com/ogre-works/ogre-tools/compare/v15.5.0...v15.5.1) (2023-04-17)
 
 **Note:** Version bump only for package @ogre-tools/infrastructure-babel-for-js

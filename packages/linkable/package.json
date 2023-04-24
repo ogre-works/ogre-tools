@@ -1,7 +1,7 @@
 {
   "name": "@ogre-tools/linkable",
   "private": false,
-  "version": "1.0.0",
+  "version": "15.6.0",
   "description": "Like 'npm link', but (naively) imitates results of 'npm pack' as symlinks to make development easier.",
   "type": "commonjs",
   "publishConfig": {
@@ -17,16 +17,16 @@
   "license": "MIT",
   "homepage": "https://github.com/ogre-works/ogre-tools#readme",
   "dependencies": {
-    "@ogre-tools/fp": "^15.3.1",
-    "@ogre-tools/injectable": "^15.3.1",
-    "@ogre-tools/injectable-extension-for-auto-registration": "^15.3.1",
-    "fs-extra": "^9.0.1",
+    "@ogre-tools/fp": "^15.6.0",
+    "@ogre-tools/injectable": "^15.6.0",
+    "@ogre-tools/injectable-extension-for-auto-registration": "^15.6.0",
     "fast-glob": "^3.2.12",
+    "fs-extra": "^9.0.1",
     "lodash": "^4.17.21"
   },
   "devDependencies": {
     "@async-fn/jest": "^1.6.4",
-    "@ogre-tools/test-utils": "^15.3.1"
+    "@ogre-tools/test-utils": "^15.6.0"
   },
   "scripts": {
     "build": "ogre-tools-build-ts",

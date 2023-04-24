@@ -3,6 +3,22 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [15.6.0](https://github.com/ogre-works/ogre-tools/compare/v15.5.1...v15.6.0) (2023-04-24)
+
+### Features
+
+- Indicate lack of support for missing "files" in package.jsons used by linkable ([e0d14e6](https://github.com/ogre-works/ogre-tools/commit/e0d14e661314ba15e22447b64fc9208d20e7a020))
+- Introduce "linkable", ie. like "npm link", but mimicking "npm pack" as symlinks ([1955082](https://github.com/ogre-works/ogre-tools/commit/1955082490f3513ca0e19e73228edc8932fe0f94))
+- Make built linkable runnable as npm bin script ([410a78e](https://github.com/ogre-works/ogre-tools/commit/410a78e11ed2d46886a61376afdbb0d960c8560a))
+
+### Bug Fixes
+
+- Avoid destructuring to not make brittle this-context of "fs" not break ([5db7984](https://github.com/ogre-works/ogre-tools/commit/5db7984bbc8f927f61577dd1475c8e4f8662015c))
+- Fix "path"-specific typing error ([b670b36](https://github.com/ogre-works/ogre-tools/commit/b670b3631f967cf0c844a99d88e4c60e2cdf6f4d))
+- Fixup ([6284ca4](https://github.com/ogre-works/ogre-tools/commit/6284ca4f14d5b2ded89f755139b8e1b91b2b4e98))
+- Make existence of static linked files work by using absolute path ([50fa2d6](https://github.com/ogre-works/ogre-tools/commit/50fa2d6a21fa836cb933d3970fa3d55db341d795))
+- Use correct build script for a ts-package ([d80a233](https://github.com/ogre-works/ogre-tools/commit/d80a233d0ae78f9fb4d5c03398d060e9171520ab))
+
 ### [15.5.1](https://github.com/ogre-works/ogre-tools/compare/v15.5.0...v15.5.1) (2023-04-17)
 
 ### Bug Fixes
