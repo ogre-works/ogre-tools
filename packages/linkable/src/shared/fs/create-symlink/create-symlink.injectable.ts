@@ -21,9 +21,9 @@ export const createSymlinkInjectable = getInjectable({
     return async ({ target, source }) => {
       await pipeline(source, dirname, ensureDirectory);
 
-      const { isDirectory } = await stat(target);
+      const result = await stat(target);
 
-      const dirOrFile = isDirectory() ? 'dir' : 'file';
+      const dirOrFile = result.isDirectory() ? 'dir' : 'file';
 
       return symlink(target, source, dirOrFile);
     };
