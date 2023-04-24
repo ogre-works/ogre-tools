@@ -260,6 +260,38 @@ describe('creation of "npm pack" -like symlinks', () => {
             });
           });
 
+          describe('given some of the packages do not specify "files", when all contents resolve', () => {
+            beforeEach(async () => {
+              existsMock.mockClear();
+
+              readJsonFileMock.resolveSpecific(
+                ([path]) => path === '/some-directory/some-module/package.json',
+                {
+                  files: undefined,
+                  name: '@some-scope/some-module',
+                  main: 'irrelevant',
+                },
+              );
+
+              readJsonFileMock.resolveSpecific(
+                ([path]) =>
+                  path ===
+                  '/some-other-directory/some-other-module/package.json',
+                {
+                  name: 'irrelevant',
+                  files: ['irrelevant'],
+                  main: 'irrelevant',
+                },
+              );
+            });
+
+            it('rejects entire script', () => {
+              return expect(actualPromise).rejects.toThrow(
+                'Tried create links of linkable, but some package.jsons didn\'t specify property "files": "/some-directory/some-module/package.json"',
+              );
+            });
+          });
+
           describe('given some of the packages have globs as files, when all contents resolve', () => {
             beforeEach(async () => {
               existsMock.mockClear();

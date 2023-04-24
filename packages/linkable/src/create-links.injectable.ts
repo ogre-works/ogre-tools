@@ -4,6 +4,7 @@ import { getInjectable } from '@ogre-tools/injectable';
 import { createSymlinksInjectable } from './create-symlinks/create-symlinks.injectable';
 import getConfigInjectable from './config/get-config.injectable';
 import createEmptyConfigInjectable from './config/create-empty-config.injectable';
+import { PackageJsonAndPath } from './shared/package-json-and-path';
 
 export type CreateLinks = () => Promise<void>;
 
@@ -30,8 +31,26 @@ export const createLinksInjectable = getInjectable({
 
       const packageJsons = await getPackageJsons(config);
 
+      checkForMissingPropertyForFiles(packageJsons);
+
       await ensureEmptyLinkDirectories(packageJsons);
       await createSymlinks(packageJsons);
     };
   },
 });
+
+const checkForMissingPropertyForFiles = (
+  packageJsons: PackageJsonAndPath[],
+) => {
+  const bad = packageJsons
+    .filter(x => x.content.files === undefined)
+    .map(x => x.packageJsonPath);
+
+  if (bad.length) {
+    throw new Error(
+      `Tried create links of linkable, but some package.jsons didn't specify property "files": "${bad.join(
+        '", "',
+      )}"`,
+    );
+  }
+};
