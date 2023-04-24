@@ -3,7 +3,7 @@ import asyncFn from '@async-fn/jest';
 import type { CreateLinks } from './create-links.injectable';
 import { createLinksInjectable } from './create-links.injectable';
 import { getPromiseStatus } from '@ogre-tools/test-utils';
-import path from 'path';
+import { posix } from 'path';
 import type { Exists } from './shared/fs/exists.injectable';
 import { existsInjectable } from './shared/fs/exists.injectable';
 import type { ReadJsonFile } from './shared/fs/read-json-file.injectable';
@@ -43,7 +43,7 @@ describe('creation of "npm pack" -like symlinks', () => {
       workingDirectoryInjectable,
       () => '/some-directory/some-project',
     );
-    di.override(resolvePathInjectable, () => path.posix.resolve);
+    di.override(resolvePathInjectable, () => posix.resolve);
     di.override(existsInjectable, () => existsMock);
     di.override(
       readJsonFileWithoutErrorHandlingInjectable,
