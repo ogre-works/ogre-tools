@@ -26,7 +26,8 @@
   },
   "devDependencies": {
     "@async-fn/jest": "^1.6.4",
-    "@ogre-tools/test-utils": "^15.3.1"
+    "@ogre-tools/test-utils": "^15.3.1",
+    "webpack-shebang-plugin": "^1.1.8"
   },
   "scripts": {
     "build": "ogre-tools-build-js",
