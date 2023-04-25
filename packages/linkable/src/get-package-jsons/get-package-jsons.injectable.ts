@@ -21,7 +21,7 @@ export const getPackageJsonsInjectable = getInjectable({
     return async (config: Config) => {
       const packageJsonPaths = await getPackageJsonPaths(config);
 
-      await checkForMissingPackageJsons(packageJsonPaths);
+      // await checkForMissingPackageJsons(packageJsonPaths);
 
       return pipeline(
         packageJsonPaths,

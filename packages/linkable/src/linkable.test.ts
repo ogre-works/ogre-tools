@@ -128,6 +128,63 @@ describe('creation of "npm pack" -like symlinks', () => {
         });
       });
 
+      describe('when config file resolves with module paths containing glob', () => {
+        beforeEach(async () => {
+          await readJsonFileMock.resolve([
+            '../some-monorepo/packages/**/*',
+            '../some-other-monorepo/packages/**/*',
+          ]);
+        });
+
+        it('discovers the target module package.jsons using glob', () => {
+          expect(globMock.mock.calls).toEqual([
+            [
+              '../some-monorepo/packages/**/*/package.json',
+
+              {
+                cwd: '/some-directory/some-project',
+                ignore: ['**/node_modules/**/*'],
+                absolute: true,
+              },
+            ],
+
+            [
+              '../some-other-monorepo/packages/**/*/package.json',
+              {
+                cwd: '/some-directory/some-project',
+                ignore: ['**/node_modules/**/*'],
+                absolute: true,
+              },
+            ],
+          ]);
+        });
+
+        describe('when discovering resolves with package.jsons', () => {
+          beforeEach(async () => {
+            readJsonFileMock.mockClear();
+
+            await globMock.resolve([
+              '/some-directory/some-monorepo/packages/some-other-directory/some-module/package.json',
+              '/some-directory/some-monorepo/packages/some-other-directory/some-other-module/package.json',
+            ]);
+
+            await globMock.resolve([]);
+          });
+
+          it('reads contents of package.jsons', () => {
+            expect(readJsonFileMock.mock.calls).toEqual([
+              [
+                '/some-directory/some-monorepo/packages/some-other-directory/some-module/package.json',
+              ],
+
+              [
+                '/some-directory/some-monorepo/packages/some-other-directory/some-other-module/package.json',
+              ],
+            ]);
+          });
+        });
+      });
+
       describe('when config file resolves with module paths', () => {
         beforeEach(async () => {
           existsMock.mockClear();
@@ -138,28 +195,41 @@ describe('creation of "npm pack" -like symlinks', () => {
           ]);
         });
 
-        it('checks for existence of package.jsons in configured module paths', () => {
-          expect(existsMock.mock.calls).toEqual([
-            ['/some-directory/some-module/package.json'],
-            ['/some-other-directory/some-other-module/package.json'],
+        it('discovers package.jsons using glob', () => {
+          expect(globMock.mock.calls).toEqual([
+            [
+              '../some-module/package.json',
+
+              {
+                absolute: true,
+                cwd: '/some-directory/some-project',
+                ignore: ['**/node_modules/**/*'],
+              },
+            ],
+
+            [
+              '/some-other-directory/some-other-module/package.json',
+
+              {
+                absolute: true,
+                cwd: '/some-directory/some-project',
+                ignore: ['**/node_modules/**/*'],
+              },
+            ],
           ]);
         });
 
-        it('given some of the package.jsons do not exist, throws', () => {
-          existsMock.resolve(false);
-          existsMock.resolve(false);
-
-          return expect(actualPromise).rejects.toThrow(
-            'Tried to install links of linkable, but configured package.jsons were not found: "/some-directory/some-module/package.json", "/some-other-directory/some-other-module/package.json".',
-          );
-        });
-
-        describe('given all configured package.jsons exist', () => {
+        describe('when discover resolves', () => {
           beforeEach(async () => {
             readJsonFileMock.mockClear();
 
-            await existsMock.resolve(true);
-            await existsMock.resolve(true);
+            await globMock.resolve([
+              '/some-directory/some-module/package.json',
+            ]);
+
+            await globMock.resolve([
+              '/some-other-directory/some-other-module/package.json',
+            ]);
           });
 
           it('reads contents of package.jsons', () => {
@@ -328,6 +398,8 @@ describe('creation of "npm pack" -like symlinks', () => {
 
             describe('given link directories are handled', () => {
               beforeEach(async () => {
+                globMock.mockClear();
+
                 await ensureEmptyDirectoryMock.resolve();
                 await ensureEmptyDirectoryMock.resolve();
               });
