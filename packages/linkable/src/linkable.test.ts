@@ -10,34 +10,33 @@ import type { ReadJsonFile } from './shared/fs/read-json-file.injectable';
 import { readJsonFileWithoutErrorHandlingInjectable } from './shared/fs/read-json-file.injectable';
 import type { WriteJsonFile } from './shared/fs/write-json-file.injectable';
 import { writeJsonFileInjectable } from './shared/fs/write-json-file.injectable';
-import type { CreateSymlink } from './shared/fs/create-symlink/create-symlink.injectable';
-import { createSymlinkInjectable } from './shared/fs/create-symlink/create-symlink.injectable';
-import type { EnsureEmptyDirectory } from './shared/fs/ensure-empty-directory.injectable';
-import { ensureEmptyDirectoryInjectable } from './shared/fs/ensure-empty-directory.injectable';
 import { workingDirectoryInjectable } from './shared/working-directory.injectable';
 import { resolvePathInjectable } from './shared/path/resolve-path.injectable';
 import { getDi } from './get-di';
 import type { Glob } from './shared/fs/glob.injectable';
 import { globInjectable } from './shared/fs/glob.injectable';
+import {
+  AddYalcPackages,
+  addYalcPackagesInjectable,
+} from './add-yalc-packages.injectable';
 
-describe('creation of "npm pack" -like symlinks', () => {
+describe('linking of local npm modules', () => {
   let createLinks: CreateLinks;
   let existsMock: AsyncFnMock<Exists>;
   let readJsonFileMock: AsyncFnMock<ReadJsonFile>;
   let writeJsonFileMock: AsyncFnMock<WriteJsonFile>;
-  let createSymlinkMock: AsyncFnMock<CreateSymlink>;
-  let ensureEmptyDirectoryMock: AsyncFnMock<EnsureEmptyDirectory>;
+  let addYalcPackagesMock: AsyncFnMock<AddYalcPackages>;
   let globMock: AsyncFnMock<Glob>;
 
   beforeEach(() => {
     existsMock = asyncFn();
     readJsonFileMock = asyncFn();
     writeJsonFileMock = asyncFn();
-    createSymlinkMock = asyncFn();
-    ensureEmptyDirectoryMock = asyncFn();
     globMock = asyncFn();
+    addYalcPackagesMock = asyncFn();
 
     const di = getDi();
+    di.override(addYalcPackagesInjectable, () => addYalcPackagesMock);
 
     di.override(
       workingDirectoryInjectable,
@@ -50,8 +49,6 @@ describe('creation of "npm pack" -like symlinks', () => {
       () => readJsonFileMock,
     );
     di.override(writeJsonFileInjectable, () => writeJsonFileMock);
-    di.override(createSymlinkInjectable, () => createSymlinkMock);
-    di.override(ensureEmptyDirectoryInjectable, () => ensureEmptyDirectoryMock);
     di.override(globInjectable, () => globMock);
 
     createLinks = di.inject(createLinksInjectable);
@@ -247,267 +244,6 @@ describe('creation of "npm pack" -like symlinks', () => {
             );
           });
 
-          describe('given some of the packages are NPM-scoped, when all contents resolve', () => {
-            beforeEach(async () => {
-              existsMock.mockClear();
-
-              await readJsonFileMock.resolveSpecific(
-                ([path]) => path === '/some-directory/some-module/package.json',
-                {
-                  name: '@some-scope/some-module',
-                  files: ['some-build-directory'],
-                  main: 'some-build-directory/index.js',
-                },
-              );
-
-              await readJsonFileMock.resolveSpecific(
-                ([path]) =>
-                  path ===
-                  '/some-other-directory/some-other-module/package.json',
-                {
-                  name: '@some-scope/some-other-module',
-                  files: ['some-other-build-directory'],
-                  main: 'some-other-build-directory/index.js',
-                },
-              );
-            });
-
-            it('creates the link directories for npm-scoped directories', () => {
-              expect(ensureEmptyDirectoryMock.mock.calls).toEqual([
-                [
-                  '/some-directory/some-project/node_modules/@some-scope/some-module',
-                ],
-                [
-                  '/some-directory/some-project/node_modules/@some-scope/some-other-module',
-                ],
-              ]);
-            });
-
-            describe('when empty link directories are ensured and existence of target files is resolved', () => {
-              beforeEach(async () => {
-                await ensureEmptyDirectoryMock.resolve();
-                await ensureEmptyDirectoryMock.resolve();
-
-                await existsMock.resolve(true);
-                await existsMock.resolve(true);
-              });
-
-              it('creates the symlinks to scoped directories', () => {
-                expect(createSymlinkMock.mock.calls).toEqual([
-                  [
-                    {
-                      source:
-                        '/some-directory/some-project/node_modules/@some-scope/some-module/package.json',
-                      target: '/some-directory/some-module/package.json',
-                    },
-                  ],
-                  [
-                    {
-                      source:
-                        '/some-directory/some-project/node_modules/@some-scope/some-module/some-build-directory',
-                      target:
-                        '/some-directory/some-module/some-build-directory',
-                    },
-                  ],
-                  [
-                    {
-                      source:
-                        '/some-directory/some-project/node_modules/@some-scope/some-other-module/package.json',
-                      target:
-                        '/some-other-directory/some-other-module/package.json',
-                    },
-                  ],
-                  [
-                    {
-                      source:
-                        '/some-directory/some-project/node_modules/@some-scope/some-other-module/some-other-build-directory',
-                      target:
-                        '/some-other-directory/some-other-module/some-other-build-directory',
-                    },
-                  ],
-                ]);
-              });
-            });
-          });
-
-          describe('given some of the packages do not specify "files", when all contents resolve', () => {
-            beforeEach(async () => {
-              existsMock.mockClear();
-
-              readJsonFileMock.resolveSpecific(
-                ([path]) => path === '/some-directory/some-module/package.json',
-                {
-                  files: undefined,
-                  name: '@some-scope/some-module',
-                  main: 'irrelevant',
-                },
-              );
-
-              readJsonFileMock.resolveSpecific(
-                ([path]) =>
-                  path ===
-                  '/some-other-directory/some-other-module/package.json',
-                {
-                  name: 'irrelevant',
-                  files: ['irrelevant'],
-                  main: 'irrelevant',
-                },
-              );
-            });
-
-            it('rejects entire script', () => {
-              return expect(actualPromise).rejects.toThrow(
-                'Tried create links of linkable, but some package.jsons didn\'t specify property "files": "/some-directory/some-module/package.json"',
-              );
-            });
-          });
-
-          describe('given some of the packages have globs as files, when all contents resolve', () => {
-            beforeEach(async () => {
-              existsMock.mockClear();
-
-              await readJsonFileMock.resolveSpecific(
-                ([path]) => path === '/some-directory/some-module/package.json',
-                {
-                  name: '@some-scope/some-module',
-                  files: [
-                    'some-duplicate-file',
-                    'some-duplicate-file',
-                    'some-build-directory-with-asterisk/*',
-                    'some-build-directory-with-wild-card/**',
-                    'some-build-directory-with-wild-card-before-asterisk/**/*',
-                    'some-build-directory-with-asterisk-and-file-suffix/*.some-file-suffix',
-                    'some-build-directory-with-file-name-and-asterisk/some-filename.*',
-                    'some-build-directory-with-wild-card-and-asterisk-and-file-suffix/**/*.some-file-suffix',
-                  ],
-                  main: 'some-build-directory/index.js',
-                },
-              );
-
-              await readJsonFileMock.resolveSpecific(
-                ([path]) =>
-                  path ===
-                  '/some-other-directory/some-other-module/package.json',
-                {
-                  name: '@some-scope/some-other-module',
-                  files: [],
-                  main: 'some-other-build-directory/index.js',
-                },
-              );
-            });
-
-            describe('given link directories are handled', () => {
-              beforeEach(async () => {
-                globMock.mockClear();
-
-                await ensureEmptyDirectoryMock.resolve();
-                await ensureEmptyDirectoryMock.resolve();
-              });
-
-              it('does not create symlinks yet', () => {
-                expect(createSymlinkMock).not.toHaveBeenCalled();
-              });
-
-              it('calls for glob of file-strings for which glob cannot be avoided', () => {
-                expect(globMock.mock.calls).toEqual([
-                  [
-                    [
-                      'some-build-directory-with-asterisk-and-file-suffix/*.some-file-suffix',
-                      'some-build-directory-with-file-name-and-asterisk/some-filename.*',
-                      'some-build-directory-with-wild-card-and-asterisk-and-file-suffix/**/*.some-file-suffix',
-                    ],
-
-                    { cwd: '/some-directory/some-module' },
-                  ],
-                ]);
-              });
-
-              it("doesn't create symlinks yet", () => {
-                expect(createSymlinkMock).not.toHaveBeenCalled();
-              });
-
-              describe('when globbing resolves and existence of target files is resolved', () => {
-                beforeEach(async () => {
-                  await globMock.resolve([
-                    'some-directory-from-glob/some-file-from-glob.txt',
-                    'some-duplicate-file',
-                  ]);
-
-                  await existsMock.resolve(true);
-                  await existsMock.resolve(true);
-                  await existsMock.resolve(true);
-                  await existsMock.resolve(true);
-                });
-
-                it('creates the symlinks to files and directories that were both globbed and that avoided globbing', () => {
-                  expect(createSymlinkMock.mock.calls).toEqual([
-                    [
-                      {
-                        source:
-                          '/some-directory/some-project/node_modules/@some-scope/some-module/package.json',
-                        target: '/some-directory/some-module/package.json',
-                      },
-                    ],
-
-                    [
-                      {
-                        source:
-                          '/some-directory/some-project/node_modules/@some-scope/some-module/some-directory-from-glob/some-file-from-glob.txt',
-                        target:
-                          '/some-directory/some-module/some-directory-from-glob/some-file-from-glob.txt',
-                      },
-                    ],
-
-                    [
-                      {
-                        source:
-                          '/some-directory/some-project/node_modules/@some-scope/some-module/some-duplicate-file',
-                        target:
-                          '/some-directory/some-module/some-duplicate-file',
-                      },
-                    ],
-
-                    [
-                      {
-                        source:
-                          '/some-directory/some-project/node_modules/@some-scope/some-module/some-build-directory-with-asterisk',
-                        target:
-                          '/some-directory/some-module/some-build-directory-with-asterisk',
-                      },
-                    ],
-
-                    [
-                      {
-                        source:
-                          '/some-directory/some-project/node_modules/@some-scope/some-module/some-build-directory-with-wild-card',
-                        target:
-                          '/some-directory/some-module/some-build-directory-with-wild-card',
-                      },
-                    ],
-
-                    [
-                      {
-                        source:
-                          '/some-directory/some-project/node_modules/@some-scope/some-module/some-build-directory-with-wild-card-before-asterisk',
-                        target:
-                          '/some-directory/some-module/some-build-directory-with-wild-card-before-asterisk',
-                      },
-                    ],
-
-                    [
-                      {
-                        source:
-                          '/some-directory/some-project/node_modules/@some-scope/some-other-module/package.json',
-                        target:
-                          '/some-other-directory/some-other-module/package.json',
-                      },
-                    ],
-                  ]);
-                });
-              });
-            });
-          });
-
           describe('when all contents resolve', () => {
             beforeEach(async () => {
               existsMock.mockClear();
@@ -516,12 +252,6 @@ describe('creation of "npm pack" -like symlinks', () => {
                 ([path]) => path === '/some-directory/some-module/package.json',
                 {
                   name: 'some-module',
-                  files: [
-                    'some-build-directory',
-                    'some-file',
-                    'some-non-existing-file.txt',
-                  ],
-                  main: 'some-build-directory/index.js',
                 },
               );
 
@@ -531,123 +261,26 @@ describe('creation of "npm pack" -like symlinks', () => {
                   '/some-other-directory/some-other-module/package.json',
                 {
                   name: 'some-other-module',
-                  files: ['some-other-build-directory'],
-                  main: 'some-other-build-directory/index.js',
                 },
               );
             });
 
-            it('creates the link directories', () => {
-              expect(ensureEmptyDirectoryMock.mock.calls).toEqual([
-                ['/some-directory/some-project/node_modules/some-module'],
-                ['/some-directory/some-project/node_modules/some-other-module'],
-              ]);
+            it('adds yalc links for all packages', () => {
+              expect(addYalcPackagesMock).toHaveBeenCalledWith(
+                ['some-module', 'some-other-module'],
+
+                {
+                  link: true,
+
+                  workingDir: '/some-directory/some-project',
+                },
+              );
             });
 
-            it('does not create symlinks yet', () => {
-              expect(createSymlinkMock).not.toHaveBeenCalled();
-            });
+            it('does not resolve yet', async () => {
+              const promiseStatus = await getPromiseStatus(actualPromise);
 
-            describe('when creation of link directories resolve', () => {
-              beforeEach(async () => {
-                await ensureEmptyDirectoryMock.resolve();
-                await ensureEmptyDirectoryMock.resolve();
-              });
-
-              it("doesn't create symlinks yet", () => {
-                expect(createSymlinkMock).not.toHaveBeenCalled();
-              });
-
-              it('calls to detect if file or directory exists', () => {
-                expect(existsMock.mock.calls).toEqual([
-                  ['/some-directory/some-module/some-build-directory'],
-                  ['/some-directory/some-module/some-file'],
-                  ['/some-directory/some-module/some-non-existing-file.txt'],
-
-                  [
-                    '/some-other-directory/some-other-module/some-other-build-directory',
-                  ],
-                ]);
-              });
-
-              describe('when existence of files and directories resolve with some non existing', () => {
-                beforeEach(async () => {
-                  await existsMock.resolve(true);
-                  await existsMock.resolve(true);
-                  await existsMock.resolve(false);
-                  await existsMock.resolve(true);
-                });
-
-                it('creates the symlinks', () => {
-                  expect(createSymlinkMock.mock.calls).toEqual([
-                    [
-                      {
-                        source:
-                          '/some-directory/some-project/node_modules/some-module/package.json',
-                        target: '/some-directory/some-module/package.json',
-                      },
-                    ],
-
-                    [
-                      {
-                        source:
-                          '/some-directory/some-project/node_modules/some-module/some-build-directory',
-                        target:
-                          '/some-directory/some-module/some-build-directory',
-                      },
-                    ],
-
-                    [
-                      {
-                        source:
-                          '/some-directory/some-project/node_modules/some-module/some-file',
-                        target: '/some-directory/some-module/some-file',
-                      },
-                    ],
-
-                    [
-                      {
-                        source:
-                          '/some-directory/some-project/node_modules/some-other-module/package.json',
-                        target:
-                          '/some-other-directory/some-other-module/package.json',
-                      },
-                    ],
-
-                    [
-                      {
-                        source:
-                          '/some-directory/some-project/node_modules/some-other-module/some-other-build-directory',
-                        target:
-                          '/some-other-directory/some-other-module/some-other-build-directory',
-                      },
-                    ],
-                  ]);
-                });
-
-                it('given all symlink creations have not resolved, does not resolve yet', async () => {
-                  createSymlinkMock.resolve();
-                  createSymlinkMock.resolve();
-                  createSymlinkMock.resolve();
-                  createSymlinkMock.resolve();
-
-                  const promiseStatus = await getPromiseStatus(actualPromise);
-
-                  expect(promiseStatus.fulfilled).toBe(false);
-                });
-
-                it('when symlink creations resolve, ends script', async () => {
-                  createSymlinkMock.resolve();
-                  createSymlinkMock.resolve();
-                  createSymlinkMock.resolve();
-                  createSymlinkMock.resolve();
-                  createSymlinkMock.resolve();
-
-                  const promiseStatus = await getPromiseStatus(actualPromise);
-
-                  expect(promiseStatus.fulfilled).toBe(true);
-                });
-              });
+              expect(promiseStatus.fulfilled).toBe(false);
             });
           });
         });

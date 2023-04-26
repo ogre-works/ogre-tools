@@ -1,10 +1,10 @@
-import { ensureEmptyLinkDirectoriesInjectable } from './ensure-empty-link-directories/ensure-empty-link-directories.injectable';
-import { getPackageJsonsInjectable } from './get-package-jsons/get-package-jsons.injectable';
+import { getPackageJsonNamesInjectable } from './get-package-jsons/get-package-json-names.injectable';
 import { getInjectable } from '@ogre-tools/injectable';
-import { createSymlinksInjectable } from './create-symlinks/create-symlinks.injectable';
 import getConfigInjectable from './config/get-config.injectable';
 import createEmptyConfigInjectable from './config/create-empty-config.injectable';
-import { PackageJsonAndPath } from './shared/package-json-and-path';
+import { pipeline } from '@ogre-tools/fp';
+import { addYalcPackagesInjectable } from './add-yalc-packages.injectable';
+import { workingDirectoryInjectable } from './shared/working-directory.injectable';
 
 export type CreateLinks = () => Promise<void>;
 
@@ -12,13 +12,11 @@ export const createLinksInjectable = getInjectable({
   id: 'create-links',
 
   instantiate: (di): CreateLinks => {
-    const getPackageJsons = di.inject(getPackageJsonsInjectable);
-    const ensureEmptyLinkDirectories = di.inject(
-      ensureEmptyLinkDirectoriesInjectable,
-    );
-    const createSymlinks = di.inject(createSymlinksInjectable);
+    const getPackageJsonNames = di.inject(getPackageJsonNamesInjectable);
     const getConfig = di.inject(getConfigInjectable);
     const createEmptyConfig = di.inject(createEmptyConfigInjectable);
+    const addYalcPackages = di.inject(addYalcPackagesInjectable);
+    const workingDirectory = di.inject(workingDirectoryInjectable);
 
     return async () => {
       const config = await getConfig();
@@ -29,28 +27,16 @@ export const createLinksInjectable = getInjectable({
         return;
       }
 
-      const packageJsons = await getPackageJsons(config);
+      const names = await getPackageJsonNames(config);
 
-      checkForMissingPropertyForFiles(packageJsons);
+      if (!names.length) {
+        return;
+      }
 
-      await ensureEmptyLinkDirectories(packageJsons);
-      await createSymlinks(packageJsons);
+      await addYalcPackages(names, {
+        link: true,
+        workingDir: workingDirectory,
+      });
     };
   },
 });
-
-const checkForMissingPropertyForFiles = (
-  packageJsons: PackageJsonAndPath[],
-) => {
-  const bad = packageJsons
-    .filter(x => x.content.files === undefined)
-    .map(x => x.packageJsonPath);
-
-  if (bad.length) {
-    throw new Error(
-      `Tried create links of linkable, but some package.jsons didn't specify property "files": "${bad.join(
-        '", "',
-      )}"`,
-    );
-  }
-};

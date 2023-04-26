@@ -4,4 +4,5 @@ const webpackConfig =
 module.exports = {
   ...webpackConfig,
   performance: undefined,
+  externals: [],
 };
