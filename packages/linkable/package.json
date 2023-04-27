@@ -34,6 +34,7 @@
     "code-style:fix": "ogre-tools-fix-code-style"
   },
   "bin": {
-    "linkable": "bin/linkable"
+    "linkable": "bin/linkable",
+    "linkable-push": "bin/linkable-push"
   }
 }
