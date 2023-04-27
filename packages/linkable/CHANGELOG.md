@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [15.7.0](https://github.com/ogre-works/ogre-tools/compare/v15.6.1...v15.7.0) (2023-04-27)
+
+### Features
+
+- Add "linkable-push" as counterpart of "linkable" ([240ea84](https://github.com/ogre-works/ogre-tools/commit/240ea841122588926b96c455a222d4b39143dbd5))
+- Add support for globs in the linkable configuration ([62144eb](https://github.com/ogre-works/ogre-tools/commit/62144eb4dd3d8851626f4f220ef4c2907cbbb4da))
+
+### Bug Fixes
+
+- Make local node_modules of linked packages not break runtime when in non-bundled context ([a9bfcae](https://github.com/ogre-works/ogre-tools/commit/a9bfcae307dca628c78ad7a8e972991795e81192))
+
 ### [15.6.1](https://github.com/ogre-works/ogre-tools/compare/v15.6.0...v15.6.1) (2023-04-24)
 
 **Note:** Version bump only for package @ogre-tools/linkable
