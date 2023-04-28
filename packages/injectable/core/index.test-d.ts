@@ -57,6 +57,9 @@ if (isInjectionToken(foo)) {
   expectType<InjectionToken<unknown, unknown>>(foo);
 }
 
+const x1: boolean = isInjectable(foo);
+const x2: boolean = isInjectionToken(foo);
+
 // given injectable without instantiation paramater and decorator targeting the injectable, typing is ok
 const someInjectableToBeDecorated = getInjectable({
   id: 'some-injectable-to-be-decorated',
