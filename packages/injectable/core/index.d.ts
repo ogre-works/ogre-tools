@@ -349,8 +349,8 @@ export const instantiationDecoratorToken: InjectionToken<
 
 export const registrationCallbackToken: RegistrationCallback;
 export const deregistrationCallbackToken: RegistrationCallback;
-export const isInjectable: (thing: any) => boolean;
-export const isInjectionToken: (thing: any) => boolean;
+export const isInjectable: (thing: unknown) => thing is Injectable<unknown, unknown, unknown>;
+export const isInjectionToken: (thing: unknown) => thing is InjectionToken<unknown, unknown>;
 
 export function createContainer(
   containerId: string,
