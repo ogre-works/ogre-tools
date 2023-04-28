@@ -16,6 +16,8 @@ import {
   createInjectionTargetDecorator,
   SpecificInject,
   InjectionToken,
+  isInjectable,
+  isInjectionToken,
 } from '.';
 
 const di = createContainer('some-container');
@@ -44,6 +46,16 @@ const decoratorForToken = getInjectable({
 
   injectionToken: instantiationDecoratorToken,
 });
+
+const foo: unknown = "number";
+
+if (isInjectable(foo)) {
+  expectType<Injectable<unknown, unknown, unknown>>(foo);
+}
+
+if (isInjectionToken(foo)) {
+  expectType<InjectionToken<unknown, unknown>>(foo);
+}
 
 // given injectable without instantiation paramater and decorator targeting the injectable, typing is ok
 const someInjectableToBeDecorated = getInjectable({
