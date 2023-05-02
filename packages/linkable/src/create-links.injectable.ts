@@ -2,7 +2,6 @@ import { getPackageJsonNamesInjectable } from './get-package-jsons/get-package-j
 import { getInjectable } from '@ogre-tools/injectable';
 import getConfigInjectable from './config/get-config.injectable';
 import createEmptyConfigInjectable from './config/create-empty-config.injectable';
-import { pipeline } from '@ogre-tools/fp';
 import { addYalcPackagesInjectable } from './add-yalc-packages.injectable';
 import { workingDirectoryInjectable } from './shared/working-directory.injectable';
 

@@ -20,7 +20,7 @@ import {
   addYalcPackagesInjectable,
 } from './add-yalc-packages.injectable';
 
-describe('linking of local npm modules', () => {
+describe('create-links', () => {
   let createLinks: CreateLinks;
   let existsMock: AsyncFnMock<Exists>;
   let readJsonFileMock: AsyncFnMock<ReadJsonFile>;
