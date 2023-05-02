@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+### [15.8.1](https://github.com/ogre-works/ogre-tools/compare/v15.8.0...v15.8.1) (2023-05-02)
+
+### Bug Fixes
+
+- Use correct kind of npm-dependencies ([5039d1f](https://github.com/ogre-works/ogre-tools/commit/5039d1fa298e78a7976c4e185571f81ca0c705fe))
+
 ## [15.8.0](https://github.com/ogre-works/ogre-tools/compare/v15.7.0...v15.8.0) (2023-05-02)
 
 ### Features
