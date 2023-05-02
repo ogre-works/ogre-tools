@@ -16,16 +16,18 @@
   "author": "Ogre Works",
   "license": "MIT",
   "homepage": "https://github.com/ogre-works/ogre-tools#readme",
-  "devDependencies": {
-    "@async-fn/jest": "^1.6.4",
+  "dependencies": {
+    "yalc": "^1.0.0-pre.53",
     "@ogre-tools/fp": "^15.8.0",
     "@ogre-tools/injectable": "^15.8.0",
     "@ogre-tools/injectable-extension-for-auto-registration": "^15.8.0",
-    "@ogre-tools/test-utils": "^15.8.0",
     "fast-glob": "^3.2.12",
     "fs-extra": "^9.0.1",
-    "lodash": "^4.17.21",
-    "yalc": "^1.0.0-pre.53"
+    "lodash": "^4.17.21"
+  },
+  "devDependencies": {
+    "@async-fn/jest": "^1.6.4",
+    "@ogre-tools/test-utils": "^15.8.0"
   },
   "scripts": {
     "build": "ogre-tools-build-ts",
