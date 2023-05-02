@@ -3,6 +3,10 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [15.8.0](https://github.com/ogre-works/ogre-tools/compare/v15.7.0...v15.8.0) (2023-05-02)
+
+**Note:** Version bump only for package @ogre-tools/injectable-extension-for-mobx
+
 ## [15.7.0](https://github.com/ogre-works/ogre-tools/compare/v15.6.1...v15.7.0) (2023-04-27)
 
 **Note:** Version bump only for package @ogre-tools/injectable-extension-for-mobx
