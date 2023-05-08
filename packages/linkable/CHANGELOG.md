@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [15.9.0](https://github.com/ogre-works/ogre-tools/compare/v15.8.1...v15.9.0) (2023-05-08)
+
+### Features
+
+- Permit also programmatic access to functionalities of linkable ([8e51894](https://github.com/ogre-works/ogre-tools/commit/8e518945b929209a1827258d4f43f0e50d4090ad))
+
 ### [15.8.1](https://github.com/ogre-works/ogre-tools/compare/v15.8.0...v15.8.1) (2023-05-02)
 
 ### Bug Fixes

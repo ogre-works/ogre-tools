@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [15.9.0](https://github.com/ogre-works/ogre-tools/compare/v15.8.1...v15.9.0) (2023-05-08)
+
+### Features
+
+- Permit unoverride of injectionToken with exactly one implementation ([4346c92](https://github.com/ogre-works/ogre-tools/commit/4346c92ecceb58f119aceaddb87ae773d2364c9e))
+
 ### [15.8.1](https://github.com/ogre-works/ogre-tools/compare/v15.8.0...v15.8.1) (2023-05-02)
 
 **Note:** Version bump only for package @ogre-tools/injectable

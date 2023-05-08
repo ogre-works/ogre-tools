@@ -1,13 +1,13 @@
 {
   "name": "@ogre-tools/infrastructure-webpack-for-ts",
   "private": true,
-  "version": "15.8.1",
+  "version": "15.9.0",
   "description": "Shared webpack configuration",
   "bin": {
     "ogre-tools-build-ts": "bin/build.sh"
   },
   "dependencies": {
-    "@ogre-tools/infrastructure-webpack-for-js": "^15.8.1"
+    "@ogre-tools/infrastructure-webpack-for-js": "^15.9.0"
   },
   "repository": {
     "type": "git",
@@ -29,7 +29,7 @@
   },
   "prettier": "@ogre-tools/infrastructure-prettier",
   "devDependencies": {
-    "@ogre-tools/infrastructure-prettier": "^15.8.1"
+    "@ogre-tools/infrastructure-prettier": "^15.9.0"
   },
   "scripts": {
     "code-style:verify": "ogre-tools-verify-code-style",
