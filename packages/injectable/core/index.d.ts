@@ -19,7 +19,7 @@ export interface DiContainer extends DiContainerForInjection {
     instantiateStub: Instantiate<InjectionInstance, InstantiationParam>,
   ): void;
 
-  unoverride(injectable: Injectable<any, any, any>): void;
+  unoverride(alias: InjectionToken<any, any> | Injectable<any, any, any>): void;
 
   register(...injectables: Injectable<any, any, any>[]): void;
 
@@ -349,8 +349,12 @@ export const instantiationDecoratorToken: InjectionToken<
 
 export const registrationCallbackToken: RegistrationCallback;
 export const deregistrationCallbackToken: RegistrationCallback;
-export const isInjectable: (thing: unknown) => thing is Injectable<unknown, unknown, unknown>;
-export const isInjectionToken: (thing: unknown) => thing is InjectionToken<unknown, unknown>;
+export const isInjectable: (
+  thing: unknown,
+) => thing is Injectable<unknown, unknown, unknown>;
+export const isInjectionToken: (
+  thing: unknown,
+) => thing is InjectionToken<unknown, unknown>;
 
 export function createContainer(
   containerId: string,

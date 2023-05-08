@@ -151,7 +151,10 @@ export default (containerId, { detectCycles = true } = {}) => {
     overridingInjectables,
   });
 
-  const unoverride = unoverrideFor({ overridingInjectables });
+  const unoverride = unoverrideFor({
+    overridingInjectables,
+    getRelatedInjectables,
+  });
 
   const decorateFunction = decorateFunctionFor({ decorate });
 

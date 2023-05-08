@@ -47,7 +47,7 @@ const decoratorForToken = getInjectable({
   injectionToken: instantiationDecoratorToken,
 });
 
-const foo: unknown = "number";
+const foo: unknown = 'number';
 
 if (isInjectable(foo)) {
   expectType<Injectable<unknown, unknown, unknown>>(foo);
@@ -459,3 +459,26 @@ expectError(
     }),
   ),
 );
+
+// Overrides and unoverrides
+const someStringInjectionToken = getInjectionToken<string>({
+  id: 'irrelevant',
+});
+
+const someInjectable = getInjectable({
+  id: 'some-injectable',
+  instantiate: di => 'some-string',
+  injectionToken: someStringInjectionToken,
+});
+
+// given injectable, when overridden using injectable, typing is ok.
+di.override(someInjectable, () => 'some-other-string');
+
+// given injectable, when overridden using injectionToken, typing is ok.
+di.override(someStringInjectionToken, () => 'some-other-string');
+
+// given injectable, when unoverridden using injectable, typing is ok.
+di.unoverride(someInjectable);
+
+// given injectable, when unoverridden using injectionToken, typing is ok.
+di.unoverride(someStringInjectionToken);

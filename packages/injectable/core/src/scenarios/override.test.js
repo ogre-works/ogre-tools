@@ -146,6 +146,78 @@ describe('createContainer.override', () => {
     expect(actual).toBe('some-original-value');
   });
 
+  it('given an injectable with injection token is overridden, but then unoverriden using injectionToken, injects the original injectable', () => {
+    const someInjectionToken = getInjectionToken('irrelevant');
+
+    const someInjectable = getInjectable({
+      id: 'irrelevant',
+      instantiate: () => 'some-original-value',
+      injectionToken: someInjectionToken,
+    });
+
+    const di = createContainer('some-container');
+
+    di.register(someInjectable);
+
+    di.override(someInjectionToken, () => 'irrelevant');
+
+    di.unoverride(someInjectionToken);
+
+    const actual = di.inject(someInjectable);
+
+    expect(actual).toBe('some-original-value');
+  });
+
+  it('given an injectable with injection token is overridden, but then unoverridden using injectable, injects the original injectable', () => {
+    const someInjectionToken = getInjectionToken('irrelevant');
+
+    const someInjectable = getInjectable({
+      id: 'irrelevant',
+      instantiate: () => 'some-original-value',
+      injectionToken: someInjectionToken,
+    });
+
+    const di = createContainer('some-container');
+
+    di.register(someInjectable);
+
+    di.override(someInjectionToken, () => 'irrelevant');
+
+    di.unoverride(someInjectable);
+
+    const actual = di.inject(someInjectable);
+
+    expect(actual).toBe('some-original-value');
+  });
+
+  it('given an injectable, but not overridden, when unoverridden, throws', () => {
+    const someInjectable = getInjectable({
+      id: 'irrelevant',
+      instantiate: () => 'some-original-value',
+    });
+
+    const di = createContainer('some-container');
+
+    di.register(someInjectable);
+
+    expect(() => {
+      di.unoverride(someInjectable);
+    }).toThrow('Tried to unoverride "irrelevant", but it was not overridden.');
+  });
+
+  it('given an injectable, but not registered, when unoverridden, throws', () => {
+    const someInjectable = getInjectable({
+      id: 'irrelevant',
+      instantiate: () => 'some-original-value',
+    });
+
+    const di = createContainer('some-container');
+
+    expect(() => {
+      di.unoverride(someInjectable);
+    }).toThrow('Tried to unoverride "irrelevant", but it was not registered.');
+  });
+
   it('when overriding non-registered injectable, throws', () => {
     const di = createContainer('some-container');
 

@@ -42,7 +42,21 @@ export const overrideFor =
   };
 
 export const unoverrideFor =
-  ({ overridingInjectables }) =>
-  injectable => {
+  ({ overridingInjectables, getRelatedInjectables }) =>
+  alias => {
+    const [injectable] = getRelatedInjectables(alias);
+
+    if (!injectable) {
+      throw new Error(
+        `Tried to unoverride "${alias.id}", but it was not registered.`,
+      );
+    }
+
+    if (!overridingInjectables.has(injectable)) {
+      throw new Error(
+        `Tried to unoverride "${alias.id}", but it was not overridden.`,
+      );
+    }
+
     overridingInjectables.delete(injectable);
   };
