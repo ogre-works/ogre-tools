@@ -35,10 +35,12 @@
   "scripts": {
     "build": "ogre-tools-build-js",
     "test": "ogre-tools-test",
+    "test:types": "tsd",
     "code-style:verify": "ogre-tools-verify-code-style",
     "code-style:fix": "ogre-tools-fix-code-style"
   },
   "devDependencies": {
+    "tsd": "^0.28.1",
     "@ogre-tools/infrastructure-babel-for-js": "^15.9.0",
     "@ogre-tools/infrastructure-jest": "^15.9.0",
     "@ogre-tools/infrastructure-prettier": "^15.9.0",
