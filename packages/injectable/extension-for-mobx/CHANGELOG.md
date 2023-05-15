@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [16.0.0](https://github.com/ogre-works/ogre-tools/compare/v15.9.0...v16.0.0) (2023-05-15)
+
+### Features
+
+- Implement computedInjectManyWithMeta, and add missing type tests to computedInjectMany ([a8527c1](https://github.com/ogre-works/ogre-tools/commit/a8527c1465c4dd5475917208f25978b39c447f5c))
+
 ## [15.9.0](https://github.com/ogre-works/ogre-tools/compare/v15.8.1...v15.9.0) (2023-05-08)
 
 **Note:** Version bump only for package @ogre-tools/injectable-extension-for-mobx

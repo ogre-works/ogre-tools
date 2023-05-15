@@ -3,6 +3,21 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [16.0.0](https://github.com/ogre-works/ogre-tools/compare/v15.9.0...v16.0.0) (2023-05-15)
+
+### ⚠ BREAKING CHANGES
+
+- Make sure previous usages of injectable id of meta do not break with the
+  new addition of namespace. Eg. what previously was di.injectManyWithMeta(someInjectionToken) ->
+  { id: 'some-id', instance: ... }
+  ...will now become:
+  { id: 'some-scope:some-id', instance: ... }
+  ...when a scope is present.
+
+### Features
+
+- Make the injectable id for "meta" namespaced to avoid collisions ([baa52a9](https://github.com/ogre-works/ogre-tools/commit/baa52a94c4274807c446c801e95c736b22b4d4ed))
+
 ## [15.9.0](https://github.com/ogre-works/ogre-tools/compare/v15.8.1...v15.9.0) (2023-05-08)
 
 ### Features
