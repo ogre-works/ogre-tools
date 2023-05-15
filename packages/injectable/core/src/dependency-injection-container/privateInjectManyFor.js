@@ -6,6 +6,7 @@ export const privateInjectManyFor =
     getRelatedInjectables,
     getInject,
     setDependee,
+    getNamespacedId,
   }) =>
   ({ withMeta }) =>
   (
@@ -34,16 +35,18 @@ export const privateInjectManyFor =
         return instance;
       }
 
+      const namespacedId = getNamespacedId(injectable);
+
       if (!isPromise(instance)) {
         return {
           instance,
-          meta: { id: injectable.id },
+          meta: { id: namespacedId },
         };
       }
 
       return instance.then(awaitedInstance => ({
         instance: awaitedInstance,
-        meta: { id: injectable.id },
+        meta: { id: namespacedId },
       }));
     });
 

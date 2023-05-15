@@ -29,6 +29,84 @@ describe('injection with meta data', () => {
     ]);
   });
 
+  it('given scope, when injecting many sync injectable with meta data, does so', () => {
+    const someInjectionToken = getInjectionToken({
+      id: 'some-injection-token-id',
+    });
+
+    const registerInScopeInjectable = getInjectable({
+      id: 'some-scope',
+
+      instantiate: di => injectable => {
+        di.register(injectable);
+      },
+
+      scope: true,
+    });
+
+    const someInjectable = getInjectable({
+      id: 'some-injectable',
+      instantiate: () => 'some-instance',
+      injectionToken: someInjectionToken,
+    });
+
+    const di = createContainer('irrelevant');
+
+    di.register(registerInScopeInjectable);
+
+    const registerInScope = di.inject(registerInScopeInjectable);
+
+    registerInScope(someInjectable);
+
+    const actual = di.injectManyWithMeta(someInjectionToken);
+
+    expect(actual).toEqual([
+      {
+        instance: 'some-instance',
+        meta: { id: 'some-scope:some-injectable' },
+      },
+    ]);
+  });
+
+  it('given scope, when injecting many async injectable with meta data, does so', async () => {
+    const someInjectionToken = getInjectionToken({
+      id: 'some-injection-token-id',
+    });
+
+    const registerInScopeInjectable = getInjectable({
+      id: 'some-scope',
+
+      instantiate: di => injectable => {
+        di.register(injectable);
+      },
+
+      scope: true,
+    });
+
+    const someInjectable = getInjectable({
+      id: 'some-injectable',
+      instantiate: async () => 'some-instance',
+      injectionToken: someInjectionToken,
+    });
+
+    const di = createContainer('irrelevant');
+
+    di.register(registerInScopeInjectable);
+
+    const registerInScope = di.inject(registerInScopeInjectable);
+
+    registerInScope(someInjectable);
+
+    const actual = await di.injectManyWithMeta(someInjectionToken);
+
+    expect(actual).toEqual([
+      {
+        instance: 'some-instance',
+        meta: { id: 'some-scope:some-injectable' },
+      },
+    ]);
+  });
+
   it('given injecting many async injectable with meta data, does so', async () => {
     const someInjectionToken = getInjectionToken({
       id: 'some-injection-token-id',

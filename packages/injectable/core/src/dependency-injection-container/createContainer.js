@@ -49,6 +49,7 @@ export default (containerId, { detectCycles = true } = {}) => {
       getRelatedInjectables,
       getInject: () => decoratedPrivateInject,
       setDependee,
+      getNamespacedId,
     });
 
   const nonDecoratedPrivateInjectMany =
