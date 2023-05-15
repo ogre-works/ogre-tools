@@ -1,6 +1,11 @@
 import {
   computedInjectManyInjectable,
+  computedInjectManyWithMetaInjectable,
   registerMobX,
 } from './src/computedInjectMany';
 
-export { registerMobX, computedInjectManyInjectable };
+export {
+  registerMobX,
+  computedInjectManyInjectable,
+  computedInjectManyWithMetaInjectable,
+};

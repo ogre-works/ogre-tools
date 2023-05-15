@@ -1,6 +1,7 @@
 import {
   DiContainer,
   Injectable,
+  InjectionInstanceWithMeta,
   InjectionToken,
 } from '@ogre-tools/injectable';
 import { IComputedValue } from 'mobx';
@@ -16,6 +17,17 @@ export const computedInjectManyInjectable: Injectable<
   >(
     injectionToken: TInjectionToken,
   ) => IComputedValue<TInstance[]>,
-  unknown,
-  void
+  unknown
+>;
+
+export const computedInjectManyWithMetaInjectable: Injectable<
+  <
+    TInjectionToken extends InjectionToken<any, any>,
+    TInstanceWithMeta = TInjectionToken extends InjectionToken<infer T, any>
+      ? InjectionInstanceWithMeta<T>
+      : never,
+  >(
+    injectionToken: TInjectionToken,
+  ) => IComputedValue<TInstanceWithMeta[]>,
+  unknown
 >;

@@ -74,6 +74,17 @@ export const computedInjectManyInjectable = getInjectable({
   cannotCauseCycles: true,
 });
 
+export const computedInjectManyWithMetaInjectable = getInjectable({
+  id: 'computed-inject-many-with-meta',
+
+  instantiate: di => injectionToken =>
+    di.inject(reactiveInstancesWithMetaInjectable, injectionToken),
+
+  lifecycle: lifecycleEnum.transient,
+
+  cannotCauseCycles: true,
+});
+
 const reactiveInstancesInjectable = getInjectable({
   id: 'reactive-instances',
 
@@ -97,12 +108,37 @@ const reactiveInstancesInjectable = getInjectable({
   cannotCauseCycles: true,
 });
 
+const reactiveInstancesWithMetaInjectable = getInjectable({
+  id: 'reactive-instances-with-meta',
+
+  instantiate: (di, injectionToken) => {
+    const mobxAtomForToken = di.inject(
+      invalidabilityForReactiveInstances,
+      injectionToken,
+    );
+
+    return computed(() => {
+      mobxAtomForToken.reportObserved();
+
+      return di.injectManyWithMeta(injectionToken);
+    });
+  },
+
+  lifecycle: lifecycleEnum.keyedSingleton({
+    getInstanceKey: (di, injectionToken) => injectionToken,
+  }),
+
+  cannotCauseCycles: true,
+});
+
 export const registerMobX = di => {
   runInAction(() => {
     di.register(
       invalidabilityForReactiveInstances,
       reactiveInstancesInjectable,
+      reactiveInstancesWithMetaInjectable,
       computedInjectManyInjectable,
+      computedInjectManyWithMetaInjectable,
       invalidateReactiveInstancesOnRegisterCallback,
       invalidateReactiveInstancesOnDeregisterCallback,
     );
