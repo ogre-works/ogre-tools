@@ -482,3 +482,22 @@ di.unoverride(someInjectable);
 
 // given injectable, when unoverridden using injectionToken, typing is ok.
 di.unoverride(someStringInjectionToken);
+
+// given keyed singleton with sourceNamespace as key, typing is ok
+const someKeyedSingletonWithSourceNamespaceAsKey = getInjectable({
+  id: 'some-keyed-singleton-with-source-namespace-as-key',
+
+  instantiate: di => {
+    expectType<string | undefined>(di.sourceNamespace);
+
+    return di.sourceNamespace;
+  },
+
+  lifecycle: lifecycleEnum.keyedSingleton({
+    getInstanceKey: di => {
+      expectType<string | undefined>(di.sourceNamespace);
+
+      return di.sourceNamespace;
+    },
+  }),
+});

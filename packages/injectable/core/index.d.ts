@@ -195,6 +195,7 @@ export interface DiContainerForInjection {
   deregister(...injectables: Injectable<any, any, any>[]): void;
   context: ContextItem[];
   getInstances: GetInstances;
+  sourceNamespace: string | undefined;
 }
 
 export interface ILifecycle<InstantiationParam> {

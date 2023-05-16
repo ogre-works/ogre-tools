@@ -11,8 +11,9 @@ export const privateInjectFor =
     getDi,
     checkForNoMatches,
     checkForSideEffects,
+    getNamespacedId,
   }) =>
-  (alias, instantiationParameter, context = []) => {
+  (alias, instantiationParameter, context = [], source) => {
     const di = getDi();
 
     const relatedInjectables = getRelatedInjectables(alias);
@@ -36,6 +37,8 @@ export const privateInjectFor =
       instantiationParameter,
       context,
       instancesByInjectableMap,
+      source,
+      getNamespacedId,
     });
   };
 
@@ -45,6 +48,8 @@ const getInstance = ({
   instantiationParameter,
   context: oldContext,
   instancesByInjectableMap,
+  source,
+  getNamespacedId,
 }) => {
   const newContext = [
     ...oldContext,
@@ -96,6 +101,12 @@ const getInstance = ({
         context: newContext,
         source: injectableToBeInstantiated,
       });
+    },
+
+    get sourceNamespace() {
+      return (
+        getNamespacedId(source).split(':').slice(0, -1).join(':') || undefined
+      );
     },
   };
 

@@ -96,6 +96,7 @@ export default (containerId, { detectCycles = true } = {}) => {
     getDi: () => privateDi,
     checkForNoMatches,
     checkForSideEffects,
+    getNamespacedId,
   });
 
   const decoratedPrivateInject = withInjectionDecorators(
