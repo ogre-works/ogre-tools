@@ -1,17 +1,17 @@
 import { IComputedValue } from 'mobx';
 
-export type IAsyncComputed<T> = {
-  value: IComputedValue<T>;
+export type IAsyncComputed<TValue, TPending> = {
+  value: IComputedValue<TValue | TPending>;
   pending: IComputedValue<boolean>;
   invalidate: () => void;
 };
 
-type AsyncComputedParams<T> = {
-  getValueFromObservedPromise: () => Promise<T>;
-  valueWhenPending?: T;
+type AsyncComputedParams<TValue, TPending> = {
+  getValueFromObservedPromise: () => Promise<TValue>;
+  valueWhenPending?: TValue | TPending;
   betweenUpdates?: 'show-pending-value' | 'show-latest-value';
 };
 
-export function asyncComputed<T>(
-  configuration: AsyncComputedParams<T>,
-): IAsyncComputed<T>;
+export function asyncComputed<TValue, TPending = undefined>(
+  configuration: AsyncComputedParams<TValue, TPending>,
+): IAsyncComputed<TValue, TPending>;
