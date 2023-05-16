@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [16.1.0](https://github.com/ogre-works/ogre-tools/compare/v16.0.0...v16.1.0) (2023-05-16)
+
+### Features
+
+- Implement access to source namespace to permit eg. "scope specific" keyedSingletons ([a3a0326](https://github.com/ogre-works/ogre-tools/commit/a3a0326ecf9cdee9a69aaa92cddf56f608f48d65))
+
 ## [16.0.0](https://github.com/ogre-works/ogre-tools/compare/v15.9.0...v16.0.0) (2023-05-15)
 
 ### ⚠ BREAKING CHANGES
