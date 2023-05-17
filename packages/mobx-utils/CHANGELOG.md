@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+### [16.1.1](https://github.com/ogre-works/ogre-tools/compare/v16.1.0...v16.1.1) (2023-05-17)
+
+### Bug Fixes
+
+- Make types of asyncComputed describe the value for pending more accurately ([e4d6325](https://github.com/ogre-works/ogre-tools/commit/e4d6325b276fd4ffa4f6a71a679f9aa703bc1c10))
+
 ## [16.1.0](https://github.com/ogre-works/ogre-tools/compare/v16.0.0...v16.1.0) (2023-05-16)
 
 **Note:** Version bump only for package @ogre-tools/mobx-utils

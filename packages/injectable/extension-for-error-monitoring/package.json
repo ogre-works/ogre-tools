@@ -1,7 +1,7 @@
 {
   "name": "@ogre-tools/injectable-extensions-for-error-handling",
   "private": false,
-  "version": "16.1.0",
+  "version": "16.1.1",
   "description": "Error monitoring for Injectable in Ogre Tools",
   "files": [
     "build",
@@ -38,9 +38,9 @@
     "code-style:fix": "ogre-tools-fix-code-style"
   },
   "devDependencies": {
-    "@ogre-tools/infrastructure-babel-for-js": "^16.1.0",
-    "@ogre-tools/infrastructure-jest": "^16.1.0",
-    "@ogre-tools/infrastructure-prettier": "^16.1.0",
-    "@ogre-tools/infrastructure-webpack-for-js": "^16.1.0"
+    "@ogre-tools/infrastructure-babel-for-js": "^16.1.1",
+    "@ogre-tools/infrastructure-jest": "^16.1.1",
+    "@ogre-tools/infrastructure-prettier": "^16.1.1",
+    "@ogre-tools/infrastructure-webpack-for-js": "^16.1.1"
   }
 }
