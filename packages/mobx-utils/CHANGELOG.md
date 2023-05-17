@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+### [16.1.2](https://github.com/ogre-works/ogre-tools/compare/v16.1.1...v16.1.2) (2023-05-17)
+
+### Bug Fixes
+
+- Revert a patch release contents that was actually breaking ([22628a3](https://github.com/ogre-works/ogre-tools/commit/22628a303d9dcbc660ddf9c873c51dd9587409b1))
+
 ### [16.1.1](https://github.com/ogre-works/ogre-tools/compare/v16.1.0...v16.1.1) (2023-05-17)
 
 ### Bug Fixes
