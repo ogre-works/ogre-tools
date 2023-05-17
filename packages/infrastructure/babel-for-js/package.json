@@ -1,7 +1,7 @@
 {
   "name": "@ogre-tools/infrastructure-babel-for-js",
   "private": true,
-  "version": "16.1.2",
+  "version": "17.0.0",
   "description": "Shared babel configuration",
   "repository": {
     "type": "git",

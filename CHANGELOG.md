@@ -3,6 +3,16 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [17.0.0](https://github.com/ogre-works/ogre-tools/compare/v16.1.2...v17.0.0) (2023-05-17)
+
+### ⚠ BREAKING CHANGES
+
+- Adapt to changes in typing of asyncComputed.
+
+### Bug Fixes
+
+- Make types of asyncComputed describe the value for pending more ([b6719f5](https://github.com/ogre-works/ogre-tools/commit/b6719f57ec206b48213814cf8133ad5e4c3ab745))
+
 ### [16.1.2](https://github.com/ogre-works/ogre-tools/compare/v16.1.1...v16.1.2) (2023-05-17)
 
 ### Bug Fixes
