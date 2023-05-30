@@ -3,6 +3,13 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [17.1.0](https://github.com/ogre-works/ogre-tools/compare/v17.0.0...v17.1.0) (2023-05-30)
+
+### Features
+
+- Make linkable able to automatically attempt fixing corrupted yalc.lock files ([a574e19](https://github.com/ogre-works/ogre-tools/commit/a574e193bf31bac2bfbde64afacab210f84f41c3))
+- Make linkable able to link from monorepo ([2de597b](https://github.com/ogre-works/ogre-tools/commit/2de597b1782ee5e04e67d942741e78fb7d123397))
+
 ## [17.0.0](https://github.com/ogre-works/ogre-tools/compare/v16.1.2...v17.0.0) (2023-05-17)
 
 ### ⚠ BREAKING CHANGES
