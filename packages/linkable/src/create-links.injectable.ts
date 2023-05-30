@@ -35,6 +35,7 @@ export const createLinksInjectable = getInjectable({
       await addYalcPackages(names, {
         link: true,
         workingDir: workingDirectory,
+        pure: false,
       });
     };
   },

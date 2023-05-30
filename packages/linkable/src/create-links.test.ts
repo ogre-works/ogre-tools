@@ -271,7 +271,7 @@ describe('create-links', () => {
 
                 {
                   link: true,
-
+                  pure: false,
                   workingDir: '/some-directory/some-project',
                 },
               );
