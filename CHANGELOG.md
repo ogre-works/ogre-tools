@@ -3,6 +3,13 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+### [17.1.1](https://github.com/ogre-works/ogre-tools/compare/v17.1.0...v17.1.1) (2023-05-31)
+
+### Bug Fixes
+
+- Handle all permutations of ill-formatted paths ([3e3bd6b](https://github.com/ogre-works/ogre-tools/commit/3e3bd6b9bcb0e6bc8e4e7d39f7bd56e9a79a1473))
+- Make linkable push throw when encountering file paths incompatible with yalc ([be75a7e](https://github.com/ogre-works/ogre-tools/commit/be75a7ec25f618e894270a83806928b5b109d809))
+
 ## [17.1.0](https://github.com/ogre-works/ogre-tools/compare/v17.0.0...v17.1.0) (2023-05-30)
 
 ### Features
