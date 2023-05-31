@@ -56,9 +56,9 @@ const checkForYalcCompliantPaths = (packageJson: PackageJson) => {
     );
   }
 
-  const illFormattedFiles = packageJson.files?.filter(file =>
-    file.startsWith('./'),
-  );
+  const files = packageJson.files || [];
+
+  const illFormattedFiles = files.filter(file => file.startsWith('./'));
 
   if (illFormattedFiles.length) {
     throw new Error(

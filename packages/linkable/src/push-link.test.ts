@@ -127,11 +127,40 @@ describe('push-links', () => {
       });
     });
 
-    describe('when package.json resolves with ok "main" and "files"', () => {
+    describe('when package.json resolves with ok "files"', () => {
+      beforeEach(async () => {
+        await readJsonFileMock.resolve({
+          files: ['some-ok-file.js'],
+        });
+      });
+
+      it('publishes yalc package', () => {
+        expect(publishYalcPackageMock).toHaveBeenCalledWith({
+          workingDir: '/some-working-directory',
+          push: true,
+        });
+      });
+    });
+
+    describe('when package.json resolves with ok "main"', () => {
+      beforeEach(async () => {
+        await readJsonFileMock.resolve({
+          main: 'some-ok-file.js',
+        });
+      });
+
+      it('publishes yalc package', () => {
+        expect(publishYalcPackageMock).toHaveBeenCalledWith({
+          workingDir: '/some-working-directory',
+          push: true,
+        });
+      });
+    });
+
+    describe('normally, when package.json resolves with ok properties"', () => {
       beforeEach(async () => {
         await readJsonFileMock.resolve({
           main: 'some-file.js',
-          files: ['some-directory'],
         });
       });
 
