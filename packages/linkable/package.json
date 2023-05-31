@@ -13,6 +13,9 @@
     "url": "git+https://github.com/ogre-works/ogre-tools.git"
   },
   "main": "build/index.js",
+  "files": [
+    "build"
+  ],
   "author": "Ogre Works",
   "license": "MIT",
   "homepage": "https://github.com/ogre-works/ogre-tools#readme",
