@@ -5,6 +5,9 @@ import { addYalcPackagesInjectable } from './add-yalc-packages.injectable';
 import { pipeline } from '@ogre-tools/fp';
 import { consoleLogInjectable } from './console-log.injectable';
 import { consoleWarnInjectable } from './console-warn.injectable';
+import { readJsonFileInjectable } from './shared/fs/read-json-file.injectable';
+import { resolvePathInjectable } from './shared/path/resolve-path.injectable';
+import { PackageJson } from 'type-fest';
 
 export type PushLink = () => Promise<void>;
 
@@ -16,8 +19,14 @@ export const pushLinkInjectable = getInjectable({
     const addYalcPackages = di.inject(addYalcPackagesInjectable);
     const consoleLog = di.inject(consoleLogInjectable);
     const consoleWarn = di.inject(consoleWarnInjectable);
+    const readJsonFile = di.inject(readJsonFileInjectable);
+    const resolvePath = di.inject(resolvePathInjectable);
 
     return async () => {
+      const packageJsonPath = resolvePath(workingDirectory, 'package.json');
+      const packageJson = (await readJsonFile(packageJsonPath)) as PackageJson;
+      checkForYalcCompliantPaths(packageJson);
+
       const lockFileProblems: LockFileProblem[] = [];
 
       const originalConsoleLog = console.log;
@@ -76,6 +85,28 @@ export const pushLinkInjectable = getInjectable({
     };
   },
 });
+
+const checkForYalcCompliantPaths = (packageJson: PackageJson) => {
+  if (packageJson.main?.startsWith('./')) {
+    throw new Error(
+      `Tried to linkable push "${packageJson.name}", but property "main" in package.json started with "./". Please remove the prefix to satisfy yalc.`,
+    );
+  }
+
+  const illFormattedFiles = packageJson.files?.filter(file =>
+    file.startsWith('./'),
+  );
+
+  if (illFormattedFiles.length) {
+    throw new Error(
+      `Tried to linkable push "${
+        packageJson.name
+      }", but property "files" in package.json has items starting with "./": "${illFormattedFiles.join(
+        '", "',
+      )}". Please remove the prefixes to satisfy yalc.`,
+    );
+  }
+};
 
 type LockFileProblem = { moduleName: string; targetDirectory: string };
 
