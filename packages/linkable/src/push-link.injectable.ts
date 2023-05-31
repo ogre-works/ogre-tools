@@ -13,74 +13,37 @@ export type PushLink = () => Promise<void>;
 
 export const pushLinkInjectable = getInjectable({
   id: 'push-link',
+
   instantiate: (di): PushLink => {
     const workingDirectory = di.inject(workingDirectoryInjectable);
     const publishYalcPackage = di.inject(publishYalcPackageInjectable);
-    const addYalcPackages = di.inject(addYalcPackagesInjectable);
-    const consoleLog = di.inject(consoleLogInjectable);
-    const consoleWarn = di.inject(consoleWarnInjectable);
     const readJsonFile = di.inject(readJsonFileInjectable);
     const resolvePath = di.inject(resolvePathInjectable);
+
+    const getLockFileProblemsUsingGloballyOverwrittenLogging = di.inject(
+      getLockFileProblemsUsingGloballyOverwrittenLoggingInjectable,
+    );
+
+    const logAboutLockFileProblems = di.inject(
+      logAboutLockFileProblemsInjectable,
+    );
+
+    const tryFixLockFileProblems = di.inject(tryFixLockFileProblemsInjectable);
+
+    const pushPackage = di.inject(pushPackageInjectable);
 
     return async () => {
       const packageJsonPath = resolvePath(workingDirectory, 'package.json');
       const packageJson = (await readJsonFile(packageJsonPath)) as PackageJson;
       checkForYalcCompliantPaths(packageJson);
 
-      const lockFileProblems: LockFileProblem[] = [];
-
-      const originalConsoleLog = console.log;
-      const originalConsoleWarn = console.warn;
-
-      console.log = (...messageArguments: string[]) => {
-        const lockFileProblem = getLockFileProblem(messageArguments);
-
-        if (lockFileProblem) {
-          lockFileProblems.push(lockFileProblem);
-          return;
-        }
-
-        consoleLog(...messageArguments);
-      };
-
-      console.warn = (...messageArguments: string[]) => {
-        if (isLockFileWarning(messageArguments)) {
-          return;
-        }
-
-        consoleWarn(...messageArguments);
-      };
-
-      await publishYalcPackage({
-        push: true,
-        workingDir: workingDirectory,
-      });
-
-      console.log = originalConsoleLog;
-      console.warn = originalConsoleWarn;
+      const lockFileProblems =
+        await getLockFileProblemsUsingGloballyOverwrittenLogging(pushPackage);
 
       await pipeline(
         lockFileProblems,
-
-        problems => {
-          problems.forEach(problem => {
-            consoleLog(
-              `Encountered corrupted yalc.lock in ${problem.targetDirectory}, resolving automatically by adding ${problem.moduleName}.`,
-            );
-          });
-
-          return problems;
-        },
-
-        async problems => {
-          for (let problem of problems) {
-            await addYalcPackages([problem.moduleName], {
-              link: true,
-              workingDir: problem.targetDirectory,
-              pure: false,
-            });
-          }
-        },
+        logAboutLockFileProblems,
+        tryFixLockFileProblems,
       );
     };
   },
@@ -119,3 +82,94 @@ const isLockFileWarning = ([message]: string[]): boolean =>
   !!message.match(
     /^Did not find package (?<moduleName>.+?) in lockfile, please use 'add' command to add it explicitly\.$/,
   );
+
+export const getLockFileProblemsUsingGloballyOverwrittenLoggingInjectable =
+  getInjectable({
+    id: 'get-lock-file-problems-using-globally-overwritten-logging',
+
+    instantiate: di => {
+      const consoleLog = di.inject(consoleLogInjectable);
+      const consoleWarn = di.inject(consoleWarnInjectable);
+      const lockFileProblems: LockFileProblem[] = [];
+
+      return async callback => {
+        const originalConsoleLog = console.log;
+        const originalConsoleWarn = console.warn;
+
+        console.log = (...messageArguments: string[]) => {
+          const lockFileProblem = getLockFileProblem(messageArguments);
+
+          if (lockFileProblem) {
+            lockFileProblems.push(lockFileProblem);
+            return;
+          }
+
+          consoleLog(...messageArguments);
+        };
+
+        console.warn = (...messageArguments: string[]) => {
+          if (isLockFileWarning(messageArguments)) {
+            return;
+          }
+
+          consoleWarn(...messageArguments);
+        };
+
+        await callback();
+
+        console.log = originalConsoleLog;
+        console.warn = originalConsoleWarn;
+
+        return lockFileProblems;
+      };
+    },
+  });
+
+export const logAboutLockFileProblemsInjectable = getInjectable({
+  id: 'log-about-lock-file-problems',
+  instantiate: di => {
+    const consoleLog = di.inject(consoleLogInjectable);
+
+    return problems => {
+      problems.forEach(problem => {
+        consoleLog(
+          `Encountered corrupted yalc.lock in ${problem.targetDirectory}, resolving automatically by adding ${problem.moduleName}.`,
+        );
+      });
+
+      return problems;
+    };
+  },
+});
+
+export const tryFixLockFileProblemsInjectable = getInjectable({
+  id: 'try-fix-lock-file-problems',
+  instantiate: di => {
+    const addYalcPackages = di.inject(addYalcPackagesInjectable);
+
+    return async problems => {
+      for (let problem of problems) {
+        await addYalcPackages([problem.moduleName], {
+          link: true,
+          workingDir: problem.targetDirectory,
+          pure: false,
+        });
+      }
+    };
+  },
+});
+
+export const pushPackageInjectable = getInjectable({
+  id: 'push-package',
+
+  instantiate: di => {
+    const publishYalcPackage = di.inject(publishYalcPackageInjectable);
+    const workingDirectory = di.inject(workingDirectoryInjectable);
+
+    return () =>
+      publishYalcPackage({
+        push: true,
+        workingDir: workingDirectory,
+      });
+  },
+});
