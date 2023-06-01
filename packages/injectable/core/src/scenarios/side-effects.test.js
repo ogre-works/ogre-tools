@@ -83,4 +83,36 @@ describe('createContainer.side-effects', () => {
       di.inject(someInjectionToken);
     }).not.toThrow();
   });
+
+  it('given side effects are prevented, but then permitted for an injection token, when injecting many, does not throw', () => {
+    const someInjectionToken = getInjectionToken({
+      id: 'some-injection-token',
+    });
+
+    const someInjectable = getInjectable({
+      id: 'irrelevant-1',
+      causesSideEffects: true,
+      instantiate: () => 'irrelevant',
+      injectionToken: someInjectionToken,
+    });
+
+    const someOtherInjectable = getInjectable({
+      id: 'irrelevant-2',
+      causesSideEffects: true,
+      instantiate: () => 'irrelevant',
+      injectionToken: someInjectionToken,
+    });
+
+    const di = createContainer('some-container');
+
+    di.register(someInjectable, someOtherInjectable);
+
+    di.preventSideEffects();
+
+    di.permitSideEffects(someInjectionToken);
+
+    expect(() => {
+      di.injectMany(someInjectionToken);
+    }).not.toThrow();
+  });
 });
