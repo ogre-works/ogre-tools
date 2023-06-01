@@ -59,7 +59,7 @@ describe('createContainer.side-effects', () => {
     }).not.toThrow();
   });
 
-  it('given side effects are prevented, but then permitted for an injectable, when injecting, does not throw', () => {
+  it('given side effects are prevented, but then permitted for an injection token, when injecting, does not throw', () => {
     const someInjectionToken = getInjectionToken({
       id: 'some-injection-token',
     });
