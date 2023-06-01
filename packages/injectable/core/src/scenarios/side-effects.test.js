@@ -1,5 +1,6 @@
 import getInjectable from '../getInjectable/getInjectable';
 import createContainer from '../dependency-injection-container/createContainer';
+import { getInjectionToken } from '@ogre-tools/injectable';
 
 describe('createContainer.side-effects', () => {
   it('given in side effects are not prevented, when injecting injectable which causes side effects, does not throw', () => {
@@ -55,6 +56,31 @@ describe('createContainer.side-effects', () => {
 
     expect(() => {
       di.inject(someInjectable);
+    }).not.toThrow();
+  });
+
+  it('given side effects are prevented, but then permitted for an injectable, when injecting, does not throw', () => {
+    const someInjectionToken = getInjectionToken({
+      id: 'some-injection-token',
+    });
+
+    const someInjectable = getInjectable({
+      id: 'irrelevant',
+      causesSideEffects: true,
+      instantiate: () => 'irrelevant',
+      injectionToken: someInjectionToken,
+    });
+
+    const di = createContainer('some-container');
+
+    di.register(someInjectable);
+
+    di.preventSideEffects();
+
+    di.permitSideEffects(someInjectionToken);
+
+    expect(() => {
+      di.inject(someInjectionToken);
     }).not.toThrow();
   });
 });

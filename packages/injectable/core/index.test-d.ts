@@ -501,3 +501,6 @@ const someKeyedSingletonWithSourceNamespaceAsKey = getInjectable({
     },
   }),
 });
+
+// given injectable, when unoverridden using injectionToken, typing is ok.
+di.permitSideEffects(someInjectionToken);

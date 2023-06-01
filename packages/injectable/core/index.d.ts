@@ -2,7 +2,9 @@
 export interface DiContainer extends DiContainerForInjection {
   purge: (injectableKey: Injectable<any, any, any>) => void;
 
-  permitSideEffects: (injectableKey: Injectable<any, any, any>) => void;
+  permitSideEffects: (
+    injectableKey: InjectionToken<any, any> | Injectable<any, any, any>,
+  ) => void;
 
   override<
     InjectionInstance extends InjectionTokenInstance,

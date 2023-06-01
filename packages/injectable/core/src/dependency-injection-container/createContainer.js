@@ -184,7 +184,9 @@ export default (containerId, { detectCycles = true } = {}) => {
     },
 
     permitSideEffects: alias => {
-      injectablesWithPermittedSideEffects.add(alias);
+      getRelatedInjectables(alias).forEach(injectable =>
+        injectablesWithPermittedSideEffects.add(injectable),
+      );
     },
 
     purge: purgeInstances,
