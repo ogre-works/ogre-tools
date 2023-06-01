@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [17.2.0](https://github.com/ogre-works/ogre-tools/compare/v17.1.1...v17.2.0) (2023-06-01)
+
+### Features
+
+- Make permitting side effects work properly with injection tokens ([f3dea3b](https://github.com/ogre-works/ogre-tools/commit/f3dea3b2c3938b94ba3773ca63cd39328eb6ebcd))
+
 ### [17.1.1](https://github.com/ogre-works/ogre-tools/compare/v17.1.0...v17.1.1) (2023-05-31)
 
 ### Bug Fixes
