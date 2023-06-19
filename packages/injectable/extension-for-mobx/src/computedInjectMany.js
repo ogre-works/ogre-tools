@@ -1,11 +1,11 @@
 import {
-  registrationCallbackToken,
+  deregistrationCallbackToken,
   getInjectable,
   lifecycleEnum,
-  deregistrationCallbackToken,
+  registrationCallbackToken,
 } from '@ogre-tools/injectable';
 
-import { computed, createAtom, runInAction, _getGlobalState } from 'mobx';
+import { computed, createAtom, runInAction } from 'mobx';
 
 export const isInternalOfComputedInjectMany = Symbol(
   'isInternalOfComputedInjectMany',
@@ -27,14 +27,6 @@ const invalidabilityForReactiveInstances = getInjectable({
 });
 
 const getInvalidatorInstance = registerOrDeregister => di => injectable => {
-  const { inBatch } = _getGlobalState();
-
-  if (inBatch === 0 && !!injectable.injectionToken) {
-    throw new Error(
-      `Tried to ${registerOrDeregister} injectable "${injectable.id}" having an injection token outside of MobX-transaction. Transaction is required, as otherwise usages of computedInjectMany could observe untimely invalidations.`,
-    );
-  }
-
   if (!injectable.injectionToken) {
     return;
   }
