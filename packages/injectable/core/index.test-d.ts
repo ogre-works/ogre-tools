@@ -340,6 +340,18 @@ expectType<
   }[]
 >(di.injectManyWithMeta(someInjectionToken));
 
+// given injecting with meta, typing is OK
+expectType<
+  {
+    instance: {
+      requiredProperty: string;
+      optionalProperty?: number;
+    };
+
+    meta: { id: string };
+  }
+>(di.injectWithMeta(someInjectionToken));
+
 const someOtherInjectionToken = getInjectionToken<{ someProperty: number }>({
   id: 'some-other-injection-token',
 });

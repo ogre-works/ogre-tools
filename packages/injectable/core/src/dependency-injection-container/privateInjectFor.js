@@ -13,6 +13,7 @@ export const privateInjectFor =
     checkForSideEffects,
     getNamespacedId,
   }) =>
+  ({ withMeta }) =>
   (alias, instantiationParameter, context = [], source) => {
     const di = getDi();
 
@@ -31,7 +32,7 @@ export const privateInjectFor =
 
     checkForSideEffects(injectable, context);
 
-    return getInstance({
+    const instance = getInstance({
       di,
       injectable,
       instantiationParameter,
@@ -40,6 +41,17 @@ export const privateInjectFor =
       source,
       getNamespacedId,
     });
+
+    if (!withMeta) {
+      return instance;
+    }
+
+    const namespacedId = getNamespacedId(injectable);
+
+    return {
+      instance,
+      meta: { id: namespacedId },
+    };
   };
 
 const getInstance = ({

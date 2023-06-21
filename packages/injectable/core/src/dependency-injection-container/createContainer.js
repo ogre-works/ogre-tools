@@ -88,7 +88,7 @@ export default (containerId, { detectCycles = true } = {}) => {
     getNamespacedId,
   });
 
-  const nonDecoratedPrivateInject = privateInjectFor({
+  const nonDecoratedPrivateInjectUnknownMeta = privateInjectFor({
     getRelatedInjectables,
     alreadyInjected,
     overridingInjectables,
@@ -99,8 +99,21 @@ export default (containerId, { detectCycles = true } = {}) => {
     getNamespacedId,
   });
 
+  const nonDecoratedPrivateInject = nonDecoratedPrivateInjectUnknownMeta({
+    withMeta: false,
+  });
+
+  const nonDecoratedPrivateInjectWithMeta =
+    nonDecoratedPrivateInjectUnknownMeta({
+      withMeta: true,
+    });
+
   const decoratedPrivateInject = withInjectionDecorators(
     nonDecoratedPrivateInject,
+  );
+
+  const decoratedPrivateInjectWithMeta = withInjectionDecorators(
+    nonDecoratedPrivateInjectWithMeta,
   );
 
   const decoratedPrivateInjectMany = withInjectionDecorators(
@@ -162,6 +175,7 @@ export default (containerId, { detectCycles = true } = {}) => {
 
   const privateDi = {
     inject: decoratedPrivateInject,
+    injectWithMeta: decoratedPrivateInjectWithMeta,
     injectMany: decoratedPrivateInjectMany,
     injectManyWithMeta: decoratedPrivateInjectManyWithMeta,
 
@@ -206,6 +220,16 @@ export default (containerId, { detectCycles = true } = {}) => {
     ...privateDi,
 
     inject: publicInject,
+
+    injectWithMeta: (alias, parameter, customContextItem) =>
+      privateDi.injectWithMeta(
+        alias,
+        parameter,
+        customContextItem
+          ? [containerRootContextItem, customContextItem]
+          : [containerRootContextItem],
+        containerRootContextItem.injectable,
+      ),
 
     injectMany: (alias, parameter, customContextItem) =>
       privateDi.injectMany(

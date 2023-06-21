@@ -183,6 +183,21 @@ interface InjectManyWithMeta {
   ): InjectionInstanceWithMeta<InjectionInstance>[];
 }
 
+interface InjectWithMeta {
+  <InjectionInstance>(
+    key:
+      | Injectable<InjectionInstance, unknown, void>
+      | InjectionToken<InjectionInstance, void>,
+  ): InjectionInstanceWithMeta<InjectionInstance>;
+
+  <InjectionInstance, InstantiationParam>(
+    key:
+      | Injectable<InjectionInstance, unknown, InstantiationParam>
+      | InjectionToken<InjectionInstance, InstantiationParam>,
+    param: InstantiationParam,
+  ): InjectionInstanceWithMeta<InjectionInstance>;
+}
+
 interface ContextItem {
   injectable: Injectable<any, any, any>;
   instantiationParameter: unknown;
@@ -190,6 +205,7 @@ interface ContextItem {
 
 export interface DiContainerForInjection {
   inject: Inject;
+  injectWithMeta: InjectWithMeta;
   injectFactory: InjectFactory;
   injectMany: InjectMany;
   injectManyWithMeta: InjectManyWithMeta;
