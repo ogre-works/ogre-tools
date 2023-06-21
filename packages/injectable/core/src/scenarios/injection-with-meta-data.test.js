@@ -29,6 +29,29 @@ describe('injection with meta data', () => {
     ]);
   });
 
+  it('given injecting sync injectable with meta data, does so', () => {
+    const someInjectionToken = getInjectionToken({
+      id: 'some-injection-token-id',
+    });
+
+    const someInjectable = getInjectable({
+      id: 'some-injectable',
+      instantiate: () => 'some-instance',
+      injectionToken: someInjectionToken,
+    });
+
+    const di = createContainer('irrelevant');
+
+    di.register(someInjectable);
+
+    const actual = di.injectWithMeta(someInjectionToken);
+
+    expect(actual).toEqual({
+      instance: 'some-instance',
+      meta: { id: 'some-injectable' },
+    });
+  });
+
   it('given scope, when injecting many sync injectable with meta data, does so', () => {
     const someInjectionToken = getInjectionToken({
       id: 'some-injection-token-id',
