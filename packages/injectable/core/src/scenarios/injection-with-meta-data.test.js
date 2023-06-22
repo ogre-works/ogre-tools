@@ -267,4 +267,27 @@ describe('injection with meta data', () => {
 
     expect(actual).toEqual([{ instance: 42, meta: { id: 'some-injectable' } }]);
   });
+
+  it('given injectables, when injecting with meta with an injectable, works', () => {
+    const di = createContainer('some-container');
+
+    const someInjectable = getInjectable({
+      id: 'some-injectable',
+      instantiate: () => 42,
+    });
+
+    const someOtherInjectable = getInjectable({
+      id: 'some-other-injectable',
+      instantiate: di => di.injectWithMeta(someInjectable),
+    });
+
+    di.register(someInjectable, someOtherInjectable);
+
+    const actual = di.inject(someOtherInjectable);
+
+    expect(actual).toEqual({
+      instance: 42,
+      meta: { id: 'some-injectable' },
+    });
+  });
 });
