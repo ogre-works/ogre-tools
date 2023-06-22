@@ -1,7 +1,7 @@
 {
   "name": "@ogre-tools/injectable-utils",
   "private": false,
-  "version": "17.5.0",
+  "version": "17.5.1",
   "description": "Utilities to support general usage of injectable",
   "files": [
     "build",
@@ -26,12 +26,12 @@
   },
   "devDependencies": {
     "@async-fn/jest": "^1.6.4",
-    "@ogre-tools/infrastructure-babel-for-ts": "^17.5.0",
-    "@ogre-tools/infrastructure-jest": "^17.5.0",
-    "@ogre-tools/infrastructure-prettier": "^17.5.0",
-    "@ogre-tools/infrastructure-typescript": "^17.5.0",
-    "@ogre-tools/infrastructure-webpack-for-ts": "^17.5.0",
-    "@ogre-tools/test-utils": "^17.5.0"
+    "@ogre-tools/infrastructure-babel-for-ts": "^17.5.1",
+    "@ogre-tools/infrastructure-jest": "^17.5.1",
+    "@ogre-tools/infrastructure-prettier": "^17.5.1",
+    "@ogre-tools/infrastructure-typescript": "^17.5.1",
+    "@ogre-tools/infrastructure-webpack-for-ts": "^17.5.1",
+    "@ogre-tools/test-utils": "^17.5.1"
   },
   "gitHead": "a5e3d70aa0d5d45dbf2f3d37f586fac93bfffc86",
   "bugs": {

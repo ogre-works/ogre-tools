@@ -83,6 +83,14 @@ const getInstance = ({
   const minimalDi = {
     inject: minimalInject,
 
+    injectWithMeta: (alias, parameter) =>
+      di.injectWithMeta(
+        alias,
+        parameter,
+        newContext,
+        injectableToBeInstantiated,
+      ),
+
     injectMany: (alias, parameter) =>
       di.injectMany(alias, parameter, newContext, injectableToBeInstantiated),
 
