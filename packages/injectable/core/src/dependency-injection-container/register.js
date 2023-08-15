@@ -1,10 +1,11 @@
 import { getNamespacedIdFor } from './getNamespacedIdFor';
 import { registrationCallbackToken } from './tokens';
+import toFlatInjectables from './toFlatInjectables';
 
 export const registerFor =
   ({ registerSingle, injectMany }) =>
   ({ injectables, context, source }) => {
-    injectables.forEach(injectable => {
+    toFlatInjectables(injectables).forEach(injectable => {
       registerSingle(injectable, context);
     });
 

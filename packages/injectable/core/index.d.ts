@@ -91,6 +91,18 @@ export function getInjectable<
   >,
 ): Injectable<InjectionInstance, InjectionTokenInstance, InstantiationParam>;
 
+type InjectableBunch<InjectableConfig> = {
+  [Key in keyof InjectableConfig]: InjectableConfig[Key] extends Injectable<
+    infer InjectionInstance,
+    infer InjectionTokenInstance,
+    infer InstantiationParam
+  >
+    ? Injectable<InjectionInstance, InjectionTokenInstance, InstantiationParam>
+    : never;
+};
+
+export function getInjectableBunch<Type>(bunch: Type): InjectableBunch<Type>;
+
 export function getInjectionToken<
   InjectionInstance,
   InstantiationParam = void,

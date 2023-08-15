@@ -1,7 +1,18 @@
-import { flatMap, forEach, tap, set } from 'lodash/fp';
+import { flatMap, forEach, tap } from 'lodash/fp';
 import { pipeline } from '@ogre-tools/fp';
-import { isInjectable } from '@ogre-tools/injectable';
+import {
+  isInjectable,
+  isInjectableBunch,
+  toFlatInjectables,
+} from '@ogre-tools/injectable';
 import requireContextFake from './requireContextFake';
+
+const toInjectables = module =>
+  toFlatInjectables(
+    Object.values(module).filter(
+      exported => isInjectable(exported) || isInjectableBunch(exported),
+    ),
+  );
 
 const getFileNameAndModule = requireContext =>
   requireContext.keys().map(key => [key, requireContext(key)]);
@@ -9,7 +20,7 @@ const getFileNameAndModule = requireContext =>
 const registerInjectableFor =
   di =>
   ([, module]) => {
-    di.register(...Object.values(module).filter(isInjectable));
+    di.register(...toInjectables(module));
   };
 
 const verifyFiles = fileNamesAndModules => {
@@ -21,9 +32,7 @@ const verifyFiles = fileNamesAndModules => {
 };
 
 const verifyInjectables = ([[fileName, module]]) => {
-  const injectables = Object.entries(module).filter(([, exported]) =>
-    isInjectable(exported),
-  );
+  const injectables = toInjectables(module);
 
   if (injectables.length === 0) {
     throw new Error(

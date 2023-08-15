@@ -18,6 +18,7 @@ import {
   InjectionToken,
   isInjectable,
   isInjectionToken,
+  getInjectableBunch,
 } from '.';
 
 const di = createContainer('some-container');
@@ -341,16 +342,14 @@ expectType<
 >(di.injectManyWithMeta(someInjectionToken));
 
 // given injecting with meta, typing is OK
-expectType<
-  {
-    instance: {
-      requiredProperty: string;
-      optionalProperty?: number;
-    };
+expectType<{
+  instance: {
+    requiredProperty: string;
+    optionalProperty?: number;
+  };
 
-    meta: { id: string };
-  }
->(di.injectWithMeta(someInjectionToken));
+  meta: { id: string };
+}>(di.injectWithMeta(someInjectionToken));
 
 const someOtherInjectionToken = getInjectionToken<{ someProperty: number }>({
   id: 'some-other-injection-token',
@@ -516,3 +515,17 @@ const someKeyedSingletonWithSourceNamespaceAsKey = getInjectable({
 
 // given injectable, when unoverridden using injectionToken, typing is ok.
 di.permitSideEffects(someInjectionToken);
+
+// given injectable bunch, typing is ok
+const someInjectableBunch = getInjectableBunch({
+  someInjectable: {
+    id: 'some-injectable',
+    instantiate: (di: DiContainerForInjection, parameter: number) =>
+      `some-instance-${parameter}`,
+    lifecycle: lifecycleEnum.transient,
+  },
+});
+
+expectType<{ someInjectable: Injectable<string, unknown, number> }>(
+  someInjectableBunch,
+);

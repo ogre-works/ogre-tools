@@ -1,12 +1,15 @@
-import getInjectionToken from './src/getInjectionToken/getInjectionToken';
-
-import getInjectable from './src/getInjectable/getInjectable';
-import lifecycleEnum from './src/dependency-injection-container/lifecycleEnum';
-
 import createContainer from './src/dependency-injection-container/createContainer';
 
+import getInjectable from './src/getInjectable/getInjectable';
 import isInjectable from './src/getInjectable/isInjectable';
+import lifecycleEnum from './src/dependency-injection-container/lifecycleEnum';
+
+import getInjectionToken from './src/getInjectionToken/getInjectionToken';
 import isInjectionToken from './src/getInjectionToken/isInjectionToken';
+
+import getInjectableBunch from './src/getInjectableBunch/getInjectableBunch';
+import isInjectableBunch from './src/getInjectableBunch/isInjectableBunch';
+import toFlatInjectables from './src/dependency-injection-container/toFlatInjectables';
 
 export { createInstantiationTargetDecorator } from './src/dependency-injection-container/createInstantiationTargetDecorator';
 export { createInjectionTargetDecorator } from './src/dependency-injection-container/createInjectionTargetDecorator';
@@ -21,8 +24,11 @@ export {
 export {
   createContainer,
   getInjectable,
-  getInjectionToken,
   isInjectable,
+  getInjectableBunch,
+  isInjectableBunch,
+  getInjectionToken,
   isInjectionToken,
   lifecycleEnum,
+  toFlatInjectables,
 };

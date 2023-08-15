@@ -1,4 +1,5 @@
 import { deregistrationCallbackToken } from './tokens';
+import toFlatInjectables from './toFlatInjectables';
 
 export const deregisterFor =
   ({
@@ -42,7 +43,7 @@ export const deregisterFor =
       di,
     });
 
-    injectables.forEach(injectable => {
+    toFlatInjectables(injectables).forEach(injectable => {
       dependenciesByDependencyMap.delete(injectable);
       dependeesByDependencyMap.delete(injectable);
 

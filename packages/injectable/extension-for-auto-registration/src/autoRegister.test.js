@@ -2,6 +2,7 @@ import { createContainer, getInjectable } from '@ogre-tools/injectable';
 import { getSafeFrom, pipeline } from '@ogre-tools/fp';
 import { fromPairs, keys, map } from 'lodash/fp';
 import autoRegisterFor from './autoRegister';
+import { getInjectableBunch } from '@ogre-tools/injectable';
 
 const nonCappedMap = map.convert({ cap: false });
 
@@ -29,7 +30,7 @@ describe('autoRegister', () => {
     });
   });
 
-  it('injects auto-registered injectable', () => {
+  it('given file with injectable as export and auto-registered, when an injectable in bunch is injected, does so', () => {
     const injectableStub = getInjectable({
       id: 'irrelevant',
       instantiate: () => 'some-injected-instance',
@@ -60,6 +61,78 @@ describe('autoRegister', () => {
     const actual = di.inject(injectableStub);
 
     expect(actual).toBe('some-injected-instance');
+  });
+
+  it('given file with injectable bunch as export and auto-registered, when an injectable in bunch is injected, does so', () => {
+    const someInjectableBunch = getInjectableBunch({
+      someInjectable: {
+        id: 'irrelevant',
+        instantiate: () => 'some-injected-instance',
+      },
+    });
+
+    const requireStub = {
+      context: getSafeFrom({
+        'some-directory/': getRequireContextStub({
+          default: someInjectableBunch,
+        }),
+      }),
+    };
+
+    const di = createContainer('some-container');
+
+    autoRegister({
+      di,
+
+      targetModule: {
+        require: requireStub,
+      },
+
+      getRequireContexts: () => [
+        requireStub.context('some-directory/', true, /\.injectable\.js$/),
+      ],
+    });
+
+    const actual = di.inject(someInjectableBunch.someInjectable);
+
+    expect(actual).toBe('some-injected-instance');
+  });
+
+  it('given file with empty injectable bunch as export, when auto-registered, throws', () => {
+    const someInjectableBunch = getInjectableBunch({});
+
+    const requireContextStub = Object.assign(
+      () => ({
+        someExport: someInjectableBunch,
+      }),
+
+      {
+        keys: () => ['./some.injectable.js'],
+      },
+    );
+    const requireStub = {
+      context: getSafeFrom({
+        'some-directory/': requireContextStub,
+      }),
+    };
+
+    const di = createContainer('some-container');
+
+    expect(() => {
+      autoRegister({
+        di,
+
+        targetModule: {
+          require: requireStub,
+        },
+
+        getRequireContexts: () => [
+          requireStub.context('some-directory/', true, /\.injectable\.js$/),
+        ],
+      });
+    }).toThrow(
+      'Tried to register injectables from "./some.injectable.js", but there were none"',
+    );
   });
 
   it('given webpack, injects', () => {
