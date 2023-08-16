@@ -1,3 +1,5 @@
+const { coverageConfig } = require('./coverage-config');
+
 module.exports = rootDir => {
   const shared = {
     transform: {
@@ -5,30 +7,14 @@ module.exports = rootDir => {
     },
 
     clearMocks: true,
-    coverageDirectory: 'coverage',
-    coverageProvider: 'v8',
-    coverageReporters: ['lcov'],
-    collectCoverage: true,
     testMatch: ['**/?(*.)+(test).{js,ts,tsx}'],
     watchPathIgnorePatterns: ['/node_modules/', '/coverage/', '/build/'],
-
-    collectCoverageFrom: [
-      '<rootDir>/src/**/*.{ts,tsx}',
-      '!<rootDir>/src/**/*.no-coverage.ts',
-    ],
 
     moduleNameMapper: {
       '^electron$': 'identity-obj-proxy',
     },
 
-    coverageThreshold: {
-      global: {
-        branches: 100,
-        functions: 100,
-        lines: 100,
-        statements: 100,
-      },
-    },
+    ...coverageConfig,
   };
 
   const configForNode = {

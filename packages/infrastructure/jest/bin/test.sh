@@ -1,6 +1,6 @@
-jest --coverage --runInBand
+jest
 result=$?
 
-[ $result != 0 ] && [ -v $CI ] && open ./coverage/lcov-report/index.html
+[ $result != 0 ] && [[ -z $CI ]] && open ./coverage/lcov-report/index.html
 
 exit $result

@@ -1,40 +1,41 @@
-const path = require("path");
-const glob = require("glob");
-const { omit } = require("lodash/fp");
+const path = require('path');
+const glob = require('glob');
+const { omit } = require('lodash/fp');
+const { coverageConfig } = require('./coverage-config');
 
-const getProjectColor = (projectNumber) => {
+const getProjectColor = projectNumber => {
   const colors = [
-    "red",
-    "green",
-    "yellow",
-    "magenta",
-    "cyan",
-    "white",
-    "redBright",
-    "greenBright",
-    "yellowBright",
-    "blueBright",
-    "magentaBright",
-    "cyanBright",
-    "whiteBright",
+    'red',
+    'green',
+    'yellow',
+    'magenta',
+    'cyan',
+    'white',
+    'redBright',
+    'greenBright',
+    'yellowBright',
+    'blueBright',
+    'magentaBright',
+    'cyanBright',
+    'whiteBright',
   ];
 
   return colors[projectNumber % colors.length];
 };
 
 const nonMultiProjectConfigs = [
-  "coverageDirectory",
-  "coverageProvider",
-  "coverageReporters",
-  "collectCoverage",
-  "collectCoverageFrom",
-  "coveragePathIgnorePatterns",
-  "coverageThreshold",
+  'coverageDirectory',
+  'coverageProvider',
+  'coverageReporters',
+  'collectCoverage',
+  'collectCoverageFrom',
+  'coveragePathIgnorePatterns',
+  'coverageThreshold',
 ];
 
 const toJestMultiProjectConfig = (
   { packageJson, jestConfig, packagePath },
-  projectNumber
+  projectNumber,
 ) => ({
   rootDir: packagePath,
 
@@ -46,28 +47,30 @@ const toJestMultiProjectConfig = (
   ...omit(nonMultiProjectConfigs, jestConfig),
 });
 
-const getJestConfigsAndPackageJsons = (rootDir) => {
+const getJestConfigsAndPackageJsons = rootDir => {
   const packageJsonPaths = glob
     .sync(`${rootDir}/packages/**/jest.config.js`, {
-      ignore: "./**/node_modules/**/*",
+      ignore: './**/node_modules/**/*',
     })
-    .map((filePath) => path.dirname(filePath));
+    .map(filePath => path.dirname(filePath));
 
-  return packageJsonPaths.map((packagePath) => ({
+  return packageJsonPaths.map(packagePath => ({
     packagePath,
     packageJson: require(`${packagePath}/package.json`),
     jestConfig: require(`${packagePath}/jest.config.js`),
   }));
 };
 
-module.exports = (rootDir) => ({
+module.exports = rootDir => ({
   projects: getJestConfigsAndPackageJsons(rootDir).map(
-    toJestMultiProjectConfig
+    toJestMultiProjectConfig,
   ),
 
   watchPlugins: [
-    "jest-watch-typeahead/filename",
-    "jest-watch-typeahead/testname",
-    "jest-watch-select-projects",
+    'jest-watch-typeahead/filename',
+    'jest-watch-typeahead/testname',
+    'jest-watch-select-projects',
   ],
+
+  ...coverageConfig,
 });
