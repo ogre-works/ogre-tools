@@ -1,0 +1,94 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`withInjectables given anonymous component, injecting a token, when rendered, works 1`] = `
+<body>
+  <div>
+    irrelevant
+  </div>
+</body>
+`;
+
+exports[`withInjectables given component and sync dependencies, when rendered, renders with dependencies 1`] = `
+<body>
+  <div>
+    <div
+      data-some-prop-test="true"
+    >
+      Some content: "
+      some-injectable-value
+      "
+    </div>
+  </div>
+</body>
+`;
+
+exports[`withInjectables given component with props, placeholder and async dependencies, when rendered renders as placeholder using the props 1`] = `
+<body>
+  <div>
+    <div
+      data-testid="some-placeholder-with-props(some-prop-value)"
+    />
+  </div>
+</body>
+`;
+
+exports[`withInjectables given component, and rendered, when re-rendered, works 1`] = `
+<body>
+  <div>
+    irrelevant
+  </div>
+</body>
+`;
+
+exports[`withInjectables given component, no placeholder and async dependencies, when rendered when the dependency resolves renders 1`] = `
+<body>
+  <div>
+    <div
+      data-some-prop-test="true"
+    >
+      Some content: "
+      some-async-value
+      "
+    </div>
+  </div>
+</body>
+`;
+
+exports[`withInjectables given component, placeholder and async dependencies, when rendered renders as placeholder 1`] = `
+<body>
+  <div>
+    <div
+      data-testid="some-placeholder"
+    />
+  </div>
+</body>
+`;
+
+exports[`withInjectables given component, placeholder and async dependencies, when rendered when the dependency resolves renders 1`] = `
+<body>
+  <div>
+    <div
+      data-some-prop-test="true"
+      data-testid="some-dumb-test-component"
+    >
+      Some content: "
+      some-async-value
+      "
+    </div>
+  </div>
+</body>
+`;
+
+exports[`withInjectables given component, props and a dependency using instantiation parameter, when rendered, renders with the dependency having props as instantiation parameter 1`] = `
+<body>
+  <div>
+    <div
+      data-some-prop-test="true"
+    >
+      Some content: "
+      some-injectable-value: some-instantiation-parameter-value
+      "
+    </div>
+  </div>
+</body>
+`;

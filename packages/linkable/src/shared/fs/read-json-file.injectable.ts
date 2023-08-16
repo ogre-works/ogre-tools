@@ -6,7 +6,9 @@ export type ReadJsonFile = (path: string) => Promise<JsonValue>;
 
 export const readJsonFileWithoutErrorHandlingInjectable = getInjectable({
   id: 'read-json-file-without-error-handling',
-  instantiate: (): ReadJsonFile => fse.readJson,
+  instantiate:
+    /* c8 ignore next */
+    (): ReadJsonFile => fse.readJson,
 });
 
 export const readJsonFileInjectable = getInjectable({

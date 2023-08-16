@@ -282,6 +282,14 @@ describe('create-links', () => {
 
               expect(promiseStatus.fulfilled).toBe(false);
             });
+
+            it('when adding resolves, resolves', async () => {
+              await addYalcPackagesMock.resolve();
+
+              const promiseStatus = await getPromiseStatus(actualPromise);
+
+              expect(promiseStatus.fulfilled).toBe(true);
+            });
           });
         });
       });

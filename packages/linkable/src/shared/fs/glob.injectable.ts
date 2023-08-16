@@ -5,5 +5,7 @@ export type Glob = typeof glob;
 
 export const globInjectable = getInjectable({
   id: 'glob',
-  instantiate: (): Glob => glob,
+  instantiate:
+    /* c8 ignore next */
+    (): Glob => glob,
 });

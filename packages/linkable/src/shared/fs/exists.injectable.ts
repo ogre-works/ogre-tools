@@ -5,5 +5,7 @@ export type Exists = (path: string) => Promise<boolean>;
 
 export const existsInjectable = getInjectable({
   id: 'exists',
-  instantiate: (): Exists => fse.pathExists,
+  instantiate:
+    /* c8 ignore next */
+    (): Exists => fse.pathExists,
 });

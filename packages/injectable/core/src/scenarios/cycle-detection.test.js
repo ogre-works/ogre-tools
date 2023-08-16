@@ -9,8 +9,8 @@ describe('cycle-detection', () => {
       goodInjectable,
       badInjectable,
       workerInjectable,
-      someCyclicalInjectable1,
-      someCyclicalInjectable2,
+      someInfinitelyCyclicalInjectable1,
+      someInfinitelyCyclicalInjectable2,
     );
 
     expect(() => {
@@ -18,7 +18,7 @@ describe('cycle-detection', () => {
     }).toThrow('Maximum call stack size exceeded');
   });
 
-  describe('given no cycle and injected', () => {
+  describe('given di with cycle detection enabled', () => {
     let di;
 
     beforeEach(() => {
@@ -28,18 +28,21 @@ describe('cycle-detection', () => {
         goodInjectable,
         badInjectable,
         workerInjectable,
-        someCyclicalInjectable1,
-        someCyclicalInjectable2,
+        someInfinitelyCyclicalInjectable1,
+        someInfinitelyCyclicalInjectable2,
+        someFinitelyCyclicalInjectable1,
+        someFinitelyCyclicalInjectable2,
+        someInjectableWithoutDependencies,
       );
     });
 
-    it('given good work is done, injects', () => {
+    it('when injecting without cycle, does so', () => {
       const actual = di.inject(goodInjectable);
 
       expect(actual).toBe('some-good-result');
     });
 
-    it('given only bad work is done, throws error about only the cycle', () => {
+    it('when injecting with cycle, throws error about the cycle', () => {
       expect(() => {
         di.inject(badInjectable);
       }).toThrow(
@@ -47,7 +50,7 @@ describe('cycle-detection', () => {
       );
     });
 
-    it('given good work is done, but then bad work is done, throws error about only the cycle', () => {
+    it('given injecting first without cycle, when injecting same injectable again with cycle, throws error about only the new cycle', () => {
       di.inject(goodInjectable);
 
       expect(() => {
@@ -62,13 +65,27 @@ describe('cycle-detection', () => {
         di.inject(badInjectable);
       } catch (e) {}
 
-      di.deregister(someCyclicalInjectable1);
-      someCyclicalInjectable1.instantiate = () => 'no-longer-cyclical-instance';
-      di.register(someCyclicalInjectable1);
+      di.deregister(someInfinitelyCyclicalInjectable1);
+      someInfinitelyCyclicalInjectable1.instantiate = () =>
+        'no-longer-cyclical-instance';
+      di.register(someInfinitelyCyclicalInjectable1);
 
       expect(() => {
         di.inject(badInjectable);
       }).not.toThrow();
+    });
+
+    it('given injecting injectables which cannot cause cycles yet cause a finite cycle, when injected, does so', () => {
+      const actual = di.inject(someFinitelyCyclicalInjectable1, 4);
+      expect(actual).toBe(
+        'instance-from-injectable-1(4) --> instance-from-injectable-2(3) --> instance-from-injectable-1(2) --> instance-from-injectable-2(1) --> end',
+      );
+    });
+
+    it('given injecting injectable which has no dependencies, when injected, does so', () => {
+      const actual = di.inject(someInjectableWithoutDependencies);
+
+      expect(actual).toBe('some-instance');
     });
   });
 });
@@ -83,18 +100,47 @@ const badInjectable = getInjectable({
   instantiate: di => di.inject(workerInjectable)(false),
 });
 
-const someCyclicalInjectable1 = getInjectable({
+const someInfinitelyCyclicalInjectable1 = getInjectable({
   id: 'some-cyclical-injectable-1',
-  instantiate: di => di.inject(someCyclicalInjectable2),
+  instantiate: di => di.inject(someInfinitelyCyclicalInjectable2),
 });
 
-const someCyclicalInjectable2 = getInjectable({
+const someInfinitelyCyclicalInjectable2 = getInjectable({
   id: 'some-cyclical-injectable-2',
-  instantiate: di => di.inject(someCyclicalInjectable1),
+  instantiate: di => di.inject(someInfinitelyCyclicalInjectable1),
+});
+
+const someFinitelyCyclicalInjectable1 = getInjectable({
+  id: 'some-finitely-cyclical-injectable-1',
+  instantiate: (di, counter) =>
+    counter
+      ? `instance-from-injectable-1(${counter}) --> ${di.inject(
+          someFinitelyCyclicalInjectable2,
+          counter - 1,
+        )}`
+      : 'end',
+  cannotCauseCycles: true,
+});
+
+const someFinitelyCyclicalInjectable2 = getInjectable({
+  id: 'some-finitely-cyclical-injectable-2',
+  instantiate: (di, counter) =>
+    counter
+      ? `instance-from-injectable-2(${counter}) --> ${di.inject(
+          someFinitelyCyclicalInjectable1,
+          counter - 1,
+        )}`
+      : 'end',
+  cannotCauseCycles: true,
+});
+
+const someInjectableWithoutDependencies = getInjectable({
+  id: 'some-injectable-without-dependencies',
+  instantiate: di => 'some-instance',
 });
 
 const workerInjectable = getInjectable({
   id: 'some-worker-injectable',
   instantiate: di => good =>
-    good ? 'some-good-result' : di.inject(someCyclicalInjectable1),
+    good ? 'some-good-result' : di.inject(someInfinitelyCyclicalInjectable1),
 });

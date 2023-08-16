@@ -3,11 +3,26 @@ const { coverageConfig } = require('./coverage-config');
 module.exports = rootDir => {
   const shared = {
     transform: {
-      '^.+\\.(t|j)sx?$': ['@swc/jest', { cwd: rootDir }],
+      '^.+\\.(t|j)sx?$': [
+        '@swc/jest',
+        {
+          cwd: rootDir,
+
+          jsc: {
+            parser: {
+              syntax: 'typescript',
+              jsx: true,
+              tsx: true,
+              // decorators: false,
+              // dynamicImport: false,
+            },
+          },
+        },
+      ],
     },
 
     clearMocks: true,
-    testMatch: ['**/?(*.)+(test).{js,ts,tsx}'],
+    testMatch: ['**/?(*.)+(test).{js,jsx,ts,tsx}'],
     watchPathIgnorePatterns: ['/node_modules/', '/coverage/', '/build/'],
 
     moduleNameMapper: {

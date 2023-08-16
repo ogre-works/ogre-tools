@@ -5,5 +5,7 @@ export type ResolvePath = typeof path.resolve;
 
 export const resolvePathInjectable = getInjectable({
   id: 'resolve-path',
-  instantiate: (): ResolvePath => path.resolve,
+  instantiate:
+    /* c8 ignore next */
+    (): ResolvePath => path.resolve,
 });

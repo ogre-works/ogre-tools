@@ -216,6 +216,15 @@ export default (containerId, { detectCycles = true } = {}) => {
       containerRootContextItem.injectable,
     );
 
+  const getInjectionArgs = (alias, parameter, customContextItem) => [
+    alias,
+    parameter,
+    customContextItem
+      ? [containerRootContextItem, customContextItem]
+      : [containerRootContextItem],
+    containerRootContextItem.injectable,
+  ];
+
   const publicDi = {
     ...privateDi,
 
@@ -223,22 +232,12 @@ export default (containerId, { detectCycles = true } = {}) => {
 
     injectWithMeta: (alias, parameter, customContextItem) =>
       privateDi.injectWithMeta(
-        alias,
-        parameter,
-        customContextItem
-          ? [containerRootContextItem, customContextItem]
-          : [containerRootContextItem],
-        containerRootContextItem.injectable,
+        ...getInjectionArgs(alias, parameter, customContextItem),
       ),
 
     injectMany: (alias, parameter, customContextItem) =>
       privateDi.injectMany(
-        alias,
-        parameter,
-        customContextItem
-          ? [containerRootContextItem, customContextItem]
-          : [containerRootContextItem],
-        containerRootContextItem.injectable,
+        ...getInjectionArgs(alias, parameter, customContextItem),
       ),
 
     register: (...injectables) => {
@@ -259,12 +258,7 @@ export default (containerId, { detectCycles = true } = {}) => {
 
     injectManyWithMeta: (alias, parameter, customContextItem) =>
       privateDi.injectManyWithMeta(
-        alias,
-        parameter,
-        customContextItem
-          ? [containerRootContextItem, customContextItem]
-          : [containerRootContextItem],
-        containerRootContextItem.injectable,
+        ...getInjectionArgs(alias, parameter, customContextItem),
       ),
 
     getInstances: alias =>

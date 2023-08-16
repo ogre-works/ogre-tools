@@ -4,5 +4,7 @@ export type ConsoleWarn = typeof console.warn;
 
 export const consoleWarnInjectable = getInjectable({
   id: 'console-warn',
-  instantiate: (): ConsoleWarn => console.warn,
+  instantiate:
+    /* c8 ignore next */
+    (): ConsoleWarn => console.warn,
 });

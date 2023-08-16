@@ -17,12 +17,7 @@ const cycleFunctionsFor = dependeesByDependencyMap => {
 
     const dependees = dependeesByDependencyMap.get(reference);
 
-    // Todo: this should never be possible?
     if (!dependees) {
-      return;
-    }
-
-    if (dependees.size === 0) {
       return;
     }
 

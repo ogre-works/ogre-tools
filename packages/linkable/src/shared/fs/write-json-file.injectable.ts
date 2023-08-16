@@ -6,5 +6,7 @@ export type WriteJsonFile = (path: string, value: JsonValue) => Promise<void>;
 
 export const writeJsonFileInjectable = getInjectable({
   id: 'write-json-file',
-  instantiate: (): WriteJsonFile => fse.writeJson,
+  instantiate:
+    /* c8 ignore next */
+    (): WriteJsonFile => fse.writeJson,
 });

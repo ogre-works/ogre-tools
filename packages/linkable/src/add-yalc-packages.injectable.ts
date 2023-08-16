@@ -5,5 +5,7 @@ export type AddYalcPackages = typeof addPackages;
 
 export const addYalcPackagesInjectable = getInjectable({
   id: 'add-yalc-packages',
-  instantiate: (di): AddYalcPackages => addPackages,
+  instantiate:
+    /* c8 ignore next */
+    (): AddYalcPackages => addPackages,
 });

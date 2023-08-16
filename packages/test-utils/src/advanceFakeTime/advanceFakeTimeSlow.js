@@ -1,6 +1,7 @@
-/* istanbul ignore file */
+/* c8 ignore next */
 import flushPromises from '../flushPromises/flushPromises';
 
+/* c8 ignore next */
 export default async milliseconds => {
   let now = global.Date.now();
   global.Date.now = () => now;
