@@ -166,6 +166,33 @@ describe('withInjectables', () => {
     expect(rendered.baseElement).toMatchSnapshot();
   });
 
+  it('given component and sync dependencies, when rendered without provider, renders to null', () => {
+    const injectable = getInjectable({
+      id: 'some-injectable-id',
+
+      lifecycle: lifecycleEnum.transient,
+
+      instantiate: () => 'some-injectable-value',
+    });
+
+    di.register(injectable);
+
+    const DumbTestComponent = ({ someDependency, ...props }) => (
+      <div {...props}>Some content: "{someDependency}"</div>
+    );
+
+    const SmartTestComponent = withInjectables(DumbTestComponent, {
+      getProps: (di, props) => ({
+        someDependency: di.inject(injectable),
+        ...props,
+      }),
+    });
+
+    const rendered = render(<SmartTestComponent data-some-prop-test />);
+
+    expect(rendered.baseElement).toMatchSnapshot();
+  });
+
   [
     {
       name: 'given anonymous component and a dependency cycle, when rendered, throws context for a uniquely generated component name and cycle',

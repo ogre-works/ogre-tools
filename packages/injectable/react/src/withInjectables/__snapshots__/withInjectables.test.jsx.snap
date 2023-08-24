@@ -8,6 +8,12 @@ exports[`withInjectables given anonymous component, injecting a token, when rend
 </body>
 `;
 
+exports[`withInjectables given component and sync dependencies, when rendered without provider, renders to null 1`] = `
+<body>
+  <div />
+</body>
+`;
+
 exports[`withInjectables given component and sync dependencies, when rendered, renders with dependencies 1`] = `
 <body>
   <div>

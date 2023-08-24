@@ -20,7 +20,11 @@ export default (Component, { getPlaceholder = constant(null), getProps }) =>
   React.memo(
     React.forwardRef((props, ref) => (
       <DiContextConsumer>
-        {({ di }) => {
+        {({ di } = {}) => {
+          if (!di) {
+            return null;
+          }
+
           const componentNameMap = di.inject(componentNameMapInjectable);
 
           if (!componentNameMap.has(Component)) {
