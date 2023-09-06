@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [17.6.0](https://github.com/ogre-works/ogre-tools/compare/v17.5.1...v17.6.0) (2023-09-06)
+
+### Bug Fixes
+
+- Enforce code coverage yet again ([08dde1f](https://github.com/ogre-works/ogre-tools/commit/08dde1fc1e20bc6b8f07c1aa141d264fec5020c8))
+
 ### [17.5.1](https://github.com/ogre-works/ogre-tools/compare/v17.5.0...v17.5.1) (2023-06-22)
 
 **Note:** Version bump only for package @ogre-tools/infrastructure-jest

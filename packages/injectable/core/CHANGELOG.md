@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [17.6.0](https://github.com/ogre-works/ogre-tools/compare/v17.5.1...v17.6.0) (2023-09-06)
+
+### Features
+
+- Introduce the injectable bunch, ie. a registrable object of multiple injectables ([e115dde](https://github.com/ogre-works/ogre-tools/commit/e115ddea8f4c90c2403d6fe17db330e87d2da6dc))
+
 ### [17.5.1](https://github.com/ogre-works/ogre-tools/compare/v17.5.0...v17.5.1) (2023-06-22)
 
 ### Bug Fixes

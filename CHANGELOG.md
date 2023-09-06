@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [17.6.0](https://github.com/ogre-works/ogre-tools/compare/v17.5.1...v17.6.0) (2023-09-06)
+
+### Features
+
+- Introduce the injectable bunch, ie. a registrable object of multiple injectables ([e115dde](https://github.com/ogre-works/ogre-tools/commit/e115ddea8f4c90c2403d6fe17db330e87d2da6dc))
+- Make auto-register support same injectable being exported multiple times ([a1527e3](https://github.com/ogre-works/ogre-tools/commit/a1527e3b17b44d7df6c5084049a01f2af30b9141))
+
+### Bug Fixes
+
+- Enforce code coverage yet again ([08dde1f](https://github.com/ogre-works/ogre-tools/commit/08dde1fc1e20bc6b8f07c1aa141d264fec5020c8))
+
 ### [17.5.1](https://github.com/ogre-works/ogre-tools/compare/v17.5.0...v17.5.1) (2023-06-22)
 
 ### Bug Fixes
