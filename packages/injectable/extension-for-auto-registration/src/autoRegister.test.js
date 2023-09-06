@@ -63,6 +63,40 @@ describe('autoRegister', () => {
     expect(actual).toBe('some-injected-instance');
   });
 
+  it('given file with same injectable exported multiple times, and auto-registered, when the injectable is injected, does so', () => {
+    const injectableStub = getInjectable({
+      id: 'irrelevant',
+      instantiate: () => 'some-injected-instance',
+    });
+
+    const requireStub = {
+      context: getSafeFrom({
+        'some-directory/': getRequireContextStub({
+          default: injectableStub,
+          someNamedExport: injectableStub,
+        }),
+      }),
+    };
+
+    const di = createContainer('some-container');
+
+    autoRegister({
+      di,
+
+      targetModule: {
+        require: requireStub,
+      },
+
+      getRequireContexts: () => [
+        requireStub.context('some-directory/', true, /\.injectable\.js$/),
+      ],
+    });
+
+    const actual = di.inject(injectableStub);
+
+    expect(actual).toBe('some-injected-instance');
+  });
+
   it('given file with injectable bunch as export and auto-registered, when an injectable in bunch is injected, does so', () => {
     const someInjectableBunch = getInjectableBunch({
       someInjectable: {

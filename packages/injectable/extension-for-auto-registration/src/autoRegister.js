@@ -1,17 +1,30 @@
-import { flatMap, forEach, tap } from 'lodash/fp';
+import {
+  flatMap,
+  forEach,
+  tap,
+  uniq,
+  values,
+  filter,
+  overSome,
+} from 'lodash/fp';
+
 import { pipeline } from '@ogre-tools/fp';
+
 import {
   isInjectable,
   isInjectableBunch,
   toFlatInjectables,
 } from '@ogre-tools/injectable';
+
 import requireContextFake from './requireContextFake';
 
 const toInjectables = module =>
-  toFlatInjectables(
-    Object.values(module).filter(
-      exported => isInjectable(exported) || isInjectableBunch(exported),
-    ),
+  pipeline(
+    module,
+    values,
+    filter(overSome([isInjectable, isInjectableBunch])),
+    toFlatInjectables,
+    uniq,
   );
 
 const getFileNameAndModule = requireContext =>
