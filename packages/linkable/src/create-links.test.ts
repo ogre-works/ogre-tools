@@ -162,10 +162,11 @@ describe('create-links', () => {
 
             await globMock.resolve([
               '/some-directory/some-monorepo/packages/some-other-directory/some-module/package.json',
-              '/some-directory/some-monorepo/packages/some-other-directory/some-other-module/package.json',
             ]);
 
-            await globMock.resolve([]);
+            await globMock.resolve([
+              '/some-directory/some-monorepo/packages/some-other-directory/some-other-module/package.json',
+            ]);
           });
 
           it('reads contents of package.jsons', () => {
@@ -178,6 +179,22 @@ describe('create-links', () => {
                 '/some-directory/some-monorepo/packages/some-other-directory/some-other-module/package.json',
               ],
             ]);
+          });
+        });
+
+        describe('when one of discoveries resolves with nothing', () => {
+          beforeEach(async () => {
+            readJsonFileMock.mockClear();
+
+            await globMock.resolve([]);
+
+            globMock.resolve(['irrelevant']);
+          });
+
+          it('throws about bad path', () => {
+            return expect(actualPromise).rejects.toThrow(
+              'Tried to linkable-link: "../some-monorepo/packages/**/*/package.json" from "/some-directory/some-project/.linkable.json", but no package.jsons were found.',
+            );
           });
         });
       });
