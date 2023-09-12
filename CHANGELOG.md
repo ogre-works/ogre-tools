@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [17.7.0](https://github.com/ogre-works/ogre-tools/compare/v17.6.0...v17.7.0) (2023-09-12)
+
+### Features
+
+- Make linkable throw when a glob in .linkable.json leads to no package.json ([be952b6](https://github.com/ogre-works/ogre-tools/commit/be952b6049c5f2298fae5263fea4fb75bafbe01a))
+
 ## [17.6.0](https://github.com/ogre-works/ogre-tools/compare/v17.5.1...v17.6.0) (2023-09-06)
 
 ### Features
