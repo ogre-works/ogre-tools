@@ -3,6 +3,10 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [17.8.0](https://github.com/ogre-works/ogre-tools/compare/v17.7.0...v17.8.0) (2023-10-09)
+
+**Note:** Version bump only for package @ogre-tools/infrastructure-webpack-for-js
+
 ## [17.7.0](https://github.com/ogre-works/ogre-tools/compare/v17.6.0...v17.7.0) (2023-09-12)
 
 **Note:** Version bump only for package @ogre-tools/infrastructure-webpack-for-js

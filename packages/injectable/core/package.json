@@ -1,7 +1,7 @@
 {
   "name": "@ogre-tools/injectable",
   "private": false,
-  "version": "17.7.0",
+  "version": "17.8.0",
   "description": "A brutal dependency injection container",
   "files": [
     "build",
@@ -39,10 +39,10 @@
     "code-style:fix": "ogre-tools-fix-code-style"
   },
   "devDependencies": {
-    "@ogre-tools/infrastructure-babel-for-js": "^17.7.0",
-    "@ogre-tools/infrastructure-jest": "^17.7.0",
-    "@ogre-tools/infrastructure-prettier": "^17.7.0",
-    "@ogre-tools/infrastructure-webpack-for-js": "^17.7.0",
+    "@ogre-tools/infrastructure-babel-for-js": "^17.8.0",
+    "@ogre-tools/infrastructure-jest": "^17.8.0",
+    "@ogre-tools/infrastructure-prettier": "^17.8.0",
+    "@ogre-tools/infrastructure-webpack-for-js": "^17.8.0",
     "tsd": "^0.28.1"
   },
   "prettier": "@ogre-tools/infrastructure-prettier"

@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [17.8.0](https://github.com/ogre-works/ogre-tools/compare/v17.7.0...v17.8.0) (2023-10-09)
+
+### Features
+
+- Make public a way to break/abort flow of a pipeline ([30b58d9](https://github.com/ogre-works/ogre-tools/commit/30b58d938f47200924d0a7dcf745b95b862d03b5))
+
 ## [17.7.0](https://github.com/ogre-works/ogre-tools/compare/v17.6.0...v17.7.0) (2023-09-12)
 
 ### Features
