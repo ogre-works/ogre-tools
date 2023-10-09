@@ -120,3 +120,5 @@ interface GetFrom {
 
 export const getFrom: GetFrom;
 export const getSafeFrom: GetFrom;
+
+export const pipelineBreak: Symbol;
