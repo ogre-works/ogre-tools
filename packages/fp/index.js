@@ -6,6 +6,7 @@ import pipeline from './src/pipeline/pipeline';
 import mapValuesDeep from './src/mapValuesDeep/mapValuesDeep';
 import getSafeFrom from './src/getSafeFrom/getSafeFrom';
 import getFrom from './src/getFrom/getFrom';
+import firstMatchValue from './src/firstMatchValue/firstMatchValue';
 
 export {
   awaitAll,
@@ -17,4 +18,5 @@ export {
   getFrom,
   getSafeFrom,
   pipelineBreak,
+  firstMatchValue,
 };
