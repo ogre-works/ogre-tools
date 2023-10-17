@@ -1,7 +1,7 @@
 {
   "name": "@ogre-tools/infrastructure-webpack-for-js",
   "private": true,
-  "version": "17.8.0",
+  "version": "17.9.0",
   "description": "Shared webpack configuration",
   "bin": {
     "ogre-tools-build-js": "bin/build.sh"
@@ -26,7 +26,7 @@
   },
   "prettier": "@ogre-tools/infrastructure-prettier",
   "devDependencies": {
-    "@ogre-tools/infrastructure-prettier": "^17.8.0"
+    "@ogre-tools/infrastructure-prettier": "^17.9.0"
   },
   "scripts": {
     "code-style:verify": "ogre-tools-verify-code-style",

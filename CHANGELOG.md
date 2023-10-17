@@ -3,6 +3,13 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [17.9.0](https://github.com/ogre-works/ogre-tools/compare/v17.8.0...v17.9.0) (2023-10-17)
+
+### Features
+
+- Introduce early-override to permit override of injectable before registered ([6e7f5ea](https://github.com/ogre-works/ogre-tools/commit/6e7f5ea7f91b0be86f900c5fade72b1172153777))
+- Introduce way to get return-value of first of many functions that matches an input-value ([c939461](https://github.com/ogre-works/ogre-tools/commit/c9394610187223812b8882a7bbbf0259ced11299))
+
 ## [17.8.0](https://github.com/ogre-works/ogre-tools/compare/v17.7.0...v17.8.0) (2023-10-09)
 
 ### Features
