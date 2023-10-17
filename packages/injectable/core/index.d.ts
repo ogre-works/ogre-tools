@@ -1,4 +1,16 @@
 /// <reference types="jest" />
+
+export type Override = <
+  InjectionInstance extends InjectionTokenInstance,
+  InjectionTokenInstance,
+  InstantiationParam,
+>(
+  injectable:
+    | InjectionToken<InjectionInstance, InstantiationParam>
+    | Injectable<InjectionInstance, InjectionTokenInstance, InstantiationParam>,
+  instantiateStub: Instantiate<InjectionInstance, InstantiationParam>,
+) => void;
+
 export interface DiContainer extends DiContainerForInjection {
   purge: (injectableKey: Injectable<any, any, any>) => void;
 
@@ -6,20 +18,8 @@ export interface DiContainer extends DiContainerForInjection {
     injectableKey: InjectionToken<any, any> | Injectable<any, any, any>,
   ) => void;
 
-  override<
-    InjectionInstance extends InjectionTokenInstance,
-    InjectionTokenInstance,
-    InstantiationParam,
-  >(
-    injectable:
-      | InjectionToken<InjectionInstance, InstantiationParam>
-      | Injectable<
-          InjectionInstance,
-          InjectionTokenInstance,
-          InstantiationParam
-        >,
-    instantiateStub: Instantiate<InjectionInstance, InstantiationParam>,
-  ): void;
+  override: Override;
+  earlyOverride: Override;
 
   unoverride(alias: InjectionToken<any, any> | Injectable<any, any, any>): void;
 

@@ -13,6 +13,7 @@ import { setDependeeFor } from './setDependeeFor';
 import { checkForSideEffectsFor } from './checkForSideEffectsFor';
 import { getRelatedInjectablesFor } from './getRelatedInjectablesFor';
 import { noop } from 'lodash/fp';
+import { earlyOverrideFor } from './early-override';
 
 export default (containerId, { detectCycles = true } = {}) => {
   const injectableSet = new Set();
@@ -160,10 +161,15 @@ export default (containerId, { detectCycles = true } = {}) => {
     injectMany: nonDecoratedPrivateInjectMany,
   });
 
-  const override = overrideFor({
+  const earlyOverride = earlyOverrideFor({
     getRelatedInjectables,
     alreadyInjected,
     overridingInjectables,
+  });
+
+  const override = overrideFor({
+    getRelatedInjectables,
+    earlyOverride,
   });
 
   const unoverride = unoverrideFor({
@@ -187,6 +193,7 @@ export default (containerId, { detectCycles = true } = {}) => {
     decorate,
     decorateFunction,
     override,
+    earlyOverride,
     unoverride,
 
     reset: () => {

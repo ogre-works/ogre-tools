@@ -373,6 +373,18 @@ expectError(
   })),
 );
 
+// given injectable, when early-overriding with matching instantiate, typing is OK
+expectType<void>(
+  di.earlyOverride(someInjectableForOverrides, () => ({ someProperty: 84 })),
+);
+
+// given injectable, when early-overriding with not matching instantiate, typing is not OK
+expectError(
+  di.earlyOverride(someInjectableForOverrides, () => ({
+    someProperty: 'some-not-number',
+  })),
+);
+
 // given injectable, when overriding with a more specific matching instantiate, typing is OK
 expectType<void>(
   di.override(someInjectableForOverrides, () => ({
