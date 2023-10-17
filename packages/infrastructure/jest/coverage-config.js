@@ -13,7 +13,8 @@ module.exports.coverageConfig = {
   },
   collectCoverageFrom: [
     '<rootDir>/src/**/*.{js,jsx,ts,tsx}',
-    '!<rootDir>/src/**/*.test.{js,jsx,ts,tsx}',
+    '!<rootDir>/src/**/*.d.{ts,tsx}',
+    '!<rootDir>/src/**/*.{test-d,test}.{js,jsx,ts,tsx}',
     '!<rootDir>/src/**/*.performance-test.{js,jsx,ts,tsx}',
     '!<rootDir>/src/**/test-utils/**/*',
     // Todo: make "c8 ignore" work also here
