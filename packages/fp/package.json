@@ -5,7 +5,7 @@
   "description": "A collection of low abstraction functions in functional programming flavor",
   "files": [
     "build",
-    "index.d.ts"
+    "**/*.d.ts"
   ],
   "types": "./index.d.ts",
   "repository": {

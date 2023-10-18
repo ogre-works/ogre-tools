@@ -1,3 +1,6 @@
-import flow from '../flow/flow';
+import flow, { pipelineBreak } from '../flow/flow';
 
-export default (firstArgument, ...args) => flow(...args)(firstArgument);
+export { pipelineBreak };
+
+export const pipeline = (firstArgument, ...args) =>
+  flow(...args)(firstArgument);

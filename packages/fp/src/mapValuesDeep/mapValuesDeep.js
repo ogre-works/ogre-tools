@@ -11,7 +11,7 @@ import {
   toPairs,
 } from 'lodash/fp';
 import isPrimitive from '../isPrimitive/isPrimitive';
-import pipeline from '../pipeline/pipeline';
+import { pipeline } from '../pipeline/pipeline';
 import isPromise from '../isPromise/isPromise';
 import awaitAll from '../awaitAll/awaitAll';
 
