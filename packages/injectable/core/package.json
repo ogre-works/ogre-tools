@@ -43,7 +43,7 @@
     "@ogre-tools/infrastructure-jest": "^17.9.0",
     "@ogre-tools/infrastructure-prettier": "^17.9.0",
     "@ogre-tools/infrastructure-webpack-for-js": "^17.9.0",
-    "tsd": "^0.28.1"
+    "tsd": "^0.29.0"
   },
   "prettier": "@ogre-tools/infrastructure-prettier"
 }

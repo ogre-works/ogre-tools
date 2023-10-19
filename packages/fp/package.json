@@ -38,6 +38,7 @@
     "code-style:fix": "ogre-tools-fix-code-style"
   },
   "devDependencies": {
+    "tsd": "^0.29.0",
     "@ogre-tools/infrastructure-jest": "^17.9.0",
     "@ogre-tools/infrastructure-prettier": "^17.9.0",
     "@ogre-tools/infrastructure-webpack-for-js": "^17.9.0"
