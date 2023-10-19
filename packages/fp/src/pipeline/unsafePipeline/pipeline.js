@@ -1,4 +1,4 @@
-import { flow, pipelineBreak } from '../flow/flow';
+import { flow, pipelineBreak } from '../../flow/flow';
 
 export { pipelineBreak };
 

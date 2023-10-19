@@ -7,7 +7,7 @@ import {
   reject,
   some,
 } from 'lodash/fp';
-import { pipeline } from '../pipeline/pipeline';
+import { pipeline } from '../pipeline/unsafePipeline/pipeline';
 import awaitAll from '../awaitAll/awaitAll';
 
 const relationJoin = (currentJoinObjects, constraint, ...constraints) => {

@@ -11,7 +11,7 @@ import {
 } from 'lodash/fp';
 
 import matchAll from '../matchAll/matchAll';
-import { pipeline } from '../pipeline/pipeline';
+import { pipeline } from '../pipeline/unsafePipeline/pipeline';
 
 const replaceTagsWithValues = curry((valuesForTags, oldStringWithTags) => {
   const newStringWithTags = pipeline(

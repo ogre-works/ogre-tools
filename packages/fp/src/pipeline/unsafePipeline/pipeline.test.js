@@ -1,4 +1,4 @@
-import pipeline from './pipeline';
+import { pipeline } from './pipeline';
 
 describe('pipeline', () => {
   it('forwards first argument to second argument as function call and then works like flow', () => {

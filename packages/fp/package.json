@@ -33,7 +33,7 @@
   "scripts": {
     "build": "ogre-tools-build-js",
     "test": "ogre-tools-test",
-    "test:types": "tsd --files ./src/pipeline/pipeline.test-d.ts && tsd --files ./src/safePipeline/safePipeline.test-d.ts && tsd --files ./src/firstMatchValue/firstMatchValue.test-d.ts",
+    "test:types": "tsd --files ./src/pipeline/unsafePipeline/pipeline.test-d.ts && tsd --files ./src/pipeline/safePipeline/safePipeline.test-d.ts && tsd --files ./src/firstMatchValue/firstMatchValue.test-d.ts",
     "code-style:verify": "ogre-tools-verify-code-style",
     "code-style:fix": "ogre-tools-fix-code-style"
   },
