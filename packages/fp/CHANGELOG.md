@@ -3,6 +3,13 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [17.10.0](https://github.com/ogre-works/ogre-tools/compare/v17.9.0...v17.10.0) (2023-10-19)
+
+### Features
+
+- Introduce proper typing for pipelineBreak ([6a78b40](https://github.com/ogre-works/ogre-tools/commit/6a78b4066dbb23c66a22765cf54633cf9b48c0f9))
+- Introduce safePipeline which is like pipeline, but considers "undefined" as pipelineBreak ([db82b7c](https://github.com/ogre-works/ogre-tools/commit/db82b7c8f3868564c133b6941df2ec10dea364cb))
+
 ## [17.9.0](https://github.com/ogre-works/ogre-tools/compare/v17.8.0...v17.9.0) (2023-10-17)
 
 ### Features
