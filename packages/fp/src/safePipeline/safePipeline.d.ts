@@ -1,4 +1,4 @@
-interface Pipeline {
+interface SafePipeline {
   <A, R1, R2, R3, R4, R5, R6, R7, R8, R9>(
     arg: A,
     ...functions: PipelineFunctions<
@@ -74,10 +74,7 @@ type PipelineResult<
   ? Promise<WithCollectivePipelineBreak<TReturnValues, Awaited<TResult>>>
   : WithCollectivePipelineBreak<TReturnValues, TResult>;
 
-export const pipelineBreak: unique symbol;
-
-type BreakToken = typeof pipelineBreak;
-
+type BreakToken = undefined;
 type Argument<T> = Exclude<Awaited<T>, BreakToken>;
 
 type WithCollectivePipelineBreak<
@@ -105,4 +102,4 @@ type ContainsPipelineBreak<T extends [...any[]]> = T extends [
     : ContainsPipelineBreak<Tail>
   : false;
 
-export const pipeline: Pipeline;
+export const safePipeline: SafePipeline;

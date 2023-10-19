@@ -1,5 +1,5 @@
 import asyncFn from '@async-fn/jest';
-import flow, { pipelineBreak } from './flow';
+import { flow, pipelineBreak } from './flow';
 
 describe('flow', () => {
   it('given initialized with multiple functions, when called, passes only first argument to first function', async () => {

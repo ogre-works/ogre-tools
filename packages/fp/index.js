@@ -1,5 +1,5 @@
 import awaitAll from './src/awaitAll/awaitAll';
-import flow, { pipelineBreak } from './src/flow/flow';
+import { flow, pipelineBreak } from './src/flow/flow';
 import isPromise from './src/isPromise/isPromise';
 import isPrimitive from './src/isPrimitive/isPrimitive';
 import pipeline from './src/pipeline/pipeline';

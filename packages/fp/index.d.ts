@@ -15,3 +15,4 @@ export const getFrom: GetFrom;
 export const getSafeFrom: GetFrom;
 export { firstMatchValue } from './src/firstMatchValue/firstMatchValue';
 export { pipeline, pipelineBreak } from './src/pipeline/pipeline';
+export { safePipeline } from './src/safePipeline/safePipeline';
