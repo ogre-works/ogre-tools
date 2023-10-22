@@ -1,6 +1,7 @@
 import { getNamespacedIdFor } from './getNamespacedIdFor';
 import { registrationCallbackToken } from './tokens';
 import toFlatInjectables from './toFlatInjectables';
+import { DeepMap } from '@ogre-tools/fp/src/deepMap/deepMap';
 
 export const registerFor =
   ({ registerSingle, injectMany }) =>
@@ -62,7 +63,8 @@ export const registerSingleFor =
     injectableIdSet.add(namespacedId);
     injectableSet.add(injectable);
     namespacedIdByInjectableMap.set(injectable, namespacedId);
-    instancesByInjectableMap.set(injectable, new Map());
+    // tärkeä
+    instancesByInjectableMap.set(injectable, new DeepMap());
 
     if (injectable.injectionToken) {
       const token = injectable.injectionToken;

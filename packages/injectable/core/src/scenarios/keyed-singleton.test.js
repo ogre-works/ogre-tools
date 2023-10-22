@@ -1,6 +1,7 @@
 import lifecycleEnum from '../dependency-injection-container/lifecycleEnum';
 import getInjectable from '../getInjectable/getInjectable';
 import createContainer from '../dependency-injection-container/createContainer';
+import { getCompositeKey } from '../getCompositeKey/getCompositeKey';
 
 describe('createContainer.keyed-singleton', () => {
   describe('given key from instantiation parameter', () => {
@@ -11,6 +12,7 @@ describe('createContainer.keyed-singleton', () => {
       injectable = getInjectable({
         id: 'irrelevant',
         instantiate: () => ({}),
+
         lifecycle: lifecycleEnum.keyedSingleton({
           getInstanceKey: (_, instantiationParameter) => instantiationParameter,
         }),
@@ -24,6 +26,33 @@ describe('createContainer.keyed-singleton', () => {
     it('when injected multiple times with same key, injects same instance', () => {
       const actual1 = di.inject(injectable, 'some-key');
       const actual2 = di.inject(injectable, 'some-key');
+
+      expect(actual1).toBe(actual2);
+    });
+
+    it('when injected multiple times with same composite key, injects same instance', () => {
+      const someReferenceKey1 = {};
+      const someReferenceKey2 = {};
+
+      const actual1 = di.inject(
+        injectable,
+
+        getCompositeKey(
+          someReferenceKey1,
+          'some-primitive-key',
+          someReferenceKey2,
+        ),
+      );
+
+      const actual2 = di.inject(
+        injectable,
+
+        getCompositeKey(
+          someReferenceKey1,
+          'some-primitive-key',
+          someReferenceKey2,
+        ),
+      );
 
       expect(actual1).toBe(actual2);
     });
