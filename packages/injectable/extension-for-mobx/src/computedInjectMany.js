@@ -6,6 +6,7 @@ import {
 } from '@ogre-tools/injectable';
 
 import { computed, createAtom, runInAction } from 'mobx';
+import { getCompositeKey } from '@ogre-tools/injectable';
 
 export const isInternalOfComputedInjectMany = Symbol(
   'isInternalOfComputedInjectMany',
@@ -18,7 +19,7 @@ const invalidabilityForReactiveInstances = getInjectable({
     createAtom(`reactivity-for-${injectionToken.id}`),
 
   lifecycle: lifecycleEnum.keyedSingleton({
-    getInstanceKey: (_, injectable) => injectable,
+    getInstanceKey: (_, injectionToken) => injectionToken,
   }),
 
   [isInternalOfComputedInjectMany]: true,
@@ -26,7 +27,7 @@ const invalidabilityForReactiveInstances = getInjectable({
   decorable: false,
 });
 
-const getInvalidatorInstance = registerOrDeregister => di => injectable => {
+const getInvalidatorInstance = di => injectable => {
   if (!injectable.injectionToken) {
     return;
   }
@@ -41,7 +42,7 @@ const getInvalidatorInstance = registerOrDeregister => di => injectable => {
 
 const invalidateReactiveInstancesOnRegisterCallback = getInjectable({
   id: 'invalidate-reactive-instances-on-register',
-  instantiate: getInvalidatorInstance('register'),
+  instantiate: getInvalidatorInstance,
   injectionToken: registrationCallbackToken,
   [isInternalOfComputedInjectMany]: true,
   decorable: false,
@@ -49,7 +50,7 @@ const invalidateReactiveInstancesOnRegisterCallback = getInjectable({
 
 const invalidateReactiveInstancesOnDeregisterCallback = getInjectable({
   id: 'invalidate-reactive-instances-on-deregister',
-  instantiate: getInvalidatorInstance('deregister'),
+  instantiate: getInvalidatorInstance,
   injectionToken: deregistrationCallbackToken,
   [isInternalOfComputedInjectMany]: true,
   decorable: false,
@@ -58,8 +59,11 @@ const invalidateReactiveInstancesOnDeregisterCallback = getInjectable({
 export const computedInjectManyInjectable = getInjectable({
   id: 'computed-inject-many',
 
-  instantiate: di => injectionToken =>
-    di.inject(reactiveInstancesInjectable, injectionToken),
+  instantiate: di => (injectionToken, instantiationParameter) =>
+    di.inject(reactiveInstancesInjectable, {
+      injectionToken,
+      instantiationParameter,
+    }),
 
   lifecycle: lifecycleEnum.transient,
 
@@ -80,7 +84,7 @@ export const computedInjectManyWithMetaInjectable = getInjectable({
 const reactiveInstancesInjectable = getInjectable({
   id: 'reactive-instances',
 
-  instantiate: (di, injectionToken) => {
+  instantiate: (di, { injectionToken, instantiationParameter }) => {
     const mobxAtomForToken = di.inject(
       invalidabilityForReactiveInstances,
       injectionToken,
@@ -89,12 +93,13 @@ const reactiveInstancesInjectable = getInjectable({
     return computed(() => {
       mobxAtomForToken.reportObserved();
 
-      return di.injectMany(injectionToken);
+      return di.injectMany(injectionToken, instantiationParameter);
     });
   },
 
   lifecycle: lifecycleEnum.keyedSingleton({
-    getInstanceKey: (di, injectionToken) => injectionToken,
+    getInstanceKey: (di, { injectionToken, instantiationParameter }) =>
+      getCompositeKey(injectionToken, instantiationParameter),
   }),
 
   cannotCauseCycles: true,
