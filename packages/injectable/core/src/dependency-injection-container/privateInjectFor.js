@@ -1,6 +1,7 @@
 import { nonStoredInstanceKey } from './lifecycleEnum';
 import { withInstantiationDecoratorsFor } from './withInstantiationDecoratorsFor';
 import { checkForTooManyMatches } from './checkForTooManyMatches';
+import { isCompositeKey } from '../getCompositeKey/getCompositeKey';
 
 export const privateInjectFor =
   ({
@@ -135,7 +136,11 @@ const getInstance = ({
     instantiationParameter,
   );
 
-  const existingInstance = instanceMap.get(instanceKey);
+  const instanceCompositeKey = isCompositeKey(instanceKey)
+    ? instanceKey.keys
+    : [instanceKey];
+
+  const existingInstance = instanceMap.get(instanceCompositeKey);
 
   if (existingInstance) {
     return existingInstance;
@@ -155,8 +160,8 @@ const getInstance = ({
     ...(instantiationParameter === undefined ? [] : [instantiationParameter]),
   );
 
-  if (instanceKey !== nonStoredInstanceKey) {
-    instanceMap.set(instanceKey, newInstance);
+  if (instanceCompositeKey[0] !== nonStoredInstanceKey) {
+    instanceMap.set(instanceCompositeKey, newInstance);
   }
 
   return newInstance;
