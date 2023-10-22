@@ -6,7 +6,7 @@ import {
 } from '@ogre-tools/injectable';
 
 import { computed, createAtom, runInAction } from 'mobx';
-import { getCompositeKey } from '@ogre-tools/injectable';
+import { getKeyedSingletonCompositeKey } from '@ogre-tools/injectable';
 
 export const isInternalOfComputedInjectMany = Symbol(
   'isInternalOfComputedInjectMany',
@@ -99,7 +99,7 @@ const reactiveInstancesInjectable = getInjectable({
 
   lifecycle: lifecycleEnum.keyedSingleton({
     getInstanceKey: (di, { injectionToken, instantiationParameter }) =>
-      getCompositeKey(injectionToken, instantiationParameter),
+      getKeyedSingletonCompositeKey(injectionToken, instantiationParameter),
   }),
 
   cannotCauseCycles: true,
