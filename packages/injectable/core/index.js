@@ -10,7 +10,9 @@ import isInjectionToken from './src/getInjectionToken/isInjectionToken';
 import getInjectableBunch from './src/getInjectableBunch/getInjectableBunch';
 import isInjectableBunch from './src/getInjectableBunch/isInjectableBunch';
 import toFlatInjectables from './src/dependency-injection-container/toFlatInjectables';
-export { getCompositeKey } from './src/getCompositeKey/getCompositeKey';
+import { getCompositeKey } from './src/getCompositeKey/getCompositeKey';
+
+export const getKeyedSingletonCompositeKey = getCompositeKey;
 
 export { createInstantiationTargetDecorator } from './src/dependency-injection-container/createInstantiationTargetDecorator';
 export { createInjectionTargetDecorator } from './src/dependency-injection-container/createInjectionTargetDecorator';
