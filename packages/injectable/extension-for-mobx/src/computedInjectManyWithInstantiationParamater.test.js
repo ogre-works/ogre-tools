@@ -201,12 +201,14 @@ describe('computed inject many with instantiation parameter', () => {
           id: 'some-injectable-1',
           instantiate: () => 'irrelevant',
           injectionToken: someInjectionToken,
+          lifecycle: lifecycleEnum.transient,
         });
 
         const someNewInjectable2 = getInjectable({
           id: 'some-injectable-2',
           instantiate: () => 'irrelevant',
           injectionToken: someInjectionToken,
+          lifecycle: lifecycleEnum.transient,
         });
 
         reactionCountForInjectionToken = 0;

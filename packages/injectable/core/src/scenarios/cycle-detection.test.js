@@ -1,5 +1,6 @@
 import createContainer from '../dependency-injection-container/createContainer';
 import getInjectable from '../getInjectable/getInjectable';
+import lifecycleEnum from '../dependency-injection-container/lifecycleEnum';
 
 describe('cycle-detection', () => {
   it('given di with cycle detection disabled, only bad work is done, throws error about maximum call stack size exceeded', () => {
@@ -120,6 +121,8 @@ const someFinitelyCyclicalInjectable1 = getInjectable({
         )}`
       : 'end',
   cannotCauseCycles: true,
+
+  lifecycle: lifecycleEnum.transient,
 });
 
 const someFinitelyCyclicalInjectable2 = getInjectable({
@@ -132,6 +135,8 @@ const someFinitelyCyclicalInjectable2 = getInjectable({
         )}`
       : 'end',
   cannotCauseCycles: true,
+
+  lifecycle: lifecycleEnum.transient,
 });
 
 const someInjectableWithoutDependencies = getInjectable({

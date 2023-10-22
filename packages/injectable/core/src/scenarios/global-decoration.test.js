@@ -3,6 +3,7 @@ import getInjectable from '../getInjectable/getInjectable';
 import createContainer from '../dependency-injection-container/createContainer';
 import { instantiationDecoratorToken } from '../../index';
 import { injectionDecoratorToken } from '../dependency-injection-container/tokens';
+import lifecycleEnum from '../dependency-injection-container/lifecycleEnum';
 
 describe('createContainer.global-decoration', () => {
   it('given global decorator and child injectable, when parent is injected, decorates instances and instantiation parameters of both parent and child', () => {
@@ -26,6 +27,8 @@ describe('createContainer.global-decoration', () => {
 
       instantiate: (di, instantiationParameter) =>
         `child(${instantiationParameter})`,
+
+      lifecycle: lifecycleEnum.transient,
     });
 
     const parentInjectable = getInjectable({
@@ -36,6 +39,8 @@ describe('createContainer.global-decoration', () => {
 
         return `parent(${instantiationParameter}) -> ${childInstance}`;
       },
+
+      lifecycle: lifecycleEnum.transient,
     });
 
     const di = createContainer('some-container');
@@ -95,6 +100,8 @@ describe('createContainer.global-decoration', () => {
 
       instantiate: (di, instantiationParameter) =>
         `parent(${instantiationParameter})`,
+
+      lifecycle: lifecycleEnum.transient,
     });
 
     const di = createContainer('some-container');

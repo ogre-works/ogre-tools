@@ -2,6 +2,7 @@ import getInjectable from '../getInjectable/getInjectable';
 import createContainer from '../dependency-injection-container/createContainer';
 import getInjectionToken from '../getInjectionToken/getInjectionToken';
 import { injectionDecoratorToken } from '../dependency-injection-container/tokens';
+import lifecycleEnum from '../dependency-injection-container/lifecycleEnum';
 
 describe('createContainer.targeted-decoration-via-shorthand', () => {
   it('given decorator targeting child, when parent is injected, decorates instance and instantiation parameter of only child', () => {
@@ -22,6 +23,8 @@ describe('createContainer.targeted-decoration-via-shorthand', () => {
 
       instantiate: (di, instantiationParameter) =>
         `child(${instantiationParameter})`,
+
+      lifecycle: lifecycleEnum.transient,
     });
 
     const parentInjectable = getInjectable({
@@ -32,6 +35,8 @@ describe('createContainer.targeted-decoration-via-shorthand', () => {
 
         return `parent(${instantiationParameter}) -> ${childInstance}`;
       },
+
+      lifecycle: lifecycleEnum.transient,
     });
 
     const di = createContainer('some-container');
@@ -68,6 +73,8 @@ describe('createContainer.targeted-decoration-via-shorthand', () => {
         `child(${instantiationParameter})`,
 
       injectionToken: someInjectionTokenForTargetedDecoration,
+
+      lifecycle: lifecycleEnum.transient,
     });
 
     const parentInjectable = getInjectable({
@@ -78,6 +85,8 @@ describe('createContainer.targeted-decoration-via-shorthand', () => {
 
         return `parent(${instantiationParameter}) -> ${childInstance}`;
       },
+
+      lifecycle: lifecycleEnum.transient,
     });
 
     const di = createContainer('some-container');
@@ -119,10 +128,12 @@ describe('createContainer.targeted-decoration-via-shorthand', () => {
       };
 
     const someInjectable = getInjectable({
-      id: 'some-some-injectable',
+      id: 'some-injectable',
 
       instantiate: (di, instantiationParameter) =>
         `some(${instantiationParameter})`,
+
+      lifecycle: lifecycleEnum.transient,
     });
 
     const di = createContainer('some-container');

@@ -2,6 +2,7 @@ import getInjectable from '../getInjectable/getInjectable';
 import createContainer from '../dependency-injection-container/createContainer';
 import getInjectionToken from '../getInjectionToken/getInjectionToken';
 import { injectionDecoratorToken } from '../dependency-injection-container/tokens';
+import lifecycleEnum from '../dependency-injection-container/lifecycleEnum';
 
 describe('createContainer.targeted-decoration', () => {
   it('given decorator targeting child, when parent is injected, decorates instance and instantiation parameter of only child', () => {
@@ -32,6 +33,8 @@ describe('createContainer.targeted-decoration', () => {
 
       instantiate: (di, instantiationParameter) =>
         `child(${instantiationParameter})`,
+
+      lifecycle: lifecycleEnum.transient,
     });
 
     const parentInjectable = getInjectable({
@@ -42,6 +45,8 @@ describe('createContainer.targeted-decoration', () => {
 
         return `parent(${instantiationParameter}) -> ${childInstance}`;
       },
+
+      lifecycle: lifecycleEnum.transient,
     });
 
     const di = createContainer('some-container');
@@ -86,6 +91,8 @@ describe('createContainer.targeted-decoration', () => {
         `child(${instantiationParameter})`,
 
       injectionToken: someInjectionTokenForTargetedDecoration,
+
+      lifecycle: lifecycleEnum.transient,
     });
 
     const parentInjectable = getInjectable({
@@ -96,6 +103,8 @@ describe('createContainer.targeted-decoration', () => {
 
         return `parent(${instantiationParameter}) -> ${childInstance}`;
       },
+
+      lifecycle: lifecycleEnum.transient,
     });
 
     const di = createContainer('some-container');

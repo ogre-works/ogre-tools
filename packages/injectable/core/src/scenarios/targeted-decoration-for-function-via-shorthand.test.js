@@ -1,5 +1,6 @@
 import getInjectable from '../getInjectable/getInjectable';
 import createContainer from '../dependency-injection-container/createContainer';
+import lifecycleEnum from '../dependency-injection-container/lifecycleEnum';
 
 describe('createContainer.targeted-decoration-for-function-via-shorthand', () => {
   it('given decorating function, when called, returns the decorated value', () => {
@@ -8,6 +9,8 @@ describe('createContainer.targeted-decoration-for-function-via-shorthand', () =>
 
       instantiate: (di, instantiationParameter) => parameter =>
         `some(${instantiationParameter}(${parameter}))`,
+
+      lifecycle: lifecycleEnum.transient,
     });
 
     const di = createContainer('some-container');

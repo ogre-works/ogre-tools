@@ -101,4 +101,22 @@ describe('createContainer.singleton', () => {
 
     expect(actual1).toBe(actual2);
   });
+
+  it('given a singleton and injected using an instantiation parameter, throws', () => {
+    const singletonInjectable = getInjectable({
+      id: 'some-injectable',
+      instantiate: () => 'irrelevant',
+      lifecycle: lifecycleEnum.singleton,
+    });
+
+    const di = createContainer('some-container');
+
+    di.register(singletonInjectable);
+
+    expect(() => {
+      di.inject(singletonInjectable, 'some-instantiation-parameter');
+    }).toThrow(
+      'Tried to inject singleton "some-injectable", but illegally to singletons, an instantiationParameter was provided: "some-instantiation-parameter".',
+    );
+  });
 });
