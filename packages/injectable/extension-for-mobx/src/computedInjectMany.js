@@ -56,77 +56,69 @@ const invalidateReactiveInstancesOnDeregisterCallback = getInjectable({
   decorable: false,
 });
 
-export const computedInjectManyInjectable = getInjectable({
-  id: 'computed-inject-many',
+const reactiveInstancesFor = ({ id, methodInDiToInjectMany }) =>
+  getInjectable({
+    id,
 
-  instantiate: di => (injectionToken, instantiationParameter) =>
-    di.inject(reactiveInstancesInjectable, {
-      injectionToken,
-      instantiationParameter,
+    instantiate: (di, { injectionToken, instantiationParameter }) => {
+      const mobxAtomForToken = di.inject(
+        invalidabilityForReactiveInstances,
+        injectionToken,
+      );
+
+      return computed(() => {
+        mobxAtomForToken.reportObserved();
+
+        return di[methodInDiToInjectMany](
+          injectionToken,
+          instantiationParameter,
+        );
+      });
+    },
+
+    lifecycle: lifecycleEnum.keyedSingleton({
+      getInstanceKey: (di, { injectionToken, instantiationParameter }) =>
+        getKeyedSingletonCompositeKey(injectionToken, instantiationParameter),
     }),
 
-  lifecycle: lifecycleEnum.transient,
+    cannotCauseCycles: true,
+  });
 
-  cannotCauseCycles: true,
-});
-
-export const computedInjectManyWithMetaInjectable = getInjectable({
-  id: 'computed-inject-many-with-meta',
-
-  instantiate: di => injectionToken =>
-    di.inject(reactiveInstancesWithMetaInjectable, injectionToken),
-
-  lifecycle: lifecycleEnum.transient,
-
-  cannotCauseCycles: true,
-});
-
-const reactiveInstancesInjectable = getInjectable({
+const reactiveInstancesInjectable = reactiveInstancesFor({
   id: 'reactive-instances',
-
-  instantiate: (di, { injectionToken, instantiationParameter }) => {
-    const mobxAtomForToken = di.inject(
-      invalidabilityForReactiveInstances,
-      injectionToken,
-    );
-
-    return computed(() => {
-      mobxAtomForToken.reportObserved();
-
-      return di.injectMany(injectionToken, instantiationParameter);
-    });
-  },
-
-  lifecycle: lifecycleEnum.keyedSingleton({
-    getInstanceKey: (di, { injectionToken, instantiationParameter }) =>
-      getKeyedSingletonCompositeKey(injectionToken, instantiationParameter),
-  }),
-
-  cannotCauseCycles: true,
+  methodInDiToInjectMany: 'injectMany',
 });
 
-const reactiveInstancesWithMetaInjectable = getInjectable({
+const reactiveInstancesWithMetaInjectable = reactiveInstancesFor({
   id: 'reactive-instances-with-meta',
-
-  instantiate: (di, injectionToken) => {
-    const mobxAtomForToken = di.inject(
-      invalidabilityForReactiveInstances,
-      injectionToken,
-    );
-
-    return computed(() => {
-      mobxAtomForToken.reportObserved();
-
-      return di.injectManyWithMeta(injectionToken);
-    });
-  },
-
-  lifecycle: lifecycleEnum.keyedSingleton({
-    getInstanceKey: (di, injectionToken) => injectionToken,
-  }),
-
-  cannotCauseCycles: true,
+  methodInDiToInjectMany: 'injectManyWithMeta',
 });
+
+const computedInjectManyInjectableFor = ({ id, reactiveInstances }) =>
+  getInjectable({
+    id,
+
+    instantiate: di => (injectionToken, instantiationParameter) =>
+      di.inject(reactiveInstances, {
+        injectionToken,
+        instantiationParameter,
+      }),
+
+    lifecycle: lifecycleEnum.transient,
+
+    cannotCauseCycles: true,
+  });
+
+export const computedInjectManyInjectable = computedInjectManyInjectableFor({
+  id: 'computed-inject-many',
+  reactiveInstances: reactiveInstancesInjectable,
+});
+
+export const computedInjectManyWithMetaInjectable =
+  computedInjectManyInjectableFor({
+    id: 'computed-inject-many-with-meta',
+    reactiveInstances: reactiveInstancesWithMetaInjectable,
+  });
 
 export const registerMobX = di => {
   runInAction(() => {
