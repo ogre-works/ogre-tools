@@ -19,6 +19,7 @@ import {
   isInjectable,
   isInjectionToken,
   getInjectableBunch,
+  getKeyedSingletonCompositeKey,
 } from '.';
 
 const di = createContainer('some-container');
@@ -541,3 +542,5 @@ const someInjectableBunch = getInjectableBunch({
 expectType<{ someInjectable: Injectable<string, unknown, number> }>(
   someInjectableBunch,
 );
+
+expectType<{ keys: [1, 2, 3] }>(getKeyedSingletonCompositeKey(1, 2, 3));
