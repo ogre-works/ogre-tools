@@ -3,6 +3,22 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [18.0.0](https://github.com/ogre-works/ogre-tools/compare/v17.10.0...v18.0.0) (2023-10-23)
+
+### ⚠ BREAKING CHANGES
+
+- Illegal attempts to inject singletons with an instantiation parameter now throw.
+  Adapt by either:
+
+1. Changing design to not use instantiation parameters for singletons
+2. Making the singletons keyed singletons instead
+3. Having singletons receive what they need as a dependency, instead of instantiation parameter
+
+### Features
+
+- Make ComputedInjectMany support instantiation parameters ([fc6aefa](https://github.com/ogre-works/ogre-tools/commit/fc6aefac3f0bff3ea91d92bb145004915eeacdcf))
+- Make singletons throw if instantiation parameter is provided ([96215f2](https://github.com/ogre-works/ogre-tools/commit/96215f2d2abba2f817fdb4e184bfb6914b27e6c8))
+
 ## [17.10.0](https://github.com/ogre-works/ogre-tools/compare/v17.9.0...v17.10.0) (2023-10-19)
 
 **Note:** Version bump only for package @ogre-tools/injectable-extension-for-mobx
