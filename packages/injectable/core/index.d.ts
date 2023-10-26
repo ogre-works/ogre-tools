@@ -249,7 +249,7 @@ export const lifecycleEnum: {
   };
 };
 
-type RegistrationCallback = (injectable: Injectable<any, any, any>) => void;
+export type RegistrationCallback = (injectable: Injectable<unknown, unknown, unknown>) => void;
 
 export type SpecificInjectionTargetDecorator<
   InjectionInstance extends InjectionTokenInstance,
@@ -378,8 +378,8 @@ export const instantiationDecoratorToken: InjectionToken<
   void
 >;
 
-export const registrationCallbackToken: RegistrationCallback;
-export const deregistrationCallbackToken: RegistrationCallback;
+export const registrationCallbackToken: InjectionToken<RegistrationCallback, void>;
+export const deregistrationCallbackToken: InjectionToken<RegistrationCallback, void>;
 export const isInjectable: (
   thing: unknown,
 ) => thing is Injectable<unknown, unknown, unknown>;
