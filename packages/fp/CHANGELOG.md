@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+### [18.0.1](https://github.com/ogre-works/ogre-tools/compare/v18.0.0...v18.0.1) (2023-10-26)
+
+### Bug Fixes
+
+- Fix bad imports and remove dead comment ([088ecb0](https://github.com/ogre-works/ogre-tools/commit/088ecb0caed37991cbaf942466387649f1501b29))
+
 ## [18.0.0](https://github.com/ogre-works/ogre-tools/compare/v17.10.0...v18.0.0) (2023-10-23)
 
 ### Features
