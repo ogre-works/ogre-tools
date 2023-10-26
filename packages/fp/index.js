@@ -8,7 +8,7 @@ import mapValuesDeep from './src/mapValuesDeep/mapValuesDeep';
 import getSafeFrom from './src/getSafeFrom/getSafeFrom';
 import getFrom from './src/getFrom/getFrom';
 import firstMatchValue from './src/firstMatchValue/firstMatchValue';
-import { deepMap } from './src/deepMap/deepMap';
+import { DeepMap } from './src/deepMap/deepMap';
 
 export {
   awaitAll,
@@ -22,5 +22,5 @@ export {
   getFrom,
   getSafeFrom,
   firstMatchValue,
-  deepMap,
+  DeepMap,
 };
