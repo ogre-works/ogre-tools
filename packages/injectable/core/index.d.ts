@@ -379,6 +379,7 @@ export const instantiationDecoratorToken: InjectionToken<
 >;
 
 export const registrationCallbackToken: InjectionToken<RegistrationCallback, void>;
+export const preregistrationCallbackToken: InjectionToken<RegistrationCallback, void>;
 export const deregistrationCallbackToken: InjectionToken<RegistrationCallback, void>;
 export const isInjectable: (
   thing: unknown,
