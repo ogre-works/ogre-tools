@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [17.11.0](https://github.com/ogre-works/ogre-tools/compare/v17.10.0...v17.11.0) (2023-10-26)
+
+### Features
+
+- Make ComputedInjectMany support instantiation parameters ([b8b0dc1](https://github.com/ogre-works/ogre-tools/commit/b8b0dc100d2d8e058721bde41d9b179ce4428632))
+
 ## [17.10.0](https://github.com/ogre-works/ogre-tools/compare/v17.9.0...v17.10.0) (2023-10-19)
 
 **Note:** Version bump only for package @ogre-tools/injectable-extension-for-mobx

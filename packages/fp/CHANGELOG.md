@@ -3,6 +3,16 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [17.11.0](https://github.com/ogre-works/ogre-tools/compare/v17.10.0...v17.11.0) (2023-10-26)
+
+### Features
+
+- Introduce DeepMap, being like Map, but with composite keys instead of singular ones ([8969d27](https://github.com/ogre-works/ogre-tools/commit/8969d2710401b4b6ff5cb737999a68c901a962e8))
+
+### Bug Fixes
+
+- Fix bad imports and remove dead comment ([1cad69f](https://github.com/ogre-works/ogre-tools/commit/1cad69faba8e4e45f46b99a01e9e0afc70c2c0e5))
+
 ## [17.10.0](https://github.com/ogre-works/ogre-tools/compare/v17.9.0...v17.10.0) (2023-10-19)
 
 ### Features

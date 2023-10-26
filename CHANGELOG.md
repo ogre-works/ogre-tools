@@ -3,6 +3,19 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [17.11.0](https://github.com/ogre-works/ogre-tools/compare/v17.10.0...v17.11.0) (2023-10-26)
+
+### Features
+
+- Expose typing of getKeyedSingletonCompositeKey ([f516342](https://github.com/ogre-works/ogre-tools/commit/f516342f9326f48df0cd72edffb9c2963dd2d079))
+- Introduce DeepMap, being like Map, but with composite keys instead of singular ones ([8969d27](https://github.com/ogre-works/ogre-tools/commit/8969d2710401b4b6ff5cb737999a68c901a962e8))
+- Make ComputedInjectMany support instantiation parameters ([b8b0dc1](https://github.com/ogre-works/ogre-tools/commit/b8b0dc100d2d8e058721bde41d9b179ce4428632))
+- Make keys of keyedSingleton able to be composed of multiple reference values ([19fb547](https://github.com/ogre-works/ogre-tools/commit/19fb547707e6ea5f7167b78f4f3eb252488945ef))
+
+### Bug Fixes
+
+- Fix bad imports and remove dead comment ([1cad69f](https://github.com/ogre-works/ogre-tools/commit/1cad69faba8e4e45f46b99a01e9e0afc70c2c0e5))
+
 ## [17.10.0](https://github.com/ogre-works/ogre-tools/compare/v17.9.0...v17.10.0) (2023-10-19)
 
 ### Features
