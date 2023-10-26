@@ -1,16 +1,32 @@
 import { getNamespacedIdFor } from './getNamespacedIdFor';
-import { registrationCallbackToken } from './tokens';
+import {
+  preregistrationCallbackToken,
+  registrationCallbackToken,
+} from './tokens';
 import toFlatInjectables from './toFlatInjectables';
 import { DeepMap } from '@ogre-tools/fp';
 
 export const registerFor =
   ({ registerSingle, injectMany }) =>
   ({ injectables, context, source }) => {
+    const preregistrationCallback = injectMany(
+      preregistrationCallbackToken,
+      undefined,
+      context,
+      source,
+    );
+
+    injectables.forEach(injectable => {
+      preregistrationCallback.forEach(callback => {
+        callback(injectable);
+      });
+    });
+
     toFlatInjectables(injectables).forEach(injectable => {
       registerSingle(injectable, context);
     });
 
-    const callbacks = injectMany(
+    const registrationCallback = injectMany(
       registrationCallbackToken,
       undefined,
       context,
@@ -18,7 +34,7 @@ export const registerFor =
     );
 
     injectables.forEach(injectable => {
-      callbacks.forEach(callback => {
+      registrationCallback.forEach(callback => {
         callback(injectable);
       });
     });
