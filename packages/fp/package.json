@@ -10,7 +10,7 @@
   "types": "./index.d.ts",
   "repository": {
     "type": "git",
-    "url": "https://github.com/ogre-works/ogre-tools"
+    "url": "https://github.com/lensapp/ogre-tools"
   },
   "main": "build/index.js",
   "keywords": [
@@ -23,9 +23,9 @@
     "lodash": "^4.17.21"
   },
   "bugs": {
-    "url": "https://github.com/ogre-works/ogre-tools/issues"
+    "url": "https://github.com/lensapp/ogre-tools/issues"
   },
-  "homepage": "https://github.com/ogre-works/ogre-tools#readme",
+  "homepage": "https://github.com/lensapp/ogre-tools#readme",
   "publishConfig": {
     "access": "public"
   },
