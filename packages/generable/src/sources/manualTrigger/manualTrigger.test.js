@@ -1,5 +1,5 @@
 import manualTrigger from './manualTrigger';
-import { getPromiseStatus } from '@lensapp/test-utils';
+import { getPromiseStatus } from '@lensapp/ogre-test-utils';
 
 describe('manualTrigger', () => {
   it('given manually entered values to yield and return, when iterated, yields and returns the values', async () => {

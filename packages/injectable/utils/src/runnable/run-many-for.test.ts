@@ -6,7 +6,7 @@ import {
   getInjectionToken,
 } from '@lensapp/injectable';
 
-import { getPromiseStatus } from '@lensapp/test-utils';
+import { getPromiseStatus } from '@lensapp/ogre-test-utils';
 import type { Runnable } from './run-many-for';
 import { runManyFor } from './run-many-for';
 

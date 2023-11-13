@@ -1,8 +1,8 @@
 import forEach from '../../pullers/forEach/forEach';
 import regulate from './regulate';
 import { pipeline } from '@lensapp/fp';
-import { flushPromises } from '@lensapp/test-utils';
-import { advanceFakeTimeSlow } from '@lensapp/test-utils';
+import { flushPromises } from '@lensapp/ogre-test-utils';
+import { advanceFakeTimeSlow } from '@lensapp/ogre-test-utils';
 
 describe('regulate', () => {
   beforeEach(() => {

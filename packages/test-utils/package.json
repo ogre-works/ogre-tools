@@ -1,5 +1,5 @@
 {
-  "name": "@lensapp/test-utils",
+  "name": "@lensapp/ogre-test-utils",
   "private": false,
   "version": "18.0.1",
   "description": "A collection of test-utils for Ogre-tools.",
