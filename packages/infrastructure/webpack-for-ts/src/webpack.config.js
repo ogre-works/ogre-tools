@@ -1,6 +1,6 @@
 const {
   webpackConfig: configForJs,
-} = require('@ogre-tools/infrastructure-webpack-for-js');
+} = require('@lensapp/infrastructure-webpack-for-js');
 
 module.exports = {
   ...configForJs,

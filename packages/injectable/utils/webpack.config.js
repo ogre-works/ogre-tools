@@ -1,2 +1,2 @@
 module.exports =
-  require('@ogre-tools/infrastructure-webpack-for-ts').webpackConfig;
+  require('@lensapp/infrastructure-webpack-for-ts').webpackConfig;

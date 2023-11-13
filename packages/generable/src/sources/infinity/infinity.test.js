@@ -1,7 +1,7 @@
 import asArray from '../../pullers/asArray/asArray';
 import take from '../../slackers/take/take';
 import infinity from './infinity';
-import { pipeline } from '@ogre-tools/fp';
+import { pipeline } from '@lensapp/fp';
 
 describe('infinity', () => {
   it('given no function call, iterates to infinite number of undefined values', () => {

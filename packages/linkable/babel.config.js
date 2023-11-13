@@ -1,3 +1,3 @@
 module.exports = {
-  extends: '@ogre-tools/infrastructure-babel-for-ts',
+  extends: '@lensapp/infrastructure-babel-for-ts',
 };

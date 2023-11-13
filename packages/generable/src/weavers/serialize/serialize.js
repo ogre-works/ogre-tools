@@ -2,7 +2,7 @@ import every from 'lodash/fp/every';
 import isEmpty from 'lodash/fp/isEmpty';
 import map from 'lodash/fp/map';
 import getIterator from '../../shared/getIterator/getIterator';
-import { flow } from '@ogre-tools/fp';
+import { flow } from '@lensapp/fp';
 
 export default (...iterables) => {
   const iterators = getIterators(iterables);

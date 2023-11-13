@@ -4,7 +4,7 @@ import {
   createContainer,
   getInjectionToken,
   InjectionInstanceWithMeta,
-} from '@ogre-tools/injectable';
+} from '@lensapp/injectable';
 
 import { IComputedValue } from 'mobx';
 

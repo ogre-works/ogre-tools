@@ -1,4 +1,4 @@
-import { isPromise } from '@ogre-tools/fp';
+import { isPromise } from '@lensapp/fp';
 
 export const privateInjectManyFor =
   ({

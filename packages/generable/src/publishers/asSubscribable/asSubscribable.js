@@ -1,5 +1,5 @@
 import asValue from '../asValue/asValue';
-import { pipeline } from '@ogre-tools/fp';
+import { pipeline } from '@lensapp/fp';
 
 export default iterable => {
   const subscriptionBuffer = pipeline(iterable, asValue);

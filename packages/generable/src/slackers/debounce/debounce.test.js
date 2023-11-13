@@ -1,8 +1,8 @@
 import asArray from '../../pullers/asArray/asArray';
 import debounce from './debounce';
 import delay from '../../shared/delay/delay';
-import { pipeline } from '@ogre-tools/fp';
-import { advanceFakeTimeSlow } from '@ogre-tools/test-utils';
+import { pipeline } from '@lensapp/fp';
+import { advanceFakeTimeSlow } from '@lensapp/test-utils';
 
 describe('debounce', () => {
   beforeEach(() => {

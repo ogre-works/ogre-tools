@@ -1,7 +1,7 @@
 import asArray from '../../pullers/asArray/asArray';
 import asAsync from '../../slackers/asAsync/asAsync';
 import serialize from './serialize';
-import { pipeline } from '@ogre-tools/fp';
+import { pipeline } from '@lensapp/fp';
 import delay from '../../shared/delay/delay';
 
 describe('serialize', () => {

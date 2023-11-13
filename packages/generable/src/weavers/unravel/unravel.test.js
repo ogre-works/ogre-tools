@@ -2,7 +2,7 @@ import asArray from '../../pullers/asArray/asArray';
 import tap from '../../slackers/tap/tap';
 import unravel from './unravel';
 import noop from 'lodash/fp/noop';
-import { pipeline } from '@ogre-tools/fp';
+import { pipeline } from '@lensapp/fp';
 
 describe('unravel', () => {
   it('given multiple output generators, when iterating sync iterable, broadcasts iterations to all outputs', async () => {

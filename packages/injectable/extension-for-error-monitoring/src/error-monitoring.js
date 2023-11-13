@@ -1,10 +1,10 @@
 import { isFunction } from 'lodash/fp';
-import { isPromise, pipeline } from '@ogre-tools/fp';
+import { isPromise, pipeline } from '@lensapp/fp';
 import {
   getInjectable,
   getInjectionToken,
   instantiationDecoratorToken,
-} from '@ogre-tools/injectable';
+} from '@lensapp/injectable';
 
 export const errorMonitorInjectionToken = getInjectionToken({
   id: 'error-monitor-token',

@@ -1,4 +1,4 @@
-import { getInjectable } from '@ogre-tools/injectable';
+import { getInjectable } from '@lensapp/injectable';
 import fse from 'fs-extra';
 
 export type Exists = (path: string) => Promise<boolean>;

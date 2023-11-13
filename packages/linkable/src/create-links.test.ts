@@ -2,7 +2,7 @@ import type { AsyncFnMock } from '@async-fn/jest';
 import asyncFn from '@async-fn/jest';
 import type { CreateLinks } from './create-links.injectable';
 import { createLinksInjectable } from './create-links.injectable';
-import { getPromiseStatus } from '@ogre-tools/test-utils';
+import { getPromiseStatus } from '@lensapp/test-utils';
 import { posix } from 'path';
 import type { Exists } from './shared/fs/exists.injectable';
 import { existsInjectable } from './shared/fs/exists.injectable';

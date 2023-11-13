@@ -1,3 +1,3 @@
-const { monorepoRootConfig } = require('@ogre-tools/infrastructure-jest');
+const { monorepoRootConfig } = require('@lensapp/infrastructure-jest');
 
 module.exports = monorepoRootConfig(__dirname);

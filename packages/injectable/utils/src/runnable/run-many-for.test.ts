@@ -4,9 +4,9 @@ import {
   createContainer,
   getInjectable,
   getInjectionToken,
-} from '@ogre-tools/injectable';
+} from '@lensapp/injectable';
 
-import { getPromiseStatus } from '@ogre-tools/test-utils';
+import { getPromiseStatus } from '@lensapp/test-utils';
 import type { Runnable } from './run-many-for';
 import { runManyFor } from './run-many-for';
 

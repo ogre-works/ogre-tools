@@ -1,7 +1,7 @@
 import over from 'lodash/fp/over';
 
 import asStream from '../../publishers/asStream/asStream';
-import { pipeline } from '@ogre-tools/fp';
+import { pipeline } from '@lensapp/fp';
 
 export default (...outputIterables) =>
   inputIterable =>

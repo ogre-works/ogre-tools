@@ -3,7 +3,7 @@ import {
   Injectable,
   InjectionInstanceWithMeta,
   InjectionToken,
-} from '@ogre-tools/injectable';
+} from '@lensapp/injectable';
 import { IComputedValue } from 'mobx';
 
 export function registerMobX(di: DiContainer): void;

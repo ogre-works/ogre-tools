@@ -1,4 +1,4 @@
-import { DiContainer, DiContainerForInjection } from '@ogre-tools/injectable';
+import { DiContainer, DiContainerForInjection } from '@lensapp/injectable';
 
 export function autoRegister(arg: {
   di: DiContainer | DiContainerForInjection;

@@ -9,7 +9,7 @@ import {
   publishYalcPackageInjectable,
 } from './publish-yalc-package.injectable';
 
-import { getPromiseStatus } from '@ogre-tools/test-utils';
+import { getPromiseStatus } from '@lensapp/test-utils';
 import { workingDirectoryInjectable } from './shared/working-directory.injectable';
 
 import {

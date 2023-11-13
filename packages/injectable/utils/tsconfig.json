@@ -1,5 +1,5 @@
 {
-  "extends": "@ogre-tools/infrastructure-typescript/config/base.json",
+  "extends": "@lensapp/infrastructure-typescript/config/base.json",
 
   "files": ["./index.ts"],
 

@@ -1,4 +1,4 @@
-import { getInjectable } from '@ogre-tools/injectable';
+import { getInjectable } from '@lensapp/injectable';
 import { addPackages } from 'yalc';
 
 export type AddYalcPackages = typeof addPackages;

@@ -1,8 +1,8 @@
-import { createContainer, getInjectable } from '@ogre-tools/injectable';
-import { getSafeFrom, pipeline } from '@ogre-tools/fp';
+import { createContainer, getInjectable } from '@lensapp/injectable';
+import { getSafeFrom, pipeline } from '@lensapp/fp';
 import { fromPairs, keys, map } from 'lodash/fp';
 import autoRegisterFor from './autoRegister';
-import { getInjectableBunch } from '@ogre-tools/injectable';
+import { getInjectableBunch } from '@lensapp/injectable';
 
 const nonCappedMap = map.convert({ cap: false });
 

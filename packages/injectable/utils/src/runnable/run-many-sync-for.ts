@@ -1,8 +1,8 @@
-import { pipeline } from '@ogre-tools/fp';
+import { pipeline } from '@lensapp/fp';
 import type {
   DiContainerForInjection,
   InjectionToken,
-} from '@ogre-tools/injectable';
+} from '@lensapp/injectable';
 import { filter, forEach, map, tap } from 'lodash/fp';
 import type { Runnable } from './run-many-for';
 import { throwWithIncorrectHierarchyFor } from './throw-with-incorrect-hierarchy-for';

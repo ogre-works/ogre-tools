@@ -1,5 +1,5 @@
 {
-  "name": "@ogre-tools/infrastructure-babel-for-ts",
+  "name": "@lensapp/infrastructure-babel-for-ts",
   "private": true,
   "version": "18.0.1",
   "description": "Shared babel configuration",

@@ -1,7 +1,7 @@
 import asArray from '../../pullers/asArray/asArray';
 import asAsync from '../asAsync/asAsync';
 import map from './map';
-import { pipeline } from '@ogre-tools/fp';
+import { pipeline } from '@lensapp/fp';
 
 describe('map', () => {
   it('given a mapping function and synchronous iterable, returns new synchronous iterable for mapped values', () => {
