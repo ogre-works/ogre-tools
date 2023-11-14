@@ -2,12 +2,19 @@ import createContainer from '../dependency-injection-container/createContainer';
 import getInjectableBunch from '../getInjectableBunch/getInjectableBunch';
 import getInjectionToken from '../getInjectionToken/getInjectionToken';
 import getInjectable from '../getInjectable/getInjectable';
+import isInjectableBunch from '../getInjectableBunch/isInjectableBunch';
 
 describe('injectable-bunch', () => {
   let di;
 
   beforeEach(() => {
     di = createContainer('some-container');
+  });
+
+  it('given undefined, when checking if bunch, return false', () => {
+    const actual = isInjectableBunch(undefined);
+
+    expect(actual).toBe(false);
   });
 
   describe('given a bunch containing multiple injectables and registered', () => {
