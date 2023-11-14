@@ -14,7 +14,6 @@
     "code-style:fix": "lerna run code-style:fix",
     "install-all-packages": "npm install",
     "reinstall-all-dependencies": "./npm-scripts/reinstall-all-dependencies.sh",
-    "update-package-locks-for-lerna": "lerna exec --parallel -- npm i --package-lock-only",
     "build-all-packages": "npm run remove-all-package-builds && lerna run build",
     "build-and-publish": "npm run remove-all-package-builds && npm run test:ci && npm run build-all-packages && lerna publish --yes && npm run remove-all-package-builds",
     "remove-all-package-builds": "find ./packages -name build -type d -prune -exec rm -rfv {} \\;",
