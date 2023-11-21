@@ -20,6 +20,8 @@ import {
   isInjectionToken,
   getInjectableBunch,
   getKeyedSingletonCompositeKey,
+  getInjectionToken2,
+  getInjectable2,
 } from '.';
 
 const di = createContainer('some-container');
@@ -544,3 +546,83 @@ expectType<{ someInjectable: Injectable<string, unknown, number> }>(
 );
 
 expectType<{ keys: [1, 2, 3] }>(getKeyedSingletonCompositeKey(1, 2, 3));
+
+// API 2.0
+
+// given injectionToken with parameter using generics, and injectable implementing it, when injected, typing is ok
+const someInjectionTokenWithGenerics = getInjectionToken2<
+  <T>(someParameter: T) => T
+>({
+  id: 'some-injection-token-with-generics',
+});
+
+const someInjectableUsingGenerics = getInjectable2({
+  id: 'some-injectable-using-generics',
+
+  instantiateFor:
+    () =>
+    <T>(param: T) =>
+      param,
+
+  injectionToken: someInjectionTokenWithGenerics,
+  lifecycle: lifecycleEnum.transient,
+});
+
+expectType<string>(
+  di.injectFor(someInjectionTokenWithGenerics)(String('some-string')),
+);
+
+expectType<number>(di.injectFor(someInjectionTokenWithGenerics)(Number(42)));
+
+// given injectionToken with parameter without generics, and injectable implementing it, when injected, typing is ok
+const someInjectionTokenWithNoGenerics = getInjectionToken2<
+  (someParameter: string) => number
+>({
+  id: 'some-injection-token-with-no-generics',
+});
+
+const someInjectableNotUsingGenerics = getInjectable2({
+  id: 'some-injectable-not-using-generics',
+
+  instantiateFor: di => parameter => {
+    expectType<DiContainerForInjection>(di);
+    expectType<string>(parameter);
+
+    return 42;
+  },
+
+  injectionToken: someInjectionTokenWithNoGenerics,
+  lifecycle: lifecycleEnum.transient,
+});
+
+expectType<number>(di.injectFor(someInjectableNotUsingGenerics)('some-string'));
+expectError(di.injectFor(someInjectableNotUsingGenerics)(42));
+
+expectType<number>(
+  di.injectFor(someInjectionTokenWithNoGenerics)('some-string'),
+);
+expectError(di.injectFor(someInjectionTokenWithNoGenerics)(42));
+
+// given injectionToken without parameter, and injectable implementing it, when injected, typing is ok
+const someInjectionTokenWithNoParameter = getInjectionToken2<() => number>({
+  id: 'some-injection-token-with-no-generics',
+});
+
+const someInjectableWithNoParameter = getInjectable2({
+  id: 'some-injectable-not-using-generics',
+
+  instantiateFor: di => () => {
+    expectType<DiContainerForInjection>(di);
+
+    return 42;
+  },
+
+  injectionToken: someInjectionTokenWithNoParameter,
+  lifecycle: lifecycleEnum.transient,
+});
+
+expectType<number>(di.injectFor(someInjectableWithNoParameter)());
+expectError<number>(di.injectFor(someInjectableWithNoParameter)(42));
+
+expectType<number>(di.injectFor(someInjectionTokenWithNoParameter)());
+expectError(di.injectFor(someInjectionTokenWithNoGenerics)(42));
