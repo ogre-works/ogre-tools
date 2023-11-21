@@ -36,9 +36,30 @@ export type Instantiate<InjectionInstance, InstantiationParam> = {
   ): InjectionInstance;
 };
 
+export type Instantiate2<T, T2> = {
+  (di: DiContainerForInjection, param: T): T2;
+};
+
 export interface InjectionToken<InjectionInstance, InstantiationParam> {
   template: InjectionInstance;
   instantiationParameter: InstantiationParam;
+  key: Symbol;
+  id: string;
+}
+
+export type InstantiateWithDi<T, T2> = (
+  di: DiContainerForInjection,
+  param: T,
+) => T2;
+
+export type InstantiateWithoutDi<T, T2> = (param: T) => T2;
+
+export type InjectTemplate<T extends InstantiateWithDi<unknown, unknown>> = T;
+
+export interface InjectionToken2<
+  T extends InstantiateWithDi<unknown, unknown>,
+> {
+  instantiateTemplate: T;
   key: Symbol;
   id: string;
 }
@@ -56,6 +77,21 @@ export interface Injectable<
   >;
   readonly instantiate: Instantiate<InjectionInstance, InstantiationParam>;
   readonly lifecycle: ILifecycle<InstantiationParam>;
+  readonly decorable?: boolean;
+  readonly tags?: any[];
+  readonly scope?: boolean;
+}
+
+export interface Injectable2<TInjectionToken2 extends InjectionToken2<any>> {
+  readonly id: string;
+  readonly causesSideEffects?: boolean;
+  readonly injectionToken?: TInjectionToken2;
+
+  readonly instantiateFor: (
+    di: DiContainerForInjection,
+  ) => TInjectionToken2['instantiateTemplate'];
+
+  readonly lifecycle: ILifecycle2<any>;
   readonly decorable?: boolean;
   readonly tags?: any[];
   readonly scope?: boolean;
@@ -79,6 +115,10 @@ type GetInjectableOptions<
     'lifecycle'
   >;
 
+// Todo: indirection?
+type GetInjectableOptions2<TInjectionToken2 extends InjectionToken2<any>> =
+  Injectable2<TInjectionToken2>;
+
 export function getInjectable<
   InjectionInstance extends InjectionTokenInstance,
   InjectionTokenInstance,
@@ -90,6 +130,10 @@ export function getInjectable<
     InstantiationParam
   >,
 ): Injectable<InjectionInstance, InjectionTokenInstance, InstantiationParam>;
+
+export function getInjectable2<TInjectionToken2 extends InjectionToken2<any>>(
+  options: GetInjectableOptions2<TInjectionToken2>,
+): Injectable2<TInjectionToken2>;
 
 type InjectableBunch<InjectableConfig> = {
   [Key in keyof InjectableConfig]: InjectableConfig[Key] extends Injectable<
@@ -110,6 +154,10 @@ export function getInjectionToken<
   id: string;
 }): InjectionToken<InjectionInstance, InstantiationParam>;
 
+export function getInjectionToken2<
+  T extends InstantiateWithoutDi<any, any>,
+>(options: { id: string }): InjectionToken2<T>;
+
 export type InjectWithoutParameter = <InjectionInstance>(
   key:
     | Injectable<InjectionInstance, unknown>
@@ -124,6 +172,22 @@ export type InjectWithParameter = <InjectionInstance, InstantiationParam>(
 ) => InjectionInstance;
 
 export type Inject = InjectWithoutParameter & InjectWithParameter;
+
+export type InjectWithTokenFor = <T extends InjectionToken2<any>>(
+  token: T,
+) => T['instantiateTemplate'];
+
+export type InjectWithInjectableFor = <T extends Injectable2<any>>(
+  injectable: T,
+) => ReturnType<T['instantiateFor']>;
+
+export type InjectFor = InjectWithTokenFor & InjectWithInjectableFor;
+
+// Todo: implement InjectWithoutParameter2
+export type Inject2 = <T extends InjectionToken2<any>>(
+  token: T,
+  parameter: Parameters<T['instantiateTemplate']>[1],
+) => ReturnType<T['instantiateTemplate']>;
 
 export type InjectFactory = <InjectionInstance, InstantiationParam extends {}>(
   alias:
@@ -217,6 +281,8 @@ interface ContextItem {
 
 export interface DiContainerForInjection {
   inject: Inject;
+  inject2: Inject2;
+  injectFor: InjectFor;
   injectWithMeta: InjectWithMeta;
   injectFactory: InjectFactory;
   injectMany: InjectMany;
@@ -230,6 +296,13 @@ export interface DiContainerForInjection {
 
 export interface ILifecycle<InstantiationParam> {
   getInstanceKey: (di: DiContainer, params: InstantiationParam) => any;
+}
+
+export interface ILifecycle2<
+  TInstantiateWithDi extends InstantiateWithDi<unknown, unknown>,
+> {
+  // Todo: solve
+  getInstanceKey: any;
 }
 
 declare const storedInstanceKey: unique symbol;
