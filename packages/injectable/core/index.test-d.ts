@@ -658,3 +658,22 @@ expectType<string>(
     String('some-string'),
   ),
 );
+
+// Todo: implement
+// given injectable with instantiation parameter, but no lifecycle to justify it, typing is not ok
+// expectError(
+//   getInjectable2({
+//     id: 'irrelevant',
+//
+//     instantiateFor: () => (parameter: string) => parameter,
+//   }),
+// );
+
+// given injectable with no instantiation parameter, and default lifecycle, typing is ok
+const someInjectableWithDefaultLifecycle = getInjectable2({
+  id: 'irrelevant',
+
+  instantiateFor: di => () => Number(42),
+});
+
+expectType<number>(di.injectFor(someInjectableWithDefaultLifecycle)());

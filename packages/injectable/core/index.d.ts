@@ -36,9 +36,7 @@ export type Instantiate<InjectionInstance, InstantiationParam> = {
   ): InjectionInstance;
 };
 
-export type Instantiate2<T, T2> = {
-  (param: T extends void ? void : T): T2;
-};
+export type Instantiate2<T, T2> = T extends void ? () => T2 : (param: T) => T2;
 
 export interface InjectionToken<InjectionInstance, InstantiationParam> {
   template: InjectionInstance;
@@ -46,11 +44,6 @@ export interface InjectionToken<InjectionInstance, InstantiationParam> {
   key: Symbol;
   id: string;
 }
-
-export type InstantiateWithDi<T, T2> = (
-  di: DiContainerForInjection,
-  param: T,
-) => T2;
 
 export interface InjectionToken2<T extends Instantiate2<any, any>> {
   instantiateTemplate: T;
@@ -76,10 +69,11 @@ export interface Injectable<
   readonly scope?: boolean;
 }
 
-export interface Injectable2<
-  TInstantiateWithInjectable extends Instantiate2<any, any>,
+export type Injectable2<
+  TInstantiateWithInjectable extends Instantiate2<TParameter, any>,
   TInstantiateWithToken extends Instantiate2<any, any>,
-> {
+  TParameter,
+> = {
   readonly id: string;
   readonly causesSideEffects?: boolean;
   readonly injectionToken?: InjectionToken2<TInstantiateWithToken>;
@@ -88,11 +82,10 @@ export interface Injectable2<
     di: DiContainerForInjection,
   ) => TInstantiateWithInjectable;
 
-  readonly lifecycle: ILifecycle2<any>;
   readonly decorable?: boolean;
   readonly tags?: any[];
   readonly scope?: boolean;
-}
+} & InjectableLifecycle<TParameter>;
 
 type InjectableLifecycle<InstantiationParam> = InstantiationParam extends void
   ? {
@@ -130,8 +123,12 @@ export function getInjectable2<
   TInstantiateWithToken extends Instantiate2<any, any>,
   TParameter = Parameters<TInstantiateWithToken>[0],
 >(
-  options: Injectable2<TInstantiateWithInjectable, TInstantiateWithToken>,
-): Injectable2<TInstantiateWithInjectable, TInstantiateWithToken>;
+  options: Injectable2<
+    TInstantiateWithInjectable,
+    TInstantiateWithToken,
+    TParameter
+  >,
+): Injectable2<TInstantiateWithInjectable, TInstantiateWithToken, TParameter>;
 
 type InjectableBunch<InjectableConfig> = {
   [Key in keyof InjectableConfig]: InjectableConfig[Key] extends Injectable<
@@ -171,7 +168,7 @@ export type InjectWithParameter = <InjectionInstance, InstantiationParam>(
 
 export type Inject = InjectWithoutParameter & InjectWithParameter;
 
-export type InjectWithInjectableFor = <T extends Injectable2<any, any>>(
+export type InjectWithInjectableFor = <T extends Injectable2<any, any, any>>(
   injectable: T,
 ) => ReturnType<T['instantiateFor']>;
 
@@ -291,9 +288,7 @@ export interface ILifecycle<InstantiationParam> {
   getInstanceKey: (di: DiContainer, params: InstantiationParam) => any;
 }
 
-export interface ILifecycle2<
-  TInstantiateWithDi extends InstantiateWithDi<unknown, unknown>,
-> {
+export interface ILifecycle2<TParameter> {
   // Todo: solve
   getInstanceKey: any;
 }
