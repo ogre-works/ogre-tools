@@ -2,29 +2,26 @@ import { expectError, expectNotType, expectType } from 'tsd';
 
 import {
   createContainer,
+  createInjectionTargetDecorator,
+  createInstantiationTargetDecorator,
   DiContainer,
   DiContainerForInjection,
   getInjectable,
+  getInjectable2,
+  getInjectableBunch,
   getInjectionToken,
-  instantiationDecoratorToken,
-  createInstantiationTargetDecorator,
-  lifecycleEnum,
-  Instantiate,
+  getInjectionToken2,
+  getKeyedSingletonCompositeKey,
   Injectable,
   injectionDecoratorToken,
-  Inject,
-  createInjectionTargetDecorator,
-  SpecificInject,
   InjectionToken,
+  Instantiate,
+  instantiationDecoratorToken,
   isInjectable,
   isInjectionToken,
-  getInjectableBunch,
-  getKeyedSingletonCompositeKey,
-  getInjectionToken2,
-  getInjectable2,
-  Injectable2,
+  lifecycleEnum,
+  SpecificInject,
 } from '.';
-import { Simplify } from 'type-fest';
 
 const di = createContainer('some-container');
 
