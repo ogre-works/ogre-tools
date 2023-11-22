@@ -674,3 +674,12 @@ const someInjectableWithDefaultLifecycle = getInjectable2({
 });
 
 expectType<number>(di.injectFor(someInjectableWithDefaultLifecycle)());
+
+// given injectable with no instantiation parameter, and lifecycle which could use the paramater but doesn't, typing is ok
+const someInjectableChoosingNotToUseParamater = getInjectable2({
+  id: 'irrelevant',
+  instantiateFor: () => () => Number(42),
+  lifecycle: lifecycleEnum.transient,
+});
+
+expectType<number>(di.injectFor(someInjectableChoosingNotToUseParamater)());
