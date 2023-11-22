@@ -70,7 +70,7 @@ export interface Injectable<
 }
 
 export type Injectable2<
-  TInstantiateWithInjectable extends Instantiate2<TParameter, any>,
+  TInstantiateWithInjectable extends TInstantiateWithToken,
   TInstantiateWithToken extends Instantiate2<any, any>,
   TParameter,
 > = {
@@ -119,7 +119,7 @@ export function getInjectable<
 ): Injectable<InjectionInstance, InjectionTokenInstance, InstantiationParam>;
 
 export function getInjectable2<
-  TInstantiateWithInjectable extends Instantiate2<TParameter, any>,
+  TInstantiateWithInjectable extends TInstantiateWithToken,
   TInstantiateWithToken extends Instantiate2<any, any>,
   TParameter = Parameters<TInstantiateWithToken>[0],
 >(
