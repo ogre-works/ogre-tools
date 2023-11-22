@@ -536,7 +536,7 @@ di.permitSideEffects(someInjectionToken);
 // given injectable bunch, typing is ok
 const someInjectableBunch = getInjectableBunch({
   someInjectable: {
-    id: 'some-injectable',
+    id: 'irrelevant',
     instantiate: (di: DiContainerForInjection, parameter: number) =>
       `some-instance-${parameter}`,
     lifecycle: lifecycleEnum.transient,
@@ -555,11 +555,11 @@ expectType<{ keys: [1, 2, 3] }>(getKeyedSingletonCompositeKey(1, 2, 3));
 const someInjectionTokenWithGenerics = getInjectionToken2<
   <T>(someParameter: T) => { someProperty: T }
 >({
-  id: 'some-injection-token-with-generics',
+  id: 'irrelevant',
 });
 
 const someInjectableUsingGenerics = getInjectable2({
-  id: 'some-injectable-using-generics',
+  id: 'irrelevant',
 
   instantiateFor:
     () =>
@@ -589,11 +589,11 @@ expectType<{
 const someInjectionTokenWithNoGenerics = getInjectionToken2<
   (someParameter: string) => number
 >({
-  id: 'some-injection-token-with-no-generics',
+  id: 'irrelevant',
 });
 
 const someInjectableNotUsingGenerics = getInjectable2({
-  id: 'some-injectable-not-using-generics',
+  id: 'irrelevant',
 
   instantiateFor: di => parameter => {
     expectType<DiContainerForInjection>(di);
@@ -617,11 +617,11 @@ expectError(di.injectFor(someInjectionTokenWithNoGenerics)(42));
 
 // given injectionToken without parameter, and injectable implementing it, when injected, typing is ok
 const someInjectionTokenWithNoParameter = getInjectionToken2<() => number>({
-  id: 'some-injection-token-with-no-generics',
+  id: 'irrelevant',
 });
 
 const someInjectableWithNoParameter = getInjectable2({
-  id: 'some-injectable-not-using-generics',
+  id: 'irrelevant',
 
   instantiateFor: di => () => {
     expectType<DiContainerForInjection>(di);
@@ -641,15 +641,12 @@ expectError(di.injectFor(someInjectionTokenWithNoParameter)(42));
 
 // given no injectionToken, and injectable with generics, when injected, typing is ok
 const someInjectableUsingGenericsButWithoutToken = getInjectable2({
-  id: 'some-injectable-using-generics-but-without-token',
+  id: 'irrelevant',
 
   instantiateFor:
-    di =>
-    <T>(parameter: T) => {
-      expectType<DiContainerForInjection>(di);
-
-      return parameter;
-    },
+    () =>
+    <T>(parameter: T) =>
+      parameter,
   lifecycle: lifecycleEnum.transient,
 });
 
