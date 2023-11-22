@@ -585,6 +585,22 @@ expectType<{
   someValueMoreSpecificThanToken: string;
 }>(di.injectFor(someInjectableUsingGenerics)(true));
 
+// given injectionToken with parameter using generics, and injectable implementing it but with wrongly typed instantiate, typing is not ok
+expectError(
+  getInjectable2({
+    id: 'irrelevant',
+
+    instantiateFor:
+      () =>
+      <T>(param: T) => ({
+        someProperty: 'some-string-despite-what-param-is',
+      }),
+
+    injectionToken: someInjectionTokenWithGenerics,
+    lifecycle: lifecycleEnum.transient,
+  }),
+);
+
 // given injectionToken with parameter without generics, and injectable implementing it, when injected, typing is ok
 const someInjectionTokenWithNoGenerics = getInjectionToken2<
   (someParameter: string) => number
