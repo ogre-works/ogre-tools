@@ -171,30 +171,17 @@ export type InjectWithParameter = <InjectionInstance, InstantiationParam>(
 
 export type Inject = InjectWithoutParameter & InjectWithParameter;
 
+export type InjectWithInjectableFor = <T extends Injectable2<any, any>>(
+  injectable: T,
+) => ReturnType<T['instantiateFor']>;
+
 export type InjectWithTokenFor = <
   T extends InjectionToken2<Instantiate2<any, any>>,
 >(
   token: T,
 ) => T['instantiateTemplate'];
 
-export type InjectWithInjectableFor = <T extends Injectable2<any, any>>(
-  injectable: T,
-) => ReturnType<T['instantiateFor']>;
-
-export type InjectFor = InjectWithTokenFor & InjectWithInjectableFor;
-
-export type InstantiateWithInjectableFor = <T extends Injectable2<any, any>>(
-  injectable: T,
-) => ReturnType<T['instantiateFor']>;
-
-export type InstantiateWithTokenFor = <
-  T extends InjectionToken2<Instantiate2<any, any>>,
->(
-  token: T,
-) => T['instantiateTemplate'];
-
-export type InstantiateFor = InstantiateWithInjectableFor &
-  InstantiateWithTokenFor;
+export type InjectFor = InjectWithInjectableFor & InjectWithTokenFor;
 
 export type InjectFactory = <InjectionInstance, InstantiationParam extends {}>(
   alias:
