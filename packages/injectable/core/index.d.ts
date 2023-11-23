@@ -131,14 +131,20 @@ export function getInjectable2<
   TInstantiateWithInjectable extends TInstantiateWithToken,
   TGetInstanceKey extends SetReturnType<TInstantiateWithInjectable, any>,
 >(
-  options: SetOptional<
-    Injectable2<
-      TInstantiateWithToken,
-      TInstantiateWithInjectable,
-      TGetInstanceKey
-    >,
-    'lifecycle'
-  >,
+  options: Parameters<TInstantiateWithInjectable>[0] extends void
+    ? SetOptional<
+        Injectable2<
+          TInstantiateWithToken,
+          TInstantiateWithInjectable,
+          TGetInstanceKey
+        >,
+        'lifecycle'
+      >
+    : Injectable2<
+        TInstantiateWithToken,
+        TInstantiateWithInjectable,
+        TGetInstanceKey
+      >,
 ): Injectable2<
   TInstantiateWithToken,
   TInstantiateWithInjectable,

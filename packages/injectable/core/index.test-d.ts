@@ -828,15 +828,14 @@ expectError(
   }),
 );
 
-// Todo: implement
 // given injectable with instantiation parameter, but no lifecycle to justify it, typing is not ok
-// expectError(
-//   getInjectable2({
-//     id: 'irrelevant',
-//
-//     instantiateFor: () => (parameter: string) => parameter,
-//   }),
-// );
+expectError(
+  getInjectable2({
+    id: 'irrelevant',
+
+    instantiateFor: () => (parameter: string) => parameter,
+  }),
+);
 
 // given injectable with no instantiation parameter, and default lifecycle, typing is ok
 const someInjectableWithDefaultLifecycle = getInjectable2({
@@ -891,3 +890,5 @@ expectError<string>(
 expectError<string>(
   di.injectFor(someKeyedSingletonUsingGenericsButWithConstrainedToken)(),
 );
+
+type Janne = Parameters<(arg: void) => number> extends [] ? true : false;
