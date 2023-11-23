@@ -1,5 +1,7 @@
 /// <reference types="jest" />
 
+import { SetReturnType } from 'type-fest';
+
 export type Override = <
   InjectionInstance extends InjectionTokenInstance,
   InjectionTokenInstance,
@@ -36,7 +38,9 @@ export type Instantiate<InjectionInstance, InstantiationParam> = {
   ): InjectionInstance;
 };
 
-export type Instantiate2<T, T2> = T extends void ? () => T2 : (param: T) => T2;
+export type Instantiate2<T, T2> = {
+  (param: T extends void ? void : T): T2;
+};
 
 export interface InjectionToken<InjectionInstance, InstantiationParam> {
   template: InjectionInstance;
@@ -72,7 +76,7 @@ export interface Injectable<
 export type Injectable2<
   TInstantiateWithInjectable extends TInstantiateWithToken,
   TInstantiateWithToken extends Instantiate2<any, any>,
-  TParameter,
+  TGetInstanceKey extends SetReturnType<TInstantiateWithInjectable, any>,
 > = {
   readonly id: string;
   readonly causesSideEffects?: boolean;
@@ -85,7 +89,11 @@ export type Injectable2<
   readonly decorable?: boolean;
   readonly tags?: any[];
   readonly scope?: boolean;
-} & InjectableLifecycle<TParameter>;
+
+  readonly lifecycle?: {
+    readonly getInstanceKey: TGetInstanceKey;
+  };
+};
 
 type InjectableLifecycle<InstantiationParam> = InstantiationParam extends void
   ? {
@@ -121,14 +129,18 @@ export function getInjectable<
 export function getInjectable2<
   TInstantiateWithInjectable extends TInstantiateWithToken,
   TInstantiateWithToken extends Instantiate2<any, any>,
-  TParameter = Parameters<TInstantiateWithToken>[0],
+  TGetInstanceKey extends SetReturnType<TInstantiateWithInjectable, any>,
 >(
   options: Injectable2<
     TInstantiateWithInjectable,
     TInstantiateWithToken,
-    TParameter
+    TGetInstanceKey
   >,
-): Injectable2<TInstantiateWithInjectable, TInstantiateWithToken, TParameter>;
+): Injectable2<
+  TInstantiateWithInjectable,
+  TInstantiateWithToken,
+  TGetInstanceKey
+>;
 
 type InjectableBunch<InjectableConfig> = {
   [Key in keyof InjectableConfig]: InjectableConfig[Key] extends Injectable<
@@ -296,18 +308,26 @@ export interface ILifecycle2<TParameter> {
 declare const storedInstanceKey: unique symbol;
 declare const nonStoredInstanceKey: unique symbol;
 
+export type Singleton = {
+  getInstanceKey: (di: DiContainer) => typeof storedInstanceKey;
+};
+
+export type Transient = {
+  getInstanceKey: () => typeof nonStoredInstanceKey;
+};
+
+export type KeyedSingleton<T> = {
+  getInstanceKey: (di: DiContainer) => typeof nonStoredInstanceKey;
+};
+
 export const lifecycleEnum: {
-  singleton: {
-    getInstanceKey: (di: DiContainer) => typeof storedInstanceKey;
-  };
+  singleton: Singleton;
 
-  keyedSingleton<InstantiationParam>(
+  keyedSingleton: <InstantiationParam>(
     options: ILifecycle<InstantiationParam>,
-  ): typeof options;
+  ) => typeof options;
 
-  transient: {
-    getInstanceKey: (di: DiContainer) => typeof nonStoredInstanceKey;
-  };
+  transient: Transient;
 };
 
 type RegistrationCallback = (injectable: Injectable<any, any, any>) => void;
