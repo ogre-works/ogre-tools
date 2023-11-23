@@ -320,7 +320,7 @@ declare const nonStoredInstanceKey: unique symbol;
 export type Singleton = {
   getInstanceKey: (
     di: DiContainerForInjection,
-  ) => () => typeof storedInstanceKey;
+  ) => (param: void) => typeof storedInstanceKey;
 };
 
 export type Transient = {
