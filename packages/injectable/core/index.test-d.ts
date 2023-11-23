@@ -20,6 +20,7 @@ import {
   isInjectable,
   isInjectionToken,
   lifecycleEnum,
+  lifecycleEnum2,
   SpecificInject,
 } from '.';
 
@@ -566,7 +567,7 @@ const someInjectableUsingGenerics = getInjectable2({
     }),
 
   injectionToken: someInjectionTokenWithGenerics,
-  lifecycle: lifecycleEnum.transient,
+  lifecycle: lifecycleEnum2.transient,
 });
 
 expectType<{ someProperty: 'some-string' }>(
@@ -594,7 +595,7 @@ expectError(
       }),
 
     injectionToken: someInjectionTokenWithGenerics,
-    lifecycle: lifecycleEnum.transient,
+    lifecycle: lifecycleEnum2.transient,
   }),
 );
 
@@ -616,7 +617,7 @@ const someInjectableNotUsingGenerics = getInjectable2({
   },
 
   injectionToken: someInjectionTokenWithNoGenerics,
-  lifecycle: lifecycleEnum.transient,
+  lifecycle: lifecycleEnum2.transient,
 });
 
 expectType<number>(di.injectFor(someInjectableNotUsingGenerics)('some-string'));
@@ -643,7 +644,7 @@ const someInjectableWithNoParameter = getInjectable2({
   },
 
   injectionToken: someInjectionTokenWithNoParameter,
-  lifecycle: lifecycleEnum.transient,
+  lifecycle: lifecycleEnum2.transient,
 });
 
 expectType<number>(di.injectFor(someInjectableWithNoParameter)());
@@ -660,7 +661,7 @@ const someTransientUsingGenericsButWithoutToken = getInjectable2({
     () =>
     <T>(parameter: T) =>
       parameter,
-  lifecycle: lifecycleEnum.transient,
+  lifecycle: lifecycleEnum2.transient,
 });
 
 expectType<string>(
@@ -678,9 +679,13 @@ const someKeyedSingletonUsingGenericsButWithoutToken = getInjectable2({
     <T extends string>(parameter: T) =>
       parameter,
 
-  lifecycle: {
-    getInstanceKey: <T extends string>(param: T) => 'some-key',
-  },
+  lifecycle: lifecycleEnum2.keyedSingleton({
+    getInstanceKey: di => {
+      expectType<DiContainerForInjection>(di);
+
+      return <T extends string>(param: T) => 'some-key';
+    },
+  }),
 });
 
 expectType<string>(
@@ -700,11 +705,13 @@ expectError(
       <T extends string>(parameter: T) =>
         parameter,
 
-    lifecycle: {
+    lifecycle: lifecycleEnum2.keyedSingleton({
       getInstanceKey:
+        () =>
         // Note: string vs. boolean is the contradiction.
-        <T extends boolean>(param: T) => param,
-    },
+        <T extends boolean>(param: T) =>
+          param,
+    }),
   }),
 );
 
@@ -728,9 +735,12 @@ const someKeyedSingletonUsingGenericsButWithConstrainedToken = getInjectable2({
     <T extends string>(parameter: T) =>
       parameter,
 
-  lifecycle: {
-    getInstanceKey: <T extends string>(param: T) => 'some-key',
-  },
+  lifecycle: lifecycleEnum2.keyedSingleton({
+    getInstanceKey:
+      () =>
+      <T extends string>(param: T) =>
+        'some-key',
+  }),
 
   injectionToken: someInjectionTokenWithConstrainedGenerics,
 });
@@ -760,9 +770,12 @@ expectError(
       ) =>
         parameter,
 
-    lifecycle: {
-      getInstanceKey: <T extends string>(param: T) => 'some-key',
-    },
+    lifecycle: lifecycleEnum2.keyedSingleton({
+      getInstanceKey:
+        () =>
+        <T extends string>(param: T) =>
+          'some-key',
+    }),
 
     injectionToken: someInjectionTokenWithConstrainedGenerics,
   }),
@@ -778,14 +791,17 @@ expectError(
       <T extends string>(parameter: T) =>
         parameter,
 
-    lifecycle: {
-      getInstanceKey: <
-        // Note: boolean instead of string is the contradiction.
-        T extends boolean,
-      >(
-        param: T,
-      ) => 'some-key',
-    },
+    lifecycle: lifecycleEnum2({
+      getInstanceKey:
+        () =>
+        <
+          // Note: boolean instead of string is the contradiction.
+          T extends boolean,
+        >(
+          param: T,
+        ) =>
+          'some-key',
+    }),
 
     injectionToken: someInjectionTokenWithConstrainedGenerics,
   }),
@@ -802,11 +818,13 @@ expectError(
       <T extends string>(parameter: T) =>
         parameter,
 
-    lifecycle: {
+    lifecycle: lifecycleEnum2({
       getInstanceKey:
+        () =>
         // Note: string vs. boolean is the contradiction.
-        <T extends boolean>(param: T) => param,
-    },
+        <T extends boolean>(param: T) =>
+          param,
+    }),
   }),
 );
 
@@ -833,7 +851,7 @@ expectType<number>(di.injectFor(someInjectableWithDefaultLifecycle)());
 const someInjectableChoosingNotToUseParamater = getInjectable2({
   id: 'irrelevant',
   instantiateFor: () => () => Number(42),
-  lifecycle: lifecycleEnum.transient,
+  lifecycle: lifecycleEnum2.transient,
 });
 
 expectType<number>(di.injectFor(someInjectableChoosingNotToUseParamater)());
@@ -849,7 +867,10 @@ const someKeyedSingletonUsingTokenWithNoGenerics = getInjectable2({
   },
 
   lifecycle: {
-    getInstanceKey: param => {
+    // Todo: for some reason, wrapping this with lifecycleEnum2.keyedSingleton
+    //  makes the type inference break. Solve.
+    getInstanceKey: di => param => {
+      expectType<DiContainerForInjection>(di);
       expectType<string>(param);
 
       return 'some-key';
