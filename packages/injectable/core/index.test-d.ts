@@ -708,6 +708,108 @@ expectError(
   }),
 );
 
+// given injectionToken with constrained generics, and keyedSingleton with generics, when injected, typing is ok
+const someInjectionTokenWithConstrainedGenerics = getInjectionToken2<
+  <
+    // Note: this is the constraint
+    T extends string,
+  >(
+    someParameter: T,
+  ) => T
+>({
+  id: 'irrelevant',
+});
+
+const someKeyedSingletonUsingGenericsButWithConstrainedToken = getInjectable2({
+  id: 'irrelevant',
+
+  instantiateFor:
+    () =>
+    <T extends string>(parameter: T) =>
+      parameter,
+
+  lifecycle: {
+    getInstanceKey: <T extends string>(param: T) => 'some-key',
+  },
+
+  injectionToken: someInjectionTokenWithConstrainedGenerics,
+});
+
+expectType<string>(
+  di.injectFor(someKeyedSingletonUsingGenericsButWithConstrainedToken)(
+    String('some-string'),
+  ),
+);
+
+expectError<string>(
+  di.injectFor(someKeyedSingletonUsingGenericsButWithConstrainedToken)(42),
+);
+
+// given injectionToken with constrained generics, and keyedSingleton with generics, but constraint of instantiate contradicts, typing is not ok
+expectError(
+  getInjectable2({
+    id: 'irrelevant',
+
+    instantiateFor:
+      () =>
+      <
+        // Note: boolean instead of string is the contradiction.
+        T extends boolean,
+      >(
+        parameter: T,
+      ) =>
+        parameter,
+
+    lifecycle: {
+      getInstanceKey: <T extends string>(param: T) => 'some-key',
+    },
+
+    injectionToken: someInjectionTokenWithConstrainedGenerics,
+  }),
+);
+
+// given injectionToken with constrained generics, and keyedSingleton with generics, but constraint of getInstanceKey contradicts, typing is not ok
+expectError(
+  getInjectable2({
+    id: 'irrelevant',
+
+    instantiateFor:
+      () =>
+      <T extends string>(parameter: T) =>
+        parameter,
+
+    lifecycle: {
+      getInstanceKey: <
+        // Note: boolean instead of string is the contradiction.
+        T extends boolean,
+      >(
+        param: T,
+      ) => 'some-key',
+    },
+
+    injectionToken: someInjectionTokenWithConstrainedGenerics,
+  }),
+);
+
+// given no injectionToken, and keyedSingleton with generics, when constraints of instantiationParameter for instantiation and getting of key contradict, typing is not ok
+expectError(
+  getInjectable2({
+    id: 'irrelevant',
+
+    instantiateFor:
+      () =>
+      // Note: string vs. boolean is the contradiction.
+      <T extends string>(parameter: T) =>
+        parameter,
+
+    lifecycle: {
+      getInstanceKey:
+        // Note: string vs. boolean is the contradiction.
+        <T extends boolean>(param: T) => param,
+    },
+  }),
+);
+
 // Todo: implement
 // given injectable with instantiation parameter, but no lifecycle to justify it, typing is not ok
 // expectError(
