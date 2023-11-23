@@ -91,7 +91,7 @@ export type Injectable2<
   readonly scope?: boolean;
 
   readonly lifecycle?: {
-    readonly getInstanceKey: TGetInstanceKey;
+    readonly getInstanceKey: (di: DiContainerForInjection) => TGetInstanceKey;
   };
 };
 
@@ -309,15 +309,19 @@ declare const storedInstanceKey: unique symbol;
 declare const nonStoredInstanceKey: unique symbol;
 
 export type Singleton = {
-  getInstanceKey: (di: DiContainer) => typeof storedInstanceKey;
+  getInstanceKey: (
+    di: DiContainerForInjection,
+  ) => () => typeof storedInstanceKey;
 };
 
 export type Transient = {
-  getInstanceKey: () => typeof nonStoredInstanceKey;
+  getInstanceKey: (
+    di: DiContainerForInjection,
+  ) => () => typeof nonStoredInstanceKey;
 };
 
-export type KeyedSingleton<T> = {
-  getInstanceKey: (di: DiContainer) => typeof nonStoredInstanceKey;
+export type KeyedSingleton<TGetInstanceKey> = {
+  getInstanceKey: (di: DiContainerForInjection) => TGetInstanceKey;
 };
 
 export const lifecycleEnum: {
@@ -325,6 +329,16 @@ export const lifecycleEnum: {
 
   keyedSingleton: <InstantiationParam>(
     options: ILifecycle<InstantiationParam>,
+  ) => typeof options;
+
+  transient: Transient;
+};
+
+export const lifecycleEnum2: {
+  singleton: Singleton;
+
+  keyedSingleton: <TGetInstanceKey>(
+    options: KeyedSingleton<TGetInstanceKey>,
   ) => typeof options;
 
   transient: Transient;
