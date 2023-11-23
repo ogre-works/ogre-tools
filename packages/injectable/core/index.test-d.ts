@@ -592,6 +592,43 @@ expectType<{ someProperty: 42 }[]>(
   di.injectManyFor(someInjectionTokenWithGenerics)(42),
 );
 
+// given injectionToken with parameter using partial generics (ie. no kludge for injectMany), and injectable implementing it, when injected, typing is ok, but with lost generics
+const someInjectionTokenWithPartialGenerics = getInjectionToken2<
+  <T>(someParameter: T) => T
+  // Note: missing this makes the generics partial.
+  // <T>(someParameter: T) => T[],
+>({
+  id: 'irrelevant',
+});
+
+const someInjectableUsingTokenWithPartialGenerics = getInjectable2({
+  id: 'irrelevant',
+
+  instantiateFor:
+    () =>
+    <T>(param: T) =>
+      param,
+
+  injectionToken: someInjectionTokenWithPartialGenerics,
+  lifecycle: lifecycleEnum2.transient,
+});
+
+expectType<'some-string'>(
+  di.injectFor(someInjectionTokenWithPartialGenerics)('some-string'),
+);
+
+expectType<42>(di.injectFor(someInjectionTokenWithPartialGenerics)(42));
+
+expectType<unknown[]>(
+  di.injectManyFor(someInjectionTokenWithPartialGenerics)(
+    String('some-string'),
+  ),
+);
+
+expectType<unknown[]>(
+  di.injectManyFor(someInjectionTokenWithPartialGenerics)(42),
+);
+
 // given injectionTokens with contradicting templates, typing is not ok
 expectError(
   getInjectionToken2<
