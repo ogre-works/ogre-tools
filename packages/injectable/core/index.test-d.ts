@@ -309,7 +309,7 @@ const someTokenWithGeneralProperty = getInjectionToken<{
 const someInjectableWithAlsoSpecificProperty = getInjectable({
   id: 'some-injectable',
 
-  instantiate: () => ({
+  instantiate: di => ({
     someGeneralProperty: 'some string',
     someSpecificProperty: 42,
   }),
@@ -551,7 +551,8 @@ expectType<{ keys: [1, 2, 3] }>(getKeyedSingletonCompositeKey(1, 2, 3));
 
 // given injectionToken with parameter using generics, and injectable implementing it, when injected, typing is ok
 const someInjectionTokenWithGenerics = getInjectionToken2<
-  <T>(someParameter: T) => { someProperty: T }
+  <T>(someParameter: T) => { someProperty: T },
+  <T>(someParameter: T) => { someProperty: T }[]
 >({
   id: 'irrelevant',
 });
@@ -582,6 +583,45 @@ expectType<{
   someProperty: boolean;
   someValueMoreSpecificThanToken: string;
 }>(di.injectFor(someInjectableUsingGenerics)(true));
+
+expectType<{ someProperty: string }[]>(
+  di.injectManyFor(someInjectionTokenWithGenerics)(String('some-string')),
+);
+
+expectType<{ someProperty: 42 }[]>(
+  di.injectManyFor(someInjectionTokenWithGenerics)(42),
+);
+
+// given injectionTokens with contradicting templates, typing is not ok
+expectError(
+  getInjectionToken2<
+    <T>(someParameter: T) => T,
+    // Note: string instead of T is the contradiction
+    <T>(someParameter: string) => T[]
+  >({
+    id: 'irrelevant',
+  }),
+);
+
+expectError(
+  getInjectionToken2<
+    // Note: string instead of T is the contradiction
+    <T>(someParameter: T) => string,
+    <T>(someParameter: T) => T[]
+  >({
+    id: 'irrelevant',
+  }),
+);
+
+expectError(
+  getInjectionToken2<
+    <T>(someParameter: T) => T,
+    // Note: this not being array is the contradiction
+    <T>(someParameter: T) => T
+  >({
+    id: 'irrelevant',
+  }),
+);
 
 // given injectionToken with parameter using generics, and injectable implementing it but with wrongly typed instantiate, typing is not ok
 expectError(
@@ -628,6 +668,10 @@ expectType<number>(
 );
 
 expectError(di.injectFor(someInjectionTokenWithNoGenerics)(42));
+
+expectType<number[]>(
+  di.injectManyFor(someInjectionTokenWithNoGenerics)('some-string'),
+);
 
 // given injectionToken without parameter, and injectable implementing it, when injected, typing is ok
 const someInjectionTokenWithNoParameter = getInjectionToken2<() => number>({
@@ -722,7 +766,13 @@ const someInjectionTokenWithConstrainedGenerics = getInjectionToken2<
     T extends string,
   >(
     someParameter: T,
-  ) => T
+  ) => T,
+  <
+    // Note: this is the constraint
+    T extends string,
+  >(
+    someParameter: T,
+  ) => T[]
 >({
   id: 'irrelevant',
 });
