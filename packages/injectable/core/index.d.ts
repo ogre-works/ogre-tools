@@ -1,6 +1,6 @@
 /// <reference types="jest" />
 
-import { SetReturnType } from 'type-fest';
+import { SetOptional, SetReturnType } from 'type-fest';
 
 export type Override = <
   InjectionInstance extends InjectionTokenInstance,
@@ -90,7 +90,7 @@ export type Injectable2<
   readonly tags?: any[];
   readonly scope?: boolean;
 
-  readonly lifecycle?: {
+  readonly lifecycle: {
     readonly getInstanceKey: (di: DiContainerForInjection) => TGetInstanceKey;
   };
 };
@@ -131,10 +131,13 @@ export function getInjectable2<
   TInstantiateWithToken extends Instantiate2<any, any>,
   TGetInstanceKey extends SetReturnType<TInstantiateWithInjectable, any>,
 >(
-  options: Injectable2<
-    TInstantiateWithInjectable,
-    TInstantiateWithToken,
-    TGetInstanceKey
+  options: SetOptional<
+    Injectable2<
+      TInstantiateWithInjectable,
+      TInstantiateWithToken,
+      TGetInstanceKey
+    >,
+    'lifecycle'
   >,
 ): Injectable2<
   TInstantiateWithInjectable,
