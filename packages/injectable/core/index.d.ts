@@ -74,8 +74,8 @@ export interface Injectable<
 }
 
 export type Injectable2<
-  TInstantiateWithInjectable extends TInstantiateWithToken,
   TInstantiateWithToken extends Instantiate2<any, any>,
+  TInstantiateWithInjectable extends TInstantiateWithToken,
   TGetInstanceKey extends SetReturnType<TInstantiateWithInjectable, any>,
 > = {
   readonly id: string;
@@ -127,21 +127,21 @@ export function getInjectable<
 ): Injectable<InjectionInstance, InjectionTokenInstance, InstantiationParam>;
 
 export function getInjectable2<
-  TInstantiateWithInjectable extends TInstantiateWithToken,
   TInstantiateWithToken extends Instantiate2<any, any>,
+  TInstantiateWithInjectable extends TInstantiateWithToken,
   TGetInstanceKey extends SetReturnType<TInstantiateWithInjectable, any>,
 >(
   options: SetOptional<
     Injectable2<
-      TInstantiateWithInjectable,
       TInstantiateWithToken,
+      TInstantiateWithInjectable,
       TGetInstanceKey
     >,
     'lifecycle'
   >,
 ): Injectable2<
-  TInstantiateWithInjectable,
   TInstantiateWithToken,
+  TInstantiateWithInjectable,
   TGetInstanceKey
 >;
 
