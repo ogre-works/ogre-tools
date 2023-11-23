@@ -901,5 +901,3 @@ expectError<string>(
 expectError<string>(
   di.injectFor(someKeyedSingletonUsingGenericsButWithConstrainedToken)(),
 );
-
-type Janne = Parameters<(arg: void) => number> extends [] ? true : false;
