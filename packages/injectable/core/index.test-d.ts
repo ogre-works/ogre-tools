@@ -828,12 +828,23 @@ expectError(
   }),
 );
 
+// given injectable with instantiation parameter, but default lifecycle of singleton having no support for parameters, typing is not ok
+expectError(
+  getInjectable2({
+    id: 'irrelevant',
+
+    instantiateFor: () => (parameter: string) => parameter,
+  }),
+);
+
 // given injectable with instantiation parameter, but no lifecycle to justify it, typing is not ok
 expectError(
   getInjectable2({
     id: 'irrelevant',
 
     instantiateFor: () => (parameter: string) => parameter,
+
+    lifecycle: lifecycleEnum2.singleton,
   }),
 );
 
