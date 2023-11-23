@@ -652,8 +652,8 @@ expectError(di.injectFor(someInjectableWithNoParameter)(42));
 expectType<number>(di.injectFor(someInjectionTokenWithNoParameter)());
 expectError(di.injectFor(someInjectionTokenWithNoParameter)(42));
 
-// given no injectionToken, and injectable with generics, when injected, typing is ok
-const someInjectableUsingGenericsButWithoutToken = getInjectable2({
+// given no injectionToken, and transient injectable with generics, when injected, typing is ok
+const someTransientUsingGenericsButWithoutToken = getInjectable2({
   id: 'irrelevant',
 
   instantiateFor:
@@ -664,9 +664,48 @@ const someInjectableUsingGenericsButWithoutToken = getInjectable2({
 });
 
 expectType<string>(
-  di.injectFor(someInjectableUsingGenericsButWithoutToken)(
+  di.injectFor(someTransientUsingGenericsButWithoutToken)(
     String('some-string'),
   ),
+);
+
+// given no injectionToken, and keyedSingleton with generics, when injected, typing is ok
+const someKeyedSingletonUsingGenericsButWithoutToken = getInjectable2({
+  id: 'irrelevant',
+
+  instantiateFor:
+    () =>
+    <T extends string>(parameter: T) =>
+      parameter,
+
+  lifecycle: {
+    getInstanceKey: <T extends string>(param: T) => 'some-key',
+  },
+});
+
+expectType<string>(
+  di.injectFor(someKeyedSingletonUsingGenericsButWithoutToken)(
+    String('some-string'),
+  ),
+);
+
+// given no injectionToken, and keyedSingleton with generics, when constraints of instantiationParameter for instantiation and getting of key contradict, typing is not ok
+expectError(
+  getInjectable2({
+    id: 'irrelevant',
+
+    instantiateFor:
+      () =>
+      // Note: string vs. boolean is the contradiction.
+      <T extends string>(parameter: T) =>
+        parameter,
+
+    lifecycle: {
+      getInstanceKey:
+        // Note: string vs. boolean is the contradiction.
+        <T extends boolean>(param: T) => param,
+    },
+  }),
 );
 
 // Todo: implement
