@@ -49,8 +49,12 @@ export interface InjectionToken<InjectionInstance, InstantiationParam> {
   id: string;
 }
 
-export interface InjectionToken2<T extends Instantiate2<any, any>> {
+export interface InjectionToken2<
+  T extends Instantiate2<any, any>,
+  T2 extends WithArrayAsReturnValue<T>,
+> {
   instantiateTemplate: T;
+  instantiateManyTemplate: T2;
   key: Symbol;
   id: string;
 }
@@ -75,12 +79,16 @@ export interface Injectable<
 
 export type Injectable2<
   TInstantiateWithToken extends Instantiate2<any, any>,
+  TInstantiateManyWithToken extends WithArrayAsReturnValue<TInstantiateWithToken>,
   TInstantiateWithInjectable extends TInstantiateWithToken,
   TGetInstanceKey extends SetReturnType<TInstantiateWithInjectable, any>,
 > = {
   readonly id: string;
   readonly causesSideEffects?: boolean;
-  readonly injectionToken?: InjectionToken2<TInstantiateWithToken>;
+  readonly injectionToken?: InjectionToken2<
+    TInstantiateWithToken,
+    TInstantiateManyWithToken
+  >;
 
   readonly instantiateFor: (
     di: DiContainerForInjection,
@@ -128,6 +136,7 @@ export function getInjectable<
 
 export function getInjectable2<
   TInstantiateWithToken extends Instantiate2<any, any>,
+  TInstantiateManyWithToken extends WithArrayAsReturnValue<TInstantiateWithToken>,
   TInstantiateWithInjectable extends TInstantiateWithToken,
   TGetInstanceKey extends SetReturnType<TInstantiateWithInjectable, any>,
 >(
@@ -135,6 +144,7 @@ export function getInjectable2<
     ? SetOptional<
         Injectable2<
           TInstantiateWithToken,
+          TInstantiateManyWithToken,
           TInstantiateWithInjectable,
           TGetInstanceKey
         >,
@@ -142,11 +152,13 @@ export function getInjectable2<
       >
     : Injectable2<
         TInstantiateWithToken,
+        TInstantiateManyWithToken,
         TInstantiateWithInjectable,
         TGetInstanceKey
       >,
 ): Injectable2<
   TInstantiateWithToken,
+  TInstantiateManyWithToken,
   TInstantiateWithInjectable,
   TGetInstanceKey
 >;
@@ -170,9 +182,13 @@ export function getInjectionToken<
   id: string;
 }): InjectionToken<InjectionInstance, InstantiationParam>;
 
-export function getInjectionToken2<T extends Instantiate2<any, any>>(options: {
-  id: string;
-}): InjectionToken2<T>;
+export type WithArrayAsReturnValue<T extends Instantiate2<any, any>> =
+  SetReturnType<T, ReturnType<T>[]>;
+
+export function getInjectionToken2<
+  T extends Instantiate2<any, any>,
+  T2 extends WithArrayAsReturnValue<T> = WithArrayAsReturnValue<T>,
+>(options: { id: string }): InjectionToken2<T, T2>;
 
 export type InjectWithoutParameter = <InjectionInstance>(
   key:
@@ -189,17 +205,25 @@ export type InjectWithParameter = <InjectionInstance, InstantiationParam>(
 
 export type Inject = InjectWithoutParameter & InjectWithParameter;
 
-export type InjectWithInjectableFor = <T extends Injectable2<any, any, any>>(
+export type InjectWithInjectableFor = <
+  T extends Injectable2<any, any, any, any>,
+>(
   injectable: T,
 ) => ReturnType<T['instantiateFor']>;
 
 export type InjectWithTokenFor = <
-  T extends InjectionToken2<Instantiate2<any, any>>,
+  T extends InjectionToken2<Instantiate2<any, any>, Instantiate2<any, any>>,
 >(
   token: T,
 ) => T['instantiateTemplate'];
 
 export type InjectFor = InjectWithInjectableFor & InjectWithTokenFor;
+
+export type InjectManyFor = <
+  T extends InjectionToken2<Instantiate2<any, any>, Instantiate2<any, any>>,
+>(
+  token: T,
+) => T['instantiateManyTemplate'];
 
 export type InjectFactory = <InjectionInstance, InstantiationParam extends {}>(
   alias:
@@ -297,6 +321,7 @@ export interface DiContainerForInjection {
   injectWithMeta: InjectWithMeta;
   injectFactory: InjectFactory;
   injectMany: InjectMany;
+  injectManyFor: InjectManyFor;
   injectManyWithMeta: InjectManyWithMeta;
   register(...injectables: Injectable<any, any, any>[]): void;
   deregister(...injectables: Injectable<any, any, any>[]): void;
