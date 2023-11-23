@@ -837,3 +837,36 @@ const someInjectableChoosingNotToUseParamater = getInjectable2({
 });
 
 expectType<number>(di.injectFor(someInjectableChoosingNotToUseParamater)());
+
+// given injectionToken with no generics, and keyedSingleton using it, when injected, typing is ok
+const someKeyedSingletonUsingTokenWithNoGenerics = getInjectable2({
+  id: 'irrelevant',
+
+  instantiateFor: () => parameter => {
+    expectType<string>(parameter);
+
+    return 42;
+  },
+
+  lifecycle: {
+    getInstanceKey: param => {
+      expectType<string>(param);
+
+      return 'some-key';
+    },
+  },
+
+  injectionToken: someInjectionTokenWithNoGenerics,
+});
+
+expectType<number>(
+  di.injectFor(someKeyedSingletonUsingTokenWithNoGenerics)('some-string'),
+);
+
+expectError<string>(
+  di.injectFor(someKeyedSingletonUsingGenericsButWithConstrainedToken)(42),
+);
+
+expectError<string>(
+  di.injectFor(someKeyedSingletonUsingGenericsButWithConstrainedToken)(),
+);
