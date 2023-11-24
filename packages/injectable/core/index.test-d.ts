@@ -803,13 +803,7 @@ const someInjectionTokenWithConstrainedGenerics = getInjectionToken2<
     T extends string,
   >(
     someParameter: T,
-  ) => T,
-  <
-    // Note: this is the constraint
-    T extends string,
-  >(
-    someParameter: T,
-  ) => T[]
+  ) => T
 >({
   id: 'irrelevant',
 });
