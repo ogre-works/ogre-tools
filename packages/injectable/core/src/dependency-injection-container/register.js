@@ -10,12 +10,7 @@ export const registerFor =
       registerSingle(injectable, context);
     });
 
-    const callbacks = injectMany(
-      registrationCallbackToken,
-      undefined,
-      context,
-      source,
-    );
+    const callbacks = injectMany(registrationCallbackToken, context, source);
 
     injectables.forEach(injectable => {
       callbacks.forEach(callback => {

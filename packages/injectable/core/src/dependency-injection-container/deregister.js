@@ -17,12 +17,7 @@ export const deregisterFor =
     dependeesByDependencyMap,
   }) =>
   ({ injectables, context, source }) => {
-    const callbacks = injectMany(
-      deregistrationCallbackToken,
-      undefined,
-      context,
-      source,
-    );
+    const callbacks = injectMany(deregistrationCallbackToken, context, source);
 
     injectables.forEach(injectable => {
       callbacks.forEach(callback => {

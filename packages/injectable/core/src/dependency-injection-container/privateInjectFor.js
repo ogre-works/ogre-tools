@@ -15,7 +15,8 @@ export const privateInjectFor =
     getNamespacedId,
   }) =>
   ({ withMeta }) =>
-  (alias, instantiationParameter, context = [], source) => {
+  (alias, context = [], source) =>
+  (...parameters) => {
     const di = getDi();
 
     const relatedInjectables = getRelatedInjectables(alias);
@@ -36,12 +37,11 @@ export const privateInjectFor =
     const instance = getInstance({
       di,
       injectable,
-      instantiationParameter,
       context,
       instancesByInjectableMap,
       source,
       getNamespacedId,
-    });
+    })(...parameters);
 
     if (!withMeta) {
       return instance;
@@ -55,114 +55,123 @@ export const privateInjectFor =
     };
   };
 
-const getInstance = ({
-  di,
-  injectable: injectableToBeInstantiated,
-  instantiationParameter,
-  context: oldContext,
-  instancesByInjectableMap,
-  source,
-  getNamespacedId,
-}) => {
-  const newContext = [
-    ...oldContext,
-
-    {
-      injectable: injectableToBeInstantiated,
-      instantiationParameter,
-    },
-  ];
-
-  const instanceMap = instancesByInjectableMap.get(
-    injectableToBeInstantiated.overriddenInjectable ||
-      injectableToBeInstantiated,
-  );
-
-  const minimalInject = (alias, parameter) =>
-    di.inject(alias, parameter, newContext, injectableToBeInstantiated);
-
-  const minimalDi = {
-    inject: minimalInject,
-
-    injectWithMeta: (alias, parameter) =>
-      di.injectWithMeta(
-        alias,
-        parameter,
-        newContext,
-        injectableToBeInstantiated,
-      ),
-
-    injectMany: (alias, parameter) =>
-      di.injectMany(alias, parameter, newContext, injectableToBeInstantiated),
-
-    injectManyWithMeta: (alias, parameter) =>
-      di.injectManyWithMeta(
-        alias,
-        parameter,
-        newContext,
-        injectableToBeInstantiated,
-      ),
-
-    injectFactory: alias => instantiationParameter =>
-      minimalInject(alias, instantiationParameter),
-
-    context: newContext,
-
-    register: (...injectables) => {
-      di.register({
-        injectables,
-        context: newContext,
-        source: injectableToBeInstantiated,
-      });
-    },
-
-    deregister: (...injectables) => {
-      di.deregister({
-        injectables,
-        context: newContext,
-        source: injectableToBeInstantiated,
-      });
-    },
-
-    get sourceNamespace() {
-      return (
-        getNamespacedId(source).split(':').slice(0, -1).join(':') || undefined
-      );
-    },
-  };
-
-  const instanceKey = injectableToBeInstantiated.lifecycle.getInstanceKey(
-    minimalDi,
-    instantiationParameter,
-  );
-
-  const instanceCompositeKey = isCompositeKey(instanceKey)
-    ? instanceKey.keys
-    : [instanceKey];
-
-  const existingInstance = instanceMap.get(instanceCompositeKey);
-
-  if (existingInstance) {
-    return existingInstance;
-  }
-
-  const withInstantiationDecorators = withInstantiationDecoratorsFor({
-    injectMany: di.injectMany,
+const getInstance =
+  ({
+    di,
     injectable: injectableToBeInstantiated,
-  });
+    context: oldContext,
+    instancesByInjectableMap,
+    source,
+    getNamespacedId,
+  }) =>
+  (...parameters) => {
+    const newContext = [
+      ...oldContext,
 
-  const instantiateWithDecorators = withInstantiationDecorators(
-    injectableToBeInstantiated.instantiate,
-  );
+      {
+        injectable: injectableToBeInstantiated,
+        instantiationParameters: parameters,
+      },
+    ];
 
-  const newInstance = instantiateWithDecorators(
-    minimalDi,
-    ...(instantiationParameter === undefined ? [] : [instantiationParameter]),
-  );
+    const instanceMap = instancesByInjectableMap.get(
+      injectableToBeInstantiated.overriddenInjectable ||
+        injectableToBeInstantiated,
+    );
 
-  if (instanceCompositeKey[0] !== nonStoredInstanceKey) {
-    instanceMap.set(instanceCompositeKey, newInstance);
-  }
+    const minimalInject =
+      alias =>
+      (...parameters) =>
+        di.inject(alias, newContext, injectableToBeInstantiated)(...parameters);
 
-  return newInstance;
-};
+    const minimalDi = {
+      inject: minimalInject,
+
+      injectWithMeta:
+        alias =>
+        (...parameters) =>
+          di.injectWithMeta(
+            alias,
+            newContext,
+            injectableToBeInstantiated,
+          )(...parameters),
+
+      injectMany:
+        alias =>
+        (...parameters) =>
+          di.injectMany(
+            alias,
+            newContext,
+            injectableToBeInstantiated,
+          )(...parameters),
+
+      injectManyWithMeta:
+        alias =>
+        (...parameters) =>
+          di.injectManyWithMeta(
+            alias,
+            newContext,
+            injectableToBeInstantiated,
+          )(...parameters),
+
+      injectFactory:
+        alias =>
+        (...parameters) =>
+          minimalInject(alias)(...parameters),
+
+      context: newContext,
+
+      register: (...injectables) => {
+        di.register({
+          injectables,
+          context: newContext,
+          source: injectableToBeInstantiated,
+        });
+      },
+
+      deregister: (...injectables) => {
+        di.deregister({
+          injectables,
+          context: newContext,
+          source: injectableToBeInstantiated,
+        });
+      },
+
+      get sourceNamespace() {
+        return (
+          getNamespacedId(source).split(':').slice(0, -1).join(':') || undefined
+        );
+      },
+    };
+
+    const instanceKey = injectableToBeInstantiated.lifecycle.getInstanceKey(
+      minimalDi,
+    )(...parameters);
+
+    const instanceCompositeKey = isCompositeKey(instanceKey)
+      ? instanceKey.keys
+      : [instanceKey];
+
+    const existingInstance = instanceMap.get(instanceCompositeKey);
+
+    if (existingInstance) {
+      return existingInstance;
+    }
+
+    const withInstantiationDecorators = withInstantiationDecoratorsFor({
+      injectMany: di.injectMany,
+      injectable: injectableToBeInstantiated,
+    });
+
+    const instantiateWithDecorators = withInstantiationDecorators(
+      injectableToBeInstantiated.instantiate,
+    );
+
+    const newInstance = instantiateWithDecorators(minimalDi)(...parameters);
+
+    if (instanceCompositeKey[0] !== nonStoredInstanceKey) {
+      instanceMap.set(instanceCompositeKey, newInstance);
+    }
+
+    return newInstance;
+  };

@@ -9,12 +9,8 @@ export const privateInjectManyFor =
     getNamespacedId,
   }) =>
   ({ withMeta }) =>
-  (
-    injectionToken,
-    instantiationParameter,
-    oldContext = [containerRootContextItem],
-    source,
-  ) => {
+  (injectionToken, oldContext = [containerRootContextItem], source) =>
+  (...parameters) => {
     setDependee({ dependency: injectionToken, dependee: source });
 
     const inject = getInject();
@@ -26,10 +22,9 @@ export const privateInjectManyFor =
     const injected = relatedInjectables.map(injectable => {
       const instance = inject(
         injectable,
-        instantiationParameter,
         newContext,
         injectionToken,
-      );
+      )(...parameters);
 
       if (!withMeta) {
         return instance;

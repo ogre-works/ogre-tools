@@ -213,39 +213,47 @@ export default (containerId, { detectCycles = true } = {}) => {
     purge: purgeInstances,
   };
 
-  const publicInject = (alias, parameter, customContextItem) =>
-    privateDi.inject(
-      alias,
-      parameter,
-      customContextItem
-        ? [containerRootContextItem, customContextItem]
-        : [containerRootContextItem],
-      containerRootContextItem.injectable,
-    );
+  const publicInject =
+    (alias, customContextItem) =>
+    (...parameters) =>
+      privateDi.inject(
+        alias,
+        customContextItem
+          ? [containerRootContextItem, customContextItem]
+          : [containerRootContextItem],
+        containerRootContextItem.injectable,
+      )(...parameters);
 
-  const getInjectionArgs = (alias, parameter, customContextItem) => [
-    alias,
-    parameter,
-    customContextItem
-      ? [containerRootContextItem, customContextItem]
-      : [containerRootContextItem],
-    containerRootContextItem.injectable,
-  ];
+  const getInjectionArgs =
+    (alias, customContextItem) =>
+    (...parameters) =>
+      [
+        alias,
+        parameters,
+        customContextItem
+          ? [containerRootContextItem, customContextItem]
+          : [containerRootContextItem],
+        containerRootContextItem.injectable,
+      ];
 
   const publicDi = {
     ...privateDi,
 
     inject: publicInject,
 
-    injectWithMeta: (alias, parameter, customContextItem) =>
-      privateDi.injectWithMeta(
-        ...getInjectionArgs(alias, parameter, customContextItem),
-      ),
+    injectWithMeta:
+      (alias, customContextItem) =>
+      (...parameters) =>
+        privateDi.injectWithMeta(
+          ...getInjectionArgs(alias, customContextItem)(...parameters),
+        ),
 
-    injectMany: (alias, parameter, customContextItem) =>
-      privateDi.injectMany(
-        ...getInjectionArgs(alias, parameter, customContextItem),
-      ),
+    injectMany:
+      (alias, customContextItem) =>
+      (...parameters) =>
+        privateDi.injectMany(
+          ...getInjectionArgs(alias, customContextItem)(...parameters),
+        ),
 
     register: (...injectables) => {
       privateDi.register({
@@ -263,10 +271,12 @@ export default (containerId, { detectCycles = true } = {}) => {
       });
     },
 
-    injectManyWithMeta: (alias, parameter, customContextItem) =>
-      privateDi.injectManyWithMeta(
-        ...getInjectionArgs(alias, parameter, customContextItem),
-      ),
+    injectManyWithMeta:
+      (alias, customContextItem) =>
+      (...parameters) =>
+        privateDi.injectManyWithMeta(
+          ...getInjectionArgs(alias, customContextItem)(...parameters),
+        ),
 
     getInstances: alias =>
       getRelatedInjectables(alias).flatMap(injectable => [

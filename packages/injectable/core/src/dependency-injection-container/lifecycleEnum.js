@@ -5,17 +5,19 @@ export default {
   singleton: {
     id: 'singleton',
 
-    getInstanceKey: (di, instantiationParameter) => {
-      if (instantiationParameter) {
-        const injectableId = di.context.at(-1).injectable.id;
+    getInstanceKey:
+      di =>
+      (...parameters) => {
+        if (parameters.length) {
+          const injectableId = di.context.at(-1).injectable.id;
 
-        throw new Error(
-          `Tried to inject singleton "${injectableId}", but illegally to singletons, an instantiationParameter was provided: "${instantiationParameter}".`,
-        );
-      }
+          throw new Error(
+            `Tried to inject singleton "${injectableId}", but illegally to singletons, instantiationParameters were provided: "${parameters}".`,
+          );
+        }
 
-      return storedInstanceKey;
-    },
+        return storedInstanceKey;
+      },
   },
 
   keyedSingleton: ({ getInstanceKey }) => ({
