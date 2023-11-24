@@ -38,8 +38,8 @@ export type Instantiate<InjectionInstance, InstantiationParam> = {
   ): InjectionInstance;
 };
 
-export type Instantiate2<T, T2> = {
-  (param: T extends void ? void : T): T2;
+export type Instantiate2<T extends any[], T2> = {
+  (...instatiationParameters: T): T2;
 };
 
 export interface InjectionToken<InjectionInstance, InstantiationParam> {

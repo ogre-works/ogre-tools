@@ -982,3 +982,73 @@ expectError<string>(
 expectError<string>(
   di.injectFor(someKeyedSingletonUsingGenericsButWithConstrainedToken)(),
 );
+
+// given injectionToken with generics and multiple parameters, and keyedSingleton using it, when injected, typing is ok
+const someInjectionTokenWithGenericsAndMultipleParameters = getInjectionToken2<
+  <T, T2>(
+    someParameter: T,
+    someOtherParameter: T2,
+  ) => { someValue: T; someOtherValue: T2 }
+>({
+  id: 'irrelevant',
+});
+
+const someKeyedSingletonUsingTokenWithGenericsAndMultipleParameters =
+  getInjectable2({
+    id: 'irrelevant',
+
+    instantiateFor:
+      () =>
+      <T, T2>(someParameter: T, someOtherParameter: T2) => ({
+        someValue: someParameter,
+        someOtherValue: someOtherParameter,
+      }),
+
+    lifecycle: {
+      getInstanceKey:
+        di =>
+        <T>(param: T) => {
+          expectType<DiContainerForInjection>(di);
+
+          return 'some-key';
+        },
+    },
+
+    injectionToken: someInjectionTokenWithGenericsAndMultipleParameters,
+  });
+
+expectType<{ someValue: string; someOtherValue: 42 }>(
+  di.injectFor(someKeyedSingletonUsingTokenWithGenericsAndMultipleParameters)(
+    'some-string',
+    42,
+  ),
+);
+
+expectError<string>(
+  di.injectFor(someKeyedSingletonUsingTokenWithGenericsAndMultipleParameters)(
+    'only-one-parameter',
+  ),
+);
+
+expectError<string>(
+  // no parameters
+  di.injectFor(someKeyedSingletonUsingTokenWithGenericsAndMultipleParameters)(),
+);
+
+expectType<{ someValue: string; someOtherValue: 42 }>(
+  di.injectFor(someInjectionTokenWithGenericsAndMultipleParameters)(
+    'some-string',
+    42,
+  ),
+);
+
+expectError<string>(
+  di.injectFor(someInjectionTokenWithGenericsAndMultipleParameters)(
+    'only-one-parameter',
+  ),
+);
+
+expectError<string>(
+  // no parameters
+  di.injectFor(someInjectionTokenWithGenericsAndMultipleParameters)(),
+);
