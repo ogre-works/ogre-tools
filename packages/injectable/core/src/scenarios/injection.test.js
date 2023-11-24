@@ -3,6 +3,28 @@ import lifecycleEnum from '../dependency-injection-container/lifecycleEnum';
 import createContainer from '../dependency-injection-container/createContainer';
 
 describe('createContainer.injection', () => {
+  let di;
+
+  beforeEach(() => {
+    di = createContainer('some-container');
+  });
+
+  fit('given injectable, when injected, injects an instance', () => {
+    const someInjectable = getInjectable({
+      id: 'some-injectable',
+
+      instantiate: () => 'some-instance',
+    });
+
+    di.register(someInjectable);
+
+    const actual = di.inject(someInjectable)();
+
+    console.log('actual', actual.toString());
+
+    expect(actual).toBe('some-instance');
+  });
+
   it('given async child-injectable as dependency, when injected, parent-injectable receives child as sync', async () => {
     const asyncChildInjectable = getInjectable({
       id: 'some-child-injectable',
@@ -23,8 +45,6 @@ describe('createContainer.injection', () => {
       },
     });
 
-    const di = createContainer('some-container');
-
     di.register(asyncChildInjectable, parentInjectable);
 
     const actual = await di.inject(parentInjectable);
@@ -42,8 +62,6 @@ describe('createContainer.injection', () => {
       id: 'some-parent-injectable',
       instantiate: di => di.inject(childInjectable),
     });
-
-    const di = createContainer('some-container');
 
     di.register(parentInjectable, childInjectable);
 
@@ -65,8 +83,6 @@ describe('createContainer.injection', () => {
       instantiate: di => di.inject(childInjectable),
     });
 
-    const di = createContainer('some-container');
-
     di.register(parentInjectable, childInjectable);
 
     expect(() => {
@@ -86,8 +102,6 @@ describe('createContainer.injection', () => {
       id: 'some-injectable',
       instantiate: () => 42,
     });
-
-    const di = createContainer('some-container');
 
     di.register(someInjectable);
 
@@ -111,8 +125,6 @@ describe('createContainer.injection', () => {
       id: 'some-parent-injectable',
       instantiate: async di => await di.inject(childInjectable),
     });
-
-    const di = createContainer('some-container');
 
     di.register(parentInjectable, childInjectable);
 

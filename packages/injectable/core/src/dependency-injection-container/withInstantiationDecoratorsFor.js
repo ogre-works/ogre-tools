@@ -17,7 +17,7 @@ export const withInstantiationDecoratorsFor = ({ injectMany, injectable }) => {
         instantiationDecoratorToken,
         context,
         injectable,
-      )
+      )()
         .filter(isRelevantDecorator)
         .map(x => x.decorate);
 

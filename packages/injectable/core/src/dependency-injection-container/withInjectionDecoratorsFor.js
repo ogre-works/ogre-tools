@@ -22,7 +22,7 @@ export const withInjectionDecoratorsFor =
 
     const isRelevantDecorator = isRelevantDecoratorFor(alias);
 
-    const decorators = injectMany(injectionDecoratorToken, newContext, source)
+    const decorators = injectMany(injectionDecoratorToken, newContext, source)()
       .filter(isRelevantDecorator)
       .map(x => x.decorate);
 

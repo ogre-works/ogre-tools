@@ -14,6 +14,7 @@ import { checkForSideEffectsFor } from './checkForSideEffectsFor';
 import { getRelatedInjectablesFor } from './getRelatedInjectablesFor';
 import { noop } from 'lodash/fp';
 import { earlyOverrideFor } from './early-override';
+import { withParamsAsDataParameter } from './withParamsAsDataParameter';
 
 export default (containerId, { detectCycles = true } = {}) => {
   const injectableSet = new Set();
@@ -212,8 +213,7 @@ export default (containerId, { detectCycles = true } = {}) => {
 
     purge: purgeInstances,
   };
-
-  const publicInject =
+  const publicInject2 =
     (alias, customContextItem) =>
     (...parameters) =>
       privateDi.inject(
@@ -223,6 +223,12 @@ export default (containerId, { detectCycles = true } = {}) => {
           : [containerRootContextItem],
         containerRootContextItem.injectable,
       )(...parameters);
+
+  const publicInject = (alias, parameter, customContextItem) =>
+    publicInject2(
+      alias,
+      customContextItem,
+    )(...(parameter === undefined ? [] : [parameter]));
 
   const getInjectionArgs =
     (alias, customContextItem) =>
@@ -240,6 +246,7 @@ export default (containerId, { detectCycles = true } = {}) => {
     ...privateDi,
 
     inject: publicInject,
+    inject2: publicInject2,
 
     injectWithMeta:
       (alias, customContextItem) =>
