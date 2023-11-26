@@ -20,7 +20,7 @@ export default {
 
   keyedSingleton: ({ getInstanceKey }) => ({
     id: 'keyedSingleton',
-    getInstanceKey: getInstanceKey,
+    getInstanceKey,
   }),
 
   transient: {

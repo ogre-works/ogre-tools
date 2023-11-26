@@ -46,9 +46,9 @@ describe('injection-using-api2', () => {
           (...parameters) =>
             `some-instance(${parameters.join(', ')})`,
 
-        lifecycle: lifecycleEnum.keyedSingleton({
-          getInstanceKey: (di, param) => param,
-        }),
+        lifecycleFactory: {
+          getInstanceKey: () => param => param,
+        },
       });
 
       di.register(someKeyedSingleton);
