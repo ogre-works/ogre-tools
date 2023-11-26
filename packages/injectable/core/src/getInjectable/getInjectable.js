@@ -3,13 +3,13 @@ import lifecycleEnum from '../dependency-injection-container/lifecycleEnum';
 export const injectableSymbol = 'injectable';
 
 export default ({
-  instantiate,
+  instantiate = (di, ...params) => instantiateFactory(di)(...params),
+  instantiateFactory,
   lifecycle = lifecycleEnum.singleton,
   ...injectable
 }) => ({
-  version: 1,
   aliasType: injectableSymbol,
-  instantiate: di => param => instantiate(di, param),
+  instantiate,
   lifecycle,
   ...injectable,
 });

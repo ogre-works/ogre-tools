@@ -1,6 +1,6 @@
 import createContainer from '../dependency-injection-container/createContainer';
-import getInjectable2 from '../getInjectable2/getInjectable2';
-import lifecycleEnum2 from '../dependency-injection-container/lifecycleEnum2';
+import getInjectable from '../getInjectable/getInjectable';
+import lifecycleEnum from '../dependency-injection-container/lifecycleEnum';
 
 describe('injection-using-api2', () => {
   let di;
@@ -9,64 +9,61 @@ describe('injection-using-api2', () => {
     di = createContainer('irrelevant');
   });
 
-  describe('given injectable2 singleton', () => {
+  describe('given singleton using instantiate factory over instantiate', () => {
     let someSingleton;
 
     beforeEach(() => {
-      someSingleton = getInjectable2({
+      someSingleton = getInjectable({
         id: 'some-injectable',
-        instantiate: di => () => 'some-instance',
+        instantiateFactory: di => () => 'some-instance',
       });
 
       di.register(someSingleton);
     });
 
-    it('when injected using API1.0, does so', () => {
+    it('when injected, does so', () => {
       const actual = di.inject(someSingleton);
 
       expect(actual).toBe('some-instance');
     });
 
-    it('when injected using API2.0, does so', () => {
-      const actual = di.inject2(someSingleton)();
+    it('when injected using factory, does so', () => {
+      const actual = di.injectFactory(someSingleton)();
 
       expect(actual).toBe('some-instance');
     });
   });
 
-  describe('given injectable2 keyedSingleton', () => {
+  describe('given keyedSingleton using instantiate factory over instantiate', () => {
     let someKeyedSingleton;
 
     beforeEach(() => {
-      someKeyedSingleton = getInjectable2({
+      someKeyedSingleton = getInjectable({
         id: 'some-injectable',
 
-        instantiate:
+        instantiateFactory:
           di =>
           (...parameters) =>
             `some-instance(${parameters.join(', ')})`,
 
-        lifecycle: lifecycleEnum2.keyedSingleton({
-          getInstanceKey: di => param1 => param1,
+        lifecycle: lifecycleEnum.keyedSingleton({
+          getInstanceKey: (di, param) => param,
         }),
       });
 
       di.register(someKeyedSingleton);
     });
 
-    it('when injected using API1.0 and the instantiation parameter, does so', () => {
+    it('when injected using instantiation parameter, does so', () => {
       const actual = di.inject(someKeyedSingleton, 'some-parameter');
 
       expect(actual).toBe('some-instance(some-parameter)');
     });
 
-    it('when injected using API2.0, and multiple instantiation parameters, does so', () => {
-      const actual = di.inject2(someKeyedSingleton)(
-        'some-parameter-1',
-        'some-parameter-2',
-      );
+    it('when injected using factory and instantiation parameter, does so', () => {
+      const actual = di.injectFactory(someKeyedSingleton)('some-parameter');
 
-      expect(actual).toBe('some-instance(some-parameter-1, some-parameter-2)');
+      expect(actual).toBe('some-instance(some-parameter)');
     });
   });
 });
