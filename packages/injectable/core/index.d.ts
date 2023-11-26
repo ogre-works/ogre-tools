@@ -164,6 +164,7 @@ type WithSometimesOptionalLifecycle<
       TGetInstanceKey
     >;
 
+// Override for instantiate factory, and support for generics.
 export function getInjectable2<
   TInstantiateWithToken extends Instantiate2<any, any>,
   TInstantiateManyWithToken extends WithArrayAsReturnValue<TInstantiateWithToken>,
@@ -183,6 +184,7 @@ export function getInjectable2<
   TGetInstanceKey
 >;
 
+// Override for normal instantiate, and no support for generics.
 export function getInjectable2<
   TInstantiateWithToken extends Instantiate2<any, any>,
   TInstantiateManyWithToken extends WithArrayAsReturnValue<TInstantiateWithToken>,
