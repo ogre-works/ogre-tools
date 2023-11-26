@@ -46,7 +46,7 @@ export type InstantiateWithoutFactory<T extends Instantiate2<any, any>> = {
   (di: DiContainerForInjection, param: Parameters<T>[0]): ReturnType<T>;
 };
 
-export type InstantiateWithFactory<T extends Instantiate2<any, any>, T2> = {
+export type InstantiateWithFactory<T extends Instantiate2<any, any>> = {
   (param: Parameters<T>[1]): ReturnType<T>;
 };
 
@@ -190,10 +190,7 @@ export function getInjectable2<
   TInstantiateManyWithToken extends WithArrayAsReturnValue<TInstantiateWithToken>,
   TInstantiateWithoutFactory extends InstantiateWithoutFactory<TInstantiateWithToken>,
   TGetInstanceKey extends SetReturnType<TInstantiateWithInjectable, any>,
-  TInstantiateWithInjectable extends InstantiateWithFactory<
-    TInstantiateWithoutFactory,
-    TInstantiateWithToken
-  >,
+  TInstantiateWithInjectable extends InstantiateWithFactory<TInstantiateWithoutFactory>,
 >(
   options: Omit<
     Injectable2<
