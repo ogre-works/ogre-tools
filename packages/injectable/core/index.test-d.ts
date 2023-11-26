@@ -1052,3 +1052,41 @@ expectError<string>(
   // no parameters
   di.injectFor(someInjectionTokenWithGenericsAndMultipleParameters)(),
 );
+
+// API 1.5
+// given keyedSingleton with non-factory instantiate, when injected using factory, typing is ok
+const someKeyedSingletonUsingNoInstantiateFactory = getInjectable2({
+  id: 'irrelevant',
+
+  instantiate: (di, param: string) => {
+    expectType<DiContainerForInjection>(di);
+
+    return 42;
+  },
+
+  lifecycle: {
+    getInstanceKey: di => param => {
+      expectType<DiContainerForInjection>(di);
+      expectType<string>(param);
+
+      return 'some-key';
+    },
+  },
+});
+
+expectType<number>(
+  di.injectFor(someKeyedSingletonUsingNoInstantiateFactory)('some-string'),
+);
+
+expectError<number>(
+  di.injectFor(someKeyedSingletonUsingNoInstantiateFactory)(
+    'too',
+    'many',
+    'paramaters',
+  ),
+);
+
+expectError<string>(
+  // no parameters
+  di.injectFor(someKeyedSingletonUsingNoInstantiateFactory)(),
+);

@@ -39,11 +39,15 @@ export type Instantiate<InjectionInstance, InstantiationParam> = {
 };
 
 export type Instantiate2<T extends any[], T2> = {
-  (...instatiationParameters: T): T2;
+  (...instantiationParameters: T): T2;
 };
 
 export type InstantiateWithoutFactory<T extends Instantiate2<any, any>> = {
   (di: DiContainerForInjection, param: Parameters<T>[0]): ReturnType<T>;
+};
+
+export type InstantiateWithFactory<T extends Instantiate2<any, any>, T2> = {
+  (param: Parameters<T>[1]): ReturnType<T>;
 };
 
 export interface InjectionToken<InjectionInstance, InstantiationParam> {
@@ -84,7 +88,7 @@ export interface Injectable<
 export type Injectable2<
   TInstantiateWithToken extends Instantiate2<any, any>,
   TInstantiateManyWithToken extends WithArrayAsReturnValue<TInstantiateWithToken>,
-  TInstantiateWithInjectable extends TInstantiateWithToken,
+  TInstantiateWithInjectable extends Instantiate2<any, any>,
   TGetInstanceKey extends SetReturnType<TInstantiateWithInjectable, any>,
 > = {
   readonly id: string;
@@ -165,7 +169,6 @@ export function getInjectable2<
   TInstantiateManyWithToken extends WithArrayAsReturnValue<TInstantiateWithToken>,
   TInstantiateWithInjectable extends TInstantiateWithToken,
   TGetInstanceKey extends SetReturnType<TInstantiateWithInjectable, any>,
-  TInstantiateWithoutFactory extends InstantiateWithoutFactory<TInstantiateWithInjectable>,
 >(
   options: WithSometimesOptionalLifecycle<
     TInstantiateWithInjectable,
@@ -173,6 +176,34 @@ export function getInjectable2<
     TInstantiateManyWithToken,
     TGetInstanceKey
   >,
+): Injectable2<
+  TInstantiateWithToken,
+  TInstantiateManyWithToken,
+  TInstantiateWithInjectable,
+  TGetInstanceKey
+>;
+
+export function getInjectable2<
+  TInstantiateWithToken extends Instantiate2<any, any>,
+  TInstantiateManyWithToken extends WithArrayAsReturnValue<TInstantiateWithToken>,
+  TInstantiateWithoutFactory extends InstantiateWithoutFactory<TInstantiateWithToken>,
+  TGetInstanceKey extends SetReturnType<TInstantiateWithInjectable, any>,
+  TInstantiateWithInjectable extends InstantiateWithFactory<
+    TInstantiateWithoutFactory,
+    TInstantiateWithToken
+  >,
+>(
+  options: Omit<
+    Injectable2<
+      TInstantiateWithToken,
+      TInstantiateManyWithToken,
+      TInstantiateWithInjectable,
+      TGetInstanceKey
+    >,
+    'instantiateFor'
+  > & {
+    instantiate: TInstantiateWithoutFactory;
+  },
 ): Injectable2<
   TInstantiateWithToken,
   TInstantiateManyWithToken,
