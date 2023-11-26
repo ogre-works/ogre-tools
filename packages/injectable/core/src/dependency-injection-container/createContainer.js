@@ -14,7 +14,6 @@ import { checkForSideEffectsFor } from './checkForSideEffectsFor';
 import { getRelatedInjectablesFor } from './getRelatedInjectablesFor';
 import { noop } from 'lodash/fp';
 import { earlyOverrideFor } from './early-override';
-import { withParamsAsDataParameter } from './withParamsAsDataParameter';
 
 export default (containerId, { detectCycles = true } = {}) => {
   const injectableSet = new Set();
@@ -217,23 +216,21 @@ export default (containerId, { detectCycles = true } = {}) => {
   const publicInject = (alias, parameter, customContextItem) =>
     privateDi.inject(
       alias,
+      parameter,
       customContextItem
         ? [containerRootContextItem, customContextItem]
         : [containerRootContextItem],
       containerRootContextItem.injectable,
-    )(parameter);
+    );
 
-  const getInjectionArgs =
-    (alias, customContextItem) =>
-    (...parameters) =>
-      [
-        alias,
-        parameters,
-        customContextItem
-          ? [containerRootContextItem, customContextItem]
-          : [containerRootContextItem],
-        containerRootContextItem.injectable,
-      ];
+  const getInjectionArgs = (alias, parameter, customContextItem) => [
+    alias,
+    parameter,
+    customContextItem
+      ? [containerRootContextItem, customContextItem]
+      : [containerRootContextItem],
+    containerRootContextItem.injectable,
+  ];
 
   const publicDi = {
     ...privateDi,
@@ -242,12 +239,12 @@ export default (containerId, { detectCycles = true } = {}) => {
 
     injectWithMeta: (alias, parameter, customContextItem) =>
       privateDi.injectWithMeta(
-        ...getInjectionArgs(alias, customContextItem)(parameter),
+        ...getInjectionArgs(alias, parameter, customContextItem),
       ),
 
     injectMany: (alias, parameter, customContextItem) =>
       privateDi.injectMany(
-        ...getInjectionArgs(alias, customContextItem)(parameter),
+        ...getInjectionArgs(alias, parameter, customContextItem),
       ),
 
     register: (...injectables) => {
@@ -268,7 +265,7 @@ export default (containerId, { detectCycles = true } = {}) => {
 
     injectManyWithMeta: (alias, parameter, customContextItem) =>
       privateDi.injectManyWithMeta(
-        ...getInjectionArgs(alias, customContextItem)(parameter),
+        ...getInjectionArgs(alias, parameter, customContextItem),
       ),
 
     getInstances: alias =>

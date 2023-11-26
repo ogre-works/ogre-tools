@@ -19,9 +19,10 @@ export const deregisterFor =
   ({ injectables, context, source }) => {
     const callbacks = injectMany(
       deregistrationCallbackToken,
+      undefined,
       context,
       source,
-    )();
+    );
 
     injectables.forEach(injectable => {
       callbacks.forEach(callback => {
