@@ -75,7 +75,7 @@ export default (Component, { getPlaceholder = constant(null), getProps }) =>
   );
 
 const getObservablePromise = asyncValue => {
-  const observableObject = observable({ value: null }, null, {
+  const observableObject = observable({ value: null }, undefined, {
     deep: false,
   });
 
