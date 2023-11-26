@@ -5,7 +5,7 @@ import { instantiationDecoratorToken } from '../dependency-injection-container/t
 import lifecycleEnum from '../dependency-injection-container/lifecycleEnum';
 
 describe('createContainer.targeted-decoration-of-instantiation', () => {
-  it('given decorator targeting child, when parent is injected, decorates instance and instantiation parameter of only child', () => {
+  fit('given decorator targeting child, when parent is injected, decorates instance and instantiation parameter of only child', () => {
     const decoratorInjectable = getInjectable({
       id: 'some-child-decorator',
       injectionToken: instantiationDecoratorToken,

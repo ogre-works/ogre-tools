@@ -79,45 +79,33 @@ const getInstance =
         injectableToBeInstantiated,
     );
 
-    const minimalInject =
-      alias =>
-      (...parameters) =>
-        di.inject(alias, newContext, injectableToBeInstantiated)(...parameters);
-
     const minimalDi = {
-      inject: minimalInject,
+      inject: (alias, ...parameters) =>
+        di.inject(alias, newContext, injectableToBeInstantiated)(...parameters),
 
-      injectWithMeta:
-        alias =>
-        (...parameters) =>
-          di.injectWithMeta(
-            alias,
-            newContext,
-            injectableToBeInstantiated,
-          )(...parameters),
+      injectWithMeta: (alias, ...parameters) =>
+        di.injectWithMeta(
+          alias,
+          newContext,
+          injectableToBeInstantiated,
+        )(...parameters),
 
-      injectMany:
-        alias =>
-        (...parameters) =>
-          di.injectMany(
-            alias,
-            newContext,
-            injectableToBeInstantiated,
-          )(...parameters),
+      injectMany: (alias, ...parameters) =>
+        di.injectMany(
+          alias,
+          newContext,
+          injectableToBeInstantiated,
+        )(...parameters),
 
-      injectManyWithMeta:
-        alias =>
-        (...parameters) =>
-          di.injectManyWithMeta(
-            alias,
-            newContext,
-            injectableToBeInstantiated,
-          )(...parameters),
+      injectManyWithMeta: (alias, ...parameters) =>
+        di.injectManyWithMeta(
+          alias,
+          newContext,
+          injectableToBeInstantiated,
+        )(...parameters),
 
-      injectFactory:
-        alias =>
-        (...parameters) =>
-          minimalInject(alias)(...parameters),
+      injectFactory: alias =>
+        di.inject(alias, newContext, injectableToBeInstantiated),
 
       context: newContext,
 

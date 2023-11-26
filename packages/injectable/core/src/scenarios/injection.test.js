@@ -9,7 +9,7 @@ describe('createContainer.injection', () => {
     di = createContainer('some-container');
   });
 
-  fit('given injectable, when injected, injects an instance', () => {
+  it('given injectable, when injected, injects an instance', () => {
     const someInjectable = getInjectable({
       id: 'some-injectable',
 
@@ -18,9 +18,7 @@ describe('createContainer.injection', () => {
 
     di.register(someInjectable);
 
-    const actual = di.inject(someInjectable)();
-
-    console.log('actual', actual.toString());
+    const actual = di.inject(someInjectable);
 
     expect(actual).toBe('some-instance');
   });

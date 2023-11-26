@@ -22,11 +22,11 @@ export default {
 
   keyedSingleton: ({ getInstanceKey }) => ({
     id: 'keyedSingleton',
-    getInstanceKey,
+    getInstanceKey: di => getInstanceKey,
   }),
 
   transient: {
     id: 'transient',
-    getInstanceKey: () => nonStoredInstanceKey,
+    getInstanceKey: di => () => nonStoredInstanceKey,
   },
 };
