@@ -11,11 +11,12 @@ export function registerMobX(di: DiContainer): void;
 export const computedInjectManyInjectable: Injectable<
   <
     TInjectionToken extends InjectionToken<any, any>,
-    TInstance = TInjectionToken extends InjectionToken<infer T, any>
+    TInstance extends TInjectionToken extends InjectionToken<infer T, any>
       ? T
       : never,
   >(
     injectionToken: TInjectionToken,
+    ...param: TInjectionToken extends InjectionToken<any, infer T> ? [T] : []
   ) => IComputedValue<TInstance[]>,
   unknown
 >;
@@ -23,11 +24,15 @@ export const computedInjectManyInjectable: Injectable<
 export const computedInjectManyWithMetaInjectable: Injectable<
   <
     TInjectionToken extends InjectionToken<any, any>,
-    TInstanceWithMeta = TInjectionToken extends InjectionToken<infer T, any>
+    TInstanceWithMeta extends TInjectionToken extends InjectionToken<
+      infer T,
+      any
+    >
       ? InjectionInstanceWithMeta<T>
       : never,
   >(
     injectionToken: TInjectionToken,
+    ...param: TInjectionToken extends InjectionToken<any, infer T> ? [T] : []
   ) => IComputedValue<TInstanceWithMeta[]>,
   unknown
 >;

@@ -1,4 +1,4 @@
-import { expectType } from 'tsd';
+import { expectError, expectType } from 'tsd';
 
 import {
   createContainer,
@@ -32,3 +32,55 @@ const computedInjectManyWithMeta = di.inject(
 expectType<IComputedValue<InjectionInstanceWithMeta<string>[]>>(
   computedInjectManyWithMeta(someInjectionToken),
 );
+
+// Given token with an instantiation parameter...
+export const someInjectionTokenWithParameter = getInjectionToken<
+  string,
+  number
+>({
+  id: 'irrelevant',
+});
+
+// ...when using computedInjectMany, typing is ok.
+expectType<IComputedValue<string[]>>(
+  computedInjectMany(someInjectionTokenWithParameter, 42),
+);
+
+// ...when using computedInjectManyWithMeta, typing is ok.
+expectType<IComputedValue<InjectionInstanceWithMeta<string>[]>>(
+  computedInjectManyWithMeta(someInjectionTokenWithParameter, 42),
+);
+
+// ...given instantiation parameter of wrong type, when using computedInjectMany, typing is not ok.
+expectError(
+  computedInjectMany(someInjectionTokenWithParameter),
+  'some-string-instead-of-number',
+);
+
+// ...given instantiation parameter of wrong type, when using computedInjectManyWithMeta, typing is not ok.
+expectError(
+  computedInjectManyWithMeta(
+    someInjectionTokenWithParameter,
+    'some-string-instead-of-number',
+  ),
+);
+
+// ...given instantiation parameter of wrong type, when using computedInjectMany, typing is not ok.
+expectError(
+  computedInjectMany(someInjectionTokenWithParameter),
+  'some-string-instead-of-number',
+);
+
+// ...given instantiation parameter of wrong type, when using computedInjectManyWithMeta, typing is not ok.
+expectError(
+  computedInjectManyWithMeta(
+    someInjectionTokenWithParameter,
+    'some-string-instead-of-number',
+  ),
+);
+
+// ...given no instantiation parameter, when using computedInjectMany, typing is not ok.
+expectError(computedInjectMany(someInjectionTokenWithParameter));
+
+// ...given no instantiation parameter, when using computedInjectManyWithMeta, typing is not ok.
+expectError(computedInjectManyWithMeta(someInjectionTokenWithParameter));
