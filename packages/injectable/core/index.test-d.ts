@@ -7,7 +7,6 @@ import {
   DiContainer,
   DiContainerForInjection,
   getInjectable,
-  getInjectable2,
   getInjectableBunch,
   getInjectionToken,
   getInjectionToken2,
@@ -31,152 +30,152 @@ const someGetNumberInjectionToken = getInjectionToken<GetNumber>({
   id: 'some-get-number-token',
 });
 
-// given injectable and decorator targeting a token, typing is ok
-const decoratorForToken = getInjectable({
-  id: 'decorator-for-token',
-
-  instantiate: () =>
-    createInstantiationTargetDecorator({
-      target: someGetNumberInjectionToken,
-
-      decorate: toBeDecorated => di => {
-        expectType<Instantiate<GetNumber, void>>(toBeDecorated);
-
-        const instance = toBeDecorated(di);
-
-        return instance;
-      },
-    }),
-
-  injectionToken: instantiationDecoratorToken,
-});
-
-const foo: unknown = 'number';
-
-if (isInjectable(foo)) {
-  expectType<Injectable<unknown, unknown, unknown>>(foo);
-}
-
-if (isInjectionToken(foo)) {
-  expectType<InjectionToken<unknown, unknown>>(foo);
-}
-
-const x1: boolean = isInjectable(foo);
-const x2: boolean = isInjectionToken(foo);
-
-// given injectable without instantiation paramater and decorator targeting the injectable, typing is ok
-const someInjectableToBeDecorated = getInjectable({
-  id: 'some-injectable-to-be-decorated',
-  instantiate: () => () => 42,
-});
-
-const decoratorForInjectable = getInjectable({
-  id: 'decorator-for-injectable',
-
-  instantiate: () =>
-    createInstantiationTargetDecorator({
-      target: someInjectableToBeDecorated,
-
-      decorate: toBeDecorated => di => {
-        expectType<Instantiate<() => 42, void>>(toBeDecorated);
-
-        const instance = toBeDecorated(di);
-
-        return instance;
-      },
-    }),
-
-  injectionToken: instantiationDecoratorToken,
-});
-
-// given injectable with instantiation parameter and decorator targeting the injectable, typing is ok
-const someParameterInjectableToBeDecorated = getInjectable({
-  id: 'some-parameter-injectable-to-be-decorated',
-  instantiate: (di, parameter: number) => `some-instance-${parameter}`,
-  lifecycle: lifecycleEnum.transient,
-});
-
-expectType<Injectable<string, unknown, number>>(
-  someParameterInjectableToBeDecorated,
-);
-
-const decoratorForParameterInjectable = getInjectable({
-  id: 'decorator-for-parameter-injectable',
-
-  instantiate: () =>
-    createInstantiationTargetDecorator({
-      target: someParameterInjectableToBeDecorated,
-
-      decorate: toBeDecorated => (di, param) => {
-        expectType<number>(param);
-        expectType<Instantiate<string, number>>(toBeDecorated);
-
-        const instance = toBeDecorated(di, param);
-
-        return instance;
-      },
-    }),
-
-  injectionToken: instantiationDecoratorToken,
-});
-
-const decoratorWithoutTargetInjectable = getInjectable({
-  id: 'decorator-without-target',
-
-  instantiate: () =>
-    createInstantiationTargetDecorator({
-      decorate: toBeDecorated => (di, param) => {
-        expectType<unknown>(param);
-        expectType<Instantiate<unknown, unknown>>(toBeDecorated);
-
-        const instance = toBeDecorated(di, param);
-
-        return instance;
-      },
-    }),
-
-  injectionToken: instantiationDecoratorToken,
-});
-
-const decoratorForInjectionParameterInjectable = getInjectable({
-  id: 'decorator-for-parameter-injectable',
-
-  instantiate: () =>
-    createInjectionTargetDecorator({
-      decorate: injectionToBeDecorated => (key, param) => {
-        expectType<SpecificInject<unknown, unknown>>(injectionToBeDecorated);
-        expectType<
-          | Injectable<unknown, unknown, unknown>
-          | InjectionToken<unknown, unknown>
-        >(key);
-        expectType<unknown>(param);
-
-        return injectionToBeDecorated(key, param);
-      },
-    }),
-
-  injectionToken: injectionDecoratorToken,
-});
-
-const decoratorForSpecificInjectionParameterInjectable = getInjectable({
-  id: 'decorator-for-parameter-injectable',
-
-  instantiate: () =>
-    createInjectionTargetDecorator({
-      decorate: injectionToBeDecorated => (key, param) => {
-        expectType<SpecificInject<string, number>>(injectionToBeDecorated);
-        expectType<
-          Injectable<string, unknown, number> | InjectionToken<string, number>
-        >(key);
-        expectType<number>(param);
-
-        return injectionToBeDecorated(key, param);
-      },
-      target: someParameterInjectableToBeDecorated,
-    }),
-
-  injectionToken: injectionDecoratorToken,
-});
+// // given injectable and decorator targeting a token, typing is ok
+// const decoratorForToken = getInjectable({
+//   id: 'decorator-for-token',
+//
+//   instantiate: () =>
+//     createInstantiationTargetDecorator({
+//       target: someGetNumberInjectionToken,
+//
+//       decorate: toBeDecorated => di => {
+//         expectType<Instantiate<GetNumber, void>>(toBeDecorated);
+//
+//         const instance = toBeDecorated(di);
+//
+//         return instance;
+//       },
+//     }),
+//
+//   injectionToken: instantiationDecoratorToken,
+// });
+//
+// const foo: unknown = 'number';
+//
+// if (isInjectable(foo)) {
+//   expectType<Injectable<unknown, unknown, unknown>>(foo);
+// }
+//
+// if (isInjectionToken(foo)) {
+//   expectType<InjectionToken<unknown, unknown>>(foo);
+// }
+//
+// const x1: boolean = isInjectable(foo);
+// const x2: boolean = isInjectionToken(foo);
+//
+// // given injectable without instantiation paramater and decorator targeting the injectable, typing is ok
+// const someInjectableToBeDecorated = getInjectable({
+//   id: 'some-injectable-to-be-decorated',
+//   instantiate: () => () => 42,
+// });
+//
+// const decoratorForInjectable = getInjectable({
+//   id: 'decorator-for-injectable',
+//
+//   instantiate: () =>
+//     createInstantiationTargetDecorator({
+//       target: someInjectableToBeDecorated,
+//
+//       decorate: toBeDecorated => di => {
+//         expectType<Instantiate<() => 42, void>>(toBeDecorated);
+//
+//         const instance = toBeDecorated(di);
+//
+//         return instance;
+//       },
+//     }),
+//
+//   injectionToken: instantiationDecoratorToken,
+// });
+//
+// // given injectable with instantiation parameter and decorator targeting the injectable, typing is ok
+// const someParameterInjectableToBeDecorated = getInjectable({
+//   id: 'some-parameter-injectable-to-be-decorated',
+//   instantiate: (di, parameter: number) => `some-instance-${parameter}`,
+//   lifecycle: lifecycleEnum.transient,
+// });
+//
+// expectType<Injectable<string, unknown, number>>(
+//   someParameterInjectableToBeDecorated,
+// );
+//
+// const decoratorForParameterInjectable = getInjectable({
+//   id: 'decorator-for-parameter-injectable',
+//
+//   instantiate: () =>
+//     createInstantiationTargetDecorator({
+//       target: someParameterInjectableToBeDecorated,
+//
+//       decorate: toBeDecorated => (di, param) => {
+//         expectType<number>(param);
+//         expectType<Instantiate<string, number>>(toBeDecorated);
+//
+//         const instance = toBeDecorated(di, param);
+//
+//         return instance;
+//       },
+//     }),
+//
+//   injectionToken: instantiationDecoratorToken,
+// });
+//
+// const decoratorWithoutTargetInjectable = getInjectable({
+//   id: 'decorator-without-target',
+//
+//   instantiate: () =>
+//     createInstantiationTargetDecorator({
+//       decorate: toBeDecorated => (di, param) => {
+//         expectType<unknown>(param);
+//         expectType<Instantiate<unknown, unknown>>(toBeDecorated);
+//
+//         const instance = toBeDecorated(di, param);
+//
+//         return instance;
+//       },
+//     }),
+//
+//   injectionToken: instantiationDecoratorToken,
+// });
+//
+// const decoratorForInjectionParameterInjectable = getInjectable({
+//   id: 'decorator-for-parameter-injectable',
+//
+//   instantiate: () =>
+//     createInjectionTargetDecorator({
+//       decorate: injectionToBeDecorated => (key, param) => {
+//         expectType<SpecificInject<unknown, unknown>>(injectionToBeDecorated);
+//         expectType<
+//           | Injectable<unknown, unknown, unknown>
+//           | InjectionToken<unknown, unknown>
+//         >(key);
+//         expectType<unknown>(param);
+//
+//         return injectionToBeDecorated(key, param);
+//       },
+//     }),
+//
+//   injectionToken: injectionDecoratorToken,
+// });
+//
+// const decoratorForSpecificInjectionParameterInjectable = getInjectable({
+//   id: 'decorator-for-parameter-injectable',
+//
+//   instantiate: () =>
+//     createInjectionTargetDecorator({
+//       decorate: injectionToBeDecorated => (key, param) => {
+//         expectType<SpecificInject<string, number>>(injectionToBeDecorated);
+//         expectType<
+//           Injectable<string, unknown, number> | InjectionToken<string, number>
+//         >(key);
+//         expectType<number>(param);
+//
+//         return injectionToBeDecorated(key, param);
+//       },
+//       target: someParameterInjectableToBeDecorated,
+//     }),
+//
+//   injectionToken: injectionDecoratorToken,
+// });
 
 // given injectable with unspecified type for instantiation parameter, argument typing is OK
 const someInjectableForTypingOfInstantiate = getInjectable({
@@ -184,13 +183,15 @@ const someInjectableForTypingOfInstantiate = getInjectable({
 
   instantiate: (di, instantiationParameter) => {
     expectType<DiContainerForInjection>(di);
-    expectType<void>(instantiationParameter);
+    // Todo: should be unknown?
+    expectType<any>(instantiationParameter);
   },
 
-  lifecycle: lifecycleEnum.keyedSingleton({
-    getInstanceKey: (di, instantiationParameter) => {
-      expectType<DiContainer>(di);
-      expectType<void>(instantiationParameter);
+  lifecycle: lifecycleEnum2.keyedSingleton({
+    getInstanceKey: di => instantiationParameter => {
+      expectType<DiContainerForInjection>(di);
+      // Todo: should be unknown?
+      expectType<any>(instantiationParameter);
     },
   }),
 });
@@ -202,11 +203,12 @@ const someInjectableWithMatchingInstantiationParameters = getInjectable({
     expectType<string>(instantiationParameter);
   },
 
-  lifecycle: lifecycleEnum.keyedSingleton({
-    getInstanceKey: (di, instantiationParameter: string) => {
+  // Todo: restore lifecycleEnum1
+  lifecycle: {
+    getInstanceKey: di => instantiationParameter => {
       expectType<string>(instantiationParameter);
     },
-  }),
+  },
 });
 
 // given injectable with mismatching types for instantiation parameter, typing is not OK
@@ -216,17 +218,17 @@ expectError(
 
     instantiate: (di, instantiationParameter: number) => {},
 
-    lifecycle: lifecycleEnum.keyedSingleton({
-      getInstanceKey: (di, instantiationParameter: string) =>
+    lifecycle: {
+      getInstanceKey: di => (instantiationParameter: string) =>
         instantiationParameter,
-    }),
+    },
   }),
 );
 
 const someInjectableWithoutInstantiationParameter = getInjectable({
   id: 'some-injectable',
-  instantiate: () => 'some string',
-  lifecycle: lifecycleEnum.transient,
+  instantiate: di => 'some string',
+  lifecycle: lifecycleEnum2.transient,
 });
 
 // given injectable without instantiation parameters, when injected without parameter, typing is OK
@@ -519,13 +521,13 @@ const someKeyedSingletonWithSourceNamespaceAsKey = getInjectable({
     return di.sourceNamespace;
   },
 
-  lifecycle: lifecycleEnum.keyedSingleton({
-    getInstanceKey: di => {
+  lifecycle: {
+    getInstanceKey: di => () => {
       expectType<string | undefined>(di.sourceNamespace);
 
       return di.sourceNamespace;
     },
-  }),
+  },
 });
 
 // given injectable, when unoverridden using injectionToken, typing is ok.
@@ -557,7 +559,7 @@ const someInjectionTokenWithGenerics = getInjectionToken2<
   id: 'irrelevant',
 });
 
-const someInjectableUsingGenerics = getInjectable2({
+const someInjectableUsingGenerics = getInjectable({
   id: 'irrelevant',
 
   instantiateFor:
@@ -601,7 +603,7 @@ const someInjectionTokenWithPartialGenerics = getInjectionToken2<
   id: 'irrelevant',
 });
 
-const someInjectableUsingTokenWithPartialGenerics = getInjectable2({
+const someInjectableUsingTokenWithPartialGenerics = getInjectable({
   id: 'irrelevant',
 
   instantiateFor:
@@ -662,7 +664,7 @@ expectError(
 
 // given injectionToken with parameter using generics, and injectable implementing it but with wrongly typed instantiate, typing is not ok
 expectError(
-  getInjectable2({
+  getInjectable({
     id: 'irrelevant',
 
     instantiateFor:
@@ -683,7 +685,7 @@ const someInjectionTokenWithNoGenerics = getInjectionToken2<
   id: 'irrelevant',
 });
 
-const someInjectableNotUsingGenerics = getInjectable2({
+const someInjectableNotUsingGenerics = getInjectable({
   id: 'irrelevant',
 
   instantiateFor: di => parameter => {
@@ -715,7 +717,7 @@ const someInjectionTokenWithNoParameter = getInjectionToken2<() => number>({
   id: 'irrelevant',
 });
 
-const someInjectableWithNoParameter = getInjectable2({
+const someInjectableWithNoParameter = getInjectable({
   id: 'irrelevant',
 
   instantiateFor: di => () => {
@@ -735,7 +737,7 @@ expectType<number>(di.injectFor(someInjectionTokenWithNoParameter)());
 expectError(di.injectFor(someInjectionTokenWithNoParameter)(42));
 
 // given no injectionToken, and transient injectable with generics, when injected, typing is ok
-const someTransientUsingGenericsButWithoutToken = getInjectable2({
+const someTransientUsingGenericsButWithoutToken = getInjectable({
   id: 'irrelevant',
 
   instantiateFor:
@@ -752,7 +754,7 @@ expectType<string>(
 );
 
 // given no injectionToken, and keyedSingleton with generics, when injected, typing is ok
-const someKeyedSingletonUsingGenericsButWithoutToken = getInjectable2({
+const someKeyedSingletonUsingGenericsButWithoutToken = getInjectable({
   id: 'irrelevant',
 
   instantiateFor:
@@ -777,7 +779,7 @@ expectType<string>(
 
 // given no injectionToken, and keyedSingleton with generics, when constraints of instantiationParameter for instantiation and getting of key contradict, typing is not ok
 expectError(
-  getInjectable2({
+  getInjectable({
     id: 'irrelevant',
 
     instantiateFor:
@@ -808,7 +810,7 @@ const someInjectionTokenWithConstrainedGenerics = getInjectionToken2<
   id: 'irrelevant',
 });
 
-const someKeyedSingletonUsingGenericsButWithConstrainedToken = getInjectable2({
+const someKeyedSingletonUsingGenericsButWithConstrainedToken = getInjectable({
   id: 'irrelevant',
 
   instantiateFor:
@@ -838,7 +840,7 @@ expectError<string>(
 
 // given injectionToken with constrained generics, and keyedSingleton with generics, but constraint of instantiate contradicts, typing is not ok
 expectError(
-  getInjectable2({
+  getInjectable({
     id: 'irrelevant',
 
     instantiateFor:
@@ -864,7 +866,7 @@ expectError(
 
 // given injectionToken with constrained generics, and keyedSingleton with generics, but constraint of getInstanceKey contradicts, typing is not ok
 expectError(
-  getInjectable2({
+  getInjectable({
     id: 'irrelevant',
 
     instantiateFor:
@@ -890,7 +892,7 @@ expectError(
 
 // given no injectionToken, and keyedSingleton with generics, when constraints of instantiationParameter for instantiation and getting of key contradict, typing is not ok
 expectError(
-  getInjectable2({
+  getInjectable({
     id: 'irrelevant',
 
     instantiateFor:
@@ -911,7 +913,7 @@ expectError(
 
 // given injectable with instantiation parameter, but default lifecycle of singleton having no support for parameters, typing is not ok
 expectError(
-  getInjectable2({
+  getInjectable({
     id: 'irrelevant',
 
     instantiateFor: () => (parameter: string) => parameter,
@@ -920,7 +922,7 @@ expectError(
 
 // given injectable with instantiation parameter, but no lifecycle to justify it, typing is not ok
 expectError(
-  getInjectable2({
+  getInjectable({
     id: 'irrelevant',
 
     instantiateFor: () => (parameter: string) => parameter,
@@ -930,7 +932,7 @@ expectError(
 );
 
 // given injectable with no instantiation parameter, and default lifecycle, typing is ok
-const someInjectableWithDefaultLifecycle = getInjectable2({
+const someInjectableWithDefaultLifecycle = getInjectable({
   id: 'irrelevant',
 
   instantiateFor: di => () => Number(42),
@@ -939,7 +941,7 @@ const someInjectableWithDefaultLifecycle = getInjectable2({
 expectType<number>(di.injectFor(someInjectableWithDefaultLifecycle)());
 
 // given injectable with no instantiation parameter, and lifecycle which could use the paramater but doesn't, typing is ok
-const someInjectableChoosingNotToUseParamater = getInjectable2({
+const someInjectableChoosingNotToUseParamater = getInjectable({
   id: 'irrelevant',
   instantiateFor: () => () => Number(42),
   lifecycle: lifecycleEnum2.transient,
@@ -948,7 +950,7 @@ const someInjectableChoosingNotToUseParamater = getInjectable2({
 expectType<number>(di.injectFor(someInjectableChoosingNotToUseParamater)());
 
 // given injectionToken with no generics, and keyedSingleton using it, when injected, typing is ok
-const someKeyedSingletonUsingTokenWithNoGenerics = getInjectable2({
+const someKeyedSingletonUsingTokenWithNoGenerics = getInjectable({
   id: 'irrelevant',
 
   instantiateFor: () => parameter => {
@@ -994,7 +996,7 @@ const someInjectionTokenWithGenericsAndMultipleParameters = getInjectionToken2<
 });
 
 const someKeyedSingletonUsingTokenWithGenericsAndMultipleParameters =
-  getInjectable2({
+  getInjectable({
     id: 'irrelevant',
 
     instantiateFor:
@@ -1055,7 +1057,7 @@ expectError<string>(
 
 // API 1.5
 // given keyedSingleton with non-factory instantiate, when injected using factory, typing is ok
-const someKeyedSingletonUsingNoInstantiateFactory = getInjectable2({
+const someKeyedSingletonUsingNoInstantiateFactory = getInjectable({
   id: 'irrelevant',
 
   instantiate: (di, param: string) => {

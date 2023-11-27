@@ -59,7 +59,7 @@ export interface InjectionToken<InjectionInstance, InstantiationParam> {
 
 export interface InjectionToken2<
   T extends Instantiate2<any, any>,
-  T2 extends WithArrayAsReturnValue<T>,
+  T2 extends WithArrayAsReturnValue<T> = WithArrayAsReturnValue<T>,
 > {
   instantiateTemplate: T;
   instantiateManyTemplate: T2;
@@ -111,37 +111,6 @@ export type Injectable2<
   };
 };
 
-type InjectableLifecycle<InstantiationParam> = InstantiationParam extends void
-  ? {
-      lifecycle?: ILifecycle<void>;
-    }
-  : {
-      lifecycle: ILifecycle<InstantiationParam>;
-    };
-
-type GetInjectableOptions<
-  InjectionInstance extends InjectionTokenInstance,
-  InjectionTokenInstance,
-  InstantiationParam,
-> = InjectableLifecycle<InstantiationParam> &
-  Omit<
-    Injectable<InjectionInstance, InjectionTokenInstance, InstantiationParam>,
-    'lifecycle'
-  >;
-
-// Todo: indirection?
-export function getInjectable<
-  InjectionInstance extends InjectionTokenInstance,
-  InjectionTokenInstance,
-  InstantiationParam = void,
->(
-  options: GetInjectableOptions<
-    InjectionInstance,
-    InjectionTokenInstance,
-    InstantiationParam
-  >,
-): Injectable<InjectionInstance, InjectionTokenInstance, InstantiationParam>;
-
 type WithSometimesOptionalLifecycle<
   TInstantiateWithInjectable extends TInstantiateWithToken,
   TInstantiateWithToken extends Instantiate2<any, any>,
@@ -164,19 +133,39 @@ type WithSometimesOptionalLifecycle<
       TGetInstanceKey
     >;
 
+type SometimesOptionalLifecycle<
+  TInstantiateWithInjectable extends Instantiate2<any, any>,
+  TGetInstanceKey extends SetReturnType<TInstantiateWithInjectable, any>,
+> = Parameters<TInstantiateWithInjectable>[0] extends void
+  ? {
+      readonly lifecycle?: {
+        readonly getInstanceKey: (
+          di: DiContainerForInjection,
+        ) => TGetInstanceKey;
+      };
+    }
+  : {
+      readonly lifecycle: {
+        readonly getInstanceKey: (
+          di: DiContainerForInjection,
+        ) => TGetInstanceKey;
+      };
+    };
+
 // Override for instantiate factory, and support for generics.
-export function getInjectable2<
+export function getInjectable<
   TInstantiateWithToken extends Instantiate2<any, any>,
   TInstantiateManyWithToken extends WithArrayAsReturnValue<TInstantiateWithToken>,
   TInstantiateWithInjectable extends TInstantiateWithToken,
   TGetInstanceKey extends SetReturnType<TInstantiateWithInjectable, any>,
 >(
-  options: WithSometimesOptionalLifecycle<
+  options: Injectable2<
     TInstantiateWithInjectable,
     TInstantiateWithToken,
     TInstantiateManyWithToken,
     TGetInstanceKey
-  >,
+  > &
+    SometimesOptionalLifecycle<TInstantiateWithInjectable, TGetInstanceKey>,
 ): Injectable2<
   TInstantiateWithToken,
   TInstantiateManyWithToken,
@@ -185,7 +174,7 @@ export function getInjectable2<
 >;
 
 // Override for normal instantiate, and no support for generics.
-export function getInjectable2<
+export function getInjectable<
   TInstantiateWithToken extends Instantiate2<any, any>,
   TInstantiateManyWithToken extends WithArrayAsReturnValue<TInstantiateWithToken>,
   TInstantiateWithoutFactory extends InstantiateWithoutFactory<TInstantiateWithToken>,
@@ -202,7 +191,7 @@ export function getInjectable2<
     'instantiateFor'
   > & {
     instantiate: TInstantiateWithoutFactory;
-  },
+  } & SometimesOptionalLifecycle<TInstantiateWithInjectable, TGetInstanceKey>,
 ): Injectable2<
   TInstantiateWithToken,
   TInstantiateManyWithToken,
@@ -227,7 +216,12 @@ export function getInjectionToken<
   InstantiationParam = void,
 >(options: {
   id: string;
-}): InjectionToken<InjectionInstance, InstantiationParam>;
+}): InjectionToken2<
+  Instantiate2<
+    InstantiationParam extends void ? [] : [InstantiationParam],
+    InjectionInstance
+  >
+>;
 
 export type WithArrayAsReturnValue<T extends Instantiate2<any, any>> =
   SetReturnType<T, ReturnType<T>[]>;
@@ -237,20 +231,19 @@ export function getInjectionToken2<
   T2 extends WithArrayAsReturnValue<T> = WithArrayAsReturnValue<T>,
 >(options: { id: string }): InjectionToken2<T, T2>;
 
-export type InjectWithoutParameter = <InjectionInstance>(
-  key:
-    | Injectable<InjectionInstance, unknown>
-    | InjectionToken<InjectionInstance, void>,
-) => InjectionInstance;
+export type InjectWithInjectable = <T extends Injectable2<any, any, any, any>>(
+  injectable: T,
+  ...params: Parameters<T['instantiateFor']>
+) => ReturnType<T['instantiateFor']>;
 
-export type InjectWithParameter = <InjectionInstance, InstantiationParam>(
-  key:
-    | Injectable<InjectionInstance, unknown, InstantiationParam>
-    | InjectionToken<InjectionInstance, InstantiationParam>,
-  param: InstantiationParam,
-) => InjectionInstance;
+export type InjectWithToken = <
+  T extends InjectionToken2<Instantiate2<any, any>, Instantiate2<any, any>>,
+>(
+  token: T,
+  ...params: Parameters<T['instantiateTemplate']>
+) => T['instantiateTemplate'];
 
-export type Inject = InjectWithoutParameter & InjectWithParameter;
+export type Inject = InjectWithInjectable & InjectWithToken;
 
 export type InjectWithInjectableFor = <
   T extends Injectable2<any, any, any, any>,
