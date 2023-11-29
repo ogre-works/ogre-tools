@@ -1,7 +1,7 @@
 {
   "name": "@ogre-tools/injectable-extension-for-auto-registration",
   "private": false,
-  "version": "17.11.0",
+  "version": "17.11.1",
   "description": "Auto-registration of injectables for Injectable in Ogre Tools",
   "files": [
     "build",
@@ -38,9 +38,9 @@
     "code-style:fix": "ogre-tools-fix-code-style"
   },
   "devDependencies": {
-    "@ogre-tools/infrastructure-babel-for-js": "^17.11.0",
-    "@ogre-tools/infrastructure-jest": "^17.11.0",
-    "@ogre-tools/infrastructure-prettier": "^17.11.0",
-    "@ogre-tools/infrastructure-webpack-for-js": "^17.11.0"
+    "@ogre-tools/infrastructure-babel-for-js": "^17.11.1",
+    "@ogre-tools/infrastructure-jest": "^17.11.1",
+    "@ogre-tools/infrastructure-prettier": "^17.11.1",
+    "@ogre-tools/infrastructure-webpack-for-js": "^17.11.1"
   }
 }
