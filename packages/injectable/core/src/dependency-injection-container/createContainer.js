@@ -179,6 +179,18 @@ export default (containerId, { detectCycles = true } = {}) => {
 
   const decorateFunction = decorateFunctionFor({ decorate });
 
+  const purgeAllButOverrides = () => {
+    injectableSet.clear();
+    alreadyInjected.clear();
+    injectableIdSet.clear();
+    injectableAndRegistrationContext.clear();
+    instancesByInjectableMap.clear();
+    injectablesByInjectionToken.clear();
+    namespacedIdByInjectableMap.clear();
+    dependeesByDependencyMap.clear();
+    dependenciesByDependencyMap.clear();
+  };
+
   const privateDi = {
     inject: decoratedPrivateInject,
     injectWithMeta: decoratedPrivateInjectWithMeta,
@@ -211,6 +223,7 @@ export default (containerId, { detectCycles = true } = {}) => {
     },
 
     purge: purgeInstances,
+    purgeAllButOverrides,
   };
 
   const publicInject = (alias, parameter, customContextItem) =>
