@@ -975,6 +975,14 @@ expectType<number>(
   di.injectFor(someKeyedSingletonUsingTokenWithNoGenerics)('some-string'),
 );
 
+expectType<number[]>(
+  di.injectManyFor(someInjectionTokenWithNoGenerics)('some-string'),
+);
+
+expectType<{ meta: { id: string }; instance: number }[]>(
+  di.injectManyWithMetaFor(someInjectionTokenWithNoGenerics)('some-string'),
+);
+
 expectError<string>(
   di.injectFor(someKeyedSingletonUsingGenericsButWithConstrainedToken)(42),
 );
