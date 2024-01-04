@@ -3,6 +3,16 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [18.2.0](https://github.com/lensapp/ogre-tools/compare/v18.1.0...v18.2.0) (2024-01-04)
+
+### Features
+
+- Introduce mechanism to purge all instances but not overrides ([6b98501](https://github.com/lensapp/ogre-tools/commit/6b98501bd36a4e8ac8ecda92049ccffdf9793833))
+
+### Reverts
+
+- Revert "chore: Add work in progress unit tests for early overriding injection tokens" ([83b6ad7](https://github.com/lensapp/ogre-tools/commit/83b6ad7e69abd6ca1882b41288bbdf18b7207c77))
+
 ## [18.1.0](https://github.com/lensapp/ogre-tools/compare/v18.0.2...v18.1.0) (2023-11-27)
 
 ### Features
