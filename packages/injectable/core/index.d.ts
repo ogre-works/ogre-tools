@@ -27,6 +27,7 @@ export interface DiContainer extends DiContainerForInjection {
 
   deregister(...injectables: Injectable<any, any, any>[]): void;
   preventSideEffects: () => void;
+  purgeAllButOverrides: () => void;
 }
 
 export type Instantiate<InjectionInstance, InstantiationParam> = {

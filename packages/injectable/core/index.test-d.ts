@@ -529,6 +529,9 @@ const someKeyedSingletonWithSourceNamespaceAsKey = getInjectable({
 // given injectable, when unoverridden using injectionToken, typing is ok.
 di.permitSideEffects(someInjectionToken);
 
+// when purging all but overrides, typing is ok.
+di.purgeAllButOverrides();
+
 // given injectable bunch, typing is ok
 const someInjectableBunch = getInjectableBunch({
   someInjectable: {
