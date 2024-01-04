@@ -14,12 +14,81 @@ describe('early-override', () => {
       someInjectionToken = getInjectionToken({ id: 'some-token-id' });
     });
 
-    it('when early-overriding an injection token, throws', () => {
-      expect(() => {
-        di.earlyOverride(someInjectionToken, () => 'irrevant');
-      }).toThrow(
-        'Tried to early-override an injection token "some-token-id", but that is currently not supported.',
-      );
+    describe('when early-overriding an injection token', () => {
+      beforeEach(() => {
+        di.earlyOverride(someInjectionToken, () => 'some-overridden-instance');
+      });
+
+      it('given the injectable is still non-registered, when injected, injects the override', () => {
+        const actual = di.inject(someInjectionToken);
+
+        expect(actual).toBe('some-overridden-instance');
+      });
+
+      describe('given the injectable is registered', () => {
+        let someInjectable;
+
+        beforeEach(() => {
+          someInjectable = getInjectable({
+            id: 'some-injectable',
+            instantiate: di => 'irrelevant',
+            injectionToken: someInjectionToken,
+          });
+
+          di.register(someInjectable);
+        });
+
+        fit('when injected using token, injects the override', () => {
+          const actual = di.inject(someInjectionToken);
+
+          expect(actual).toBe('some-overridden-instance');
+        });
+
+        it('when injected using injectable, injects the override', () => {
+          const actual = di.inject(someInjectable);
+
+          expect(actual).toBe('some-overridden-instance');
+        });
+
+        it('given overridden again using injectable, when injected, injects the override', () => {
+          di.override(someInjectable, () => 'some-other-overridden-instance');
+
+          const actual = di.inject(someInjectionToken);
+
+          expect(actual).toBe('some-other-overridden-instance');
+        });
+
+        it('given overridden again using token, when injected, injects the override', () => {
+          di.override(
+            someInjectionToken,
+            () => 'some-other-overridden-instance',
+          );
+
+          const actual = di.inject(someInjectionToken);
+
+          expect(actual).toBe('some-other-overridden-instance');
+        });
+
+        describe('given overridden again with both ways', () => {
+          beforeEach(() => {
+            di.override(someInjectionToken, () => 'irrelevant');
+
+            di.override(someInjectable, () => 'some-other-overridden-instance');
+          });
+
+          it('when injected using token, injects the latest override', () => {
+            const actual = di.inject(someInjectionToken);
+
+            expect(actual).toBe('some-other-overridden-instance');
+          });
+
+          it('when injected using injectable, injects the latest override', () => {
+            const actual = di.inject(someInjectable);
+
+            expect(actual).toBe('some-other-overridden-instance');
+          });
+        });
+      });
     });
 
     describe('when early-overriding it using injectable', () => {
