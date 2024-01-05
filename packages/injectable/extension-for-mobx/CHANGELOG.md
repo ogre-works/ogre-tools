@@ -3,6 +3,10 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+### [18.2.2](https://github.com/lensapp/ogre-tools/compare/v18.2.1...v18.2.2) (2024-01-05)
+
+**Note:** Version bump only for package @lensapp/injectable-extension-for-mobx
+
 ### [18.2.1](https://github.com/lensapp/ogre-tools/compare/v18.2.0...v18.2.1) (2024-01-04)
 
 **Note:** Version bump only for package @lensapp/injectable-extension-for-mobx
