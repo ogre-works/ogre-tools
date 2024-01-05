@@ -43,10 +43,10 @@ export type Instantiate2<T, T2> = {
 };
 
 export interface InjectionToken<InjectionInstance, InstantiationParam> {
-  template: InjectionInstance;
-  instantiationParameter: InstantiationParam;
-  key: Symbol;
-  id: string;
+  readonly template: InjectionInstance;
+  readonly instantiationParameter: InstantiationParam;
+  readonly key: Symbol;
+  readonly id: string;
 }
 
 export interface InjectionToken2<
@@ -54,11 +54,11 @@ export interface InjectionToken2<
   T2 extends WithArrayAsReturnValue<T>,
   T3 extends WithMetaArrayAsReturnValue<T>,
 > {
-  instantiateTemplate: T;
-  instantiateManyTemplate: T2;
-  instantiateManyWithMetaTemplate: T3;
-  key: Symbol;
-  id: string;
+  readonly instantiateTemplate: T;
+  readonly instantiateManyTemplate: T2;
+  readonly instantiateManyWithMetaTemplate: T3;
+  readonly key: Symbol;
+  readonly id: string;
 }
 
 export interface Injectable<
