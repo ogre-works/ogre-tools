@@ -572,24 +572,22 @@ const someInjectableUsingGenerics = getInjectable2({
 });
 
 expectType<{ someProperty: 'some-string' }>(
-  di.injectFor(someInjectionTokenWithGenerics)('some-string'),
+  di.inject(someInjectionTokenWithGenerics)('some-string'),
 );
 
-expectType<{ someProperty: 42 }>(
-  di.injectFor(someInjectionTokenWithGenerics)(42),
-);
+expectType<{ someProperty: 42 }>(di.inject(someInjectionTokenWithGenerics)(42));
 
 expectType<{
   someProperty: boolean;
   someValueMoreSpecificThanToken: string;
-}>(di.injectFor(someInjectableUsingGenerics)(true));
+}>(di.inject(someInjectableUsingGenerics)(true));
 
 expectType<{ someProperty: string }[]>(
-  di.injectManyFor(someInjectionTokenWithGenerics)(String('some-string')),
+  di.injectMany(someInjectionTokenWithGenerics)(String('some-string')),
 );
 
 expectType<{ someProperty: 42 }[]>(
-  di.injectManyFor(someInjectionTokenWithGenerics)(42),
+  di.injectMany(someInjectionTokenWithGenerics)(42),
 );
 
 // given injectionToken with parameter using partial generics (ie. no kludge for injectMany), and injectable implementing it, when injected, typing is ok, but with lost generics
@@ -614,20 +612,16 @@ const someInjectableUsingTokenWithPartialGenerics = getInjectable2({
 });
 
 expectType<'some-string'>(
-  di.injectFor(someInjectionTokenWithPartialGenerics)('some-string'),
+  di.inject(someInjectionTokenWithPartialGenerics)('some-string'),
 );
 
-expectType<42>(di.injectFor(someInjectionTokenWithPartialGenerics)(42));
-
-expectType<unknown[]>(
-  di.injectManyFor(someInjectionTokenWithPartialGenerics)(
-    String('some-string'),
-  ),
-);
+expectType<42>(di.inject(someInjectionTokenWithPartialGenerics)(42));
 
 expectType<unknown[]>(
-  di.injectManyFor(someInjectionTokenWithPartialGenerics)(42),
+  di.injectMany(someInjectionTokenWithPartialGenerics)(String('some-string')),
 );
+
+expectType<unknown[]>(di.injectMany(someInjectionTokenWithPartialGenerics)(42));
 
 // given injectionTokens with contradicting templates, typing is not ok
 expectError(
@@ -697,17 +691,15 @@ const someInjectableNotUsingGenerics = getInjectable2({
   lifecycle: lifecycleEnum2.transient,
 });
 
-expectType<number>(di.injectFor(someInjectableNotUsingGenerics)('some-string'));
-expectError(di.injectFor(someInjectableNotUsingGenerics)(42));
+expectType<number>(di.inject(someInjectableNotUsingGenerics)('some-string'));
+expectError(di.inject(someInjectableNotUsingGenerics)(42));
 
-expectType<number>(
-  di.injectFor(someInjectionTokenWithNoGenerics)('some-string'),
-);
+expectType<number>(di.inject(someInjectionTokenWithNoGenerics)('some-string'));
 
-expectError(di.injectFor(someInjectionTokenWithNoGenerics)(42));
+expectError(di.inject(someInjectionTokenWithNoGenerics)(42));
 
 expectType<number[]>(
-  di.injectManyFor(someInjectionTokenWithNoGenerics)('some-string'),
+  di.injectMany(someInjectionTokenWithNoGenerics)('some-string'),
 );
 
 // given injectionToken without parameter, and injectable implementing it, when injected, typing is ok
@@ -728,11 +720,11 @@ const someInjectableWithNoParameter = getInjectable2({
   lifecycle: lifecycleEnum2.transient,
 });
 
-expectType<number>(di.injectFor(someInjectableWithNoParameter)());
-expectError(di.injectFor(someInjectableWithNoParameter)(42));
+expectType<number>(di.inject(someInjectableWithNoParameter)());
+expectError(di.inject(someInjectableWithNoParameter)(42));
 
-expectType<number>(di.injectFor(someInjectionTokenWithNoParameter)());
-expectError(di.injectFor(someInjectionTokenWithNoParameter)(42));
+expectType<number>(di.inject(someInjectionTokenWithNoParameter)());
+expectError(di.inject(someInjectionTokenWithNoParameter)(42));
 
 // given no injectionToken, and transient injectable with generics, when injected, typing is ok
 const someTransientUsingGenericsButWithoutToken = getInjectable2({
@@ -746,9 +738,7 @@ const someTransientUsingGenericsButWithoutToken = getInjectable2({
 });
 
 expectType<string>(
-  di.injectFor(someTransientUsingGenericsButWithoutToken)(
-    String('some-string'),
-  ),
+  di.inject(someTransientUsingGenericsButWithoutToken)(String('some-string')),
 );
 
 // given no injectionToken, and keyedSingleton with generics, when injected, typing is ok
@@ -770,7 +760,7 @@ const someKeyedSingletonUsingGenericsButWithoutToken = getInjectable2({
 });
 
 expectType<string>(
-  di.injectFor(someKeyedSingletonUsingGenericsButWithoutToken)(
+  di.inject(someKeyedSingletonUsingGenericsButWithoutToken)(
     String('some-string'),
   ),
 );
@@ -827,13 +817,13 @@ const someKeyedSingletonUsingGenericsButWithConstrainedToken = getInjectable2({
 });
 
 expectType<string>(
-  di.injectFor(someKeyedSingletonUsingGenericsButWithConstrainedToken)(
+  di.inject(someKeyedSingletonUsingGenericsButWithConstrainedToken)(
     String('some-string'),
   ),
 );
 
 expectError<string>(
-  di.injectFor(someKeyedSingletonUsingGenericsButWithConstrainedToken)(42),
+  di.inject(someKeyedSingletonUsingGenericsButWithConstrainedToken)(42),
 );
 
 // given injectionToken with constrained generics, and keyedSingleton with generics, but constraint of instantiate contradicts, typing is not ok
@@ -936,7 +926,7 @@ const someInjectableWithDefaultLifecycle = getInjectable2({
   instantiateFor: di => () => Number(42),
 });
 
-expectType<number>(di.injectFor(someInjectableWithDefaultLifecycle)());
+expectType<number>(di.inject(someInjectableWithDefaultLifecycle)());
 
 // given injectable with no instantiation parameter, and lifecycle which could use the paramater but doesn't, typing is ok
 const someInjectableChoosingNotToUseParamater = getInjectable2({
@@ -945,7 +935,7 @@ const someInjectableChoosingNotToUseParamater = getInjectable2({
   lifecycle: lifecycleEnum2.transient,
 });
 
-expectType<number>(di.injectFor(someInjectableChoosingNotToUseParamater)());
+expectType<number>(di.inject(someInjectableChoosingNotToUseParamater)());
 
 // given injectionToken with no generics, and keyedSingleton using it, when injected, typing is ok
 const someKeyedSingletonUsingTokenWithNoGenerics = getInjectable2({
@@ -972,11 +962,11 @@ const someKeyedSingletonUsingTokenWithNoGenerics = getInjectable2({
 });
 
 expectType<number>(
-  di.injectFor(someKeyedSingletonUsingTokenWithNoGenerics)('some-string'),
+  di.inject(someKeyedSingletonUsingTokenWithNoGenerics)('some-string'),
 );
 
 expectType<number[]>(
-  di.injectManyFor(someInjectionTokenWithNoGenerics)('some-string'),
+  di.injectMany(someInjectionTokenWithNoGenerics)('some-string'),
 );
 
 expectType<{ meta: { id: string }; instance: number }[]>(
@@ -984,9 +974,9 @@ expectType<{ meta: { id: string }; instance: number }[]>(
 );
 
 expectError<string>(
-  di.injectFor(someKeyedSingletonUsingGenericsButWithConstrainedToken)(42),
+  di.inject(someKeyedSingletonUsingGenericsButWithConstrainedToken)(42),
 );
 
 expectError<string>(
-  di.injectFor(someKeyedSingletonUsingGenericsButWithConstrainedToken)(),
+  di.inject(someKeyedSingletonUsingGenericsButWithConstrainedToken)(),
 );

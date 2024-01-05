@@ -215,15 +215,13 @@ export type InjectWithParameter = <InjectionInstance, InstantiationParam>(
   param: InstantiationParam,
 ) => InjectionInstance;
 
-export type Inject = InjectWithoutParameter & InjectWithParameter;
-
-export type InjectWithInjectableFor = <
+export type InjectWithInjectable2 = <
   T extends Injectable2<any, any, any, any, any>,
 >(
   injectable: T,
 ) => ReturnType<T['instantiateFor']>;
 
-export type InjectWithTokenFor = <
+export type InjectWithTokenFor2 = <
   T extends InjectionToken2<
     Instantiate2<any, any>,
     Instantiate2<any, any>,
@@ -233,9 +231,12 @@ export type InjectWithTokenFor = <
   token: T,
 ) => T['instantiateTemplate'];
 
-export type InjectFor = InjectWithInjectableFor & InjectWithTokenFor;
+export type Inject = InjectWithoutParameter &
+  InjectWithParameter &
+  InjectWithInjectable2 &
+  InjectWithTokenFor2;
 
-export type InjectManyFor = <
+export type InjectMany2 = <
   T extends InjectionToken2<
     Instantiate2<any, any>,
     Instantiate2<any, any>,
@@ -245,7 +246,7 @@ export type InjectManyFor = <
   token: T,
 ) => T['instantiateManyTemplate'];
 
-export type InjectManyWithMetaFor = <
+export type InjectManyWithMeta2 = <
   T extends InjectionToken2<
     Instantiate2<any, any>,
     Instantiate2<any, any>,
@@ -286,20 +287,22 @@ export type SpecificInject<InjectionInstance, InstantiationParam> =
     ? SpecificInjectWithoutParameter<InjectionInstance>
     : SpecificInjectWithParameter<InjectionInstance, InstantiationParam>;
 
-interface InjectMany {
-  <InjectionInstance>(
-    key:
-      | Injectable<InjectionInstance, unknown, void>
-      | InjectionToken<InjectionInstance, void>,
-  ): InjectionInstance[];
+type InjectManyWithoutParameter = <InjectionInstance>(
+  key:
+    | Injectable<InjectionInstance, unknown, void>
+    | InjectionToken<InjectionInstance, void>,
+) => InjectionInstance[];
 
-  <InjectionInstance, InstantiationParam>(
-    key:
-      | Injectable<InjectionInstance, unknown, InstantiationParam>
-      | InjectionToken<InjectionInstance, InstantiationParam>,
-    param: InstantiationParam,
-  ): InjectionInstance[];
-}
+type InjectManyWithParameter = <InjectionInstance, InstantiationParam>(
+  key:
+    | Injectable<InjectionInstance, unknown, InstantiationParam>
+    | InjectionToken<InjectionInstance, InstantiationParam>,
+  param: InstantiationParam,
+) => InjectionInstance[];
+
+type InjectMany = InjectManyWithoutParameter &
+  InjectManyWithParameter &
+  InjectMany2;
 
 type Meta = {
   id: string;
@@ -347,13 +350,12 @@ interface ContextItem {
 
 export interface DiContainerForInjection {
   inject: Inject;
-  injectFor: InjectFor;
   injectWithMeta: InjectWithMeta;
   injectFactory: InjectFactory;
   injectMany: InjectMany;
-  injectManyFor: InjectManyFor;
+  injectManyFor: InjectMany2;
   injectManyWithMeta: InjectManyWithMeta;
-  injectManyWithMetaFor: InjectManyWithMetaFor;
+  injectManyWithMetaFor: InjectManyWithMeta2;
   register(...injectables: Injectable<any, any, any>[]): void;
   deregister(...injectables: Injectable<any, any, any>[]): void;
   context: ContextItem[];
