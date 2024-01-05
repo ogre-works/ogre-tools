@@ -384,6 +384,9 @@ export const deregistrationCallbackToken: RegistrationCallback;
 export const isInjectable: (
   thing: unknown,
 ) => thing is Injectable<unknown, unknown, unknown>;
+export const isInjectableBunch: (
+  thing: unknown,
+) => thing is InjectableBunch<unknown>;
 export const isInjectionToken: (
   thing: unknown,
 ) => thing is InjectionToken<unknown, unknown>;
