@@ -1,7 +1,7 @@
 {
-  "name": "@ogre-tools/fp",
+  "name": "@lensapp/fp",
   "private": false,
-  "version": "18.0.1",
+  "version": "18.2.2",
   "description": "A collection of low abstraction functions in functional programming flavor",
   "files": [
     "build",
@@ -10,7 +10,7 @@
   "types": "./index.d.ts",
   "repository": {
     "type": "git",
-    "url": "https://github.com/ogre-works/ogre-tools"
+    "url": "https://github.com/lensapp/ogre-tools"
   },
   "main": "build/index.js",
   "keywords": [
@@ -23,13 +23,13 @@
     "lodash": "^4.17.21"
   },
   "bugs": {
-    "url": "https://github.com/ogre-works/ogre-tools/issues"
+    "url": "https://github.com/lensapp/ogre-tools/issues"
   },
-  "homepage": "https://github.com/ogre-works/ogre-tools#readme",
+  "homepage": "https://github.com/lensapp/ogre-tools#readme",
   "publishConfig": {
     "access": "public"
   },
-  "prettier": "@ogre-tools/infrastructure-prettier",
+  "prettier": "@lensapp/infrastructure-prettier",
   "scripts": {
     "build": "ogre-tools-build-js",
     "test": "ogre-tools-test",
@@ -38,9 +38,9 @@
     "code-style:fix": "ogre-tools-fix-code-style"
   },
   "devDependencies": {
-    "@ogre-tools/infrastructure-jest": "^18.0.1",
-    "@ogre-tools/infrastructure-prettier": "^18.0.1",
-    "@ogre-tools/infrastructure-webpack-for-js": "^18.0.1",
+    "@lensapp/infrastructure-jest": "^18.2.2",
+    "@lensapp/infrastructure-prettier": "^18.2.2",
+    "@lensapp/infrastructure-webpack-for-js": "^18.2.2",
     "tsd": "^0.29.0"
   }
 }

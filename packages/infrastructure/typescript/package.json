@@ -1,11 +1,11 @@
 {
-  "name": "@ogre-tools/infrastructure-typescript",
+  "name": "@lensapp/infrastructure-typescript",
   "private": true,
-  "version": "18.0.1",
+  "version": "18.2.2",
   "description": "Shared typescript configuration",
   "repository": {
     "type": "git",
-    "url": "https://github.com/ogre-works/ogre-tools"
+    "url": "https://github.com/lensapp/ogre-tools"
   },
   "keywords": [
     "js"
@@ -14,9 +14,9 @@
   "license": "MIT",
   "gitHead": "a5e3d70aa0d5d45dbf2f3d37f586fac93bfffc86",
   "bugs": {
-    "url": "https://github.com/ogre-works/ogre-tools/issues"
+    "url": "https://github.com/lensapp/ogre-tools/issues"
   },
-  "homepage": "https://github.com/ogre-works/ogre-tools#readme",
+  "homepage": "https://github.com/lensapp/ogre-tools#readme",
   "publishConfig": {
     "directory": "config"
   }

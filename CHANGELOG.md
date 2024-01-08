@@ -3,6 +3,34 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+### [18.2.2](https://github.com/lensapp/ogre-tools/compare/v18.2.1...v18.2.2) (2024-01-05)
+
+**Note:** Version bump only for package ogre-tools
+
+### [18.2.1](https://github.com/lensapp/ogre-tools/compare/v18.2.0...v18.2.1) (2024-01-04)
+
+**Note:** Version bump only for package ogre-tools
+
+## [18.2.0](https://github.com/lensapp/ogre-tools/compare/v18.1.0...v18.2.0) (2024-01-04)
+
+### Features
+
+- Introduce mechanism to purge all instances but not overrides ([6b98501](https://github.com/lensapp/ogre-tools/commit/6b98501bd36a4e8ac8ecda92049ccffdf9793833))
+
+### Reverts
+
+- Revert "chore: Add work in progress unit tests for early overriding injection tokens" ([83b6ad7](https://github.com/lensapp/ogre-tools/commit/83b6ad7e69abd6ca1882b41288bbdf18b7207c77))
+
+## [18.1.0](https://github.com/lensapp/ogre-tools/compare/v18.0.2...v18.1.0) (2023-11-27)
+
+### Features
+
+- Expose typing for instantiation parameter of computedInjectMany ([e87d092](https://github.com/lensapp/ogre-tools/commit/e87d092a1800e0338514ca1278a5b042ef875fd4))
+
+### [18.0.2](https://github.com/lensapp/ogre-tools/compare/v18.0.1...v18.0.2) (2023-11-14)
+
+**Note:** Version bump only for package ogre-tools
+
 ### [18.0.1](https://github.com/ogre-works/ogre-tools/compare/v18.0.0...v18.0.1) (2023-10-26)
 
 ### Bug Fixes

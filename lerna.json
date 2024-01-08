@@ -1,11 +1,6 @@
 {
-  "version": "18.0.1",
-  "useWorkspaces": true,
+  "version": "18.2.2",
   "command": {
-    "bootstrap": {
-      "npmClientArgs": ["--no-package-lock"],
-      "hoist": true
-    },
     "publish": {
       "forcePublish": true,
       "conventionalCommits": true,

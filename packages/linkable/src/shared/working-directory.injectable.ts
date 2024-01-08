@@ -1,4 +1,4 @@
-import { getInjectable } from '@ogre-tools/injectable';
+import { getInjectable } from '@lensapp/injectable';
 
 export const workingDirectoryInjectable = getInjectable({
   id: 'working-directory',

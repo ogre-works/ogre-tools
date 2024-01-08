@@ -5,8 +5,8 @@ import range from '../../sources/range/range';
 import regulate from '../../slackers/regulate/regulate';
 import take from '../../slackers/take/take';
 import buffer from './buffer';
-import { pipeline } from '@ogre-tools/fp';
-import { advanceFakeTimeSlow } from '@ogre-tools/test-utils';
+import { pipeline } from '@lensapp/fp';
+import { advanceFakeTimeSlow } from '@lensapp/ogre-test-utils';
 
 describe('buffer', () => {
   it('given finite sync iterable, when iterated, yields values and return from iterable', async () => {

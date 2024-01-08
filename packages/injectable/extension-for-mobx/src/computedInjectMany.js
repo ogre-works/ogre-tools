@@ -3,10 +3,10 @@ import {
   getInjectable,
   lifecycleEnum,
   registrationCallbackToken,
-} from '@ogre-tools/injectable';
+} from '@lensapp/injectable';
 
 import { computed, createAtom, runInAction } from 'mobx';
-import { getKeyedSingletonCompositeKey } from '@ogre-tools/injectable';
+import { getKeyedSingletonCompositeKey } from '@lensapp/injectable';
 
 export const isInternalOfComputedInjectMany = Symbol(
   'isInternalOfComputedInjectMany',

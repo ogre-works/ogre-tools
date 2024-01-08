@@ -1,6 +1,6 @@
 import { performance } from 'perf_hooks';
 import { map, sortBy } from 'lodash/fp';
-import { pipeline } from '@ogre-tools/fp';
+import { pipeline } from '@lensapp/fp';
 
 const state = new Map();
 

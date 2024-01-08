@@ -20,6 +20,8 @@ import {
   isInjectionToken,
   getInjectableBunch,
   getKeyedSingletonCompositeKey,
+  isInjectableBunch,
+  InjectableBunch,
 } from '.';
 
 const di = createContainer('some-container');
@@ -57,6 +59,10 @@ if (isInjectable(foo)) {
 
 if (isInjectionToken(foo)) {
   expectType<InjectionToken<unknown, unknown>>(foo);
+}
+
+if (isInjectableBunch(foo)) {
+  expectType<InjectableBunch<unknown>>(foo);
 }
 
 const x1: boolean = isInjectable(foo);
@@ -528,6 +534,9 @@ const someKeyedSingletonWithSourceNamespaceAsKey = getInjectable({
 
 // given injectable, when unoverridden using injectionToken, typing is ok.
 di.permitSideEffects(someInjectionToken);
+
+// when purging all but overrides, typing is ok.
+di.purgeAllButOverrides();
 
 // given injectable bunch, typing is ok
 const someInjectableBunch = getInjectableBunch({

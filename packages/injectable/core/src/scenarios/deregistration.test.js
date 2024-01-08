@@ -241,34 +241,25 @@ describe('createContainer.deregistration', () => {
     );
   });
 
-  it('given injectable which can itself register and has done so and deregistered and registered again, when deregistered again, does not throw because of previous registrations done by itself', () => {
+  it('given injectable with token, and registered, when deregistered using the token, throws', () => {
+    const someToken = getInjectionToken({
+      id: 'some-token',
+    });
+
     const di = createContainer('some-container');
 
     const someInjectable = getInjectable({
       id: 'some-injectable',
       instantiate: () => 'some-instance',
+      injectionToken: someToken,
     });
 
-    const registererInjectable = getInjectable({
-      id: 'registerer',
-
-      instantiate: di => injectable => {
-        di.register(injectable);
-      },
-    });
-
-    di.register(registererInjectable);
-
-    const register = di.inject(registererInjectable);
-
-    register(someInjectable);
-
-    di.deregister(registererInjectable);
-
-    di.register(registererInjectable);
+    di.register(someInjectable);
 
     expect(() => {
-      di.deregister(registererInjectable);
-    }).not.toThrow();
+      di.deregister(someToken);
+    }).toThrow(
+      'Tried to deregister using injection token "some-token", but deregistration using token is illegal.',
+    );
   });
 });

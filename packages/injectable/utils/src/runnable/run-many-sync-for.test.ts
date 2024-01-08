@@ -2,7 +2,7 @@ import {
   createContainer,
   getInjectable,
   getInjectionToken,
-} from '@ogre-tools/injectable';
+} from '@lensapp/injectable';
 import type { RunnableSync } from './run-many-sync-for';
 import { runManySyncFor } from './run-many-sync-for';
 

@@ -66,7 +66,7 @@ export interface PipelineFor<BreakToken> {
 type MovingWindow<Types extends [...any[]]> = Types extends [
   infer Left,
   infer Right,
-  ...infer Tail,
+  ...infer Tail
 ]
   ? [[Left, Right], ...MovingWindow<[Right, ...Tail]>]
   : [];
@@ -78,7 +78,7 @@ type PipelineFunctions<
   ? Head extends [infer Input, infer Output]
     ? [
         (arg: Argument<Input, BreakToken>) => Output,
-        ...PipelineFunctions<Tail, BreakToken>,
+        ...PipelineFunctions<Tail, BreakToken>
       ]
     : []
   : [];
@@ -106,7 +106,7 @@ type WithCollectivePipelineBreak<
 
 type ContainsPromise<T extends [...any[]]> = T extends [
   infer Head,
-  ...infer Tail,
+  ...infer Tail
 ]
   ? Head extends Promise<any>
     ? true
@@ -115,7 +115,7 @@ type ContainsPromise<T extends [...any[]]> = T extends [
 
 type ContainsPipelineBreak<T extends [...any[]], BreakToken> = T extends [
   infer Head,
-  ...infer Tail,
+  ...infer Tail
 ]
   ? BreakToken extends Head
     ? true

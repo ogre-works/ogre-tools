@@ -1,8 +1,8 @@
 import take from '../../slackers/take/take';
 import asSubscribable from './asSubscribable';
 import forEach from '../../pullers/forEach/forEach';
-import { flow, pipeline } from '@ogre-tools/fp';
-import { flushPromises } from '@ogre-tools/test-utils';
+import { flow, pipeline } from '@lensapp/fp';
+import { flushPromises } from '@lensapp/ogre-test-utils';
 
 describe('asSubscribable', () => {
   it('given iterable, when subscribed, the subscriber can iterate the iterable', async () => {

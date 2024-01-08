@@ -1,5 +1,6 @@
 import { deregistrationCallbackToken } from './tokens';
 import toFlatInjectables from './toFlatInjectables';
+import isInjectionToken from '../getInjectionToken/isInjectionToken';
 
 export const deregisterFor =
   ({
@@ -63,6 +64,12 @@ export const deregisterSingleFor =
     di,
   }) =>
   injectable => {
+    if (isInjectionToken(injectable)) {
+      throw new Error(
+        `Tried to deregister using injection token "${injectable.id}", but deregistration using token is illegal.`,
+      );
+    }
+
     if (!injectableSet.has(injectable)) {
       throw new Error(
         `Tried to deregister non-registered injectable "${injectable.id}".`,

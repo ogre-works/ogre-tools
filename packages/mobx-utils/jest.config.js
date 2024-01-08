@@ -1,4 +1,4 @@
 module.exports =
-  require('@ogre-tools/infrastructure-jest').monorepoPackageConfig(
+  require('@lensapp/infrastructure-jest').monorepoPackageConfig(
     __dirname,
   ).configForReact;

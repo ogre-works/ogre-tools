@@ -10,7 +10,7 @@ import {
   createContainer,
   getInjectable,
   lifecycleEnum,
-} from '@ogre-tools/injectable';
+} from '@lensapp/injectable';
 
 describe('createContainer.error-monitoring-for-instantiation', () => {
   describe('given error monitoring, sync child-injectable and injected, when instantiation of child throws', () => {

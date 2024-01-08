@@ -2,7 +2,7 @@
 import type {
   DiContainer,
   DiContainerForInjection,
-} from '@ogre-tools/injectable';
+} from '@lensapp/injectable';
 import { IComputedValue } from 'mobx';
 
 interface DiContainerProviderProps {
