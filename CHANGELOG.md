@@ -3,6 +3,13 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [18.3.0](https://github.com/lensapp/ogre-tools/compare/v18.2.2...v18.3.0) (2024-01-08)
+
+### Features
+
+- Expose typing for instantiation parameter of computedInjectMany ([64674a1](https://github.com/lensapp/ogre-tools/commit/64674a149864c532b8cd09a7b2aa6c59f8c97e1f))
+- Implement checking for if "alias-has-registrations" ([ae1fb0a](https://github.com/lensapp/ogre-tools/commit/ae1fb0a1ffc4b641f8caf80012516629aaeb948d))
+
 ### [18.2.2](https://github.com/lensapp/ogre-tools/compare/v18.2.1...v18.2.2) (2024-01-05)
 
 **Note:** Version bump only for package ogre-tools
