@@ -553,3 +553,9 @@ expectType<{ someInjectable: Injectable<string, unknown, number> }>(
 );
 
 expectType<{ keys: [1, 2, 3] }>(getKeyedSingletonCompositeKey(1, 2, 3));
+
+// given injectable, typing for "alias has registrations" is ok
+expectType<boolean>(di.hasRegistrations(someInjectable));
+
+// given token, typing for "alias has registrations" is ok
+expectType<boolean>(di.hasRegistrations(someInjectionToken));
