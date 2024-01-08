@@ -14,19 +14,21 @@ export type Override = <
 export interface DiContainer extends DiContainerForInjection {
   purge: (injectableKey: Injectable<any, any, any>) => void;
 
+  preventSideEffects: () => void;
   permitSideEffects: (
     injectableKey: InjectionToken<any, any> | Injectable<any, any, any>,
   ) => void;
 
   override: Override;
   earlyOverride: Override;
-
   unoverride(alias: InjectionToken<any, any> | Injectable<any, any, any>): void;
 
   register(...injectables: Injectable<any, any, any>[]): void;
-
   deregister(...injectables: Injectable<any, any, any>[]): void;
-  preventSideEffects: () => void;
+
+  hasRegistrations: (
+    alias: InjectionToken<any, any> | Injectable<any, any, any>,
+  ) => boolean;
 }
 
 export type Instantiate<InjectionInstance, InstantiationParam> = {

@@ -272,6 +272,8 @@ export default (containerId, { detectCycles = true } = {}) => {
       getRelatedInjectables(alias).flatMap(injectable => [
         ...instancesByInjectableMap.get(injectable).values(),
       ]),
+
+    hasRegistrations: alias => !!getRelatedInjectables(alias).length,
   };
 
   return publicDi;
