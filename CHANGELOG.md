@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+### [18.3.1](https://github.com/lensapp/ogre-tools/compare/v18.3.0...v18.3.1) (2024-01-23)
+
+### Bug Fixes
+
+- Fix typing of conditional promises in pipeline ([ae89f00](https://github.com/lensapp/ogre-tools/commit/ae89f0048d1eca78943c518a848a9366c30e13b5))
+
 ## [18.3.0](https://github.com/lensapp/ogre-tools/compare/v18.2.2...v18.3.0) (2024-01-08)
 
 ### Features

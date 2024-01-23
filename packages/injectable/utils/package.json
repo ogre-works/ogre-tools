@@ -1,7 +1,7 @@
 {
   "name": "@lensapp/injectable-utils",
   "private": false,
-  "version": "18.3.0",
+  "version": "18.3.1",
   "description": "Utilities to support general usage of injectable",
   "files": [
     "build",
@@ -26,12 +26,12 @@
   },
   "devDependencies": {
     "@async-fn/jest": "^1.6.4",
-    "@lensapp/infrastructure-babel-for-ts": "^18.3.0",
-    "@lensapp/infrastructure-jest": "^18.3.0",
-    "@lensapp/infrastructure-prettier": "^18.3.0",
-    "@lensapp/infrastructure-typescript": "^18.3.0",
-    "@lensapp/infrastructure-webpack-for-ts": "^18.3.0",
-    "@lensapp/ogre-test-utils": "^18.3.0"
+    "@lensapp/infrastructure-babel-for-ts": "^18.3.1",
+    "@lensapp/infrastructure-jest": "^18.3.1",
+    "@lensapp/infrastructure-prettier": "^18.3.1",
+    "@lensapp/infrastructure-typescript": "^18.3.1",
+    "@lensapp/infrastructure-webpack-for-ts": "^18.3.1",
+    "@lensapp/ogre-test-utils": "^18.3.1"
   },
   "gitHead": "a5e3d70aa0d5d45dbf2f3d37f586fac93bfffc86",
   "bugs": {
