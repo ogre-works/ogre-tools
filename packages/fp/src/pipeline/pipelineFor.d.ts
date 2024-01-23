@@ -108,8 +108,10 @@ type ContainsPromise<T extends [...any[]]> = T extends [
   infer Head,
   ...infer Tail
 ]
-  ? Head extends Promise<any>
-    ? true
+  ? Promise<any> extends Head
+    ? {} extends Head
+      ? false
+      : true
     : ContainsPromise<Tail>
   : false;
 
