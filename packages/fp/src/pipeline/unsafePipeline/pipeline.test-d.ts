@@ -72,3 +72,43 @@ expectType<Promise<string>>(pipelineResultWithNoAsyncChanceOfBreak);
 expectNotAssignable<Promise<typeof pipelineBreak>>(
   pipelineResultWithNoAsyncChanceOfBreak,
 );
+
+const pipelineResultWithConditionalType = pipeline(
+  'some-string',
+
+  someParameter => {
+    expectType<string>(someParameter);
+
+    return 1 > 2
+      ? Promise.resolve('some-resolved-string')
+      : 'some-other-string';
+  },
+
+  someParameter => {
+    expectType<string>(someParameter);
+
+    return someParameter;
+  },
+);
+
+expectType<Promise<string>>(pipelineResultWithConditionalType);
+
+const pipelineResultWithConditionalTypeAndBreak = pipeline(
+  'some-string',
+
+  someParameter => {
+    expectType<string>(someParameter);
+
+    return 1 > 2
+      ? Promise.resolve('some-resolved-string')
+      : 'some-other-string';
+  },
+
+  () => pipelineBreak,
+);
+
+expectType<Promise<symbol>>(pipelineResultWithConditionalTypeAndBreak);
+
+const pipelineUsingEmptyObject = pipeline({}, x => x);
+
+expectNotAssignable<{ then: any }>(pipelineUsingEmptyObject);
