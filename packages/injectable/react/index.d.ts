@@ -1,9 +1,5 @@
 /// <reference types="react" />
-import type {
-  DiContainer,
-  DiContainerForInjection,
-} from '@lensapp/injectable';
-import { IComputedValue } from 'mobx';
+import type { DiContainer, DiContainerForInjection } from '@lensapp/injectable';
 
 interface DiContainerProviderProps {
   di: DiContainer | DiContainerForInjection;
@@ -53,21 +49,5 @@ export interface WithInjectables {
 }
 
 export const withInjectables: WithInjectables;
-
-export type IAsyncComputed<T> = {
-  value: IComputedValue<T>;
-  pending: IComputedValue<boolean>;
-  invalidate: () => void;
-};
-
-type AsyncComputedParams<T> = {
-  getValueFromObservedPromise: () => Promise<T>;
-  valueWhenPending?: T;
-  betweenUpdates?: 'show-pending-value' | 'show-latest-value';
-};
-
-export function asyncComputed<T>(
-  configuration: AsyncComputedParams<T>,
-): IAsyncComputed<T>;
 
 export function registerInjectableReact(di: DiContainer): void;
