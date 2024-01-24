@@ -3,6 +3,22 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [19.0.0](https://github.com/lensapp/ogre-tools/compare/v18.3.1...v19.0.0) (2024-01-24)
+
+### ⚠ BREAKING CHANGES
+
+- Migrate to using asyncComputed in package mobx-utils
+
+Co-authored-by: Janne Savolainen <janne.savolainen@live.fi>
+
+### Bug Fixes
+
+- Fix typing of conditional promises in pipeline ([850a3aa](https://github.com/lensapp/ogre-tools/commit/850a3aab1a50563226400dfcc0843d8f14355420))
+
+### Miscellaneous Chores
+
+- Get rid of duplicated asyncComputed ([b6fd8b3](https://github.com/lensapp/ogre-tools/commit/b6fd8b3a4feac728ee3c2484191111660b1a8b34))
+
 ### [18.3.1](https://github.com/lensapp/ogre-tools/compare/v18.3.0...v18.3.1) (2024-01-23)
 
 ### Bug Fixes

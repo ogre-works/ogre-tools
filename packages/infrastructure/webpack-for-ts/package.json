@@ -1,13 +1,13 @@
 {
   "name": "@lensapp/infrastructure-webpack-for-ts",
   "private": true,
-  "version": "18.3.1",
+  "version": "19.0.0",
   "description": "Shared webpack configuration",
   "bin": {
     "ogre-tools-build-ts": "bin/build.sh"
   },
   "dependencies": {
-    "@lensapp/infrastructure-webpack-for-js": "^18.3.1"
+    "@lensapp/infrastructure-webpack-for-js": "^19.0.0"
   },
   "repository": {
     "type": "git",
@@ -29,7 +29,7 @@
   },
   "prettier": "@lensapp/infrastructure-prettier",
   "devDependencies": {
-    "@lensapp/infrastructure-prettier": "^18.3.1"
+    "@lensapp/infrastructure-prettier": "^19.0.0"
   },
   "scripts": {
     "code-style:verify": "ogre-tools-verify-code-style",
