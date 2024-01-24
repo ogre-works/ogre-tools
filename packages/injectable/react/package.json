@@ -20,8 +20,8 @@
   "author": "Ogre Works",
   "license": "MIT",
   "peerDependencies": {
-    "@lensapp/fp": "^16 || ^17 || ^18",
-    "@lensapp/injectable": "^16 || ^17 || ^18",
+    "@lensapp/fp": "^16 || ^17 || ^18 || ^19",
+    "@lensapp/injectable": "^16 || ^17 || ^18 || ^19",
     "lodash": "^4.17.21",
     "mobx": "^6.3.0",
     "mobx-react": "^7.2.0",
