@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+### [18.4.1](https://github.com/lensapp/ogre-tools/compare/v18.4.0...v18.4.1) (2024-02-12)
+
+### Bug Fixes
+
+- Fix bad export ([9a975b6](https://github.com/lensapp/ogre-tools/commit/9a975b669788057cc26d7b4eb081882b04c34ecb))
+
 ## [18.4.0](https://github.com/lensapp/ogre-tools/compare/v18.3.1...v18.4.0) (2024-02-12)
 
 ### Features
