@@ -1,11 +1,13 @@
-import replaceTagsWithValues from './replaceTagsWithValues';
+import {
+  replaceTagsWithValues,
+  replaceTagsWithValuesUnsafe,
+} from './replaceTagsWithValues';
 
 describe('replaceTagsWithValues', () => {
   it('replaces one tag in string', () => {
     const actual = replaceTagsWithValues(
       'some string "{someTag}" some more string',
-      { someTag: 'some tag value' },
-    );
+    )({ someTag: 'some tag value' });
 
     expect(actual).toBe('some string "some tag value" some more string');
   });
@@ -13,8 +15,7 @@ describe('replaceTagsWithValues', () => {
   it('replaces multiple tags in string', () => {
     const actual = replaceTagsWithValues(
       'some string "{someTag}" some more string "{someTag}" again',
-      { someTag: 'some tag value' },
-    );
+    )({ someTag: 'some tag value' });
 
     expect(actual).toBe(
       'some string "some tag value" some more string "some tag value" again',
@@ -24,8 +25,7 @@ describe('replaceTagsWithValues', () => {
   it('replaces multiple different tags in string', () => {
     const actual = replaceTagsWithValues(
       'some string "{someTag}" some more string "{someOtherTag}"',
-      { someTag: 'some tag value', someOtherTag: 'some other tag value' },
-    );
+    )({ someTag: 'some tag value', someOtherTag: 'some other tag value' });
 
     expect(actual).toBe(
       'some string "some tag value" some more string "some other tag value"',
@@ -33,7 +33,7 @@ describe('replaceTagsWithValues', () => {
   });
 
   it('replaces nested tags in string', () => {
-    const actual = replaceTagsWithValues('some string "{some.nested.value}"', {
+    const actual = replaceTagsWithValues('some string "{some.nested.value}"')({
       some: { nested: { value: 'some nested tag value' } },
     });
 
@@ -41,7 +41,7 @@ describe('replaceTagsWithValues', () => {
   });
 
   it('given tagged value is object, replaces with stringified object', () => {
-    const actual = replaceTagsWithValues('some string "{some}"', {
+    const actual = replaceTagsWithValues('some string "{some}"')({
       some: { nested: { value: 'some nested tag value' } },
     });
 
@@ -51,7 +51,7 @@ describe('replaceTagsWithValues', () => {
   });
 
   it('given tagged value is array, replaces with stringified array', () => {
-    const actual = replaceTagsWithValues('some string "{some}"', {
+    const actual = replaceTagsWithValues('some string "{some}"')({
       some: ['array-value', 'other-array-value'],
     });
 
@@ -60,7 +60,7 @@ describe('replaceTagsWithValues', () => {
 
   it('given non-string input, throws', () => {
     expect(() => {
-      replaceTagsWithValues({ not: 'string' }, {});
+      replaceTagsWithValues({ not: 'string' })({});
     }).toThrow('Non-string input encountered.');
   });
 
@@ -68,10 +68,9 @@ describe('replaceTagsWithValues', () => {
     expect(() => {
       replaceTagsWithValues(
         'some string "{someTag}" some more string "{someTagWithoutValue}" "{someOtherTagWithoutValue}"',
-        {
-          someTag: 'some tag value',
-        },
-      );
+      )({
+        someTag: 'some tag value',
+      });
     }).toThrow(
       'Missing value for "{someTagWithoutValue}", "{someOtherTagWithoutValue}".',
     );
@@ -81,27 +80,24 @@ describe('replaceTagsWithValues', () => {
     expect(() => {
       replaceTagsWithValues(
         'some string "{someTag}" some more string "{someTagWithUndefinedValue}" "{someOtherTagWithUndefinedValue}"',
-        {
-          someTag: 'some tag value',
-          someTagWithUndefinedValue: undefined,
-          someOtherTagWithUndefinedValue: undefined,
-        },
-      );
+      )({
+        someTag: 'some tag value',
+        someTagWithUndefinedValue: undefined,
+        someOtherTagWithUndefinedValue: undefined,
+      });
     }).toThrow(
       'Missing value for "{someTagWithUndefinedValue}", "{someOtherTagWithUndefinedValue}".',
     );
   });
 
   it('given undefined values for tags but throwing on missing values is omitted, does not alter tags with missing values', () => {
-    const actual = replaceTagsWithValues(
+    const actual = replaceTagsWithValuesUnsafe(
       'some string "{someTag}" some more string "{someTagWithUndefinedValue}" "{someOtherTagWithUndefinedValue}"',
-      {
-        someTag: 'some tag value',
-        someTagWithUndefinedValue: undefined,
-        someOtherTagWithUndefinedValue: undefined,
-      },
-      { throwOnMissingTagValues: false },
-    );
+    )({
+      someTag: 'some tag value',
+      someTagWithUndefinedValue: undefined,
+      someOtherTagWithUndefinedValue: undefined,
+    });
 
     expect(actual).toEqual(
       'some string "some tag value" some more string "{someTagWithUndefinedValue}" "{someOtherTagWithUndefinedValue}"',
@@ -111,10 +107,9 @@ describe('replaceTagsWithValues', () => {
   it('given null values for tags, replaces to empty string', () => {
     const actual = replaceTagsWithValues(
       'some string "{someTagWithNullValue}"',
-      {
-        someTagWithNullValue: null,
-      },
-    );
+    )({
+      someTagWithNullValue: null,
+    });
 
     expect(actual).toBe('some string ""');
   });
@@ -122,10 +117,9 @@ describe('replaceTagsWithValues', () => {
   it('given empty string values for tags, replaces to empty string', () => {
     const actual = replaceTagsWithValues(
       'some string "{someTagWithEmptyStringValue}"',
-      {
-        someTagWithEmptyStringValue: '',
-      },
-    );
+    )({
+      someTagWithEmptyStringValue: '',
+    });
 
     expect(actual).toBe('some string ""');
   });
@@ -133,11 +127,10 @@ describe('replaceTagsWithValues', () => {
   it('given value containing another tag, replaces recursively until tag has value', () => {
     const actual = replaceTagsWithValues(
       'some string "{someTagContainingAnotherTagAsValue}"',
-      {
-        someTagContainingAnotherTagAsValue: '{otherTag}',
-        otherTag: 'some-value',
-      },
-    );
+    )({
+      someTagContainingAnotherTagAsValue: '{otherTag}',
+      otherTag: 'some-value',
+    });
 
     expect(actual).toBe('some string "some-value"');
   });
@@ -146,13 +139,12 @@ describe('replaceTagsWithValues', () => {
     const actual = () =>
       replaceTagsWithValues(
         'some string "{someTagContainingAnotherTagAsValue}"',
-        {
-          someTagContainingAnotherTagAsValue:
-            '{otherTagContainingOriginalTagAsValue}',
-          otherTagContainingOriginalTagAsValue:
-            '{someTagContainingAnotherTagAsValue}',
-        },
-      );
+      )({
+        someTagContainingAnotherTagAsValue:
+          '{otherTagContainingOriginalTagAsValue}',
+        otherTagContainingOriginalTagAsValue:
+          '{someTagContainingAnotherTagAsValue}',
+      });
 
     expect(actual).toThrow();
   });

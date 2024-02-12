@@ -1,19 +1,9 @@
-import {
-  get,
-  identity,
-  isArray,
-  isObject,
-  map,
-  reduce,
-  tap,
-  isString,
-  curry,
-} from 'lodash/fp';
+import { get, isArray, isObject, isString, map, reduce, tap } from 'lodash/fp';
 
 import matchAll from '../matchAll/matchAll';
 import { pipeline } from '../pipeline/unsafePipeline/pipeline';
 
-const replaceTagsWithValues = curry((valuesForTags, oldStringWithTags) => {
+const replaceTagsWithValuesInternal = valuesForTags => oldStringWithTags => {
   const newStringWithTags = pipeline(
     matchAll(oldStringWithTags, /{(.*?)}/),
     map(toResolvedValuesForTagsFor(valuesForTags)),
@@ -24,19 +14,22 @@ const replaceTagsWithValues = curry((valuesForTags, oldStringWithTags) => {
     return newStringWithTags;
   }
 
-  return replaceTagsWithValues(valuesForTags, newStringWithTags);
-});
+  return replaceTagsWithValuesInternal(valuesForTags)(newStringWithTags);
+};
 
-export default (
-  stringWithTags,
-  valuesForTags,
-  { throwOnMissingTagValues = true } = {},
-) =>
+export const replaceTagsWithValues = stringWithTags => valuesForTags =>
   pipeline(
     stringWithTags,
     tap(protectAgainstNonStringInput),
-    replaceTagsWithValues(valuesForTags),
-    throwOnMissingTagValues ? tap(protectAgainstMissingValues) : identity,
+    replaceTagsWithValuesInternal(valuesForTags),
+    tap(protectAgainstMissingValues),
+  );
+
+export const replaceTagsWithValuesUnsafe = stringWithTags => valuesForTags =>
+  pipeline(
+    stringWithTags,
+    tap(protectAgainstNonStringInput),
+    replaceTagsWithValuesInternal(valuesForTags),
   );
 
 const replaceTagWithValue = (stringWithTags, { tag, value }) => {
