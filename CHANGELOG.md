@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [18.4.0](https://github.com/lensapp/ogre-tools/compare/v18.3.1...v18.4.0) (2024-02-12)
+
+### Features
+
+- Make replaceTagsWithValues exported as point-free, and with typing ([af9aa41](https://github.com/lensapp/ogre-tools/commit/af9aa41077cafa05b01907fe72c5a6f2c01150f1))
+
 ### [18.3.1](https://github.com/lensapp/ogre-tools/compare/v18.3.0...v18.3.1) (2024-01-23)
 
 ### Bug Fixes
