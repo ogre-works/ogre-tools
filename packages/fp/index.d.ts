@@ -19,3 +19,8 @@ export {
   pipelineBreak,
 } from './src/pipeline/unsafePipeline/pipeline';
 export { safePipeline } from './src/pipeline/safePipeline/safePipeline';
+
+export {
+  replaceTagsWithValues,
+  replaceTagsWithValuesUnsafe,
+} from './src/replaceTagsWithValues/replaceTagsWithValues';
