@@ -9,7 +9,11 @@ import getSafeFrom from './src/getSafeFrom/getSafeFrom';
 import getFrom from './src/getFrom/getFrom';
 import firstMatchValue from './src/firstMatchValue/firstMatchValue';
 import { DeepMap } from './src/deepMap/deepMap';
-import replaceTagsWithValues from './src/replaceTagsWithValues/replaceTagsWithValues';
+
+import {
+  replaceTagsWithValues,
+  replaceTagsWithValuesUnsafe,
+} from './src/replaceTagsWithValues/replaceTagsWithValues';
 
 export {
   awaitAll,
@@ -25,4 +29,5 @@ export {
   firstMatchValue,
   DeepMap,
   replaceTagsWithValues,
+  replaceTagsWithValuesUnsafe,
 };
