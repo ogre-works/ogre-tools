@@ -40,6 +40,8 @@ export default (Component, { getPlaceholder = constant(null), getProps }) =>
           };
 
           const diForComponentContext = {
+            ...di,
+
             inject: (alias, parameter) =>
               di.inject(alias, parameter, componentContext),
 
