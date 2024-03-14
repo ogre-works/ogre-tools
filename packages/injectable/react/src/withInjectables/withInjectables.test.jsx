@@ -15,6 +15,7 @@ import asyncFn from '@async-fn/jest';
 import { observable, runInAction } from 'mobx';
 import { observer } from 'mobx-react';
 import registerInjectableReact from '../registerInjectableReact/registerInjectableReact';
+import { keys } from 'lodash/fp';
 
 const flushPromises = () => new Promise(flushMicroTasks);
 
@@ -164,6 +165,23 @@ describe('withInjectables', () => {
     const rendered = mount(<SmartTestComponent data-some-prop-test />);
 
     expect(rendered.baseElement).toMatchSnapshot();
+  });
+
+  it('given component, when rendered, has access to full di from react context', () => {
+    const DumbTestComponent = () => <div />;
+
+    const SmartTestComponent = withInjectables(DumbTestComponent, {
+      getProps: diInGetProps => {
+        expect(keys(diInGetProps)).toEqual(keys(di));
+        expect(keys(diInGetProps)).not.toEqual([]);
+
+        return {};
+      },
+    });
+
+    mount(<SmartTestComponent />);
+
+    expect.assertions(2);
   });
 
   [
