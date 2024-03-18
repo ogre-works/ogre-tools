@@ -7,6 +7,7 @@ describe('asyncComputed', () => {
     let someMock;
     let someAsyncComputed;
     let someObservable;
+    let untrackedValue;
 
     beforeEach(() => {
       someMock = asyncFn();
@@ -22,6 +23,16 @@ describe('asyncComputed', () => {
 
         valueWhenPending: 'some-pending-value',
       });
+
+      observe(
+        someAsyncComputed.untrackedValue,
+
+        changed => {
+          untrackedValue = changed.newValue;
+        },
+
+        true,
+      );
     });
 
     it('given invalidated before observation, when observed, does not throw', () => {
@@ -30,6 +41,14 @@ describe('asyncComputed', () => {
       expect(() => {
         observe(someAsyncComputed.value, () => {});
       }).not.toThrow();
+    });
+
+    it('untracked value is pending value', () => {
+      expect(untrackedValue).toBe('some-pending-value');
+    });
+
+    it('does not compute yet', () => {
+      expect(someMock).not.toHaveBeenCalled();
     });
 
     describe('when only status is observed but not value', () => {
@@ -41,6 +60,10 @@ describe('asyncComputed', () => {
         expect(someMock).toHaveBeenCalled();
       });
 
+      it('untracked value is still pending value', () => {
+        expect(untrackedValue).toBe('some-pending-value');
+      });
+
       describe('when observed promise resolves', () => {
         beforeEach(async () => {
           await someMock.resolve('some-promise-result');
@@ -50,6 +73,10 @@ describe('asyncComputed', () => {
           const pendingStatus = getPendingStatus(someAsyncComputed);
 
           expect(pendingStatus).toBe(false);
+        });
+
+        it('untracked value is the result of promise', () => {
+          expect(untrackedValue).toBe('some-promise-result');
         });
 
         it('when value is observed, observed value is the result of promise', () => {
@@ -94,6 +121,10 @@ describe('asyncComputed', () => {
         expect(someMock).toHaveBeenCalledWith('some-initial-value');
       });
 
+      it('untracked value is still pending value', () => {
+        expect(untrackedValue).toBe('some-pending-value');
+      });
+
       describe('when observed promise has not resolved yet', () => {
         it('observed value is pending value', async () => {
           expect(observedValue).toBe('some-pending-value');
@@ -103,6 +134,10 @@ describe('asyncComputed', () => {
           const pendingStatus = getPendingStatus(someAsyncComputed);
 
           expect(pendingStatus).toBe(true);
+        });
+
+        it('untracked value is still pending value', () => {
+          expect(untrackedValue).toBe('some-pending-value');
         });
 
         describe('but another change is observed', () => {
@@ -120,6 +155,10 @@ describe('asyncComputed', () => {
 
           it('observed value is pending value', async () => {
             expect(observedValue).toBe('some-pending-value');
+          });
+
+          it('untracked value is still pending value', () => {
+            expect(untrackedValue).toBe('some-pending-value');
           });
 
           it('observes as pending', () => {
@@ -140,6 +179,10 @@ describe('asyncComputed', () => {
               expect(observedValue).toBe('some-pending-value');
             });
 
+            it('untracked value is still pending value', () => {
+              expect(untrackedValue).toBe('some-pending-value');
+            });
+
             it('still observes as pending', () => {
               const pendingStatus = getPendingStatus(someAsyncComputed);
 
@@ -152,6 +195,10 @@ describe('asyncComputed', () => {
                   ['some-other-changed-value'],
                   'some-latest-promise-result',
                 );
+              });
+
+              it('untracked value is the result of latest promise', () => {
+                expect(untrackedValue).toBe('some-latest-promise-result');
               });
 
               it('observed value is result of latest promise', async () => {
@@ -183,6 +230,10 @@ describe('asyncComputed', () => {
           expect(observedValue).toBe('some-promise-result');
         });
 
+        it('untracked value is the result of promise', () => {
+          expect(untrackedValue).toBe('some-promise-result');
+        });
+
         it('is no longer pending', () => {
           const pendingStatus = getPendingStatus(someAsyncComputed);
 
@@ -212,6 +263,10 @@ describe('asyncComputed', () => {
             expect(pendingStatus).toBe(true);
           });
 
+          it('untracked value is the pending value', () => {
+            expect(untrackedValue).toBe('some-pending-value');
+          });
+
           it('observed value is pending value', () => {
             expect(observedValue).toBe('some-pending-value');
           });
@@ -232,6 +287,10 @@ describe('asyncComputed', () => {
             const pendingStatus = getPendingStatus(someAsyncComputed);
 
             expect(pendingStatus).toBe(true);
+          });
+
+          it('untracked value is the pending value', () => {
+            expect(untrackedValue).toBe('some-pending-value');
           });
 
           it('observed value is pending value', () => {
@@ -271,6 +330,7 @@ describe('asyncComputed', () => {
     let someMock;
     let someAsyncComputed;
     let someObservable;
+    let untrackedValue;
 
     beforeEach(() => {
       someMock = asyncFn();
@@ -287,6 +347,16 @@ describe('asyncComputed', () => {
         // Notice: no pending value.
         // valueWhenPending: 'some-pending-value',
       });
+
+      observe(
+        someAsyncComputed.untrackedValue,
+
+        changed => {
+          untrackedValue = changed.newValue;
+        },
+
+        true,
+      );
     });
 
     it('given invalidated before observation, when observed, does not throw', () => {
@@ -481,6 +551,10 @@ describe('asyncComputed', () => {
             expect(observedValue).toBe(undefined);
           });
 
+          it('untracked value is pending value', () => {
+            expect(untrackedValue).toBe(undefined);
+          });
+
           it('recomputes', () => {
             expect(someMock).toHaveBeenCalledWith('some-changed-value');
           });
@@ -501,6 +575,10 @@ describe('asyncComputed', () => {
 
           it('observed value is pending value', () => {
             expect(observedValue).toBe(undefined);
+          });
+
+          it('untracked value is pending value', () => {
+            expect(untrackedValue).toBe(undefined);
           });
 
           it('recomputes', () => {
@@ -536,6 +614,7 @@ describe('asyncComputed', () => {
     let someMock;
     let someAsyncComputed;
     let someObservable;
+    let untrackedValue;
 
     beforeEach(() => {
       someMock = asyncFn();
@@ -553,6 +632,16 @@ describe('asyncComputed', () => {
 
         betweenUpdates: 'show-latest-value',
       });
+
+      observe(
+        someAsyncComputed.untrackedValue,
+
+        changed => {
+          untrackedValue = changed.newValue;
+        },
+
+        true,
+      );
     });
 
     it('given invalidated before observation, when observed, does not throw', () => {
@@ -572,9 +661,17 @@ describe('asyncComputed', () => {
         expect(someMock).toHaveBeenCalled();
       });
 
+      it('untracked value is still pending value', () => {
+        expect(untrackedValue).toBe('some-pending-value');
+      });
+
       describe('when observed promise resolves', () => {
         beforeEach(async () => {
           await someMock.resolve('some-promise-result');
+        });
+
+        it('untracked value is the result of promise', () => {
+          expect(untrackedValue).toBe('some-promise-result');
         });
 
         it('is no longer pending', () => {
@@ -640,6 +737,10 @@ describe('asyncComputed', () => {
           expect(pendingStatus).toBe(true);
         });
 
+        it('untracked value is still pending value', () => {
+          expect(untrackedValue).toBe('some-pending-value');
+        });
+
         describe('but another change is observed', () => {
           beforeEach(() => {
             someMock.mockClear();
@@ -663,6 +764,10 @@ describe('asyncComputed', () => {
             expect(pendingStatus).toBe(true);
           });
 
+          it('untracked value is still pending value', () => {
+            expect(untrackedValue).toBe('some-pending-value');
+          });
+
           describe('when the obsolete promise resolves', () => {
             beforeEach(async () => {
               await someMock.resolveSpecific(
@@ -679,6 +784,10 @@ describe('asyncComputed', () => {
               const pendingStatus = getPendingStatus(someAsyncComputed);
 
               expect(pendingStatus).toBe(true);
+            });
+
+            it('untracked value is still pending value', () => {
+              expect(untrackedValue).toBe('some-pending-value');
             });
 
             describe('when the latest promise resolves', () => {
@@ -724,6 +833,10 @@ describe('asyncComputed', () => {
           expect(pendingStatus).toBe(false);
         });
 
+        it('untracked value is the result of promise', () => {
+          expect(untrackedValue).toBe('some-promise-result');
+        });
+
         it('when observed again, still does not recompute', () => {
           someMock.mockClear();
 
@@ -750,6 +863,10 @@ describe('asyncComputed', () => {
 
           it('no change of value is observed yet', () => {
             expect(changeOfValueIsObserved).toBe(false);
+          });
+
+          it('untracked value is the result of promise', () => {
+            expect(untrackedValue).toBe('some-promise-result');
           });
 
           it('observed value remains the latest value', () => {
