@@ -73,8 +73,6 @@ export default ({
   return {
     value: originalComputed,
 
-    untrackedValue: computed(() => syncValueBox.get()),
-
     invalidate: () => {
       runInAction(() => {
         invalidateAtom.reportChanged();
