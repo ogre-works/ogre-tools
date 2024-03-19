@@ -24,8 +24,13 @@ export interface DiContainer extends DiContainerForInjection {
   earlyOverride: Override;
   unoverride(alias: InjectionToken<any, any> | Injectable<any, any, any>): void;
 
-  register(...injectables: Injectable<any, any, any>[]): void;
-  deregister(...injectables: Injectable<any, any, any>[]): void;
+  register(
+    ...injectables: (Injectable<any, any, any> | InjectableBunch<any>)[]
+  ): void;
+
+  deregister(
+    ...injectables: (Injectable<any, any, any> | InjectableBunch<any>)[]
+  ): void;
 
   hasRegistrations: (
     alias: InjectionToken<any, any> | Injectable<any, any, any>,
@@ -224,8 +229,15 @@ export interface DiContainerForInjection {
   injectFactory: InjectFactory;
   injectMany: InjectMany;
   injectManyWithMeta: InjectManyWithMeta;
-  register(...injectables: Injectable<any, any, any>[]): void;
-  deregister(...injectables: Injectable<any, any, any>[]): void;
+
+  register(
+    ...injectables: (Injectable<any, any, any> | InjectableBunch<any>)[]
+  ): void;
+
+  deregister(
+    ...injectables: (Injectable<any, any, any> | InjectableBunch<any>)[]
+  ): void;
+
   context: ContextItem[];
   getInstances: GetInstances;
   sourceNamespace: string | undefined;
