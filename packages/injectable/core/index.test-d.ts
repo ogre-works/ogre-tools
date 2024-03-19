@@ -670,3 +670,34 @@ expectType<{ someProperty: number }[]>(
     someInstantiationParameter: 37,
   }),
 );
+
+// given array of injectables and bunches, when registering, is ok
+const someArrayOfInjectablesAndBunches = [someInjectable, someInjectableBunch];
+
+expectType<void>(di.register(someInjectable));
+expectType<void>(di.register(someInjectableBunch));
+expectType<void>(di.register(someInjectable, someInjectableBunch));
+expectType<void>(di.register(...someArrayOfInjectablesAndBunches));
+
+// given array of injectables and bunches, when deregistering, is ok
+expectType<void>(di.deregister(someInjectable));
+expectType<void>(di.deregister(someInjectableBunch));
+expectType<void>(di.deregister(someInjectable, someInjectableBunch));
+expectType<void>(di.deregister(...someArrayOfInjectablesAndBunches));
+
+const someInjectable1 = getInjectable({
+  id: 'some-injectable',
+
+  instantiate: di => {
+    expectType<void>(di.register(someInjectable));
+    expectType<void>(di.register(someInjectableBunch));
+    expectType<void>(di.register(someInjectable, someInjectableBunch));
+    expectType<void>(di.register(...someArrayOfInjectablesAndBunches));
+
+    // given array of injectables and bunches, when deregistering, is ok
+    expectType<void>(di.deregister(someInjectable));
+    expectType<void>(di.deregister(someInjectableBunch));
+    expectType<void>(di.deregister(someInjectable, someInjectableBunch));
+    expectType<void>(di.deregister(...someArrayOfInjectablesAndBunches));
+  },
+});
