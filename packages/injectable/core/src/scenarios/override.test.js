@@ -1,7 +1,7 @@
 import lifecycleEnum from '../dependency-injection-container/lifecycleEnum';
 import getInjectable from '../getInjectable/getInjectable';
 import createContainer from '../dependency-injection-container/createContainer';
-import getInjectionToken from '../getInjectionToken/getInjectionToken';
+import { getInjectionToken } from '../getInjectionToken/getInjectionToken';
 
 describe('createContainer.override', () => {
   it('given an injectable is overridden, injects the overridden injectable', () => {

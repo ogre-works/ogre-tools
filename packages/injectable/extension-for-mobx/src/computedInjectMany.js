@@ -32,12 +32,11 @@ const getInvalidatorInstance = di => injectable => {
     return;
   }
 
-  const mobxAtomForToken = di.inject(
-    invalidabilityForReactiveInstances,
-    injectable.injectionToken,
-  );
-
-  mobxAtomForToken.reportChanged();
+  getRelatedTokens(injectable.injectionToken)
+    .map(token => di.inject(invalidabilityForReactiveInstances, token))
+    .forEach(atom => {
+      atom.reportChanged();
+    });
 };
 
 const invalidateReactiveInstancesOnRegisterCallback = getInjectable({
@@ -133,3 +132,8 @@ export const registerMobX = di => {
     );
   });
 };
+
+const getRelatedTokens = token =>
+  token === undefined
+    ? []
+    : [token, ...getRelatedTokens(token.specificTokenOf)];

@@ -1,6 +1,6 @@
 import createContainer from '../dependency-injection-container/createContainer';
 import getInjectableBunch from '../getInjectableBunch/getInjectableBunch';
-import getInjectionToken from '../getInjectionToken/getInjectionToken';
+import { getInjectionToken } from '../getInjectionToken/getInjectionToken';
 import getInjectable from '../getInjectable/getInjectable';
 import isInjectableBunch from '../getInjectableBunch/isInjectableBunch';
 

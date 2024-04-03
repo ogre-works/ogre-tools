@@ -1,11 +1,11 @@
-import {
-  createContainer,
-  getInjectable,
-  getInjectionToken,
-  injectionDecoratorToken,
-  instantiationDecoratorToken,
-} from '../../index';
 import { get } from 'lodash/fp';
+import createContainer from '../dependency-injection-container/createContainer';
+import getInjectable from '../getInjectable/getInjectable';
+import { getInjectionToken } from '../getInjectionToken/getInjectionToken';
+import {
+  instantiationDecoratorToken,
+  injectionDecoratorToken,
+} from '../dependency-injection-container/tokens';
 
 describe('createContainer.context-of-instantiation', () => {
   let di;

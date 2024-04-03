@@ -1,4 +1,4 @@
-import { expectError, expectNotType, expectType } from 'tsd';
+import { expectError, expectAssignable, expectNotType, expectType } from 'tsd';
 
 import {
   createContainer,
@@ -22,6 +22,8 @@ import {
   getKeyedSingletonCompositeKey,
   isInjectableBunch,
   InjectableBunch,
+  SpecificInjectionToken,
+  getSpecificInjectionToken,
 } from '.';
 
 const di = createContainer('some-container');
@@ -559,3 +561,113 @@ expectType<boolean>(di.hasRegistrations(someInjectable));
 
 // given token, typing for "alias has registrations" is ok
 expectType<boolean>(di.hasRegistrations(someInjectionToken));
+
+// given general injection token without generics, and a more specific token created by it, typing is ok
+const someGeneralInjectionTokenWithoutGenerics = getInjectionToken<number>({
+  id: 'some-general-token-without-generics',
+});
+
+expectAssignable<{
+  id: string;
+  for: (id: string) => SpecificInjectionToken<number>;
+}>(someGeneralInjectionTokenWithoutGenerics);
+
+const someSpecificInjectionTokenWithoutGenerics =
+  someGeneralInjectionTokenWithoutGenerics.for('some-specific-token');
+
+expectAssignable<{
+  id: string;
+  for: (id: string) => SpecificInjectionToken<number>;
+}>(someSpecificInjectionTokenWithoutGenerics);
+
+// given general injection token with generics, and a more specific token created by it, typing is ok
+const someGeneralInjectionTokenWithGenerics = getInjectionToken<
+  { someProperty: unknown },
+  void,
+  <Speciality>(
+    speciality: Speciality,
+  ) => SpecificInjectionToken<{ someProperty: Speciality }>
+>({
+  id: 'some-general-token',
+
+  specificInjectionTokenFactory: <Speciality>(speciality: Speciality) =>
+    getSpecificInjectionToken<{ someProperty: Speciality }>({
+      id: 'some-specific-token',
+      speciality,
+    }),
+});
+
+expectType<
+  InjectionToken<
+    { someProperty: unknown },
+    void,
+    <Speciality>(
+      speciality: Speciality,
+    ) => SpecificInjectionToken<{ someProperty: Speciality }>
+  >
+>(someGeneralInjectionTokenWithGenerics);
+
+const someSpecificInjectionToken = someGeneralInjectionTokenWithGenerics.for(
+  'some-specific-token-as-string',
+);
+
+expectType<SpecificInjectionToken<{ someProperty: string }>>(
+  someSpecificInjectionToken,
+);
+
+const someMoreSpecificInjectionToken = someSpecificInjectionToken.for(
+  'some-more-specific-token-as-string',
+);
+
+expectType<SpecificInjectionToken<{ someProperty: string }>>(
+  someMoreSpecificInjectionToken,
+);
+
+expectType<{ someProperty: string }>(
+  di.inject(someGeneralInjectionTokenWithGenerics.for('some-string')),
+);
+
+expectType<{ someProperty: number }>(
+  di.inject(someGeneralInjectionTokenWithGenerics.for(42)),
+);
+
+expectType<{ someProperty: number }>(
+  di.inject(
+    someGeneralInjectionTokenWithGenerics.for(42).for('some-deeper-speciality'),
+  ),
+);
+
+// given general injection token with generics and instantiation parameter, and a more specific token created by it, typing is ok
+const someGeneralInjectionTokenWithGenericsAndParameter = getInjectionToken<
+  { someProperty: unknown },
+  { someInstantiationParameter: unknown },
+  <Speciality>(
+    speciality: Speciality,
+  ) => SpecificInjectionToken<
+    { someProperty: Speciality },
+    { someInstantiationParameter: Speciality }
+  >
+>({
+  id: 'some-general-token',
+
+  specificInjectionTokenFactory: <Speciality>(speciality: Speciality) =>
+    getSpecificInjectionToken<
+      { someProperty: Speciality },
+      { someInstantiationParameter: Speciality }
+    >({
+      id: 'some-specific-token',
+      speciality,
+    }),
+});
+
+expectType<{ someProperty: number }>(
+  di.inject(someGeneralInjectionTokenWithGenericsAndParameter.for(42), {
+    someInstantiationParameter: 37,
+  }),
+);
+
+expectType<{ someProperty: number }[]>(
+  di.injectMany(someGeneralInjectionTokenWithGenericsAndParameter.for(42), {
+    someInstantiationParameter: 37,
+  }),
+);

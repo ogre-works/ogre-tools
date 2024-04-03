@@ -1,7 +1,7 @@
 import { get } from 'lodash/fp';
 import getInjectable from '../getInjectable/getInjectable';
 import { createContainer } from '../../index';
-import getInjectionToken from '../getInjectionToken/getInjectionToken';
+import { getInjectionToken } from '../getInjectionToken/getInjectionToken';
 import { deregistrationCallbackToken } from '../dependency-injection-container/tokens';
 
 describe('createContainer.callbacks-for-deregistration', () => {
