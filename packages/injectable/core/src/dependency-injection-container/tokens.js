@@ -1,4 +1,4 @@
-import getInjectionToken from '../getInjectionToken/getInjectionToken';
+import { getInjectionToken } from '../getInjectionToken/getInjectionToken';
 
 export const registrationCallbackToken = getInjectionToken({
   id: 'registration-callback-token',

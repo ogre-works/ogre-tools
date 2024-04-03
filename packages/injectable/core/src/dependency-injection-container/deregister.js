@@ -1,6 +1,7 @@
 import { deregistrationCallbackToken } from './tokens';
 import toFlatInjectables from './toFlatInjectables';
 import isInjectionToken from '../getInjectionToken/isInjectionToken';
+import { getRelatedTokens } from './getRelatedTokens';
 
 export const deregisterFor =
   ({
@@ -95,11 +96,11 @@ export const deregisterSingleFor =
     injectableSet.delete(injectable);
     namespacedIdByInjectableMap.delete(injectable);
 
-    if (injectable.injectionToken) {
-      injectablesByInjectionToken
-        .get(injectable.injectionToken)
-        .delete(injectable);
-    }
+    const tokens = getRelatedTokens(injectable.injectionToken);
+
+    tokens.forEach(token => {
+      injectablesByInjectionToken.get(token).delete(injectable);
+    });
 
     overridingInjectables.delete(injectable);
   };
