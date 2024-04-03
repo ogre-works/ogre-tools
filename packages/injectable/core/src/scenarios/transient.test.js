@@ -1,5 +1,5 @@
 import lifecycleEnum from '../dependency-injection-container/lifecycleEnum';
-import getInjectionToken from '../getInjectionToken/getInjectionToken';
+import { getInjectionToken } from '../getInjectionToken/getInjectionToken';
 import getInjectable from '../getInjectable/getInjectable';
 import createContainer from '../dependency-injection-container/createContainer';
 

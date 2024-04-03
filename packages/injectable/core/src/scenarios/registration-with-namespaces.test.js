@@ -1,6 +1,6 @@
 import createContainer from '../dependency-injection-container/createContainer';
 import getInjectable from '../getInjectable/getInjectable';
-import { getInjectionToken } from '../../index';
+import { getInjectionToken } from '../getInjectionToken/getInjectionToken';
 
 describe('registration with namespaces', () => {
   describe('given an already normally registered injectable, and in injection scope', () => {

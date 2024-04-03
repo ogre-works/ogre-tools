@@ -1,7 +1,7 @@
 import createContainer from '../dependency-injection-container/createContainer';
 import getInjectable from '../getInjectable/getInjectable';
 import lifecycleEnum from '../dependency-injection-container/lifecycleEnum';
-import getInjectionToken from '../getInjectionToken/getInjectionToken';
+import { getInjectionToken } from '../getInjectionToken/getInjectionToken';
 
 describe('injection-of-factories', () => {
   describe('given keyed singleton injectable', () => {

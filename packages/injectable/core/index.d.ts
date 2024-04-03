@@ -39,11 +39,36 @@ export type Instantiate<InjectionInstance, InstantiationParam> = {
   ): InjectionInstance;
 };
 
-export interface InjectionToken<InjectionInstance, InstantiationParam> {
+export interface InjectionToken<
+  InjectionInstance,
+  InstantiationParam = void,
+  SpecificInjectionTokenFactory extends (
+    ...args: any[]
+  ) => SpecificInjectionToken<InjectionInstance, InstantiationParam> = (
+    id: string,
+  ) => SpecificInjectionToken<InjectionInstance, InstantiationParam>,
+> {
   template: InjectionInstance;
   instantiationParameter: InstantiationParam;
   key: Symbol;
   id: string;
+  for: SpecificInjectionTokenFactory;
+}
+
+export interface SpecificInjectionToken<
+  InjectionInstance,
+  InstantiationParam = void,
+  SpecificInjectionTokenFactory extends (
+    ...args: any[]
+  ) => SpecificInjectionToken<InjectionInstance, InstantiationParam> = (
+    id: string,
+  ) => SpecificInjectionToken<InjectionInstance, InstantiationParam>,
+> extends InjectionToken<
+    InjectionInstance,
+    InstantiationParam,
+    SpecificInjectionTokenFactory
+  > {
+  speciality: any;
 }
 
 export interface Injectable<
@@ -109,14 +134,41 @@ export function getInjectableBunch<Type>(bunch: Type): InjectableBunch<Type>;
 export function getInjectionToken<
   InjectionInstance,
   InstantiationParam = void,
+  SpecificInjectionTokenFactory extends (
+    ...args: any[]
+  ) => SpecificInjectionToken<InjectionInstance, InstantiationParam> = (
+    id: string,
+  ) => SpecificInjectionToken<InjectionInstance, InstantiationParam>,
 >(options: {
   id: string;
-}): InjectionToken<InjectionInstance, InstantiationParam>;
+  specificInjectionTokenFactory?: SpecificInjectionTokenFactory;
+}): InjectionToken<
+  InjectionInstance,
+  InstantiationParam,
+  SpecificInjectionTokenFactory
+>;
+
+export function getSpecificInjectionToken<
+  InjectionInstance,
+  InstantiationParam = void,
+  SpecificInjectionTokenFactory extends (
+    ...args: any[]
+  ) => SpecificInjectionToken<InjectionInstance, InstantiationParam> = (
+    id: string,
+  ) => SpecificInjectionToken<InjectionInstance, InstantiationParam>,
+>(options: {
+  id: string;
+  speciality: any;
+}): SpecificInjectionToken<
+  InjectionInstance,
+  InstantiationParam,
+  SpecificInjectionTokenFactory
+>;
 
 export type InjectWithoutParameter = <InjectionInstance>(
   key:
     | Injectable<InjectionInstance, unknown>
-    | InjectionToken<InjectionInstance, void>,
+    | InjectionToken<InjectionInstance>,
 ) => InjectionInstance;
 
 export type InjectWithParameter = <InjectionInstance, InstantiationParam>(
@@ -137,13 +189,13 @@ export type InjectFactory = <InjectionInstance, InstantiationParam extends {}>(
 export type GetInstances = <InjectionInstance>(
   alias:
     | Injectable<InjectionInstance, unknown>
-    | InjectionToken<InjectionInstance, void>,
+    | InjectionToken<InjectionInstance>,
 ) => InjectionInstance[];
 
 export type SpecificInjectWithoutParameter<InjectionInstance> = (
   key:
     | Injectable<InjectionInstance, unknown>
-    | InjectionToken<InjectionInstance, void>,
+    | InjectionToken<InjectionInstance>,
 ) => InjectionInstance;
 
 export type SpecificInjectWithParameter<InjectionInstance, InstantiationParam> =
@@ -162,8 +214,8 @@ export type SpecificInject<InjectionInstance, InstantiationParam> =
 interface InjectMany {
   <InjectionInstance>(
     key:
-      | Injectable<InjectionInstance, unknown, void>
-      | InjectionToken<InjectionInstance, void>,
+      | Injectable<InjectionInstance, unknown>
+      | InjectionToken<InjectionInstance>,
   ): InjectionInstance[];
 
   <InjectionInstance, InstantiationParam>(
@@ -186,8 +238,8 @@ export type InjectionInstanceWithMeta<InjectionInstance> = {
 interface InjectManyWithMeta {
   <InjectionInstance>(
     key:
-      | Injectable<InjectionInstance, unknown, void>
-      | InjectionToken<InjectionInstance, void>,
+      | Injectable<InjectionInstance, unknown>
+      | InjectionToken<InjectionInstance>,
   ): InjectionInstanceWithMeta<InjectionInstance>[];
 
   <InjectionInstance, InstantiationParam>(
@@ -201,8 +253,8 @@ interface InjectManyWithMeta {
 interface InjectWithMeta {
   <InjectionInstance>(
     key:
-      | Injectable<InjectionInstance, unknown, void>
-      | InjectionToken<InjectionInstance, void>,
+      | Injectable<InjectionInstance, unknown>
+      | InjectionToken<InjectionInstance>,
   ): InjectionInstanceWithMeta<InjectionInstance>;
 
   <InjectionInstance, InstantiationParam>(
@@ -312,8 +364,7 @@ export const createInjectionTargetDecorator: CreateInjectionTargetDecorator;
  * This kind of decorator does not respect the lifecycle of the injectables but instead is called on every call to `di.inject`
  */
 export const injectionDecoratorToken: InjectionToken<
-  InjectionTargetDecorator<any, any, any>,
-  void
+  InjectionTargetDecorator<any, any, any>
 >;
 
 export type SpecificInstantiationTargetDecorator<
@@ -377,8 +428,7 @@ export const createInstantiationTargetDecorator: CreateInstantiationTargetDecora
  * This kind of decorator respects the lifecycle of the injectables.
  */
 export const instantiationDecoratorToken: InjectionToken<
-  InstantiationTargetDecorator<any, any, any>,
-  void
+  InstantiationTargetDecorator<any, any, any>
 >;
 
 export const registrationCallbackToken: RegistrationCallback;

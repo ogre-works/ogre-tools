@@ -1,6 +1,6 @@
 import getInjectable from '../getInjectable/getInjectable';
 import createContainer from '../dependency-injection-container/createContainer';
-import getInjectionToken from '../getInjectionToken/getInjectionToken';
+import { getInjectionToken } from '../getInjectionToken/getInjectionToken';
 import { instantiationDecoratorToken } from '../dependency-injection-container/tokens';
 import lifecycleEnum from '../dependency-injection-container/lifecycleEnum';
 
