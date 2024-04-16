@@ -29,7 +29,7 @@ export const getInjectionToken = ({
 
       const specificToken = specificTokenCandidate;
 
-      specificToken.id = `${generalToken.id}(${specificToken.id})`;
+      specificToken.id = `${generalToken.id}/${specificToken.id}`;
       specificToken.specificTokenOf = generalToken;
       specificToken.decorable = generalToken.decorable;
 
