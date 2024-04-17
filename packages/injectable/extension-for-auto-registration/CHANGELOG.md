@@ -3,6 +3,10 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [18.5.0](https://github.com/lensapp/ogre-tools/compare/v18.4.1...v18.5.0) (2024-04-17)
+
+**Note:** Version bump only for package @lensapp/injectable-extension-for-auto-registration
+
 ### [18.4.1](https://github.com/lensapp/ogre-tools/compare/v18.4.0...v18.4.1) (2024-02-12)
 
 **Note:** Version bump only for package @lensapp/injectable-extension-for-auto-registration

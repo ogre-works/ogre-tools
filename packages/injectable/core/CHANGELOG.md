@@ -3,6 +3,13 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [18.5.0](https://github.com/lensapp/ogre-tools/compare/v18.4.1...v18.5.0) (2024-04-17)
+
+### Features
+
+- Introduce specificity of injection tokens ([c5fe446](https://github.com/lensapp/ogre-tools/commit/c5fe446340b889bf6d3774dc43b8a6c47d6e1400))
+- Make context menu reactive for being enabled ([1dac24f](https://github.com/lensapp/ogre-tools/commit/1dac24fb98c6d2a1d9b7d2a44afa125a32b56fe4))
+
 ### [18.4.1](https://github.com/lensapp/ogre-tools/compare/v18.4.0...v18.4.1) (2024-02-12)
 
 **Note:** Version bump only for package @lensapp/injectable
