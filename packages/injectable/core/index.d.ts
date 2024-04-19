@@ -315,7 +315,7 @@ export type SpecificInjectionTargetDecorator<
     inject: SpecificInject<InjectionInstance, InstantiationParam>,
   ) => SpecificInject<InjectionInstance, InstantiationParam>;
   target:
-    | InjectionToken<InjectionInstance, InstantiationParam>
+    | InjectionToken<InjectionInstance, InstantiationParam, any>
     | Injectable<InjectionInstance, InjectionTokenInstance, InstantiationParam>;
 };
 
@@ -377,7 +377,7 @@ export type SpecificInstantiationTargetDecorator<
   ) => Instantiate<InjectionInstance, InstantiationParam>;
 
   target:
-    | InjectionToken<InjectionInstance, InstantiationParam>
+    | InjectionToken<InjectionInstance, InstantiationParam, any>
     | Injectable<InjectionInstance, InjectionTokenInstance, InstantiationParam>;
 };
 
