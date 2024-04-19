@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+### [18.5.1](https://github.com/lensapp/ogre-tools/compare/v18.5.0...v18.5.1) (2024-04-19)
+
+### Bug Fixes
+
+- Fix typing of different public decorators of injectable ([32aad4a](https://github.com/lensapp/ogre-tools/commit/32aad4a0a09a4287552599bb055a4e7034c098f0))
+
 ## [18.5.0](https://github.com/lensapp/ogre-tools/compare/v18.4.1...v18.5.0) (2024-04-17)
 
 ### Features
