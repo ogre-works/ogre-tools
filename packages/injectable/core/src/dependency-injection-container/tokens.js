@@ -1,5 +1,10 @@
 import { getInjectionToken } from '../getInjectionToken/getInjectionToken';
 
+export const preregistrationCallbackToken = getInjectionToken({
+  id: 'preregistration-callback-token',
+  decorable: false,
+});
+
 export const registrationCallbackToken = getInjectionToken({
   id: 'registration-callback-token',
   decorable: false,

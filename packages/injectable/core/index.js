@@ -26,6 +26,7 @@ export {
   injectionDecoratorToken,
   instantiationDecoratorToken,
   registrationCallbackToken,
+  preregistrationCallbackToken,
 } from './src/dependency-injection-container/tokens';
 
 export {
