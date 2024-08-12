@@ -14,6 +14,7 @@ import { checkForSideEffectsFor } from './checkForSideEffectsFor';
 import { getRelatedInjectablesFor } from './getRelatedInjectablesFor';
 import { noop } from 'lodash/fp';
 import { earlyOverrideFor } from './early-override';
+import { getBoundInjectableRegistrationsFor } from './getBoundInjectableRegistrations';
 
 export default (containerId, { detectCycles = true } = {}) => {
   const injectableSet = new Set();
@@ -29,6 +30,9 @@ export default (containerId, { detectCycles = true } = {}) => {
   const namespacedIdByInjectableMap = new Map();
   const dependeesByDependencyMap = new Map();
   const dependenciesByDependencyMap = new Map();
+  // Todo: remember to purge, reset etc.
+  const injectablesByBoundTargetMap = new Map();
+  const registeredBoundInjectablesSet = new Set();
 
   const getNamespacedId = getNamespacedIdFor(injectableAndRegistrationContext);
 
@@ -141,6 +145,12 @@ export default (containerId, { detectCycles = true } = {}) => {
 
   const decorate = decorateFor({ registerSingle });
 
+  const hasRegistrations = alias => !!getRelatedInjectables(alias).length;
+
+  const getBoundInjectableRegistrations = getBoundInjectableRegistrationsFor({
+    injectablesByBoundTargetMap,
+  });
+
   const deregister = deregisterFor({
     injectMany: nonDecoratedPrivateInjectMany,
     injectableSet,
@@ -154,11 +164,18 @@ export default (containerId, { detectCycles = true } = {}) => {
     getDi: () => privateDi,
     dependenciesByDependencyMap,
     dependeesByDependencyMap,
+    hasRegistrations,
+    getBoundInjectableRegistrations,
+    registeredBoundInjectablesSet,
   });
 
   const privateRegister = registerFor({
     registerSingle,
     injectMany: nonDecoratedPrivateInjectMany,
+    hasRegistrations,
+    injectablesByBoundTargetMap,
+    getBoundInjectableRegistrations,
+    registeredBoundInjectablesSet,
   });
 
   const earlyOverride = earlyOverrideFor({
@@ -286,7 +303,7 @@ export default (containerId, { detectCycles = true } = {}) => {
         ...instancesByInjectableMap.get(injectable).values(),
       ]),
 
-    hasRegistrations: alias => !!getRelatedInjectables(alias).length,
+    hasRegistrations,
   };
 
   return publicDi;

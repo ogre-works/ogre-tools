@@ -3,22 +3,29 @@ import toFlatInjectables from './toFlatInjectables';
 import isInjectionToken from '../getInjectionToken/isInjectionToken';
 import { getRelatedTokens } from './getRelatedTokens';
 
-export const deregisterFor =
-  ({
-    injectMany,
-    injectableSet,
-    injectableAndRegistrationContext,
-    injectablesByInjectionToken,
-    overridingInjectables,
-    purgeInstances,
-    injectableIdSet,
-    namespacedIdByInjectableMap,
-    // Todo: get rid of function usage.
-    getDi,
-    dependenciesByDependencyMap,
-    dependeesByDependencyMap,
-  }) =>
-  ({ injectables, context, source }) => {
+export const deregisterFor = ({
+  injectMany,
+  injectableSet,
+  injectableAndRegistrationContext,
+  injectablesByInjectionToken,
+  overridingInjectables,
+  purgeInstances,
+  injectableIdSet,
+  namespacedIdByInjectableMap,
+  // Todo: get rid of function usage.
+  getDi,
+  dependenciesByDependencyMap,
+  dependeesByDependencyMap,
+  hasRegistrations,
+  getBoundInjectableRegistrations,
+  registeredBoundInjectablesSet,
+}) => {
+  const deregisterRecursed = ({ injectables, context, source }) => {
+    injectables
+      .flatMap(getBoundInjectableRegistrations)
+      .filter(registration => registration.injectables.every(hasRegistrations))
+      .forEach(deregisterRecursed);
+
     const callbacks = injectMany(
       deregistrationCallbackToken,
       undefined,
@@ -26,7 +33,7 @@ export const deregisterFor =
       source,
     );
 
-    injectables.forEach(injectable => {
+    injectables.filter(hasRegistrations).forEach(injectable => {
       callbacks.forEach(callback => {
         callback(injectable);
       });
@@ -42,16 +49,29 @@ export const deregisterFor =
       purgeInstances,
       injectableIdSet,
       namespacedIdByInjectableMap,
+      registeredBoundInjectablesSet,
       di,
     });
 
     toFlatInjectables(injectables).forEach(injectable => {
+      if (
+        !hasRegistrations(injectable) &&
+        registeredBoundInjectablesSet.has(injectable)
+      ) {
+        registeredBoundInjectablesSet.delete(injectable);
+
+        return;
+      }
+
       dependenciesByDependencyMap.delete(injectable);
       dependeesByDependencyMap.delete(injectable);
 
       deregisterSingle(injectable);
     });
   };
+
+  return deregisterRecursed;
+};
 
 export const deregisterSingleFor =
   ({

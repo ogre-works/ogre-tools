@@ -4,10 +4,54 @@ import toFlatInjectables from './toFlatInjectables';
 import { DeepMap } from '@lensapp/fp';
 import { getRelatedTokens } from './getRelatedTokens';
 
-export const registerFor =
-  ({ registerSingle, injectMany }) =>
-  ({ injectables, context, source }) => {
-    toFlatInjectables(injectables).forEach(injectable => {
+export const registerFor = ({
+  registerSingle,
+  injectMany,
+  hasRegistrations,
+  injectablesByBoundTargetMap,
+  getBoundInjectableRegistrations,
+  registeredBoundInjectablesSet,
+}) => {
+  const registerRecursed = ({ injectables, context, source }) => {
+    injectables.forEach(injectable => {
+      registeredBoundInjectablesSet.add(injectable);
+    });
+
+    const boundAliasesAreRegistered = alias =>
+      !alias.registersWith ? true : alias.registersWith.every(hasRegistrations);
+
+    const { registrables, nonRegistrables } = toFlatInjectables(
+      injectables,
+    ).reduce(
+      (acc, curr) => {
+        if (boundAliasesAreRegistered(curr)) {
+          acc.registrables.push(curr);
+        } else {
+          acc.nonRegistrables.push(curr);
+        }
+
+        return acc;
+      },
+
+      {
+        registrables: [],
+        nonRegistrables: [],
+      },
+    );
+
+    nonRegistrables.forEach(nonRegistrable => {
+      nonRegistrable.registersWith.forEach(bindTarget => {
+        if (!injectablesByBoundTargetMap.has(bindTarget)) {
+          injectablesByBoundTargetMap.set(bindTarget, new Set());
+        }
+
+        injectablesByBoundTargetMap
+          .get(bindTarget)
+          .add({ injectables: [nonRegistrable], context, source });
+      });
+    });
+
+    registrables.forEach(injectable => {
       registerSingle(injectable, context);
     });
 
@@ -18,12 +62,28 @@ export const registerFor =
       source,
     );
 
-    injectables.forEach(injectable => {
+    registrables.forEach(injectable => {
       callbacks.forEach(callback => {
         callback(injectable);
       });
     });
+
+    registrables.forEach(registered => {
+      getBoundInjectableRegistrations(registered)
+        .filter(boundRegistrations =>
+          boundRegistrations.injectables
+            .flatMap(injectable => injectable.registersWith)
+            .every(hasRegistrations),
+        )
+        .filter(
+          registration => !registration.injectables.every(hasRegistrations),
+        )
+        .forEach(registerRecursed);
+    });
   };
+
+  return registerRecursed;
+};
 
 export const registerSingleFor =
   ({

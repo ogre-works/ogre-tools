@@ -71,6 +71,8 @@ export interface SpecificInjectionToken<
   speciality: any;
 }
 
+export type Alias = Injectable<any, any, any> | InjectionToken<any, any, any>;
+
 export interface Injectable<
   InjectionInstance extends InjectionTokenInstance,
   InjectionTokenInstance = InjectionInstance,
@@ -87,6 +89,7 @@ export interface Injectable<
   readonly decorable?: boolean;
   readonly tags?: any[];
   readonly scope?: boolean;
+  readonly registersWith?: Alias[];
 }
 
 type InjectableLifecycle<InstantiationParam> = InstantiationParam extends void
@@ -141,6 +144,7 @@ export function getInjectionToken<
   ) => SpecificInjectionToken<InjectionInstance, InstantiationParam>,
 >(options: {
   id: string;
+  domain?: string;
   specificInjectionTokenFactory?: SpecificInjectionTokenFactory;
 }): InjectionToken<
   InjectionInstance,
