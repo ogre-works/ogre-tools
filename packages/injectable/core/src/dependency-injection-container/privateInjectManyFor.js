@@ -1,5 +1,3 @@
-import { isPromise } from '@lensapp/fp';
-
 export const privateInjectManyFor =
   ({
     containerRootContextItem,
@@ -23,7 +21,7 @@ export const privateInjectManyFor =
 
     const relatedInjectables = getRelatedInjectables(injectionToken);
 
-    const injected = relatedInjectables.map(injectable => {
+    return relatedInjectables.map(injectable => {
       const instance = inject(
         injectable,
         instantiationParameter,
@@ -37,22 +35,9 @@ export const privateInjectManyFor =
 
       const namespacedId = getNamespacedId(injectable);
 
-      if (!isPromise(instance)) {
-        return {
-          instance,
-          meta: { id: namespacedId },
-        };
-      }
-
-      return instance.then(awaitedInstance => ({
-        instance: awaitedInstance,
+      return {
+        instance,
         meta: { id: namespacedId },
-      }));
+      };
     });
-
-    if (injected.find(isPromise)) {
-      return Promise.all(injected);
-    }
-
-    return injected;
   };

@@ -124,10 +124,12 @@ describe('injection with meta data', () => {
 
     expect(actual).toEqual([
       {
-        instance: 'some-instance',
+        instance: expect.any(Promise),
         meta: { id: 'some-scope:some-injectable' },
       },
     ]);
+
+    expect(await actual[0].instance).toBe('some-instance');
   });
 
   it('given injecting many async injectable with meta data, does so', async () => {
@@ -149,10 +151,12 @@ describe('injection with meta data', () => {
 
     expect(actual).toEqual([
       {
-        instance: 'some-instance',
+        instance: expect.any(Promise),
         meta: { id: 'some-injectable' },
       },
     ]);
+
+    expect(await actual[0].instance).toBe('some-instance');
   });
 
   it('given injecting many sync injectables with meta data from within a child injectable, does so', () => {
@@ -209,10 +213,12 @@ describe('injection with meta data', () => {
 
     expect(actual).toEqual([
       {
-        instance: 'some-instance',
+        instance: expect.any(Promise),
         meta: { id: 'some-child-injectable' },
       },
     ]);
+
+    expect(await actual[0].instance).toBe('some-instance');
   });
 
   it('given injectables with a dependency cycle, when injecting many with meta and with custom root context, throws error with the custom context', () => {

@@ -98,7 +98,7 @@ describe('createContainer.injection-token', () => {
 
     const someUnrelatedInjectable = getInjectable({
       id: 'some-unrelated-injectable',
-      instantiate: () => 'some-other-instance',
+      instantiate: () => 'some-unrelated-instance',
     });
 
     const di = createContainer('some-container');
@@ -111,7 +111,7 @@ describe('createContainer.injection-token', () => {
 
     const actual = await di.injectMany(someSharedInjectionToken);
 
-    expect(actual).toEqual(['some-instance', 'some-other-instance']);
+    expect(actual).toEqual(['some-instance', expect.any(Promise)]);
   });
 
   it('given no injectables, when injecting many, injects no instances', async () => {
