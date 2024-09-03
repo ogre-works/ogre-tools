@@ -1,8 +1,5 @@
 /// <reference types="react" />
-import type {
-  DiContainer,
-  DiContainerForInjection,
-} from '@ogre-tools/injectable';
+import type { DiContainer, DiContainerForInjection } from '@ogre-tools/injectable';
 
 interface DiContainerProviderProps {
   di: DiContainer | DiContainerForInjection;
@@ -14,14 +11,17 @@ export interface WithInjectablesSyncOptions<
   Dependencies extends object,
   Props extends object,
 > {
-  getProps: (di: DiContainer, props: Props) => Props & Dependencies;
+  getProps: (di: DiContainerForInjection, props: Props) => Props & Dependencies;
 }
 
 export interface WithInjectablesAsyncOptions<
   Dependencies extends object,
   Props extends object,
 > {
-  getProps: (di: DiContainer, props: Props) => Promise<Props & Dependencies>;
+  getProps: (
+    di: DiContainerForInjection,
+    props: Props,
+  ) => Promise<Props & Dependencies>;
   getPlaceholder: React.FunctionComponent<Props>;
 }
 
