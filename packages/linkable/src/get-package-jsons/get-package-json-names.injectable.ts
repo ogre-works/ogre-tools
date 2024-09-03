@@ -1,7 +1,7 @@
 import { awaitAll } from '../await-all';
-import { pipeline } from '@lensapp/fp';
+import { pipeline } from '@ogre-tools/fp';
 import { map } from 'lodash/fp';
-import { getInjectable } from '@lensapp/injectable';
+import { getInjectable } from '@ogre-tools/injectable';
 import { readJsonFileInjectable } from '../shared/fs/read-json-file.injectable';
 import { getPackageJsonPathsInjectable } from './get-package-json-paths.injectable';
 import type { Config } from '../config/get-config.injectable';

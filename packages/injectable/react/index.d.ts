@@ -1,5 +1,8 @@
 /// <reference types="react" />
-import type { DiContainer, DiContainerForInjection } from '@lensapp/injectable';
+import type {
+  DiContainer,
+  DiContainerForInjection,
+} from '@ogre-tools/injectable';
 
 interface DiContainerProviderProps {
   di: DiContainer | DiContainerForInjection;

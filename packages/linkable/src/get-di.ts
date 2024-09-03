@@ -1,5 +1,5 @@
-import { autoRegister } from '@lensapp/injectable-extension-for-auto-registration';
-import { createContainer } from '@lensapp/injectable';
+import { autoRegister } from '@ogre-tools/injectable-extension-for-auto-registration';
+import { createContainer } from '@ogre-tools/injectable';
 
 export const getDi = () => {
   const di = createContainer('linkable');

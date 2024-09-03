@@ -1,4 +1,4 @@
-import { getInjectable } from '@lensapp/injectable';
+import { getInjectable } from '@ogre-tools/injectable';
 import fse from 'fs-extra';
 import type { JsonValue } from 'type-fest';
 

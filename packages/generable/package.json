@@ -1,5 +1,5 @@
 {
-  "name": "@lensapp/generable",
+  "name": "@ogre-tools/generable",
   "private": false,
   "version": "18.2.2",
   "description": "A collection of low abstraction functions in functional programming flavor for generators",
@@ -21,7 +21,7 @@
   "author": "Ogre Works",
   "license": "MIT",
   "peerDependencies": {
-    "@lensapp/fp": "^16 || ^17 || ^18",
+    "@ogre-tools/fp": "^16 || ^17 || ^18",
     "lodash": "^4.17.21"
   },
   "bugs": {
@@ -31,15 +31,15 @@
   "publishConfig": {
     "access": "public"
   },
-  "prettier": "@lensapp/infrastructure-prettier",
+  "prettier": "@ogre-tools/infrastructure-prettier",
   "scripts": {
     "build": "ogre-tools-build-js",
     "code-style:verify": "ogre-tools-verify-code-style",
     "code-style:fix": "ogre-tools-fix-code-style"
   },
   "devDependencies": {
-    "@lensapp/infrastructure-jest": "^18.2.2",
-    "@lensapp/infrastructure-prettier": "^18.2.2",
-    "@lensapp/infrastructure-webpack-for-js": "^18.2.2"
+    "@ogre-tools/infrastructure-jest": "^18.2.2",
+    "@ogre-tools/infrastructure-prettier": "^18.2.2",
+    "@ogre-tools/infrastructure-webpack-for-js": "^18.2.2"
   }
 }

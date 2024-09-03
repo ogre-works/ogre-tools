@@ -1,4 +1,4 @@
-import { DiContainer, InjectionToken } from '@lensapp/injectable';
+import { DiContainer, InjectionToken } from '@ogre-tools/injectable';
 
 export function registerErrorMonitoring(di: DiContainer): void;
 

@@ -1,6 +1,6 @@
 import getInjectable from '../getInjectable/getInjectable';
 import createContainer from '../dependency-injection-container/createContainer';
-import { getInjectionToken } from '@lensapp/injectable';
+import { getInjectionToken } from '@ogre-tools/injectable';
 
 describe('createContainer.side-effects', () => {
   it('given in side effects are not prevented, when injecting injectable which causes side effects, does not throw', () => {

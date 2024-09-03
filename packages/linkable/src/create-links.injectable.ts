@@ -1,5 +1,5 @@
 import { getPackageJsonNamesInjectable } from './get-package-jsons/get-package-json-names.injectable';
-import { getInjectable } from '@lensapp/injectable';
+import { getInjectable } from '@ogre-tools/injectable';
 import getConfigInjectable from './config/get-config.injectable';
 import createEmptyConfigInjectable from './config/create-empty-config.injectable';
 import { addYalcPackagesInjectable } from './add-yalc-packages.injectable';

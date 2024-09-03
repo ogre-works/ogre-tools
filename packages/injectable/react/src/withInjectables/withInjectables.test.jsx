@@ -8,7 +8,7 @@ import {
   getInjectable,
   getInjectionToken,
   lifecycleEnum,
-} from '@lensapp/injectable';
+} from '@ogre-tools/injectable';
 
 import withInjectables, { DiContextProvider } from './withInjectables';
 import asyncFn from '@async-fn/jest';

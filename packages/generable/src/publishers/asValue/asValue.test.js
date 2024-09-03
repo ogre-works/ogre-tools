@@ -2,7 +2,7 @@ import asArray from '../../pullers/asArray/asArray';
 import range from '../../sources/range/range';
 import take from '../../slackers/take/take';
 import asValue from './asValue';
-import { pipeline } from '@lensapp/fp';
+import { pipeline } from '@ogre-tools/fp';
 
 describe('asValue', () => {
   it('given already iterated partially, when other iterators join in late, the new iterations start from current value', async () => {

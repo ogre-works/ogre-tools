@@ -1,5 +1,5 @@
 {
-  "name": "@lensapp/infrastructure-jest",
+  "name": "@ogre-tools/infrastructure-jest",
   "private": true,
   "version": "18.2.2",
   "description": "Shared jest configuration",

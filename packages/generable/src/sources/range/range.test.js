@@ -1,7 +1,7 @@
 import asArray from '../../pullers/asArray/asArray';
 import take from '../../slackers/take/take';
 import range from './range';
-import { pipeline } from '@lensapp/fp';
+import { pipeline } from '@ogre-tools/fp';
 
 describe('range', () => {
   it('given starting point, generates ascending numbers from starting point', () => {

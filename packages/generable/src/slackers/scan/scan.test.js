@@ -1,6 +1,6 @@
 import asArray from '../../pullers/asArray/asArray';
 import scan from './scan';
-import { pipeline } from '@lensapp/fp';
+import { pipeline } from '@ogre-tools/fp';
 
 describe('scan', () => {
   it('given a scanning function, seed and synchronous iterable, returns new synchronous iterable for scanned values', () => {

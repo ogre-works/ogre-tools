@@ -1,8 +1,8 @@
-import { getInjectable } from '@lensapp/injectable';
+import { getInjectable } from '@ogre-tools/injectable';
 import { workingDirectoryInjectable } from './shared/working-directory.injectable';
 import { publishYalcPackageInjectable } from './publish-yalc-package.injectable';
 import { addYalcPackagesInjectable } from './add-yalc-packages.injectable';
-import { pipeline } from '@lensapp/fp';
+import { pipeline } from '@ogre-tools/fp';
 import { consoleLogInjectable } from './console-log.injectable';
 import { consoleWarnInjectable } from './console-warn.injectable';
 import { readJsonFileInjectable } from './shared/fs/read-json-file.injectable';

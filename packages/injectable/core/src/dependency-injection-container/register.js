@@ -1,7 +1,7 @@
 import { getNamespacedIdFor } from './getNamespacedIdFor';
 import { registrationCallbackToken } from './tokens';
 import toFlatInjectables from './toFlatInjectables';
-import { DeepMap } from '@lensapp/fp';
+import { DeepMap } from '@ogre-tools/fp';
 import { getRelatedTokens } from './getRelatedTokens';
 
 export const registerFor =

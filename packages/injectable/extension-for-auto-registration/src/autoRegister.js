@@ -8,13 +8,13 @@ import {
   overSome,
 } from 'lodash/fp';
 
-import { pipeline } from '@lensapp/fp';
+import { pipeline } from '@ogre-tools/fp';
 
 import {
   isInjectable,
   isInjectableBunch,
   toFlatInjectables,
-} from '@lensapp/injectable';
+} from '@ogre-tools/injectable';
 
 import requireContextFake from './requireContextFake';
 

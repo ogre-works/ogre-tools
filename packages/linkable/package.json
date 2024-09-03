@@ -1,5 +1,5 @@
 {
-  "name": "@lensapp/linkable",
+  "name": "@ogre-tools/linkable",
   "private": false,
   "version": "18.2.2",
   "description": "Like 'npm link', but doesn't trip over with symlinks and local node_modules of linking target.",
@@ -20,9 +20,9 @@
   "license": "MIT",
   "homepage": "https://github.com/lensapp/ogre-tools#readme",
   "dependencies": {
-    "@lensapp/fp": "^18.2.2",
-    "@lensapp/injectable": "^18.2.2",
-    "@lensapp/injectable-extension-for-auto-registration": "^18.2.2",
+    "@ogre-tools/fp": "^18.2.2",
+    "@ogre-tools/injectable": "^18.2.2",
+    "@ogre-tools/injectable-extension-for-auto-registration": "^18.2.2",
     "fast-glob": "^3.2.12",
     "fs-extra": "^9.0.1",
     "lodash": "^4.17.21",
@@ -30,7 +30,7 @@
   },
   "devDependencies": {
     "@async-fn/jest": "^1.6.4",
-    "@lensapp/ogre-test-utils": "^18.2.2"
+    "@ogre-tools/test-utils": "^18.2.2"
   },
   "scripts": {
     "build": "ogre-tools-build-ts",

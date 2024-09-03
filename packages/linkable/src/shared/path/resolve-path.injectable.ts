@@ -1,4 +1,4 @@
-import { getInjectable } from '@lensapp/injectable';
+import { getInjectable } from '@ogre-tools/injectable';
 import path from 'path';
 
 export type ResolvePath = typeof path.resolve;
