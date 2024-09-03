@@ -46,6 +46,7 @@
     "@lensapp/infrastructure-babel-for-js": "^18.5.1",
     "@lensapp/infrastructure-jest": "^18.5.1",
     "@lensapp/infrastructure-prettier": "^18.5.1",
-    "@lensapp/infrastructure-webpack-for-js": "^18.5.1"
+    "@lensapp/infrastructure-webpack-for-js": "^18.5.1",
+    "@testing-library/react": "^16.0.1"
   }
 }
