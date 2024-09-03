@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+### [18.5.2](https://github.com/lensapp/ogre-tools/compare/v18.5.1...v18.5.2) (2024-09-03)
+
+### Bug Fixes
+
+- Make withInjectables have access to all features of di ([974cb5f](https://github.com/lensapp/ogre-tools/commit/974cb5f193f453b64781927a61823167729a7e9b))
+
 ### [18.5.1](https://github.com/lensapp/ogre-tools/compare/v18.5.0...v18.5.1) (2024-04-19)
 
 ### Bug Fixes
