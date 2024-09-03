@@ -1,5 +1,5 @@
 {
-  "name": "@lensapp/infrastructure-prettier",
+  "name": "@ogre-tools/infrastructure-prettier",
   "private": true,
   "version": "18.2.2",
   "description": "Shared prettier configuration",

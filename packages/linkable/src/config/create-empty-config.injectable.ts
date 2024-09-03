@@ -1,4 +1,4 @@
-import { getInjectable } from '@lensapp/injectable';
+import { getInjectable } from '@ogre-tools/injectable';
 import { writeJsonFileInjectable } from '../shared/fs/write-json-file.injectable';
 import configFilePathInjectable from './config-file-path.injectable';
 

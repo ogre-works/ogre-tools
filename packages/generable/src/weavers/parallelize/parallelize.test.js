@@ -1,7 +1,7 @@
 import asArray from '../../pullers/asArray/asArray';
 import asAsync from '../../slackers/asAsync/asAsync';
 import parallelize from './parallelize';
-import { pipeline } from '@lensapp/fp';
+import { pipeline } from '@ogre-tools/fp';
 
 describe('parallelize', () => {
   it('given multiple sync iterables, when iterated, synchronously iterates one value from each iterable', () => {

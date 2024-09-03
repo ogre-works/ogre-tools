@@ -1,7 +1,7 @@
-import { getInjectable } from '@lensapp/injectable';
+import { getInjectable } from '@ogre-tools/injectable';
 import { workingDirectoryInjectable } from '../shared/working-directory.injectable';
 import type { Config } from '../config/get-config.injectable';
-import { pipeline } from '@lensapp/fp';
+import { pipeline } from '@ogre-tools/fp';
 import { map, flatMap, tap } from 'lodash/fp';
 import { globInjectable } from '../shared/fs/glob.injectable';
 import { awaitAll } from '../await-all';

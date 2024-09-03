@@ -1,5 +1,5 @@
 {
-  "name": "@lensapp/injectable-react",
+  "name": "@ogre-tools/injectable-react",
   "private": false,
   "version": "18.2.2",
   "description": "A brutal component for injecting components that use injectable",
@@ -20,8 +20,8 @@
   "author": "Ogre Works",
   "license": "MIT",
   "peerDependencies": {
-    "@lensapp/fp": "^16 || ^17 || ^18",
-    "@lensapp/injectable": "^16 || ^17 || ^18",
+    "@ogre-tools/fp": "^16 || ^17 || ^18",
+    "@ogre-tools/injectable": "^16 || ^17 || ^18",
     "lodash": "^4.17.21",
     "mobx": "^6.3.0",
     "mobx-react": "^7.2.0",
@@ -35,7 +35,7 @@
   "publishConfig": {
     "access": "public"
   },
-  "prettier": "@lensapp/infrastructure-prettier",
+  "prettier": "@ogre-tools/infrastructure-prettier",
   "scripts": {
     "build": "ogre-tools-build-js",
     "test": "ogre-tools-test",
@@ -43,9 +43,9 @@
     "code-style:fix": "ogre-tools-fix-code-style"
   },
   "devDependencies": {
-    "@lensapp/infrastructure-babel-for-js": "^18.2.2",
-    "@lensapp/infrastructure-jest": "^18.2.2",
-    "@lensapp/infrastructure-prettier": "^18.2.2",
-    "@lensapp/infrastructure-webpack-for-js": "^18.2.2"
+    "@ogre-tools/infrastructure-babel-for-js": "^18.2.2",
+    "@ogre-tools/infrastructure-jest": "^18.2.2",
+    "@ogre-tools/infrastructure-prettier": "^18.2.2",
+    "@ogre-tools/infrastructure-webpack-for-js": "^18.2.2"
   }
 }

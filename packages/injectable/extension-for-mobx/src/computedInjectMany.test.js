@@ -12,7 +12,7 @@ import {
   getInjectable,
   getInjectionToken,
   injectionDecoratorToken,
-} from '@lensapp/injectable';
+} from '@ogre-tools/injectable';
 
 import {
   computedInjectManyInjectable,

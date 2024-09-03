@@ -5,23 +5,23 @@ See [Conventional Commits](https://conventionalcommits.org) for commit guideline
 
 ### [18.2.2](https://github.com/lensapp/ogre-tools/compare/v18.2.1...v18.2.2) (2024-01-05)
 
-**Note:** Version bump only for package @lensapp/injectable-react
+**Note:** Version bump only for package @ogre-tools/injectable-react
 
 ### [18.2.1](https://github.com/lensapp/ogre-tools/compare/v18.2.0...v18.2.1) (2024-01-04)
 
-**Note:** Version bump only for package @lensapp/injectable-react
+**Note:** Version bump only for package @ogre-tools/injectable-react
 
 ## [18.2.0](https://github.com/lensapp/ogre-tools/compare/v18.1.0...v18.2.0) (2024-01-04)
 
-**Note:** Version bump only for package @lensapp/injectable-react
+**Note:** Version bump only for package @ogre-tools/injectable-react
 
 ## [18.1.0](https://github.com/lensapp/ogre-tools/compare/v18.0.2...v18.1.0) (2023-11-27)
 
-**Note:** Version bump only for package @lensapp/injectable-react
+**Note:** Version bump only for package @ogre-tools/injectable-react
 
 ### [18.0.2](https://github.com/lensapp/ogre-tools/compare/v18.0.1...v18.0.2) (2023-11-14)
 
-**Note:** Version bump only for package @lensapp/injectable-react
+**Note:** Version bump only for package @ogre-tools/injectable-react
 
 ### [18.0.1](https://github.com/ogre-works/ogre-tools/compare/v18.0.0...v18.0.1) (2023-10-26)
 

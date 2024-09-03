@@ -5,7 +5,7 @@ import {
   getInjectable,
   getInjectionToken,
   lifecycleEnum,
-} from '@lensapp/injectable';
+} from '@ogre-tools/injectable';
 
 import {
   computedInjectManyInjectable,

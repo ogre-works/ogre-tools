@@ -1,5 +1,5 @@
 {
-  "name": "@lensapp/ogre-test-utils",
+  "name": "@ogre-tools/test-utils",
   "private": false,
   "version": "18.2.2",
   "description": "A collection of test-utils for Ogre-tools.",
@@ -30,7 +30,7 @@
   "publishConfig": {
     "access": "public"
   },
-  "prettier": "@lensapp/infrastructure-prettier",
+  "prettier": "@ogre-tools/infrastructure-prettier",
   "scripts": {
     "build": "ogre-tools-build-js",
     "test": "ogre-tools-test",
@@ -38,9 +38,9 @@
     "code-style:fix": "ogre-tools-fix-code-style"
   },
   "devDependencies": {
-    "@lensapp/infrastructure-babel-for-js": "^18.2.2",
-    "@lensapp/infrastructure-jest": "^18.2.2",
-    "@lensapp/infrastructure-prettier": "^18.2.2",
-    "@lensapp/infrastructure-webpack-for-js": "^18.2.2"
+    "@ogre-tools/infrastructure-babel-for-js": "^18.2.2",
+    "@ogre-tools/infrastructure-jest": "^18.2.2",
+    "@ogre-tools/infrastructure-prettier": "^18.2.2",
+    "@ogre-tools/infrastructure-webpack-for-js": "^18.2.2"
   }
 }

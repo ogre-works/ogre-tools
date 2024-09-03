@@ -3,8 +3,8 @@ import { constant } from 'lodash/fp';
 import { Observer } from 'mobx-react';
 import { action, observable } from 'mobx';
 
-import { isPromise } from '@lensapp/fp';
-import { getInjectable, lifecycleEnum } from '@lensapp/injectable';
+import { isPromise } from '@ogre-tools/fp';
+import { getInjectable, lifecycleEnum } from '@ogre-tools/injectable';
 
 const { Provider: DiContextProvider, Consumer: DiContextConsumer } =
   React.createContext();

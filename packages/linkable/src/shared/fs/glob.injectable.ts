@@ -1,4 +1,4 @@
-import { getInjectable } from '@lensapp/injectable';
+import { getInjectable } from '@ogre-tools/injectable';
 import glob from 'fast-glob';
 
 export type Glob = typeof glob;
