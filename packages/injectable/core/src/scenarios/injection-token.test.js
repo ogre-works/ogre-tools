@@ -109,7 +109,7 @@ describe('createContainer.injection-token', () => {
       someUnrelatedInjectable,
     );
 
-    const actual = await di.injectMany(someSharedInjectionToken);
+    const actual = di.injectMany(someSharedInjectionToken);
 
     expect(actual).toEqual(['some-instance', expect.any(Promise)]);
   });
@@ -121,7 +121,7 @@ describe('createContainer.injection-token', () => {
 
     const di = createContainer('some-container');
 
-    const actual = await di.injectMany(
+    const actual = di.injectMany(
       someSharedInjectionToken,
       'some-instantiation-parameter',
     );
