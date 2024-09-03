@@ -1,8 +1,5 @@
 /// <reference types="react" />
-import type {
-  DiContainer,
-  DiContainerForInjection,
-} from '@lensapp/injectable';
+import type { DiContainer, DiContainerForInjection } from '@lensapp/injectable';
 import { IComputedValue } from 'mobx';
 
 interface DiContainerProviderProps {
@@ -15,14 +12,17 @@ export interface WithInjectablesSyncOptions<
   Dependencies extends object,
   Props extends object,
 > {
-  getProps: (di: DiContainer, props: Props) => Props & Dependencies;
+  getProps: (di: DiContainerForInjection, props: Props) => Props & Dependencies;
 }
 
 export interface WithInjectablesAsyncOptions<
   Dependencies extends object,
   Props extends object,
 > {
-  getProps: (di: DiContainer, props: Props) => Promise<Props & Dependencies>;
+  getProps: (
+    di: DiContainerForInjection,
+    props: Props,
+  ) => Promise<Props & Dependencies>;
   getPlaceholder: React.FunctionComponent<Props>;
 }
 
