@@ -120,7 +120,7 @@ describe('injection with meta data', () => {
 
     registerInScope(someInjectable);
 
-    const actual = await di.injectManyWithMeta(someInjectionToken);
+    const actual = di.injectManyWithMeta(someInjectionToken);
 
     expect(actual).toEqual([
       {
@@ -147,7 +147,7 @@ describe('injection with meta data', () => {
 
     di.register(someInjectable);
 
-    const actual = await di.injectManyWithMeta(someInjectionToken);
+    const actual = di.injectManyWithMeta(someInjectionToken);
 
     expect(actual).toEqual([
       {
@@ -192,7 +192,7 @@ describe('injection with meta data', () => {
   it('given injecting many async injectables with meta data from within a child injectable, does so', async () => {
     const someParentInjectable = getInjectable({
       id: 'some-parent-injectable',
-      instantiate: async di => await di.injectManyWithMeta(someInjectionToken),
+      instantiate: async di => di.injectManyWithMeta(someInjectionToken),
     });
 
     const someInjectionToken = getInjectionToken({

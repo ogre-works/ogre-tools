@@ -121,7 +121,7 @@ describe('createContainer.injection-token', () => {
 
     const di = createContainer('some-container');
 
-    const actual = await di.injectMany(
+    const actual = di.injectMany(
       someSharedInjectionToken,
       'some-instantiation-parameter',
     );
