@@ -72,6 +72,26 @@ describe('createContainer.keyed-singleton', () => {
 
       expect(actual1).toBe(actual2);
     });
+
+    fit('when injected multiple times with different length of composite key, injects different instances', () => {
+      const actual1 = di.inject(
+        injectable,
+        getCompositeKey(
+          'some-string',
+          'some-other-string',
+          'some-primitive-key',
+        ),
+      );
+
+      const actual2 = di.inject(
+        injectable,
+        getCompositeKey('some-string', 'some-other-string'),
+      );
+
+      expect(actual1).not.toBe(actual2);
+      expect(actual1).toEqual({});
+      expect(actual2).toEqual({});
+    });
   });
 
   it('given keyed singleton and keyed by another injected value, when injected multiple times with same resulting key, injects same instance', () => {
