@@ -1,7 +1,7 @@
 import { getNamespacedIdFor } from './getNamespacedIdFor';
 import { registrationCallbackToken } from './tokens';
 import toFlatInjectables from './toFlatInjectables';
-import { DeepMap } from '@lensapp/fp';
+import { CompositeMap } from '../composite-map/composite-map';
 
 export const registerFor =
   ({ registerSingle, injectMany }) =>
@@ -63,7 +63,7 @@ export const registerSingleFor =
     injectableIdSet.add(namespacedId);
     injectableSet.add(injectable);
     namespacedIdByInjectableMap.set(injectable, namespacedId);
-    instancesByInjectableMap.set(injectable, new DeepMap());
+    instancesByInjectableMap.set(injectable, new CompositeMap());
 
     if (injectable.injectionToken) {
       const token = injectable.injectionToken;
