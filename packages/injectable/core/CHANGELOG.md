@@ -3,6 +3,13 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+### [18.5.3](https://github.com/lensapp/ogre-tools/compare/v18.5.2...v18.5.3) (2024-10-01)
+
+### Bug Fixes
+
+- Composite keys should be allowed to be the prefix of other unrelated composite keys ([b6290c0](https://github.com/lensapp/ogre-tools/commit/b6290c034b62d314d9c9c11dab5333595d92009e))
+- Fix typing of register and deregistering to accept injectable bunches ([c3b845e](https://github.com/lensapp/ogre-tools/commit/c3b845ea9f0d552e218a5d79c6ac051f085c28d7))
+
 ### [18.5.2](https://github.com/lensapp/ogre-tools/compare/v18.5.1...v18.5.2) (2024-09-03)
 
 **Note:** Version bump only for package @lensapp/injectable

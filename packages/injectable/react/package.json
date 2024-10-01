@@ -1,7 +1,7 @@
 {
   "name": "@lensapp/injectable-react",
   "private": false,
-  "version": "18.5.2",
+  "version": "18.5.3",
   "description": "A brutal component for injecting components that use injectable",
   "files": [
     "build",
@@ -43,10 +43,10 @@
     "code-style:fix": "ogre-tools-fix-code-style"
   },
   "devDependencies": {
-    "@lensapp/infrastructure-babel-for-js": "^18.5.2",
-    "@lensapp/infrastructure-jest": "^18.5.2",
-    "@lensapp/infrastructure-prettier": "^18.5.2",
-    "@lensapp/infrastructure-webpack-for-js": "^18.5.2",
+    "@lensapp/infrastructure-babel-for-js": "^18.5.3",
+    "@lensapp/infrastructure-jest": "^18.5.3",
+    "@lensapp/infrastructure-prettier": "^18.5.3",
+    "@lensapp/infrastructure-webpack-for-js": "^18.5.3",
     "@testing-library/react": "^16.0.1"
   }
 }
