@@ -92,3 +92,55 @@ exports[`withInjectables given component, props and a dependency using instantia
   </div>
 </body>
 `;
+
+exports[`withInjectables given nested components, with async dependencies, when rendered renders as placeholder 1`] = `
+<body>
+  <div>
+    <div
+      data-some-prop-test="some-initial-value"
+    >
+      <div
+        data-testid="some-placeholder"
+      />
+    </div>
+  </div>
+</body>
+`;
+
+exports[`withInjectables given nested components, with async dependencies, when rendered when the dependency resolves renders 1`] = `
+<body>
+  <div>
+    <div
+      data-some-prop-test="some-initial-value"
+    >
+      <div
+        data-some-dependency-test="some-async-value"
+        data-testid="some-dumb-test-component"
+      >
+        Some content: "
+        some-async-value
+        "
+      </div>
+    </div>
+  </div>
+</body>
+`;
+
+exports[`withInjectables given nested components, with async dependencies, when rendered when the dependency resolves when a (non-dependency) prop changes renders 1`] = `
+<body>
+  <div>
+    <div
+      data-some-prop-test="some-new-value"
+    >
+      <div
+        data-some-dependency-test="some-async-value"
+        data-testid="some-dumb-test-component"
+      >
+        Some content: "
+        some-async-value
+        "
+      </div>
+    </div>
+  </div>
+</body>
+`;
