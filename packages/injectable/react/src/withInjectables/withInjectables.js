@@ -1,7 +1,5 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { constant } from 'lodash/fp';
-import { Observer } from 'mobx-react';
-import { action, observable } from 'mobx';
 
 import { isPromise } from '@lensapp/fp';
 import { getInjectable, lifecycleEnum } from '@lensapp/injectable';
@@ -17,76 +15,77 @@ export const componentNameMapInjectable = getInjectable({
   instantiate: () => new Map(),
 });
 
-export default (Component, { getPlaceholder = constant(null), getProps }) =>
-  React.memo(
-    React.forwardRef((props, ref) => (
-      <DiContextConsumer>
-        {({ di }) => {
-          const componentNameMap = di.inject(componentNameMapInjectable);
+const ComponentOrPlaceholder = ({
+  di,
+  nonDependencyProps,
+  getPlaceholder,
+  getProps,
+  Component,
+  refProps,
+}) => {
+  const [propsState, setPropsState] = useState();
 
-          if (!componentNameMap.has(Component)) {
-            componentNameMap.set(
-              Component,
-              Component.displayName ||
-                Component.name ||
-                `anonymous-component-${componentNameMap.size}`,
-            );
-          }
+  useEffect(() => {
+    const maybeAsyncProps = getProps(di, nonDependencyProps);
 
-          const componentContext = {
-            injectable: {
-              id: componentNameMap.get(Component),
-              lifecycle: lifecycleEnum.transient,
-            },
-          };
+    if (isPromise(maybeAsyncProps)) {
+      maybeAsyncProps.then(setPropsState);
+    } else {
+      setPropsState(maybeAsyncProps);
+    }
+  }, [nonDependencyProps]);
 
-          const diForComponentContext = {
-            ...di,
+  if (!propsState) {
+    return getPlaceholder(nonDependencyProps);
+  }
 
-            inject: (alias, parameter) =>
-              di.inject(alias, parameter, componentContext),
-
-            injectMany: (injectionToken, parameter) =>
-              di.injectMany(injectionToken, parameter, componentContext),
-          };
-
-          const maybeAsyncProps = getProps(diForComponentContext, props);
-          const refProps = ref ? { ref } : {};
-
-          if (!isPromise(maybeAsyncProps)) {
-            return <Component {...refProps} {...maybeAsyncProps} />;
-          }
-
-          const observablePropsPromise = getObservablePromise(maybeAsyncProps);
-
-          return (
-            <Observer>
-              {() => {
-                const syncProps = observablePropsPromise.value;
-
-                if (!syncProps) {
-                  return getPlaceholder(props);
-                }
-
-                return <Component {...refProps} {...syncProps} />;
-              }}
-            </Observer>
-          );
-        }}
-      </DiContextConsumer>
-    )),
-  );
-
-const getObservablePromise = asyncValue => {
-  const observableObject = observable({ value: null }, undefined, {
-    deep: false,
-  });
-
-  asyncValue.then(
-    action(syncValue => {
-      observableObject.value = syncValue;
-    }),
-  );
-
-  return observableObject;
+  return <Component {...propsState} {...refProps} />;
 };
+
+export default (Component, { getPlaceholder = constant(null), getProps }) =>
+  React.forwardRef((nonDependencyProps, ref) => (
+    <DiContextConsumer>
+      {({ di }) => {
+        const componentNameMap = di.inject(componentNameMapInjectable);
+
+        if (!componentNameMap.has(Component)) {
+          componentNameMap.set(
+            Component,
+            Component.displayName ||
+              Component.name ||
+              `anonymous-component-${componentNameMap.size}`,
+          );
+        }
+
+        const componentContext = {
+          injectable: {
+            id: componentNameMap.get(Component),
+            lifecycle: lifecycleEnum.transient,
+          },
+        };
+
+        const diForComponentContext = {
+          ...di,
+
+          inject: (alias, parameter) =>
+            di.inject(alias, parameter, componentContext),
+
+          injectMany: (injectionToken, parameter) =>
+            di.injectMany(injectionToken, parameter, componentContext),
+        };
+
+        const refProps = ref ? { ref } : {};
+
+        return (
+          <ComponentOrPlaceholder
+            di={diForComponentContext}
+            nonDependencyProps={nonDependencyProps}
+            getPlaceholder={getPlaceholder}
+            getProps={getProps}
+            Component={Component}
+            refProps={refProps}
+          />
+        );
+      }}
+    </DiContextConsumer>
+  ));

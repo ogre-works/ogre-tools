@@ -454,6 +454,7 @@ describe('withInjectables', () => {
             data-some-dependency-test={someDependency}
             {...props}
           >
+            <input type="text" data-some-input-test />
             Some content: "{someDependency}"
           </div>
         );
@@ -475,8 +476,8 @@ describe('withInjectables', () => {
       });
 
       const DumbParentTestComponent = observer(({ someProp }) => (
-        <div data-some-prop-test={someProp.get()}>
-          <SmartChildTestComponent />
+        <div>
+          <SmartChildTestComponent data-some-prop-test={someProp.get()} />
         </div>
       ));
 
@@ -535,53 +536,89 @@ describe('withInjectables', () => {
         ).not.toBeInTheDocument();
       });
 
-      describe('when a (non-dependency) prop changes', () => {
-        beforeEach(async () => {
-          asyncDependencyMock.mockClear();
-          mountOfDecoratedComponentMock.mockClear();
-          createPlaceholderMock.mockClear();
+      it('renders', () => {
+        expect(rendered.baseElement).toMatchSnapshot();
+      });
 
-          await act(async () => {
-            runInAction(() => {
-              someProp.set('some-new-value');
-            });
+      describe('when an input is focused', () => {
+        beforeEach(() => {
+          act(() => {
+            rendered.baseElement
+              .querySelector('[data-some-input-test]')
+              .focus();
           });
         });
 
-        it('renders the new value', () => {
+        it('the input really is focused', () => {
           expect(
-            rendered.baseElement.querySelector(
-              '[data-some-prop-test=some-new-value]',
-            ),
+            rendered.baseElement.querySelector('[data-some-input-test]:focus'),
           ).toBeInTheDocument();
         });
 
-        it('does not instantiate async dependencies again', () => {
-          expect(asyncDependencyMock).not.toHaveBeenCalled();
-        });
+        describe('when a (non-dependency) prop changes', () => {
+          beforeEach(async () => {
+            asyncDependencyMock.mockClear();
+            mountOfDecoratedComponentMock.mockClear();
+            createPlaceholderMock.mockClear();
 
-        it('does not create another placeholder', () => {
-          expect(createPlaceholderMock).not.toHaveBeenCalled();
-        });
+            await act(async () => {
+              runInAction(() => {
+                someProp.set('some-new-value');
+              });
+            });
 
-        it('does not mount the decorated component again', () => {
-          expect(mountOfDecoratedComponentMock).not.toHaveBeenCalled();
-        });
+            await act(async () => {
+              await flushPromises();
+            });
 
-        it('renders', () => {
-          expect(rendered.baseElement).toMatchSnapshot();
-        });
+            await act(async () => {
+              await asyncDependencyMock.resolve('some-async-value');
+            });
+          });
 
-        it('still has component with the async content', () => {
-          expect(rendered.baseElement).toHaveTextContent(
-            'Some content: "some-async-value"',
-          );
-        });
+          it('renders the new value', () => {
+            expect(
+              rendered.baseElement.querySelector(
+                '[data-some-prop-test=some-new-value]',
+              ),
+            ).toBeInTheDocument();
+          });
 
-        it('has no placeholder', () => {
-          expect(
-            rendered.queryByTestId('some-placeholder'),
-          ).not.toBeInTheDocument();
+          it('the input is still focused', () => {
+            expect(
+              rendered.baseElement.querySelector(
+                '[data-some-input-test]:focus',
+              ),
+            ).toBeInTheDocument();
+          });
+
+          it('instantiates async dependencies again', () => {
+            expect(asyncDependencyMock).toHaveBeenCalled();
+          });
+
+          it('does not create another placeholder', () => {
+            expect(createPlaceholderMock).not.toHaveBeenCalled();
+          });
+
+          it('does not mount the decorated component again', () => {
+            expect(mountOfDecoratedComponentMock).not.toHaveBeenCalled();
+          });
+
+          it('renders', () => {
+            expect(rendered.baseElement).toMatchSnapshot();
+          });
+
+          it('still has component with the async content', () => {
+            expect(rendered.baseElement).toHaveTextContent(
+              'Some content: "some-async-value"',
+            );
+          });
+
+          it('has no placeholder', () => {
+            expect(
+              rendered.queryByTestId('some-placeholder'),
+            ).not.toBeInTheDocument();
+          });
         });
       });
     });

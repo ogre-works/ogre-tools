@@ -96,9 +96,7 @@ exports[`withInjectables given component, props and a dependency using instantia
 exports[`withInjectables given nested components, with async dependencies, when rendered renders as placeholder 1`] = `
 <body>
   <div>
-    <div
-      data-some-prop-test="some-initial-value"
-    >
+    <div>
       <div
         data-testid="some-placeholder"
       />
@@ -110,13 +108,16 @@ exports[`withInjectables given nested components, with async dependencies, when 
 exports[`withInjectables given nested components, with async dependencies, when rendered when the dependency resolves renders 1`] = `
 <body>
   <div>
-    <div
-      data-some-prop-test="some-initial-value"
-    >
+    <div>
       <div
         data-some-dependency-test="some-async-value"
+        data-some-prop-test="some-initial-value"
         data-testid="some-dumb-test-component"
       >
+        <input
+          data-some-input-test="true"
+          type="text"
+        />
         Some content: "
         some-async-value
         "
@@ -126,16 +127,41 @@ exports[`withInjectables given nested components, with async dependencies, when 
 </body>
 `;
 
-exports[`withInjectables given nested components, with async dependencies, when rendered when the dependency resolves when a (non-dependency) prop changes renders 1`] = `
+exports[`withInjectables given nested components, with async dependencies, when rendered when the dependency resolves renders 2`] = `
 <body>
   <div>
-    <div
-      data-some-prop-test="some-new-value"
-    >
+    <div>
       <div
         data-some-dependency-test="some-async-value"
+        data-some-prop-test="some-initial-value"
         data-testid="some-dumb-test-component"
       >
+        <input
+          data-some-input-test="true"
+          type="text"
+        />
+        Some content: "
+        some-async-value
+        "
+      </div>
+    </div>
+  </div>
+</body>
+`;
+
+exports[`withInjectables given nested components, with async dependencies, when rendered when the dependency resolves when an input is focused when a (non-dependency) prop changes renders 1`] = `
+<body>
+  <div>
+    <div>
+      <div
+        data-some-dependency-test="some-async-value"
+        data-some-prop-test="some-new-value"
+        data-testid="some-dumb-test-component"
+      >
+        <input
+          data-some-input-test="true"
+          type="text"
+        />
         Some content: "
         some-async-value
         "
