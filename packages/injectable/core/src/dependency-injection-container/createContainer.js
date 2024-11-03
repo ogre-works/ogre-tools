@@ -37,7 +37,9 @@ export default (containerId, { detectCycles = true } = {}) => {
     injectableSet,
   });
 
-  const containerRootContextItem = { injectable: { id: containerId } };
+  const containerRootContextItem = {
+    injectable: { id: containerId, aliasType: 'container' },
+  };
 
   const setDependee = setDependeeFor({
     dependeesByDependencyMap,

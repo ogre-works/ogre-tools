@@ -74,7 +74,7 @@ describe('createContainer.error-monitoring-for-instantiation', () => {
         error: 'some-error',
 
         context: [
-          { injectable: { id: 'some-container' } },
+          { injectable: { id: 'some-container', aliasType: 'container' } },
 
           {
             injectable: expect.objectContaining(parentInjectable),
@@ -157,7 +157,7 @@ describe('createContainer.error-monitoring-for-instantiation', () => {
           error: expect.any(Error),
 
           context: [
-            { injectable: { id: 'some-container' } },
+            { injectable: { id: 'some-container', aliasType: 'container' } },
 
             {
               injectable: expect.objectContaining(parentInjectable),
@@ -189,7 +189,7 @@ describe('createContainer.error-monitoring-for-instantiation', () => {
           error: 'some-non-error-rejection',
 
           context: [
-            { injectable: { id: 'some-container' } },
+            { injectable: { id: 'some-container', aliasType: 'container' } },
 
             {
               injectable: expect.objectContaining(parentInjectable),

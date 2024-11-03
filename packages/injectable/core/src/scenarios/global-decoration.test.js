@@ -203,7 +203,7 @@ describe('createContainer.global-decoration', () => {
     expect(() => {
       di.inject(someInjectable);
     }).toThrow(
-      'Cycle of injectables encountered: "some-decorator" -> "injection-decorator-token" -> "some-decorator"',
+      'Cycle of injectables encountered: "some-decorator" -> "(injection-decorator-token)" -> "some-decorator"',
     );
   });
 
@@ -232,7 +232,7 @@ describe('createContainer.global-decoration', () => {
     expect(() => {
       di.inject(someInjectable);
     }).toThrow(
-      'Cycle of injectables encountered: "instantiate-decorator-token" -> "some-decorator" -> "instantiate-decorator-token"',
+      'Cycle of injectables encountered: "(instantiate-decorator-token)" -> "some-decorator" -> "(instantiate-decorator-token)"',
     );
   });
 
@@ -268,7 +268,7 @@ describe('createContainer.global-decoration', () => {
     expect(() => {
       di.inject(someInjectable);
     }).toThrow(
-      'Cycle of injectables encountered: "some-injectable-to-be-decorated" -> "instantiate-decorator-token" -> "some-decorator" -> "some-injectable-to-be-decorated"',
+      'Cycle of injectables encountered: "some-injectable-to-be-decorated" -> "(instantiate-decorator-token)" -> "some-decorator" -> "some-injectable-to-be-decorated"',
     );
   });
 });

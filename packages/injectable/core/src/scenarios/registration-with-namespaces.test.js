@@ -296,7 +296,7 @@ describe('registration with namespaces', () => {
     expect(() => {
       di.injectMany(someInjectionToken);
     }).toThrow(
-      'Tried to inject "some-container" -> "some-token" -> "some-scope:some-injectable-in-scope-causing-side-effects" when side-effects are prevented.',
+      'Tried to inject "some-container" -> "(some-token)" -> "some-scope:some-injectable-in-scope-causing-side-effects" when side-effects are prevented.',
     );
   });
 });

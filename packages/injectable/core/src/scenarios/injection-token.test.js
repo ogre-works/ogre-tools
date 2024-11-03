@@ -157,7 +157,7 @@ describe('createContainer.injection-token', () => {
     expect(() => {
       di.injectMany(someInjectionToken);
     }).toThrow(
-      'Cycle of injectables encountered: "some-injection-token" -> "some-parent-injectable" -> "some-other-injection-token" -> "some-child-injectable" -> "some-injection-token"',
+      'Cycle of injectables encountered: "(some-injection-token)" -> "some-parent-injectable" -> "(some-other-injection-token)" -> "some-child-injectable" -> "(some-injection-token)"',
     );
   });
 
