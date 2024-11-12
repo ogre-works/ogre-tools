@@ -1,6 +1,14 @@
+import {
+  autorun,
+  isObservableProp,
+  observable,
+  observe,
+  runInAction,
+  toJS,
+} from 'mobx';
 import asyncComputed from './asyncComputed';
 import asyncFn from '@async-fn/jest';
-import { isObservableProp, observable, observe, runInAction } from 'mobx';
+import { flushPromises } from '@lensapp/ogre-test-utils';
 
 describe('asyncComputed', () => {
   describe('given callback to observe something that returns a promise, and a specific value for when pending', () => {
@@ -809,6 +817,80 @@ describe('asyncComputed', () => {
 
     it('when not observed, does not call callback', () => {
       expect(someMock).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('given custom comparer and showing latest value between updates (note: showing a pending value between updates would make a custom comparer make very little sense)', () => {
+    let actualObservation;
+    let someObservable;
+    let someAsyncComputed;
+    let actualNumberOfObservations;
+
+    beforeEach(() => {
+      const someCustomComparer = (a, b) =>
+        a?.relevantProperty === b?.relevantProperty;
+
+      someObservable = observable.object({
+        relevantProperty: 'some-initial-relevant-property-value',
+        irrelevantProperty: 'some-initial-irrelevant-property-value',
+      });
+
+      someAsyncComputed = asyncComputed({
+        getValueFromObservedPromise: async () => toJS(someObservable),
+        equals: someCustomComparer,
+        betweenUpdates: 'show-latest-value',
+      });
+
+      actualNumberOfObservations = 0;
+
+      autorun(() => {
+        actualNumberOfObservations++;
+        actualObservation = someAsyncComputed.value.get();
+      });
+    });
+
+    describe('when a change relevant to custom comparer happens', () => {
+      beforeEach(async () => {
+        actualNumberOfObservations = 0;
+
+        runInAction(() => {
+          someObservable.relevantProperty = 'some-new-value';
+        });
+
+        // Not really required because of a suspected bug/peculiarity in jest
+        await flushPromises();
+      });
+
+      it('the relevant change is observed', async () => {
+        expect(actualObservation.relevantProperty).toBe('some-new-value');
+      });
+
+      it('there is exactly one new observation', () => {
+        expect(actualNumberOfObservations).toBe(1);
+      });
+    });
+
+    describe('when a change irrelevant to custom comparer happens', () => {
+      beforeEach(async () => {
+        actualNumberOfObservations = 0;
+
+        runInAction(() => {
+          someObservable.irrelevantProperty = 'some-new-value';
+        });
+
+        // Not really required because of a suspected bug/peculiarity in jest
+        await flushPromises();
+      });
+
+      it('the irrelevant change is not observed', async () => {
+        expect(actualObservation.irrelevantProperty).toBe(
+          'some-initial-irrelevant-property-value',
+        );
+      });
+
+      it('there are no new observations', () => {
+        expect(actualNumberOfObservations).toBe(0);
+      });
     });
   });
 });
