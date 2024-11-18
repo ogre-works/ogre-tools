@@ -1,6 +1,22 @@
 /// <reference types="react" />
-import type { DiContainer, DiContainerForInjection } from '@lensapp/injectable';
+import {
+  DiContainer,
+  DiContainerForInjection,
+  Injectable,
+  InjectionToken,
+} from '@lensapp/injectable';
 import { IComputedValue } from 'mobx';
+
+export function useInject<TReturnValue>(
+  injectable: Injectable<TReturnValue, any> | InjectionToken<TReturnValue>,
+): Awaited<TReturnValue>;
+
+export function useInject<TReturnValue, TInstantiationParameter>(
+  injectable:
+    | Injectable<TReturnValue, any, TInstantiationParameter>
+    | InjectionToken<TReturnValue, TInstantiationParameter>,
+  instantiationParameter: TInstantiationParameter,
+): Awaited<TReturnValue>;
 
 interface DiContainerProviderProps {
   di: DiContainer | DiContainerForInjection;

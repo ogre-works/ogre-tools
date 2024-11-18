@@ -11,3 +11,5 @@ export {
   asyncComputed,
   registerInjectableReact,
 };
+
+export { useInject } from './src/useInject/useInject';
