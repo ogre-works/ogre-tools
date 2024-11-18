@@ -18,6 +18,17 @@ export function useInject<TReturnValue, TInstantiationParameter>(
   instantiationParameter: TInstantiationParameter,
 ): Awaited<TReturnValue>;
 
+export function getInjectableComponent<Props, TokenProps extends Props>(
+  injectable: Omit<
+    Injectable<unknown>,
+    'instantiate' | 'lifecycle' | 'scope' | 'decorable'
+  > & {
+    Component: React.ComponentType<Props>;
+    PlaceholderComponent?: React.ComponentType;
+    injectionToken?: InjectionToken<React.ComponentType<TokenProps>>;
+  },
+): React.ComponentType<Props> & Injectable<React.ComponentType<Props>>;
+
 interface DiContainerProviderProps {
   di: DiContainer | DiContainerForInjection;
 }

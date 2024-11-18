@@ -39,6 +39,7 @@
   "scripts": {
     "build": "ogre-tools-build-js",
     "test": "ogre-tools-test",
+    "test:types": "tsd --files ./src/**/*.test-d.tsx",
     "code-style:verify": "ogre-tools-verify-code-style",
     "code-style:fix": "ogre-tools-fix-code-style"
   },

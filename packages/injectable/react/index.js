@@ -12,4 +12,5 @@ export {
   registerInjectableReact,
 };
 
+export { getInjectableComponent } from './src/getInjectableComponent/getInjectableComponent';
 export { useInject } from './src/useInject/useInject';
