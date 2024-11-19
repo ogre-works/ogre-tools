@@ -62,10 +62,6 @@
     "url": "https://github.com/lensapp/ogre-tools/issues"
   },
   "homepage": "https://github.com/lensapp/ogre-tools#readme",
-  "engines": {
-    "node": "^18.15.0",
-    "npm": "^9.6.7"
-  },
   "dependencies": {
     "ts-loader": "^9.4.1"
   }
