@@ -43,7 +43,7 @@
     "@types/webpack-env": "^1.16.3",
     "babel-loader": "^8.1.0",
     "husky": "^7.0.4",
-    "lerna": "^7.4.2",
+    "lerna": "^8.1.9",
     "lodash": "^4.17.21",
     "mobx": "^6.3.6",
     "mobx-react": "^7.2.1",

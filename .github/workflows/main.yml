@@ -2,9 +2,9 @@ name: Build and test
 
 on:
   push:
-    branches: [ master ]
+    branches: [master]
   pull_request:
-    branches: [ master ]
+    branches: [master]
 
 jobs:
   test:
@@ -26,7 +26,6 @@ jobs:
       - name: Install packages
         run: |
           npm ci
-          npm i -g @nx/nx-linux-x64-gnu@^16.10.0
 
       - name: Build
         run: npm run build-all-packages
