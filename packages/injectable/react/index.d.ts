@@ -1,5 +1,32 @@
 /// <reference types="react" />
-import type { DiContainer, DiContainerForInjection } from '@lensapp/injectable';
+import {
+  DiContainer,
+  DiContainerForInjection,
+  Injectable,
+  InjectionToken,
+} from '@lensapp/injectable';
+
+export function useInject<TReturnValue>(
+  injectable: Injectable<TReturnValue, any> | InjectionToken<TReturnValue>,
+): Awaited<TReturnValue>;
+
+export function useInject<TReturnValue, TInstantiationParameter>(
+  injectable:
+    | Injectable<TReturnValue, any, TInstantiationParameter>
+    | InjectionToken<TReturnValue, TInstantiationParameter>,
+  instantiationParameter: TInstantiationParameter,
+): Awaited<TReturnValue>;
+
+export function getInjectableComponent<Props, TokenProps extends Props>(
+  injectable: Omit<
+    Injectable<unknown>,
+    'instantiate' | 'lifecycle' | 'scope' | 'decorable'
+  > & {
+    Component: React.ComponentType<Props>;
+    PlaceholderComponent?: React.ComponentType;
+    injectionToken?: InjectionToken<React.ComponentType<TokenProps>>;
+  },
+): React.ComponentType<Props> & Injectable<React.ComponentType<Props>>;
 
 interface DiContainerProviderProps {
   di: DiContainer | DiContainerForInjection;
@@ -11,14 +38,17 @@ export interface WithInjectablesSyncOptions<
   Dependencies extends object,
   Props extends object,
 > {
-  getProps: (di: DiContainer, props: Props) => Props & Dependencies;
+  getProps: (di: DiContainerForInjection, props: Props) => Props & Dependencies;
 }
 
 export interface WithInjectablesAsyncOptions<
   Dependencies extends object,
   Props extends object,
 > {
-  getProps: (di: DiContainer, props: Props) => Promise<Props & Dependencies>;
+  getProps: (
+    di: DiContainerForInjection,
+    props: Props,
+  ) => Promise<Props & Dependencies>;
   getPlaceholder: React.FunctionComponent<Props>;
 }
 

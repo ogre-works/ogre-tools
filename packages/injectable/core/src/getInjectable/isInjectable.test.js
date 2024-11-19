@@ -1,6 +1,6 @@
 import isInjectable from './isInjectable';
 import getInjectable from './getInjectable';
-import getInjectionToken from '../getInjectionToken/getInjectionToken';
+import { getInjectionToken } from '../getInjectionToken/getInjectionToken';
 
 describe('isInjectable', () => {
   it('an injectable is an injectable', () => {

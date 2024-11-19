@@ -1,4 +1,4 @@
-import getInjectionToken from '../getInjectionToken/getInjectionToken';
+import { getInjectionToken } from '../getInjectionToken/getInjectionToken';
 import getInjectable from '../getInjectable/getInjectable';
 import lifecycleEnum from '../dependency-injection-container/lifecycleEnum';
 import createContainer from '../dependency-injection-container/createContainer';
@@ -98,7 +98,7 @@ describe('createContainer.injection-token', () => {
 
     const someUnrelatedInjectable = getInjectable({
       id: 'some-unrelated-injectable',
-      instantiate: () => 'some-other-instance',
+      instantiate: () => 'some-unrelated-instance',
     });
 
     const di = createContainer('some-container');
@@ -109,9 +109,9 @@ describe('createContainer.injection-token', () => {
       someUnrelatedInjectable,
     );
 
-    const actual = await di.injectMany(someSharedInjectionToken);
+    const actual = di.injectMany(someSharedInjectionToken);
 
-    expect(actual).toEqual(['some-instance', 'some-other-instance']);
+    expect(actual).toEqual(['some-instance', expect.any(Promise)]);
   });
 
   it('given no injectables, when injecting many, injects no instances', async () => {
@@ -121,7 +121,7 @@ describe('createContainer.injection-token', () => {
 
     const di = createContainer('some-container');
 
-    const actual = await di.injectMany(
+    const actual = di.injectMany(
       someSharedInjectionToken,
       'some-instantiation-parameter',
     );

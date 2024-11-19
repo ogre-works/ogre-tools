@@ -1,11 +1,12 @@
-import {
-  createContainer,
-  getInjectable,
-  getInjectionToken,
-  injectionDecoratorToken,
-  instantiationDecoratorToken,
-} from '../../index';
 import { get } from 'lodash/fp';
+import createContainer from '../dependency-injection-container/createContainer';
+import getInjectable from '../getInjectable/getInjectable';
+import { getInjectionToken } from '../getInjectionToken/getInjectionToken';
+import {
+  instantiationDecoratorToken,
+  injectionDecoratorToken,
+} from '../dependency-injection-container/tokens';
+import { flushPromises } from '@lensapp/ogre-test-utils';
 
 describe('createContainer.context-of-instantiation', () => {
   let di;
@@ -230,7 +231,7 @@ describe('createContainer.context-of-instantiation', () => {
       id: 'some-parent-injectable',
 
       instantiate: async di => {
-        await di.injectMany(someChildToken);
+        di.injectMany(someChildToken);
       },
 
       injectionToken: someParentToken,
@@ -238,7 +239,9 @@ describe('createContainer.context-of-instantiation', () => {
 
     di.register(someParentInjectable, someChildInjectable);
 
-    await di.injectMany(someParentToken);
+    di.injectMany(someParentToken);
+
+    await flushPromises();
 
     expect(actualChildContext.map(get('injectable.id'))).toEqual([
       'some-container',

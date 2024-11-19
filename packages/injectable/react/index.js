@@ -5,3 +5,6 @@ import withInjectables, {
 import registerInjectableReact from './src/registerInjectableReact/registerInjectableReact';
 
 export { withInjectables, DiContextProvider, registerInjectableReact };
+
+export { getInjectableComponent } from './src/getInjectableComponent/getInjectableComponent';
+export { useInject } from './src/useInject/useInject';

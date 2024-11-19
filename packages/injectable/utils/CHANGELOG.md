@@ -7,6 +7,30 @@ See [Conventional Commits](https://conventionalcommits.org) for commit guideline
 
 **Note:** Version bump only for package @lensapp/injectable-utils
 
+### [18.5.3](https://github.com/lensapp/ogre-tools/compare/v18.5.2...v18.5.3) (2024-10-01)
+
+**Note:** Version bump only for package @lensapp/injectable-utils
+
+### [18.5.2](https://github.com/lensapp/ogre-tools/compare/v18.5.1...v18.5.2) (2024-09-03)
+
+**Note:** Version bump only for package @lensapp/injectable-utils
+
+### [18.5.1](https://github.com/lensapp/ogre-tools/compare/v18.5.0...v18.5.1) (2024-04-19)
+
+**Note:** Version bump only for package @lensapp/injectable-utils
+
+## [18.5.0](https://github.com/lensapp/ogre-tools/compare/v18.4.1...v18.5.0) (2024-04-17)
+
+**Note:** Version bump only for package @lensapp/injectable-utils
+
+### [18.4.1](https://github.com/lensapp/ogre-tools/compare/v18.4.0...v18.4.1) (2024-02-12)
+
+**Note:** Version bump only for package @lensapp/injectable-utils
+
+## [18.4.0](https://github.com/lensapp/ogre-tools/compare/v18.3.1...v18.4.0) (2024-02-12)
+
+**Note:** Version bump only for package @lensapp/injectable-utils
+
 ### [18.3.1](https://github.com/lensapp/ogre-tools/compare/v18.3.0...v18.3.1) (2024-01-23)
 
 **Note:** Version bump only for package @lensapp/injectable-utils

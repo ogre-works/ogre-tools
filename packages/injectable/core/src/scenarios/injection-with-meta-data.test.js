@@ -1,7 +1,7 @@
 import getInjectable from '../getInjectable/getInjectable';
 import lifecycleEnum from '../dependency-injection-container/lifecycleEnum';
 import createContainer from '../dependency-injection-container/createContainer';
-import getInjectionToken from '../getInjectionToken/getInjectionToken';
+import { getInjectionToken } from '../getInjectionToken/getInjectionToken';
 
 describe('injection with meta data', () => {
   it('given injecting many sync injectable with meta data, does so', () => {
@@ -120,14 +120,16 @@ describe('injection with meta data', () => {
 
     registerInScope(someInjectable);
 
-    const actual = await di.injectManyWithMeta(someInjectionToken);
+    const actual = di.injectManyWithMeta(someInjectionToken);
 
     expect(actual).toEqual([
       {
-        instance: 'some-instance',
+        instance: expect.any(Promise),
         meta: { id: 'some-scope:some-injectable' },
       },
     ]);
+
+    expect(await actual[0].instance).toBe('some-instance');
   });
 
   it('given injecting many async injectable with meta data, does so', async () => {
@@ -145,14 +147,16 @@ describe('injection with meta data', () => {
 
     di.register(someInjectable);
 
-    const actual = await di.injectManyWithMeta(someInjectionToken);
+    const actual = di.injectManyWithMeta(someInjectionToken);
 
     expect(actual).toEqual([
       {
-        instance: 'some-instance',
+        instance: expect.any(Promise),
         meta: { id: 'some-injectable' },
       },
     ]);
+
+    expect(await actual[0].instance).toBe('some-instance');
   });
 
   it('given injecting many sync injectables with meta data from within a child injectable, does so', () => {
@@ -188,7 +192,7 @@ describe('injection with meta data', () => {
   it('given injecting many async injectables with meta data from within a child injectable, does so', async () => {
     const someParentInjectable = getInjectable({
       id: 'some-parent-injectable',
-      instantiate: async di => await di.injectManyWithMeta(someInjectionToken),
+      instantiate: async di => di.injectManyWithMeta(someInjectionToken),
     });
 
     const someInjectionToken = getInjectionToken({
@@ -209,10 +213,12 @@ describe('injection with meta data', () => {
 
     expect(actual).toEqual([
       {
-        instance: 'some-instance',
+        instance: expect.any(Promise),
         meta: { id: 'some-child-injectable' },
       },
     ]);
+
+    expect(await actual[0].instance).toBe('some-instance');
   });
 
   it('given injectables with a dependency cycle, when injecting many with meta and with custom root context, throws error with the custom context', () => {

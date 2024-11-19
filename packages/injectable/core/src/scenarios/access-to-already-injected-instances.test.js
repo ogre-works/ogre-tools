@@ -1,6 +1,6 @@
 import getInjectable from '../getInjectable/getInjectable';
 import createContainer from '../dependency-injection-container/createContainer';
-import getInjectionToken from '../getInjectionToken/getInjectionToken';
+import { getInjectionToken } from '../getInjectionToken/getInjectionToken';
 import lifecycleEnum from '../dependency-injection-container/lifecycleEnum';
 
 describe('access-to-already-injected-instances', () => {

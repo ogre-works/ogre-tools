@@ -25,7 +25,7 @@
     "lodash": "^4.17.21",
     "mobx": "^6.3.0",
     "mobx-react": "^7.2.0",
-    "react": "^17 || ^18"
+    "react": "^18"
   },
   "gitHead": "a5e3d70aa0d5d45dbf2f3d37f586fac93bfffc86",
   "bugs": {
@@ -39,6 +39,7 @@
   "scripts": {
     "build": "ogre-tools-build-js",
     "test": "ogre-tools-test",
+    "test:types": "tsd --files ./src/**/*.test-d.tsx",
     "code-style:verify": "ogre-tools-verify-code-style",
     "code-style:fix": "ogre-tools-fix-code-style"
   },
@@ -46,6 +47,7 @@
     "@lensapp/infrastructure-babel-for-js": "^19.0.0",
     "@lensapp/infrastructure-jest": "^19.0.0",
     "@lensapp/infrastructure-prettier": "^19.0.0",
-    "@lensapp/infrastructure-webpack-for-js": "^19.0.0"
+    "@lensapp/infrastructure-webpack-for-js": "^19.0.0",
+    "@testing-library/react": "^16.0.1"
   }
 }

@@ -6,8 +6,9 @@ import { action, observable } from 'mobx';
 import { isPromise } from '@lensapp/fp';
 import { getInjectable, lifecycleEnum } from '@lensapp/injectable';
 
-const { Provider: DiContextProvider, Consumer: DiContextConsumer } =
-  React.createContext();
+export const diContext = React.createContext();
+
+const { Provider: DiContextProvider, Consumer: DiContextConsumer } = diContext;
 
 export { DiContextProvider };
 
@@ -40,6 +41,8 @@ export default (Component, { getPlaceholder = constant(null), getProps }) =>
           };
 
           const diForComponentContext = {
+            ...di,
+
             inject: (alias, parameter) =>
               di.inject(alias, parameter, componentContext),
 

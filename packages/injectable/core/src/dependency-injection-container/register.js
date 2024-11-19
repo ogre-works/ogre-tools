@@ -2,6 +2,7 @@ import { getNamespacedIdFor } from './getNamespacedIdFor';
 import { registrationCallbackToken } from './tokens';
 import toFlatInjectables from './toFlatInjectables';
 import { CompositeMap } from '../composite-map/composite-map';
+import { getRelatedTokens } from './getRelatedTokens';
 
 export const registerFor =
   ({ registerSingle, injectMany }) =>
@@ -65,14 +66,14 @@ export const registerSingleFor =
     namespacedIdByInjectableMap.set(injectable, namespacedId);
     instancesByInjectableMap.set(injectable, new CompositeMap());
 
-    if (injectable.injectionToken) {
-      const token = injectable.injectionToken;
+    const tokens = getRelatedTokens(injectable.injectionToken);
 
+    tokens.forEach(token => {
       const injectablesSet =
         injectablesByInjectionToken.get(token) || new Set();
 
       injectablesSet.add(injectable);
 
       injectablesByInjectionToken.set(token, injectablesSet);
-    }
+    });
   };

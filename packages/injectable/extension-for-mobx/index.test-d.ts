@@ -51,6 +51,21 @@ expectType<IComputedValue<InjectionInstanceWithMeta<string>[]>>(
   computedInjectManyWithMeta(someInjectionTokenWithParameter, 42),
 );
 
+// ...when using a more specific computedInjectManyWithMeta, typing is ok.
+expectType<IComputedValue<InjectionInstanceWithMeta<string>[]>>(
+  computedInjectManyWithMeta(
+    someInjectionTokenWithParameter.for('some-speciality'),
+    42,
+  ),
+);
+
+expectType<IComputedValue<InjectionInstanceWithMeta<string>[]>>(
+  computedInjectManyWithMeta(
+    someInjectionTokenWithParameter.for('some-speciality'),
+    42,
+  ),
+);
+
 // ...given instantiation parameter of wrong type, when using computedInjectMany, typing is not ok.
 expectError(
   computedInjectMany(someInjectionTokenWithParameter),

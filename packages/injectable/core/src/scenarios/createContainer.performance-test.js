@@ -3,7 +3,7 @@ import createContainer, {
 } from '../dependency-injection-container/createContainer';
 import getInjectable from '../getInjectable/getInjectable';
 import { range } from 'lodash/fp';
-import getInjectionToken from '../getInjectionToken/getInjectionToken';
+import { getInjectionToken } from '../getInjectionToken/getInjectionToken';
 
 const performance = require('perf_hooks').performance;
 

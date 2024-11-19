@@ -19,6 +19,44 @@ Co-authored-by: Janne Savolainen <janne.savolainen@live.fi>
 
 - Get rid of duplicated asyncComputed ([b6fd8b3](https://github.com/lensapp/ogre-tools/commit/b6fd8b3a4feac728ee3c2484191111660b1a8b34))
 
+### [18.5.3](https://github.com/lensapp/ogre-tools/compare/v18.5.2...v18.5.3) (2024-10-01)
+
+### Bug Fixes
+
+- Composite keys should be allowed to be the prefix of other unrelated composite keys ([b6290c0](https://github.com/lensapp/ogre-tools/commit/b6290c034b62d314d9c9c11dab5333595d92009e))
+- Fix typing of register and deregistering to accept injectable bunches ([c3b845e](https://github.com/lensapp/ogre-tools/commit/c3b845ea9f0d552e218a5d79c6ac051f085c28d7))
+
+### [18.5.2](https://github.com/lensapp/ogre-tools/compare/v18.5.1...v18.5.2) (2024-09-03)
+
+### Bug Fixes
+
+- Make withInjectables have access to all features of di ([974cb5f](https://github.com/lensapp/ogre-tools/commit/974cb5f193f453b64781927a61823167729a7e9b))
+
+### [18.5.1](https://github.com/lensapp/ogre-tools/compare/v18.5.0...v18.5.1) (2024-04-19)
+
+### Bug Fixes
+
+- Fix typing of different public decorators of injectable ([32aad4a](https://github.com/lensapp/ogre-tools/commit/32aad4a0a09a4287552599bb055a4e7034c098f0))
+
+## [18.5.0](https://github.com/lensapp/ogre-tools/compare/v18.4.1...v18.5.0) (2024-04-17)
+
+### Features
+
+- Introduce specificity of injection tokens ([c5fe446](https://github.com/lensapp/ogre-tools/commit/c5fe446340b889bf6d3774dc43b8a6c47d6e1400))
+- Make context menu reactive for being enabled ([1dac24f](https://github.com/lensapp/ogre-tools/commit/1dac24fb98c6d2a1d9b7d2a44afa125a32b56fe4))
+
+### [18.4.1](https://github.com/lensapp/ogre-tools/compare/v18.4.0...v18.4.1) (2024-02-12)
+
+### Bug Fixes
+
+- Fix bad export ([9a975b6](https://github.com/lensapp/ogre-tools/commit/9a975b669788057cc26d7b4eb081882b04c34ecb))
+
+## [18.4.0](https://github.com/lensapp/ogre-tools/compare/v18.3.1...v18.4.0) (2024-02-12)
+
+### Features
+
+- Make replaceTagsWithValues exported as point-free, and with typing ([af9aa41](https://github.com/lensapp/ogre-tools/commit/af9aa41077cafa05b01907fe72c5a6f2c01150f1))
+
 ### [18.3.1](https://github.com/lensapp/ogre-tools/compare/v18.3.0...v18.3.1) (2024-01-23)
 
 ### Bug Fixes

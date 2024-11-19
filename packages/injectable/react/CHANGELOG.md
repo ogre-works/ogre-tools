@@ -15,6 +15,32 @@ Co-authored-by: Janne Savolainen <janne.savolainen@live.fi>
 
 - Get rid of duplicated asyncComputed ([b6fd8b3](https://github.com/lensapp/ogre-tools/commit/b6fd8b3a4feac728ee3c2484191111660b1a8b34))
 
+### [18.5.3](https://github.com/lensapp/ogre-tools/compare/v18.5.2...v18.5.3) (2024-10-01)
+
+**Note:** Version bump only for package @lensapp/injectable-react
+
+### [18.5.2](https://github.com/lensapp/ogre-tools/compare/v18.5.1...v18.5.2) (2024-09-03)
+
+### Bug Fixes
+
+- Make withInjectables have access to all features of di ([974cb5f](https://github.com/lensapp/ogre-tools/commit/974cb5f193f453b64781927a61823167729a7e9b))
+
+### [18.5.1](https://github.com/lensapp/ogre-tools/compare/v18.5.0...v18.5.1) (2024-04-19)
+
+**Note:** Version bump only for package @lensapp/injectable-react
+
+## [18.5.0](https://github.com/lensapp/ogre-tools/compare/v18.4.1...v18.5.0) (2024-04-17)
+
+**Note:** Version bump only for package @lensapp/injectable-react
+
+### [18.4.1](https://github.com/lensapp/ogre-tools/compare/v18.4.0...v18.4.1) (2024-02-12)
+
+**Note:** Version bump only for package @lensapp/injectable-react
+
+## [18.4.0](https://github.com/lensapp/ogre-tools/compare/v18.3.1...v18.4.0) (2024-02-12)
+
+**Note:** Version bump only for package @lensapp/injectable-react
+
 ### [18.3.1](https://github.com/lensapp/ogre-tools/compare/v18.3.0...v18.3.1) (2024-01-23)
 
 **Note:** Version bump only for package @lensapp/injectable-react

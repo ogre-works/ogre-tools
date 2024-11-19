@@ -7,6 +7,34 @@ See [Conventional Commits](https://conventionalcommits.org) for commit guideline
 
 **Note:** Version bump only for package @lensapp/fp
 
+### [18.5.3](https://github.com/lensapp/ogre-tools/compare/v18.5.2...v18.5.3) (2024-10-01)
+
+**Note:** Version bump only for package @lensapp/fp
+
+### [18.5.2](https://github.com/lensapp/ogre-tools/compare/v18.5.1...v18.5.2) (2024-09-03)
+
+**Note:** Version bump only for package @lensapp/fp
+
+### [18.5.1](https://github.com/lensapp/ogre-tools/compare/v18.5.0...v18.5.1) (2024-04-19)
+
+**Note:** Version bump only for package @lensapp/fp
+
+## [18.5.0](https://github.com/lensapp/ogre-tools/compare/v18.4.1...v18.5.0) (2024-04-17)
+
+**Note:** Version bump only for package @lensapp/fp
+
+### [18.4.1](https://github.com/lensapp/ogre-tools/compare/v18.4.0...v18.4.1) (2024-02-12)
+
+### Bug Fixes
+
+- Fix bad export ([9a975b6](https://github.com/lensapp/ogre-tools/commit/9a975b669788057cc26d7b4eb081882b04c34ecb))
+
+## [18.4.0](https://github.com/lensapp/ogre-tools/compare/v18.3.1...v18.4.0) (2024-02-12)
+
+### Features
+
+- Make replaceTagsWithValues exported as point-free, and with typing ([af9aa41](https://github.com/lensapp/ogre-tools/commit/af9aa41077cafa05b01907fe72c5a6f2c01150f1))
+
 ### [18.3.1](https://github.com/lensapp/ogre-tools/compare/v18.3.0...v18.3.1) (2024-01-23)
 
 ### Bug Fixes

@@ -4,7 +4,11 @@ import getInjectable from './src/getInjectable/getInjectable';
 import isInjectable from './src/getInjectable/isInjectable';
 import lifecycleEnum from './src/dependency-injection-container/lifecycleEnum';
 
-import getInjectionToken from './src/getInjectionToken/getInjectionToken';
+import {
+  getInjectionToken,
+  getSpecificInjectionToken,
+} from './src/getInjectionToken/getInjectionToken';
+
 import isInjectionToken from './src/getInjectionToken/isInjectionToken';
 
 import getInjectableBunch from './src/getInjectableBunch/getInjectableBunch';
@@ -31,6 +35,7 @@ export {
   getInjectableBunch,
   isInjectableBunch,
   getInjectionToken,
+  getSpecificInjectionToken,
   isInjectionToken,
   lifecycleEnum,
   toFlatInjectables,

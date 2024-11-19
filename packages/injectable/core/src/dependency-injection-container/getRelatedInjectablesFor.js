@@ -2,9 +2,10 @@ import isInjectable from '../getInjectable/isInjectable';
 
 export const getRelatedInjectablesFor =
   ({ injectablesByInjectionToken, injectableSet }) =>
-  alias =>
-    isInjectable(alias)
-      ? injectableSet.has(alias)
-        ? [alias]
-        : []
-      : [...(injectablesByInjectionToken.get(alias)?.values() || [])];
+  alias => {
+    if (isInjectable(alias)) {
+      return injectableSet.has(alias) ? [alias] : [];
+    } else {
+      return [...(injectablesByInjectionToken.get(alias)?.values() || [])];
+    }
+  };
