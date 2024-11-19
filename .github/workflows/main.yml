@@ -26,7 +26,7 @@ jobs:
       - name: Install packages
         run: |
           npm ci
-          npm run install-all-packages
+          npm i -g @nx/nx-linux-x64-gnu@^16.10.0
 
       - name: Build
         run: npm run build-all-packages
