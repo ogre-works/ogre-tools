@@ -20,9 +20,9 @@
   "license": "MIT",
   "homepage": "https://github.com/lensapp/ogre-tools#readme",
   "dependencies": {
-    "@lensapp/fp": "^19.0.0",
-    "@lensapp/injectable": "^19.0.0",
-    "@lensapp/injectable-extension-for-auto-registration": "^19.0.0",
+    "@lensapp/fp": "^19.0.0 || ^20.0.0",
+    "@lensapp/injectable": "^19.0.0 || ^20.0.0",
+    "@lensapp/injectable-extension-for-auto-registration": "^19.0.0 || ^20.0.0",
     "fast-glob": "^3.2.12",
     "fs-extra": "^9.0.1",
     "lodash": "^4.17.21",
@@ -30,7 +30,7 @@
   },
   "devDependencies": {
     "@async-fn/jest": "^1.6.4",
-    "@lensapp/ogre-test-utils": "^19.0.0"
+    "@lensapp/ogre-test-utils": "^19.0.0 || ^20.0.0"
   },
   "scripts": {
     "build": "ogre-tools-build-ts",
