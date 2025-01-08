@@ -166,6 +166,22 @@ describe('withInjectables', () => {
     expect(rendered.baseElement).toMatchSnapshot();
   });
 
+  it('normally, when rendered, gets props already as layoutEffect to probably serve unit-testability in a tragically forgotten, yet meaningful scenario', () => {
+    jest.spyOn(React, 'useLayoutEffect');
+
+    const DumbTestComponent = ({ someDependency, ...props }) => (
+      <div {...props}>Some content: "{someDependency}"</div>
+    );
+
+    const SmartTestComponent = withInjectables(DumbTestComponent, {
+      getProps: () => ({}),
+    });
+
+    mount(<SmartTestComponent />);
+
+    expect(React.useLayoutEffect).toHaveBeenCalled();
+  });
+
   it('given component, when rendered, has access to full di from react context', () => {
     const DumbTestComponent = () => <div />;
 
@@ -565,10 +581,6 @@ describe('withInjectables', () => {
               runInAction(() => {
                 someProp.set('some-new-value');
               });
-            });
-
-            await act(async () => {
-              await flushPromises();
             });
 
             await act(async () => {

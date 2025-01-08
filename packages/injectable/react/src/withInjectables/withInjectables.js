@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { constant } from 'lodash/fp';
 
 import { isPromise } from '@lensapp/fp';
@@ -25,7 +25,7 @@ const ComponentOrPlaceholder = ({
 }) => {
   const [propsState, setPropsState] = useState();
 
-  useEffect(() => {
+  React.useLayoutEffect(() => {
     const maybeAsyncProps = getProps(di, nonDependencyProps);
 
     if (isPromise(maybeAsyncProps)) {
