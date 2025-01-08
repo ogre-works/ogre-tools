@@ -7,7 +7,7 @@
     "ogre-tools-build-ts": "bin/build.sh"
   },
   "dependencies": {
-    "@lensapp/infrastructure-webpack-for-js": "^19.0.0 || ^20.0.0"
+    "@lensapp/infrastructure-webpack-for-js": "^19.0.0"
   },
   "repository": {
     "type": "git",
@@ -29,7 +29,7 @@
   },
   "prettier": "@lensapp/infrastructure-prettier",
   "devDependencies": {
-    "@lensapp/infrastructure-prettier": "^19.0.0 || ^20.0.0"
+    "@lensapp/infrastructure-prettier": "^19.0.0"
   },
   "scripts": {
     "code-style:verify": "ogre-tools-verify-code-style",

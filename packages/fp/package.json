@@ -38,9 +38,9 @@
     "code-style:fix": "ogre-tools-fix-code-style"
   },
   "devDependencies": {
-    "@lensapp/infrastructure-jest": "^19.0.0 || ^20.0.0",
-    "@lensapp/infrastructure-prettier": "^19.0.0 || ^20.0.0",
-    "@lensapp/infrastructure-webpack-for-js": "^19.0.0 || ^20.0.0",
+    "@lensapp/infrastructure-jest": "^19.0.0",
+    "@lensapp/infrastructure-prettier": "^19.0.0",
+    "@lensapp/infrastructure-webpack-for-js": "^19.0.0",
     "tsd": "^0.29.0"
   }
 }

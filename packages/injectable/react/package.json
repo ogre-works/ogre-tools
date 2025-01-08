@@ -44,10 +44,10 @@
     "code-style:fix": "ogre-tools-fix-code-style"
   },
   "devDependencies": {
-    "@lensapp/infrastructure-babel-for-js": "^19.0.0 || ^20.0.0",
-    "@lensapp/infrastructure-jest": "^19.0.0 || ^20.0.0",
-    "@lensapp/infrastructure-prettier": "^19.0.0 || ^20.0.0",
-    "@lensapp/infrastructure-webpack-for-js": "^19.0.0 || ^20.0.0",
+    "@lensapp/infrastructure-babel-for-js": "^19.0.0",
+    "@lensapp/infrastructure-jest": "^19.0.0",
+    "@lensapp/infrastructure-prettier": "^19.0.0",
+    "@lensapp/infrastructure-webpack-for-js": "^19.0.0",
     "@testing-library/react": "^16.0.1"
   }
 }
