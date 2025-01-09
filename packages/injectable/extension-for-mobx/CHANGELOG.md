@@ -3,6 +3,14 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [20.0.0](https://github.com/lensapp/ogre-tools/compare/v18.5.3...v20.0.0) (2025-01-09)
+
+### Reverts
+
+- Revert "chore: Consolidate dependencies after major version bump" ([c411800](https://github.com/lensapp/ogre-tools/commit/c41180041d828f6ca4b77939384819700b3c73c2))
+
+## [19.0.0](https://github.com/lensapp/ogre-tools/compare/v18.3.1...v19.0.0) (2024-01-24)
+
 ## [19.0.0](https://github.com/lensapp/ogre-tools/compare/v18.3.1...v19.0.0) (2024-01-24)
 
 **Note:** Version bump only for package @lensapp/injectable-extension-for-mobx

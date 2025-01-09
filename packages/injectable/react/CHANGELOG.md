@@ -3,6 +3,45 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [20.0.0](https://github.com/lensapp/ogre-tools/compare/v18.5.3...v20.0.0) (2025-01-09)
+
+### ⚠ BREAKING CHANGES
+
+- Migrate to React ^18.
+
+Co-authored-by: Janne Savolainen <janne.savolainen@live.fi>
+Signed-off-by: Iku-turso <mikko.aspiala@gmail.com>
+
+### Features
+
+- Introduce way to create injectables that are also components: "getInjectableComponent" ([8c8c5ff](https://github.com/lensapp/ogre-tools/commit/8c8c5ff26581e44c97404b7f0e06785ed80c02fa))
+- Introduce way to inject injectables in components using react hook: "useInject" ([11474f9](https://github.com/lensapp/ogre-tools/commit/11474f91c0f54c46d3082813b4f693cdbc098664))
+- Use layoutEffect in withInjectables to probably serve unit-testability ([8ba8734](https://github.com/lensapp/ogre-tools/commit/8ba8734e3099fa9ed54235ea8226eed731557bf5))
+
+### Bug Fixes
+
+- Make changes in props not lose focus on inputs when using withInjectables and async deps ([eee31b9](https://github.com/lensapp/ogre-tools/commit/eee31b9e7e67b00dd178d4aa37d9e56f0bb3e1b2))
+
+### Reverts
+
+- Revert "chore: Consolidate dependencies after major version bump" ([c411800](https://github.com/lensapp/ogre-tools/commit/c41180041d828f6ca4b77939384819700b3c73c2))
+
+### Miscellaneous Chores
+
+- Drop support for React 17 ([b387379](https://github.com/lensapp/ogre-tools/commit/b38737910009306db2d2f5ed0380dc6f1160b212))
+
+## [19.0.0](https://github.com/lensapp/ogre-tools/compare/v18.3.1...v19.0.0) (2024-01-24)
+
+### ⚠ BREAKING CHANGES
+
+- Migrate to using asyncComputed in package mobx-utils
+
+Co-authored-by: Janne Savolainen <janne.savolainen@live.fi>
+
+### Miscellaneous Chores
+
+- Get rid of duplicated asyncComputed ([b6fd8b3](https://github.com/lensapp/ogre-tools/commit/b6fd8b3a4feac728ee3c2484191111660b1a8b34))
+
 ## [19.0.0](https://github.com/lensapp/ogre-tools/compare/v18.3.1...v19.0.0) (2024-01-24)
 
 ### ⚠ BREAKING CHANGES
