@@ -22,7 +22,7 @@
     "@lensapp/fp": "^18 || ^19 || ^20",
     "@lensapp/injectable": "^18 || ^19 || ^20",
     "lodash": "^4.17.21",
-    "mobx": "^6.3.0"
+    "mobx": "^6.12.4"
   },
   "bugs": {
     "url": "https://github.com/lensapp/ogre-tools/issues"
