@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [20.1.0](https://github.com/lensapp/ogre-tools/compare/v20.0.1...v20.1.0) (2025-01-13)
+
+### Features
+
+- Make injection tokens more easy to spot in error string ([c90efe1](https://github.com/lensapp/ogre-tools/commit/c90efe1d6b7644d8b32c3b5c06b3c9215a4e0f2d))
+
 ### [20.0.1](https://github.com/lensapp/ogre-tools/compare/v20.0.0...v20.0.1) (2025-01-10)
 
 **Note:** Version bump only for package @lensapp/injectable

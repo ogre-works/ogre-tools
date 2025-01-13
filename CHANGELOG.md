@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [20.1.0](https://github.com/lensapp/ogre-tools/compare/v20.0.1...v20.1.0) (2025-01-13)
+
+### Features
+
+- Introduce support for custom comparers in asyncComputed ([1bd3ad0](https://github.com/lensapp/ogre-tools/commit/1bd3ad0bcc05835afd9012a91fb669d0844cb7ef))
+- Make injection tokens more easy to spot in error string ([c90efe1](https://github.com/lensapp/ogre-tools/commit/c90efe1d6b7644d8b32c3b5c06b3c9215a4e0f2d))
+
+### Bug Fixes
+
+- Add missing typing for equality comparers of asyncComputed ([3b7604e](https://github.com/lensapp/ogre-tools/commit/3b7604ed1439671ff45acb994283f56e2ecda195))
+
 ### [20.0.1](https://github.com/lensapp/ogre-tools/compare/v20.0.0...v20.0.1) (2025-01-10)
 
 **Note:** Version bump only for package ogre-tools

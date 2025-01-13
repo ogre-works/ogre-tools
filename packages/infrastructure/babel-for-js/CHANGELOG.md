@@ -3,6 +3,10 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [20.1.0](https://github.com/lensapp/ogre-tools/compare/v20.0.1...v20.1.0) (2025-01-13)
+
+**Note:** Version bump only for package @lensapp/infrastructure-babel-for-js
+
 ### [20.0.1](https://github.com/lensapp/ogre-tools/compare/v20.0.0...v20.0.1) (2025-01-10)
 
 **Note:** Version bump only for package @lensapp/infrastructure-babel-for-js
