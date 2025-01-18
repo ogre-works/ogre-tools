@@ -7,11 +7,11 @@ import { safePipeline } from './src/pipeline/safePipeline/safePipeline';
 import mapValuesDeep from './src/mapValuesDeep/mapValuesDeep';
 import getSafeFrom from './src/getSafeFrom/getSafeFrom';
 import getFrom from './src/getFrom/getFrom';
-import firstMatchValue from './src/firstMatchValue/firstMatchValue';
+import { firstMatchValue } from './src/firstMatchValue/firstMatchValue';
 import { DeepMap } from './src/deepMap/deepMap';
 import {
   replaceTagsWithValues,
-  replaceTagsWithValuesUnsafe
+  replaceTagsWithValuesUnsafe,
 } from './src/replaceTagsWithValues/replaceTagsWithValues';
 
 export {
