@@ -7,13 +7,13 @@ module.exports = {
   entry: './index.ts',
 
   resolve: {
-    extensions: ['.ts', ...configForJs.resolve.extensions],
+    extensions: ['.ts', '.tsx', ...configForJs.resolve.extensions],
   },
 
   module: {
     rules: [
       {
-        test: /\.ts$/,
+        test: /\.tsx?$/,
         loader: 'ts-loader',
       },
 
