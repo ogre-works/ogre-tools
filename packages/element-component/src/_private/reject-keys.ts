@@ -1,10 +1,8 @@
-import { pipeline } from '@lensapp/fp';
-import { toPairs, reject, fromPairs } from 'lodash/fp';
+import { fastFlow } from './fast-flow';
 
-export const rejectKeys = (predicate: any) => (input: any) =>
-  pipeline(
-    input,
-    toPairs,
-    reject(x => predicate(x[0])),
-    fromPairs,
+export const rejectKeys = (predicate: (key: PropertyKey) => boolean) =>
+  fastFlow(
+    Object.entries,
+    (entries: any[]) => entries.filter(([key]) => !predicate(key)),
+    Object.fromEntries,
   );
