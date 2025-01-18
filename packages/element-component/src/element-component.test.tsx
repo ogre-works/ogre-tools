@@ -1,12 +1,13 @@
-import React from 'react';
-import { getElementComponent, getPlugin, Plugin } from './element';
+import * as React from 'react';
+import { getElementComponent } from './element-component';
 import { RenderResult } from '@testing-library/react';
 import { render } from '@testing-library/react';
 
 import {
   Discover,
   discoverFor,
-} from './discoverable/discovery-of-html-elements';
+} from './_private/discoverable/discovery-of-html-elements';
+import { getPlugin, Plugin } from './plugin/plugin';
 
 describe('element', () => {
   describe('given no plugins, when rendered with native HTML-props', () => {
@@ -182,5 +183,12 @@ describe('element', () => {
 
     // @ts-expect-error
     void render(<Div $somePluginProp="some-not-a-number" />);
+  });
+
+  it('given wrong type for a native prop value, when rendering, typing is not ok', () => {
+    const Div = getElementComponent('div');
+
+    // @ts-expect-error
+    void render(<Div href="some-string" />);
   });
 });
