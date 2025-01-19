@@ -7,8 +7,10 @@ import { rejectKeys } from './_private/reject-keys';
 import { withMergeOutputOverInput } from './_private/with-merge-output-over-input';
 import { fastPipeline } from './_private/fast-pipeline';
 
+type TagNames = keyof JSX.IntrinsicElements;
+
 export type ElementComponent<
-  TTagName extends keyof JSX.IntrinsicElements,
+  TTagName extends TagNames,
   TProps = {},
 > = React.ComponentType<TProps & JSX.IntrinsicElements[TTagName]>;
 
@@ -20,12 +22,12 @@ type MapPluginInputProp<T extends readonly Plugin<any, any>[]> = {
   [K in keyof T]: PluginInputProp<T[K]>;
 };
 
-export function getElementComponent<
-  TTagName extends keyof JSX.IntrinsicElements,
->(tagName: TTagName): ElementComponent<TTagName>;
+export function getElementComponent<TTagName extends TagNames>(
+  tagName: TTagName,
+): ElementComponent<TTagName>;
 
 export function getElementComponent<
-  TTagName extends keyof JSX.IntrinsicElements,
+  TTagName extends TagNames,
   PluginTuple extends readonly Plugin<any, any>[],
 >(
   tagName: TTagName,
@@ -35,9 +37,10 @@ export function getElementComponent<
   UnionToIntersection<ArrayValues<MapPluginInputProp<PluginTuple>>>
 >;
 
-export function getElementComponent<
-  TagName extends keyof JSX.IntrinsicElements,
->(tagName: TagName, ...plugins: any[]) {
+export function getElementComponent<TagName extends TagNames>(
+  tagName: TagName,
+  ...plugins: any[]
+) {
   const processedPlugins = plugins.map(withMergeOutputOverInput);
 
   return (unprocessedProps: any) => {
