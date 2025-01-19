@@ -5,6 +5,7 @@ import { isNamespaced } from './_private/namespace';
 import { Plugin } from './plugin/plugin';
 import { rejectKeys } from './_private/reject-keys';
 import { withMergeOutputOverInput } from './_private/with-merge-output-over-input';
+import { fastPipeline } from './_private/fast-pipeline';
 
 export type ElementComponent<
   TTagName extends keyof JSX.IntrinsicElements,
@@ -40,10 +41,10 @@ export function getElementComponent<
   const processedPlugins = plugins.map(withMergeOutputOverInput);
 
   return (unprocessedProps: any) => {
-    const processedProps = pipeline(
+    const processedProps = fastPipeline(
       unprocessedProps,
-      // @ts-ignore
       ...processedPlugins,
+      // @ts-ignore
       rejectKeys(isNamespaced),
     ) as JSX.IntrinsicElements[TagName];
 
