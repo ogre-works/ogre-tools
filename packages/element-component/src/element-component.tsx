@@ -1,5 +1,4 @@
 import * as React from 'react';
-import { pipeline } from '@lensapp/fp';
 import { ArrayValues, UnionToIntersection } from 'type-fest';
 import { isNamespaced } from './_private/namespace';
 import { Plugin } from './plugin/plugin';
