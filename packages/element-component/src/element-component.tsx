@@ -1,8 +1,6 @@
 import * as React from 'react';
 import { ArrayValues, UnionToIntersection } from 'type-fest';
-import { isNamespaced } from './_private/namespace';
 import { Plugin } from './plugin/plugin';
-import { rejectKeys } from './_private/reject-keys';
 import { withMergeOutputOverInput } from './_private/with-merge-output-over-input';
 import { fastPipeline } from './_private/fast-pipeline';
 
@@ -46,8 +44,6 @@ export function getElementComponent<TagName extends TagNames>(
     const processedProps = fastPipeline(
       unprocessedProps,
       ...processedPlugins,
-      // @ts-ignore
-      rejectKeys(isNamespaced),
     ) as JSX.IntrinsicElements[TagName];
 
     const TagName = tagName as React.ElementType;

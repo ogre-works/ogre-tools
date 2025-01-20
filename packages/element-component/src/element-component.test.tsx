@@ -10,6 +10,14 @@ import {
 import { getPlugin, Plugin } from './plugin/plugin';
 
 describe('element', () => {
+  beforeEach(() => {
+    jest.spyOn(console, 'error');
+  });
+
+  afterEach(() => {
+    expect(console.error).not.toHaveBeenCalled();
+  });
+
   describe('given no plugins, when rendered with native HTML-props', () => {
     let rendered: RenderResult;
 
@@ -38,6 +46,7 @@ describe('element', () => {
     beforeEach(() => {
       somePlugin = getPlugin(({ $somePluginProp }) => ({
         className: $somePluginProp,
+        $somePluginProp: undefined,
       }));
     });
 
@@ -64,6 +73,7 @@ describe('element', () => {
 
         const element = discover.getSingleElement('some-element');
 
+        // @ts-ignore
         expect(element.discovered).toHaveClass('some-plugin-prop-value');
       });
     });
@@ -73,13 +83,21 @@ describe('element', () => {
     let rendered: RenderResult;
 
     beforeEach(() => {
-      const somePlugin1 = getPlugin((props: { $somePlugin1Input: string }) => ({
-        title: `plugin1(${props.$somePlugin1Input})`,
-      }));
+      const somePlugin1 = getPlugin(
+        (props: { $somePlugin1Input?: string }) => ({
+          title: `plugin1(${props.$somePlugin1Input})`,
+          $somePlugin1Input: undefined,
+        }),
+      );
 
       const somePlugin2 = getPlugin(
-        ({ $somePlugin1Input }) => ({
-          $somePlugin1Input: `plugin2(${$somePlugin1Input})`,
+        (
+          props: { $somePlugin2Input?: string } & {
+            $somePlugin1Input?: string;
+          },
+        ) => ({
+          $somePlugin1Input: `plugin2(${props.$somePlugin2Input})`,
+          $somePlugin2Input: undefined,
         }),
 
         somePlugin1,
@@ -90,7 +108,7 @@ describe('element', () => {
       rendered = render(
         <Div
           data-some-element-test
-          $somePlugin1Input="some-plugin-prop-value"
+          $somePlugin2Input="some-plugin-prop-value"
         />,
       );
     });
@@ -104,6 +122,7 @@ describe('element', () => {
 
       const element = discover.getSingleElement('some-element');
 
+      // @ts-ignore
       expect(element.discovered).toHaveAttribute(
         'title',
         'plugin1(plugin2(some-plugin-prop-value))',
@@ -134,6 +153,7 @@ describe('element', () => {
     it('renders only the influence of last plugin', () => {
       const element = discover.getSingleElement('some-element').discovered;
 
+      // @ts-ignore
       expect(element).toHaveAttribute('title', 'some-plugin-2-value');
     });
 
@@ -165,6 +185,7 @@ describe('element', () => {
     it('renders all contributions in order', () => {
       const element = discover.getSingleElement('some-element').discovered;
 
+      // @ts-ignore
       expect(element).toHaveAttribute(
         'title',
         'plugin2(plugin1(some-prop-value))',
@@ -177,12 +198,32 @@ describe('element', () => {
   });
 
   it('given wrong type for a plugin-prop value, when rendering, typing is not ok', () => {
-    const somePlugin = getPlugin((props: { somePluginProp: number }) => ({}));
+    const somePlugin = getPlugin((props: { $somePluginProp: number }) => ({
+      $somePluginProp: undefined,
+    }));
 
     const Div = getElementComponent('div', somePlugin);
 
     // @ts-expect-error
     void render(<Div $somePluginProp="some-not-a-number" />);
+  });
+
+  it("given a plugin-prop which doesn't clean up after its input prop, when rendering, logs error", () => {
+    console.error
+      // @ts-ignore
+      .mockImplementationOnce(() => {})
+      .mockImplementationOnce(() => {});
+
+    const somePlugin = getPlugin((props: { $somePluginProp: string }) => ({}));
+
+    const Div = getElementComponent('div', somePlugin);
+
+    void render(<Div $somePluginProp="some-not-a-number" />);
+
+    expect(console.error).toHaveBeenCalledTimes(2);
+
+    // @ts-ignore
+    console.error.mockClear();
   });
 
   it('given wrong type for a native prop value, when rendering, typing is not ok', () => {

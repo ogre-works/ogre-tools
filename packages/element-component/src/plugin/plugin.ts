@@ -1,22 +1,16 @@
-import { AllHtmlAttributesAndDataAttributes } from './_private/types-of-props';
+export type Plugin<TInputProps, TOutputProps> = (
+  props: TInputProps,
+) => TOutputProps;
 
-export type Plugin<
-  TInputProps extends AllHtmlAttributesAndDataAttributes,
-  TOutputProps extends AllHtmlAttributesAndDataAttributes,
-> = (props: TInputProps) => TOutputProps;
-
-export function getPlugin<
-  TInputProps extends AllHtmlAttributesAndDataAttributes,
-  TOutputProps extends AllHtmlAttributesAndDataAttributes,
->(plugin: Plugin<TInputProps, TOutputProps>): Plugin<TInputProps, TOutputProps>;
+export function getPlugin<TInputProps, TOutputProps>(
+  plugin: Plugin<TInputProps, TOutputProps>,
+): Plugin<TInputProps, TOutputProps>;
 
 export function getPlugin<
-  TInputProps extends TDependencyInputProps &
-    AllHtmlAttributesAndDataAttributes,
-  TOutputProps extends TDependencyInputProps &
-    AllHtmlAttributesAndDataAttributes,
-  TDependencyInputProps extends AllHtmlAttributesAndDataAttributes,
-  TDependencyOutputProps extends AllHtmlAttributesAndDataAttributes,
+  TInputProps extends TDependencyInputProps,
+  TOutputProps extends TDependencyInputProps,
+  TDependencyInputProps,
+  TDependencyOutputProps,
 >(
   plugin: Plugin<TInputProps, TOutputProps>,
   dependency: Plugin<TDependencyInputProps, TDependencyOutputProps>,
