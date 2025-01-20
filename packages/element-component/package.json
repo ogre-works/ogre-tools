@@ -13,6 +13,7 @@
     "url": "git+https://github.com/lensapp/ogre-tools.git"
   },
   "main": "build/index.js",
+  "types": "build/index.d.ts",
   "files": [
     "build"
   ],
