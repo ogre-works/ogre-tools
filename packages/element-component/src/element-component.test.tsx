@@ -202,17 +202,26 @@ describe('element', () => {
     void render(<Div $somePluginProp="some-not-a-number" />);
   });
 
+  it('given plugin not cleaning up for itself, typing is not ok', () => {
+    // @ts-expect-error
+    void getPlugin<{ $somePluginProp?: number }>(() => ({
+      // Notice: this is "not cleaned up":
+      // $somePluginProp: undefined,
+    }));
+  });
+
   it("given a plugin-prop which doesn't clean up after its input prop, when rendering, logs error", () => {
     console.error
       // @ts-ignore
       .mockImplementationOnce(() => {})
       .mockImplementationOnce(() => {});
 
+    // @ts-expect-error
     const somePlugin = getPlugin<{ $somePluginProp: string }>(() => ({}));
 
     const Div = getElementComponent('div', somePlugin);
 
-    void render(<Div $somePluginProp="some-not-a-number" />);
+    void render(<Div $somePluginProp="some-string" />);
 
     expect(console.error).toHaveBeenCalledTimes(2);
 
