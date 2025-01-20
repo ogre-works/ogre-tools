@@ -1,6 +1,5 @@
 import * as React from 'react';
-import { ArrayValues, Simplify, UnionToIntersection } from 'type-fest';
-import { Plugin } from './plugin/plugin';
+import { Plugin, PropsFromPluginTuple } from './plugin/plugin';
 import { withMergeOutputOverInput } from './_private/with-merge-output-over-input';
 import { fastPipeline } from './_private/fast-pipeline';
 
@@ -11,28 +10,17 @@ export type ElementComponent<
   TProps = {},
 > = React.ComponentType<TProps & JSX.IntrinsicElements[TTagName]>;
 
-type PluginInputProp<T> = T extends Plugin<infer PluginInput, any>
-  ? PluginInput
-  : never;
-
-type MapPluginInputProp<T extends readonly Plugin<any, any>[]> = {
-  [K in keyof T]: PluginInputProp<T[K]>;
-};
-
 export function getElementComponent<TTagName extends TagNames>(
   tagName: TTagName,
 ): ElementComponent<TTagName>;
 
 export function getElementComponent<
   TTagName extends TagNames,
-  PluginTuple extends readonly Plugin<any, any>[],
+  PluginTuple extends readonly Plugin<any>[],
 >(
   tagName: TTagName,
   ...plugins: PluginTuple
-): ElementComponent<
-  TTagName,
-  Simplify<UnionToIntersection<ArrayValues<MapPluginInputProp<PluginTuple>>>>
->;
+): ElementComponent<TTagName, PropsFromPluginTuple<PluginTuple>>;
 
 export function getElementComponent<TagName extends TagNames>(
   tagName: TagName,

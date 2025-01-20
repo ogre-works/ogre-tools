@@ -1,21 +1,35 @@
-export type Plugin<TInputProps, TOutputProps> = (
-  props: TInputProps,
-) => TOutputProps;
+import { ArrayValues, UnionToIntersection } from 'type-fest';
+import { Simplify } from 'type-fest';
 
-export function getPlugin<TInputProps, TOutputProps>(
-  plugin: Plugin<TInputProps, TOutputProps>,
-): Plugin<TInputProps, TOutputProps>;
+export type Plugin<TInputProps> = (props: TInputProps) => object;
+
+type PluginInputProp<T> = T extends Plugin<infer PluginInput>
+  ? PluginInput
+  : never;
+
+type MapPluginInputProp<T extends readonly Plugin<any>[]> = {
+  [K in keyof T]: PluginInputProp<T[K]>;
+};
+
+export type PropsFromPluginTuple<PluginTuple extends readonly Plugin<any>[]> =
+  Simplify<UnionToIntersection<ArrayValues<MapPluginInputProp<PluginTuple>>>>;
+
+type PluginWithDependencies<
+  TInputProps,
+  TDependencyPluginTuple extends readonly Plugin<any>[],
+> = Simplify<TInputProps & PropsFromPluginTuple<TDependencyPluginTuple>>;
+
+export function getPlugin<TInputProps>(
+  plugin: Plugin<TInputProps>,
+): Plugin<TInputProps>;
 
 export function getPlugin<
-  TInputProps extends TDependencyInputProps,
-  TOutputProps extends TDependencyInputProps,
-  TDependencyInputProps,
-  TDependencyOutputProps,
+  TInputProps,
+  TDependencyPluginTuple extends readonly Plugin<any>[],
 >(
-  plugin: Plugin<TInputProps, TOutputProps>,
-  dependency: Plugin<TDependencyInputProps, TDependencyOutputProps>,
-): Plugin<TInputProps, TOutputProps>;
+  plugin: Plugin<PluginWithDependencies<TInputProps, TDependencyPluginTuple>>,
+): Plugin<PluginWithDependencies<TInputProps, TDependencyPluginTuple>>;
 
-export function getPlugin(...args: any[]) {
-  return args[0];
+export function getPlugin(plugin: any) {
+  return plugin;
 }

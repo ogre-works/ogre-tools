@@ -42,7 +42,7 @@ describe('element', () => {
   });
 
   describe('given plugin', () => {
-    let somePlugin: Plugin<{ $somePluginProp: string }, { className: string }>;
+    let somePlugin: Plugin<{ $somePluginProp: string }>;
 
     beforeEach(() => {
       somePlugin = getPlugin(({ $somePluginProp }) => ({
@@ -84,25 +84,18 @@ describe('element', () => {
     let rendered: RenderResult;
 
     beforeEach(() => {
-      const somePlugin1 = getPlugin(
-        (props: { $somePlugin1Input?: string }) => ({
-          title: `plugin1(${props.$somePlugin1Input})`,
-          $somePlugin1Input: undefined,
-        }),
-      );
+      const somePlugin1 = getPlugin<{ $somePlugin1Input?: string }>(props => ({
+        title: `plugin1(${props.$somePlugin1Input})`,
+        $somePlugin1Input: undefined,
+      }));
 
-      const somePlugin2 = getPlugin(
-        (
-          props: { $somePlugin2Input?: string } & {
-            $somePlugin1Input?: string;
-          },
-        ) => ({
-          $somePlugin1Input: `plugin2(${props.$somePlugin2Input})`,
-          $somePlugin2Input: undefined,
-        }),
-
-        somePlugin1,
-      );
+      const somePlugin2 = getPlugin<
+        { $somePlugin2Input?: string },
+        [typeof somePlugin1]
+      >(props => ({
+        $somePlugin1Input: `plugin2(${props.$somePlugin2Input})`,
+        $somePlugin2Input: undefined,
+      }));
 
       const Div = getElementComponent('div', somePlugin2, somePlugin1);
 
@@ -199,7 +192,7 @@ describe('element', () => {
   });
 
   it('given wrong type for a plugin-prop value, when rendering, typing is not ok', () => {
-    const somePlugin = getPlugin((props: { $somePluginProp: number }) => ({
+    const somePlugin = getPlugin<{ $somePluginProp: number }>(() => ({
       $somePluginProp: undefined,
     }));
 
@@ -215,7 +208,7 @@ describe('element', () => {
       .mockImplementationOnce(() => {})
       .mockImplementationOnce(() => {});
 
-    const somePlugin = getPlugin((props: { $somePluginProp: string }) => ({}));
+    const somePlugin = getPlugin<{ $somePluginProp: string }>(() => ({}));
 
     const Div = getElementComponent('div', somePlugin);
 
