@@ -7,6 +7,7 @@ import {
   Discover,
   discoverFor,
 } from './_private/discoverable/discovery-of-html-elements';
+
 import { getPlugin, Plugin } from './plugin/plugin';
 
 describe('element', () => {

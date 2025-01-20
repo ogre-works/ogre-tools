@@ -1,2 +1,7 @@
-export { getElementComponent } from './src/element-component';
+export {
+  getElementComponent,
+  ElementComponent,
+  TagNames,
+} from './src/element-component';
+
 export { getPlugin, Plugin } from './src/plugin/plugin';

@@ -1,10 +1,10 @@
 import * as React from 'react';
-import { ArrayValues, UnionToIntersection } from 'type-fest';
+import { ArrayValues, Simplify, UnionToIntersection } from 'type-fest';
 import { Plugin } from './plugin/plugin';
 import { withMergeOutputOverInput } from './_private/with-merge-output-over-input';
 import { fastPipeline } from './_private/fast-pipeline';
 
-type TagNames = keyof JSX.IntrinsicElements;
+export type TagNames = keyof JSX.IntrinsicElements;
 
 export type ElementComponent<
   TTagName extends TagNames,
@@ -31,7 +31,7 @@ export function getElementComponent<
   ...plugins: PluginTuple
 ): ElementComponent<
   TTagName,
-  UnionToIntersection<ArrayValues<MapPluginInputProp<PluginTuple>>>
+  Simplify<UnionToIntersection<ArrayValues<MapPluginInputProp<PluginTuple>>>>
 >;
 
 export function getElementComponent<TagName extends TagNames>(
