@@ -1,6 +1,6 @@
-import React, { Suspense, forwardRef, useContext } from 'react';
+import React, { forwardRef, Suspense, useContext } from 'react';
 
-import { getInjectable } from '@lensapp/injectable';
+import { getInjectable, lifecycleEnum } from '@lensapp/injectable';
 import { useInject } from '../useInject/useInject';
 import {
   diContext,
@@ -15,7 +15,7 @@ export const getInjectableComponent = ({
   tags,
   injectionToken,
 }) => {
-  const disByInjectedComponent = new Map();
+  let diForComponentContext;
 
   const normalInjectable = getInjectable({
     id,
@@ -24,24 +24,18 @@ export const getInjectableComponent = ({
     tags,
 
     instantiate: di => {
-      // Clone component by wrapping it in HOC to create a di-specific reference for it.
-      const clonedComponent = forwardRef((props, ref) => (
-        <Component {...props} ref={ref} />
-      ));
+      diForComponentContext = di;
 
-      disByInjectedComponent.set(clonedComponent, di);
-
-      return clonedComponent;
+      return Component;
     },
+
+    lifecycle: lifecycleEnum.transient,
   });
 
   const InjectableComponent = Object.assign(
     forwardRef((props, ref) => {
       const { di: failSafeDi } = useContext(diContext);
       const InjectedComponent = useInject(InjectableComponent);
-
-      const diForComponentContext =
-        disByInjectedComponent.get(InjectedComponent);
 
       return (
         <DiContextProvider value={{ di: diForComponentContext || failSafeDi }}>

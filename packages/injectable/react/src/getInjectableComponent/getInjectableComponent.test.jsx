@@ -224,8 +224,7 @@ describe('getInjectableComponent', () => {
     );
 
     expect(someError2).toBe(
-      // Notice: the context is within "some-parent-injectable-component", and not within "some-other-parent-injectable-component", where the error2 actually originates.
-      'Tried to inject non-registered injectable "some-container" -> "some-parent-injectable-component" -> "some-child-injectable-component" -> "some-non-registered-injectable".',
+      'Tried to inject non-registered injectable "some-container" -> "some-other-parent-injectable-component" -> "some-child-injectable-component" -> "some-non-registered-injectable".',
     );
   });
 
@@ -570,6 +569,45 @@ describe('getInjectableComponent', () => {
       'component-in-di-1': ['some-value-in-di-1', 'some-value-in-di-1'],
       'component-in-di-2': ['some-value-in-di-2'],
     });
+  });
+
+  it('given component which has itself as children, and finally an unregistered component as children, when rendered, throws full path', () => {
+    const di = createContainer('some-container-1', { detectCycles: false });
+
+    const SomeComponent = getInjectableComponent({
+      id: 'some-injectable-component',
+
+      Component: props => <div {...props} />,
+    });
+
+    const SomeNonRegisteredComponent = getInjectableComponent({
+      id: 'some-non-registered-injectable-component',
+      Component: () => <div />,
+    });
+
+    di.register(
+      SomeComponent,
+      // Note: not registered.
+      // SomeNonRegisteredComponent
+    );
+
+    const onRenderingErrorMock = jest.fn();
+
+    const mount = mountFor(di, onRenderingErrorMock);
+
+    withSuppressedConsoleError(() => {
+      mount(
+        <SomeComponent>
+          <SomeComponent>
+            <SomeNonRegisteredComponent />
+          </SomeComponent>
+        </SomeComponent>,
+      );
+    });
+
+    expect(onRenderingErrorMock).toHaveBeenCalledWith(
+      'Tried to inject non-registered injectable "some-container-1" -> "some-injectable-component" -> "some-injectable-component" -> "some-non-registered-injectable-component".',
+    );
   });
 });
 
