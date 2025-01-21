@@ -1,0 +1,10 @@
+{
+  "extends": "@lensapp/infrastructure-typescript/config/base.json",
+
+  "files": ["./index.ts"],
+
+  "compilerOptions": {
+    "declarationDir": "./build",
+    "jsx": "react"
+  },
+}

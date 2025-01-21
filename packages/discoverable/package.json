@@ -1,0 +1,47 @@
+{
+  "name": "@lensapp/discoverable",
+  "private": false,
+  "version": "20.1.0",
+  "description": "A test-utility to control HTML-elements using data-attributes",
+  "type": "commonjs",
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lensapp/ogre-tools.git"
+  },
+  "main": "build/index.js",
+  "types": "build/index.d.ts",
+  "files": [
+    "build"
+  ],
+  "author": "Ogre Works",
+  "license": "MIT",
+  "homepage": "https://github.com/lensapp/ogre-tools#readme",
+  "peerDependencies": {
+    "@lensapp/fp": "^16 || ^17 || ^18 || ^19 || ^20",
+    "@testing-library/react": "^16.0.1",
+    "@testing-library/dom": "^10.4.0",
+    "@testing-library/user-event": "^14.5.2",
+    "@lensapp/ogre-test-utils": "^20.1.0",
+    "lodash": "^4.17.21",
+    "react": "^18",
+    "react-dom": "^18"
+  },
+  "devDependencies": {
+    "@async-fn/jest": "^1.6.4",
+    "type-fest": "^4.27.0",
+    "@lensapp/infrastructure-jest": "^20.1.0",
+    "@lensapp/infrastructure-babel-for-ts": "^20.1.0",
+    "@lensapp/infrastructure-prettier": "^20.1.0",
+    "@lensapp/infrastructure-webpack-for-ts": "^20.1.0"
+  },
+  "scripts": {
+    "build": "ogre-tools-build-ts",
+    "test": "ogre-tools-test",
+    "code-style:verify": "ogre-tools-verify-code-style",
+    "code-style:fix": "ogre-tools-fix-code-style"
+  }
+}
