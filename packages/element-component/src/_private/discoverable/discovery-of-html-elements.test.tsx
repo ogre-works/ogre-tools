@@ -59,6 +59,7 @@ describe('discovery-of-html-elements', () => {
         discover
           .queryAllElements('some-other-attribute', 'some-value')
           .getSingleElement('some-third-attribute', '10').discovered,
+        // @ts-ignore
       ).toBeInTheDocument();
     });
   });
