@@ -44,6 +44,7 @@
     "code-style:fix": "ogre-tools-fix-code-style"
   },
   "devDependencies": {
+    "@lensapp/discoverable": "^20.1.0",
     "@lensapp/infrastructure-babel-for-js": "^20.1.0",
     "@lensapp/infrastructure-jest": "^20.1.0",
     "@lensapp/infrastructure-prettier": "^20.1.0",

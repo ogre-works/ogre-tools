@@ -15,7 +15,7 @@ export const getInjectableComponent = ({
   tags,
   injectionToken,
 }) => {
-  let diForComponentContext;
+  const disByInjectedComponent = new Map();
 
   const normalInjectable = getInjectable({
     id,
@@ -24,9 +24,14 @@ export const getInjectableComponent = ({
     tags,
 
     instantiate: di => {
-      diForComponentContext = di;
+      // Clone component by wrapping it in HOC to create a di-specific reference for it.
+      const clonedComponent = forwardRef((props, ref) => (
+        <Component {...props} ref={ref} />
+      ));
 
-      return Component;
+      disByInjectedComponent.set(clonedComponent, di);
+
+      return clonedComponent;
     },
   });
 
@@ -34,6 +39,9 @@ export const getInjectableComponent = ({
     forwardRef((props, ref) => {
       const { di: failSafeDi } = useContext(diContext);
       const InjectedComponent = useInject(InjectableComponent);
+
+      const diForComponentContext =
+        disByInjectedComponent.get(InjectedComponent);
 
       return (
         <DiContextProvider value={{ di: diForComponentContext || failSafeDi }}>

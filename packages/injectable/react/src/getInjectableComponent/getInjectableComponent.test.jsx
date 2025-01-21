@@ -12,6 +12,7 @@ import { DiContextProvider } from '../withInjectables/withInjectables';
 import { getInjectableComponent } from './getInjectableComponent';
 import { isPromise } from '@lensapp/fp';
 import { useInject } from '../useInject/useInject';
+import { discoverFor } from '@lensapp/discoverable';
 
 describe('getInjectableComponent', () => {
   let di;
@@ -499,6 +500,76 @@ describe('getInjectableComponent', () => {
     expect(SomeComponent.displayName).toBe(
       'InjectableComponent(some-injectable-component)',
     );
+  });
+
+  it('given different dis, and same injectable component, when rendered in one di, another one, and first one again, the component remains di-specific', () => {
+    const di1 = createContainer('some-container-1', { detectCycles: false });
+    const di2 = createContainer('some-container-2', { detectCycles: false });
+
+    const someInjectionToken = getInjectionToken({
+      id: 'some-token',
+    });
+
+    const someInjectableInDi1 = getInjectable({
+      id: 'some-injectable-1',
+      instantiate: di => 'some-value-in-di-1',
+      injectionToken: someInjectionToken,
+    });
+
+    const someInjectableInDi2 = getInjectable({
+      id: 'some-injectable-2',
+      instantiate: di => 'some-value-in-di-2',
+      injectionToken: someInjectionToken,
+    });
+
+    const SomeComponent = getInjectableComponent({
+      id: 'some-injectable-component',
+
+      Component: props => {
+        const someDiSpecificValue = useInject(someInjectionToken);
+
+        return (
+          <div data-di-specific-value-test={someDiSpecificValue} {...props} />
+        );
+      },
+    });
+
+    di1.register(SomeComponent, someInjectableInDi1);
+    di2.register(SomeComponent, someInjectableInDi2);
+
+    const rendered = render(
+      <div>
+        <DiContextProvider value={{ di: di1 }}>
+          <SomeComponent data-component-in-di-1-test />
+        </DiContextProvider>
+
+        <DiContextProvider value={{ di: di2 }}>
+          <SomeComponent data-component-in-di-2-test />
+        </DiContextProvider>
+
+        <DiContextProvider value={{ di: di1 }}>
+          <SomeComponent data-component-in-di-1-test />
+        </DiContextProvider>
+      </div>,
+    );
+
+    const discover = discoverFor(() => rendered);
+
+    const actualDiSpecificValuesOfComponent = {
+      'component-in-di-1': discover
+        .queryAllElements('component-in-di-1')
+        .getAttributes('di-specific-value'),
+
+      'component-in-di-2': discover
+        .queryAllElements('component-in-di-2')
+        .getAttributes('di-specific-value'),
+    };
+
+    expect(actualDiSpecificValuesOfComponent).toEqual({
+      // Note: same value twice for being rendered again.
+      'component-in-di-1': ['some-value-in-di-1', 'some-value-in-di-1'],
+      'component-in-di-2': ['some-value-in-di-2'],
+    });
   });
 });
 
