@@ -30,7 +30,8 @@
   },
   "devDependencies": {
     "@async-fn/jest": "^1.6.4",
-    "@lensapp/ogre-test-utils": "^20.1.0"
+    "@lensapp/ogre-test-utils": "^20.1.0",
+    "@types/fs-extra": "^9.0.13"
   },
   "scripts": {
     "build": "ogre-tools-build-ts",

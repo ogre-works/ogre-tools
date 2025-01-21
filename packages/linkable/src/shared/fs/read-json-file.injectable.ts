@@ -23,9 +23,9 @@ export const readJsonFileInjectable = getInjectable({
 
       try {
         return await readJsonFileLol(path);
-      } catch ({ message }) {
+      } catch (error: any) {
         throw new Error(
-          `Tried to read file "${path}", but error was thrown: "${message}"`,
+          `Tried to read file "${path}", but error was thrown: "${error.message}"`,
         );
       }
     },
