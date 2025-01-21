@@ -3,10 +3,7 @@ import { getElementComponent } from './element-component';
 import { RenderResult } from '@testing-library/react';
 import { render } from '@testing-library/react';
 
-import {
-  Discover,
-  discoverFor,
-} from './_private/discoverable/discovery-of-html-elements';
+import { Discover, discoverFor } from '@lensapp/discoverable';
 
 import { getPlugin, Plugin } from './plugin/plugin';
 

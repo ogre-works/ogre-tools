@@ -29,6 +29,7 @@
   "devDependencies": {
     "@async-fn/jest": "^1.6.4",
     "type-fest": "^4.27.0",
+    "@lensapp/discoverable": "^20.1.0",
     "@lensapp/ogre-test-utils": "^20.1.0",
     "@lensapp/infrastructure-jest": "^20.1.0",
     "@lensapp/infrastructure-babel-for-ts": "^20.1.0",
