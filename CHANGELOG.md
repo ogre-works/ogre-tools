@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [20.2.0](https://github.com/lensapp/ogre-tools/compare/v20.1.0...v20.2.0) (2025-01-22)
+
+### Features
+
+- Introduce "discoverable", a test-utility to control HTML-elements using data-attributes ([eece23a](https://github.com/lensapp/ogre-tools/commit/eece23a115d1cb0e8a1781b0cc3ad5c04179c179))
+- Introduce first draft of the ElementComponent, ie. reusable React-props ([a7b9b92](https://github.com/lensapp/ogre-tools/commit/a7b9b924fc6468dd9d742bc35117016e0f872996))
+
+### Bug Fixes
+
+- Make an injectableComponent not confuse different dis ([e102d98](https://github.com/lensapp/ogre-tools/commit/e102d98b53cc246496f3a520208468e5a931c395))
+
 ## [20.1.0](https://github.com/lensapp/ogre-tools/compare/v20.0.1...v20.1.0) (2025-01-13)
 
 ### Features

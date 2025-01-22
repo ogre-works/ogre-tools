@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [20.2.0](https://github.com/lensapp/ogre-tools/compare/v20.1.0...v20.2.0) (2025-01-22)
+
+### Bug Fixes
+
+- Make an injectableComponent not confuse different dis ([e102d98](https://github.com/lensapp/ogre-tools/commit/e102d98b53cc246496f3a520208468e5a931c395))
+
 ## [20.1.0](https://github.com/lensapp/ogre-tools/compare/v20.0.1...v20.1.0) (2025-01-13)
 
 **Note:** Version bump only for package @lensapp/injectable-react

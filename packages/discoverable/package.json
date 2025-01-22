@@ -1,7 +1,7 @@
 {
   "name": "@lensapp/discoverable",
   "private": false,
-  "version": "20.1.0",
+  "version": "20.2.0",
   "description": "A test-utility to control HTML-elements using data-attributes",
   "type": "commonjs",
   "publishConfig": {
@@ -22,21 +22,21 @@
   "homepage": "https://github.com/lensapp/ogre-tools#readme",
   "peerDependencies": {
     "@lensapp/fp": "^16 || ^17 || ^18 || ^19 || ^20",
-    "@testing-library/react": "^16.0.1",
-    "@testing-library/dom": "^10.4.0",
-    "@testing-library/user-event": "^14.5.2",
     "@lensapp/ogre-test-utils": "^20.1.0",
+    "@testing-library/dom": "^10.4.0",
+    "@testing-library/react": "^16.0.1",
+    "@testing-library/user-event": "^14.5.2",
     "lodash": "^4.17.21",
     "react": "^18",
     "react-dom": "^18"
   },
   "devDependencies": {
     "@async-fn/jest": "^1.6.4",
-    "type-fest": "^4.27.0",
-    "@lensapp/infrastructure-jest": "^20.1.0",
-    "@lensapp/infrastructure-babel-for-ts": "^20.1.0",
-    "@lensapp/infrastructure-prettier": "^20.1.0",
-    "@lensapp/infrastructure-webpack-for-ts": "^20.1.0"
+    "@lensapp/infrastructure-babel-for-ts": "^20.2.0",
+    "@lensapp/infrastructure-jest": "^20.2.0",
+    "@lensapp/infrastructure-prettier": "^20.2.0",
+    "@lensapp/infrastructure-webpack-for-ts": "^20.2.0",
+    "type-fest": "^4.27.0"
   },
   "scripts": {
     "build": "ogre-tools-build-ts",
