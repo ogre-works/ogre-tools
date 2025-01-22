@@ -32,7 +32,7 @@ export function getPlugin<TInputProps>(
 
 export function getPlugin<
   TInputProps,
-  TDependencyPluginTuple extends readonly Plugin[],
+  TDependencyPluginTuple extends readonly Plugin<any, any>[],
 >(
   plugin: Plugin<
     PluginInputPropsWithDependencies<TInputProps, TDependencyPluginTuple>,
