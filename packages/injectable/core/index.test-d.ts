@@ -63,7 +63,7 @@ if (isInjectionToken(foo)) {
 }
 
 if (isInjectableBunch(foo)) {
-  expectType<InjectableBunch<unknown>>(foo);
+  expectType<InjectableBunch<any>>(foo);
 }
 
 const x1: boolean = isInjectable(foo);
@@ -541,17 +541,28 @@ di.purgeAllButOverrides();
 
 // given injectable bunch, typing is ok
 const someInjectableBunch = getInjectableBunch({
-  someInjectable: {
+  someInjectable: getInjectable({
     id: 'some-injectable',
+
     instantiate: (di: DiContainerForInjection, parameter: number) =>
       `some-instance-${parameter}`,
+
     lifecycle: lifecycleEnum.transient,
-  },
+  }),
 });
 
 expectType<{ someInjectable: Injectable<string, unknown, number> }>(
   someInjectableBunch,
 );
+
+// given injectable bunch with unrelated, non-injectable properties, typing is ok and still contains all properties
+const bunchContent = {
+  someCompletelyUnrelatedProperty: 'irrelevant',
+};
+
+const someInjectableBunch2 = getInjectableBunch(bunchContent);
+
+expectType<typeof bunchContent>(someInjectableBunch2);
 
 expectType<{ keys: [1, 2, 3] }>(getKeyedSingletonCompositeKey(1, 2, 3));
 

@@ -124,17 +124,11 @@ export function getInjectable<
   >,
 ): Injectable<InjectionInstance, InjectionTokenInstance, InstantiationParam>;
 
-type InjectableBunch<InjectableConfig> = {
-  [Key in keyof InjectableConfig]: InjectableConfig[Key] extends Injectable<
-    infer InjectionInstance,
-    infer InjectionTokenInstance,
-    infer InstantiationParam
-  >
-    ? Injectable<InjectionInstance, InjectionTokenInstance, InstantiationParam>
-    : never;
-};
+export type InjectableBunch<InjectableConfig extends object> = InjectableConfig;
 
-export function getInjectableBunch<Type>(bunch: Type): InjectableBunch<Type>;
+export function getInjectableBunch<Type extends object>(
+  bunch: Type,
+): InjectableBunch<Type>;
 
 export function getInjectionToken<
   InjectionInstance,
@@ -450,7 +444,7 @@ export const isInjectable: (
 ) => thing is Injectable<unknown, unknown, unknown>;
 export const isInjectableBunch: (
   thing: unknown,
-) => thing is InjectableBunch<unknown>;
+) => thing is InjectableBunch<any>;
 export const isInjectionToken: (
   thing: unknown,
 ) => thing is InjectionToken<unknown, unknown>;

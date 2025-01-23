@@ -99,10 +99,10 @@ describe('autoRegister', () => {
 
   it('given file with injectable bunch as export and auto-registered, when an injectable in bunch is injected, does so', () => {
     const someInjectableBunch = getInjectableBunch({
-      someInjectable: {
+      someInjectable: getInjectable({
         id: 'irrelevant',
         instantiate: () => 'some-injected-instance',
-      },
+      }),
     });
 
     const requireStub = {

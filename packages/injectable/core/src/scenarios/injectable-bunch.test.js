@@ -22,15 +22,15 @@ describe('injectable-bunch', () => {
 
     beforeEach(() => {
       bunch = getInjectableBunch({
-        someInjectable: {
+        someInjectable: getInjectable({
           id: 'some-injectable',
           instantiate: () => 'some-instance',
-        },
+        }),
 
-        someOtherInjectable: {
+        someOtherInjectable: getInjectable({
           id: 'irrelevant',
           instantiate: () => 'irrelevant',
-        },
+        }),
       });
 
       di.register(bunch);
@@ -53,6 +53,64 @@ describe('injectable-bunch', () => {
     });
   });
 
+  describe('given a bunch containing injectables injecting each other, and registered', () => {
+    let bunch;
+
+    beforeEach(() => {
+      const someOtherInjectable = getInjectable({
+        id: 'irrelevant',
+        instantiate: () => 'some-instance-2',
+      });
+
+      const someInjectable = getInjectable({
+        id: 'some-injectable',
+
+        instantiate: di => {
+          const someOtherInstance = di.inject(someOtherInjectable);
+
+          return `some-instance-1(${someOtherInstance})`;
+        },
+      });
+
+      bunch = getInjectableBunch({
+        someInjectable,
+        someOtherInjectable,
+      });
+
+      di.register(bunch);
+    });
+
+    it('when injecting, instances of all related injectables get injected', () => {
+      const actual = di.inject(bunch.someInjectable);
+
+      expect(actual).toBe('some-instance-1(some-instance-2)');
+    });
+  });
+
+  describe('given a bunch containing injectable-imitators and registered', () => {
+    let bunch;
+
+    beforeEach(() => {
+      bunch = getInjectableBunch({
+        // Notice: lack of getInjectable makes this just an injectable-like
+        someInjectableLike: {
+          id: 'some-injectable-imitator',
+          instantiate: () => 'some-instance',
+        },
+      });
+
+      di.register(bunch);
+    });
+
+    it('when injecting one of the injectable-imitators, throws', () => {
+      expect(() => {
+        di.inject(bunch.someInjectableLike);
+      }).toThrow(
+        'Tried to inject non-registered injectable "some-container" -> "some-injectable-imitator".',
+      );
+    });
+  });
+
   describe('given a bunch containing multiple injectables and registered late', () => {
     let someInjectableBunch;
     let someInjectionToken;
@@ -63,16 +121,16 @@ describe('injectable-bunch', () => {
       });
 
       someInjectableBunch = getInjectableBunch({
-        someInjectable: {
+        someInjectable: getInjectable({
           id: 'some-injectable',
           instantiate: () => 'some-instance',
           injectionToken: someInjectionToken,
-        },
+        }),
 
-        someOtherInjectable: {
+        someOtherInjectable: getInjectable({
           id: 'irrelevant',
           instantiate: () => 'irrelevant',
-        },
+        }),
       });
 
       const someLateRegistererInjectable = getInjectable({
