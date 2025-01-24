@@ -97,6 +97,12 @@ describe('injectable-bunch', () => {
           id: 'some-injectable-imitator',
           instantiate: () => 'some-instance',
         },
+
+        someObject: {
+          someProperty: 'irrelevant',
+        },
+
+        someString: 'irrelevant',
       });
 
       di.register(bunch);
@@ -107,6 +113,67 @@ describe('injectable-bunch', () => {
         di.inject(bunch.someInjectableLike);
       }).toThrow(
         'Tried to inject non-registered injectable "some-container" -> "some-injectable-imitator".',
+      );
+    });
+  });
+
+  describe('given a bunch containing a nested bunch, when registered', () => {
+    let rootBunch;
+
+    beforeEach(() => {
+      rootBunch = getInjectableBunch({
+        nestedBunch: getInjectableBunch({
+          someInjectable: getInjectable({
+            id: 'some-injectable',
+            instantiate: () => 'some-instance',
+          }),
+        }),
+      });
+
+      di.register(rootBunch);
+    });
+
+    it('when injecting an injectable from the nested bunch, does so', () => {
+      const actual = di.inject(rootBunch.nestedBunch.someInjectable);
+
+      expect(actual).toBe('some-instance');
+    });
+
+    it('given root bunch is deregistered, when injecting an injectable from the nested bunch, throws', () => {
+      di.deregister(rootBunch);
+
+      expect(() => {
+        di.inject(rootBunch.nestedBunch.someInjectable);
+      }).toThrow(
+        'Tried to inject non-registered injectable "some-container" -> "some-injectable".',
+      );
+    });
+
+    it('given nested bunch is deregistered, when injecting an injectable from the nested bunch, throws', () => {
+      di.deregister(rootBunch.nestedBunch);
+
+      expect(() => {
+        di.inject(rootBunch.nestedBunch.someInjectable);
+      }).toThrow(
+        'Tried to inject non-registered injectable "some-container" -> "some-injectable".',
+      );
+    });
+
+    it('given nested bunch is deregistered, when weirdly also root bunch is deregistered, throws', () => {
+      di.deregister(rootBunch.nestedBunch);
+
+      expect(() => {
+        di.deregister(rootBunch);
+      }).toThrow(
+        'Tried to deregister non-registered injectable "some-injectable".',
+      );
+    });
+
+    it('when weirdly both root and nested bunch are deregistered, throws', () => {
+      expect(() => {
+        di.deregister(rootBunch, rootBunch.nestedBunch);
+      }).toThrow(
+        'Tried to deregister non-registered injectable "some-injectable".',
       );
     });
   });
