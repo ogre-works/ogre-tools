@@ -40,7 +40,7 @@ export const getInjectableComponent = ({
       return (
         <DiContextProvider value={{ di: diForComponentContext || failSafeDi }}>
           {PlaceholderComponent ? (
-            <Suspense fallback={<PlaceholderComponent />}>
+            <Suspense fallback={<PlaceholderComponent {...props} />}>
               <InjectedComponent {...props} ref={ref} />
             </Suspense>
           ) : (

@@ -7,6 +7,7 @@ import {
   createContainer,
   getInjectable,
   getInjectionToken,
+  lifecycleEnum,
 } from '@lensapp/injectable';
 import { DiContextProvider } from '../withInjectables/withInjectables';
 import { getInjectableComponent } from './getInjectableComponent';
@@ -608,6 +609,48 @@ describe('getInjectableComponent', () => {
     expect(onRenderingErrorMock).toHaveBeenCalledWith(
       'Tried to inject non-registered injectable "some-container-1" -> "some-injectable-component" -> "some-injectable-component" -> "some-non-registered-injectable-component".',
     );
+  });
+
+  it('given an injectable component with some placeholder that accepts some props > when the component suspense > shows the placeholder with the original props', () => {
+    const di = createContainer('some-container-1', { detectCycles: false });
+    const someFn = asyncFn();
+
+    const someAsyncValueInjectable = getInjectable({
+      id: 'some-async-value',
+      instantiate: (di, name) => someFn(name),
+      lifecycle: lifecycleEnum.keyedSingleton({
+        getInstanceKey: (di, name) => name,
+      }),
+    });
+
+    const SomeComponent = getInjectableComponent({
+      id: 'some-injectable-component',
+      Component: props => {
+        const someValue = useInject(someAsyncValueInjectable, props.name);
+
+        return <div data-some-value-test={someValue} />;
+      },
+      PlaceholderComponent: ({ name }) => (
+        <div data-some-placeholder-with-name-test={name} />
+      ),
+    });
+
+    di.register(someAsyncValueInjectable, SomeComponent);
+
+    const rendered = render(
+      <div>
+        <DiContextProvider value={{ di }}>
+          <SomeComponent name="some-name" />
+        </DiContextProvider>
+      </div>,
+    );
+
+    const discover = discoverFor(() => rendered);
+
+    expect(
+      discover.getSingleElement('some-placeholder-with-name', 'some-name')
+        .discovered,
+    ).toBeInTheDocument();
   });
 });
 

@@ -77,6 +77,27 @@ expectAssignable<Injectable<React.ComponentType>>(
   InjectableComponentUsingPlaceholder,
 );
 
+// given a placeholder that uses props, typing is ok
+const InjectableComponentUsingPlaceholderThatUsesProps = getInjectableComponent(
+  {
+    id: 'irrelevant',
+    Component: SomeFunctionalComponentUsingProps,
+    PlaceholderComponent: ({ someProp }) => <div>{someProp}</div>,
+  },
+);
+
+expectAssignable<React.ComponentType<{ someProp: string }>>(
+  InjectableComponentUsingPlaceholderThatUsesProps,
+);
+
+expectError(
+  getInjectableComponent({
+    id: 'irrelevant',
+    Component: SomeFunctionalComponentUsingProps,
+    PlaceholderComponent: ({ someProp2 }) => <div>{someProp2}</div>,
+  }),
+);
+
 // given causing a side-effect, typing is ok
 const InjectableComponentCausingSideEffect = getInjectableComponent({
   id: 'irrelevant',

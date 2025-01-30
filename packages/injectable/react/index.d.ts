@@ -23,7 +23,7 @@ export function getInjectableComponent<Props, TokenProps extends Props>(
     'instantiate' | 'lifecycle' | 'scope' | 'decorable'
   > & {
     Component: React.ComponentType<Props>;
-    PlaceholderComponent?: React.ComponentType;
+    PlaceholderComponent?: React.ComponentType<Props>;
     injectionToken?: InjectionToken<React.ComponentType<TokenProps>>;
   },
 ): React.ComponentType<Props> & Injectable<React.ComponentType<Props>>;
