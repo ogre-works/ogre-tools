@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [20.4.0](https://github.com/lensapp/ogre-tools/compare/v20.3.0...v20.4.0) (2025-01-30)
+
+### Features
+
+- Support PlaceholderComponents to consume the props of an InjectableComponent ([404f697](https://github.com/lensapp/ogre-tools/commit/404f6976aea5eefca882e02533b7888d537e437e))
+
 ## [20.3.0](https://github.com/lensapp/ogre-tools/compare/v20.2.1...v20.3.0) (2025-01-30)
 
 ### Features
