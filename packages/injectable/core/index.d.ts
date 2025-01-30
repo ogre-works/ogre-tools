@@ -457,3 +457,19 @@ export function createContainer(
 export function getKeyedSingletonCompositeKey<T extends [...unknown[]]>(
   ...keys: T
 ): { keys: T };
+
+export type TypedSpecifier<SpecifierName extends string = string, Typing extends object = {}> =
+  SpecifierName
+  & [Typing];
+
+export type TypedSpecifierWithType<TypeName extends string> = TypedSpecifier<string, { [K in TypeName]: unknown }>;
+
+export type TypedSpecifierType<TypeName extends string, Specifier extends TypedSpecifierWithType<TypeName>> =
+  Specifier extends TypedSpecifier<string, infer Typing extends Record<TypeName, unknown>>
+    ? Typing[TypeName]
+    : never;
+
+export function getTypedSpecifier
+  <Typing extends object>():
+    <SpecifierName extends string>(specifier: SpecifierName) =>
+      TypedSpecifier<SpecifierName, Typing>;

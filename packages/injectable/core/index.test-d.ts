@@ -11,6 +11,7 @@ import {
   getInjectionToken,
   getKeyedSingletonCompositeKey,
   getSpecificInjectionToken,
+  getTypedSpecifier,
   Injectable,
   InjectableBunch,
   injectionDecoratorToken,
@@ -23,6 +24,8 @@ import {
   lifecycleEnum,
   SpecificInject,
   SpecificInjectionToken,
+  TypedSpecifierType,
+  TypedSpecifierWithType,
 } from '.';
 
 const di = createContainer('some-container');
@@ -712,3 +715,104 @@ const someInjectable1 = getInjectable({
     expectType<void>(di.deregister(...someArrayOfInjectablesAndBunches));
   },
 });
+
+// given general injection token and a typed specifier, typing is ok
+const someGeneralTokenWithTypedSpecifier = getInjectionToken<
+  // For general case, the arg is still unknown
+  (arg: unknown) => boolean,
+  void,
+  <S extends TypedSpecifierWithType<'someTypeNameOfSpecifier'>>(
+    specifier: S,
+  ) => SpecificInjectionToken<
+    (arg: TypedSpecifierType<'someTypeNameOfSpecifier', S>) => boolean
+  >
+>({
+  id: 'some-general-token-with-typed-specifier',
+});
+
+const someTypedSpecifier = getTypedSpecifier<{
+  someTypeNameOfSpecifier: string;
+  someUnrelatedTypeName: boolean;
+}>()('some-typed-specifier');
+
+const actualTypedInstance = di.inject(
+  someGeneralTokenWithTypedSpecifier.for(someTypedSpecifier),
+);
+
+expectType<(arg: string) => boolean>(actualTypedInstance);
+
+// given injectable implementing general injection token with a typed specifier, typing is ok
+getInjectable({
+  id: 'some-injectable',
+
+  instantiate: di => arg => {
+    expectType<string>(arg);
+
+    return true;
+  },
+
+  injectionToken: someGeneralTokenWithTypedSpecifier.for(someTypedSpecifier),
+});
+
+// given general injection token with a typed specifier, and a typed specifier for a non-matching type, typing is not ok
+const someTypedSpecifierWithNonMatchingTypes = getTypedSpecifier<{
+  someNonMatchingTypeNameOfSpecifier: string;
+}>()('some-non-matching-typed-specifier');
+
+expectError(
+  someGeneralTokenWithTypedSpecifier.for(
+    someTypedSpecifierWithNonMatchingTypes,
+  ),
+);
+
+// given general injection token and with contradictory typed specifier, typing is not ok
+expectError(
+  getInjectionToken<
+    unknown,
+    void,
+    <S extends TypedSpecifierWithType<'someTypeNameOfSpecifier'>>(
+      specifier: S,
+    ) => SpecificInjectionToken<
+      (
+        arg: TypedSpecifierType<'someContradictoryTypeNameOfSpecifier', S>,
+      ) => boolean
+    >
+  >({
+    id: 'some-general-token-with-contradictory-typed-specifier',
+  }),
+);
+
+// given general injection token and with contradictory typed specifier for return type, typing is not ok
+expectError(
+  getInjectionToken<
+    (arg: unknown) => boolean,
+    void,
+    <S extends TypedSpecifierWithType<'someTypeNameOfSpecifier'>>(
+      specifier: S,
+    ) => SpecificInjectionToken<
+      (arg: TypedSpecifierType<'someTypeNameOfSpecifier', S>) => string
+    >
+  >({
+    id: 'some-general-token-with-contradictory-typed-specifier-for-return-type',
+  }),
+);
+
+// given general injection token and with typed specifier that is more specific, when injected, typing is ok
+const tokenWithMoreSpecificInstance = getInjectionToken<
+  (arg: unknown) => boolean | string,
+  void,
+  <S extends TypedSpecifierWithType<'someTypeNameOfSpecifier'>>(
+    specifier: S,
+  ) => SpecificInjectionToken<
+    // Note: just string is more specific than boolean | string
+    (arg: TypedSpecifierType<'someTypeNameOfSpecifier', S>) => string
+  >
+>({
+  id: 'some-general-token-with-contradictory-typed-specifier-for-return-type',
+});
+
+const actualSpecificInstance = di.inject(
+  tokenWithMoreSpecificInstance.for(someTypedSpecifier),
+);
+
+expectType<(arg: string) => string>(actualSpecificInstance);
