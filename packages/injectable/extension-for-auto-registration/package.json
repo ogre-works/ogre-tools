@@ -1,7 +1,7 @@
 {
   "name": "@lensapp/injectable-extension-for-auto-registration",
   "private": false,
-  "version": "20.2.1",
+  "version": "20.3.0",
   "description": "Auto-registration of injectables for Injectable in Ogre Tools",
   "files": [
     "build",
@@ -38,9 +38,9 @@
     "code-style:fix": "ogre-tools-fix-code-style"
   },
   "devDependencies": {
-    "@lensapp/infrastructure-babel-for-js": "^20.2.1",
-    "@lensapp/infrastructure-jest": "^20.2.1",
-    "@lensapp/infrastructure-prettier": "^20.2.1",
-    "@lensapp/infrastructure-webpack-for-js": "^20.2.1"
+    "@lensapp/infrastructure-babel-for-js": "^20.3.0",
+    "@lensapp/infrastructure-jest": "^20.3.0",
+    "@lensapp/infrastructure-prettier": "^20.3.0",
+    "@lensapp/infrastructure-webpack-for-js": "^20.3.0"
   }
 }

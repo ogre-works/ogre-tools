@@ -3,6 +3,10 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [20.3.0](https://github.com/lensapp/ogre-tools/compare/v20.2.1...v20.3.0) (2025-01-30)
+
+**Note:** Version bump only for package @lensapp/infrastructure-jest
+
 ### [20.2.1](https://github.com/lensapp/ogre-tools/compare/v20.2.0...v20.2.1) (2025-01-23)
 
 **Note:** Version bump only for package @lensapp/infrastructure-jest

@@ -1,7 +1,7 @@
 {
   "name": "@lensapp/discoverable",
   "private": false,
-  "version": "20.2.1",
+  "version": "20.3.0",
   "description": "A test-utility to control HTML-elements using data-attributes",
   "type": "commonjs",
   "publishConfig": {
@@ -32,10 +32,10 @@
   },
   "devDependencies": {
     "@async-fn/jest": "^1.6.4",
-    "@lensapp/infrastructure-babel-for-ts": "^20.2.1",
-    "@lensapp/infrastructure-jest": "^20.2.1",
-    "@lensapp/infrastructure-prettier": "^20.2.1",
-    "@lensapp/infrastructure-webpack-for-ts": "^20.2.1",
+    "@lensapp/infrastructure-babel-for-ts": "^20.3.0",
+    "@lensapp/infrastructure-jest": "^20.3.0",
+    "@lensapp/infrastructure-prettier": "^20.3.0",
+    "@lensapp/infrastructure-webpack-for-ts": "^20.3.0",
     "type-fest": "^4.27.0"
   },
   "scripts": {

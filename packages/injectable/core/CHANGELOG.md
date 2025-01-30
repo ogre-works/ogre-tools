@@ -3,6 +3,13 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [20.3.0](https://github.com/lensapp/ogre-tools/compare/v20.2.1...v20.3.0) (2025-01-30)
+
+### Features
+
+- Introduce some utilities for typed specifiers of specific tokens ([0b3b582](https://github.com/lensapp/ogre-tools/commit/0b3b5823b42df5cce2ecb07676838f079e921d3c))
+- Make injectable bunch able to nest more bunches ([a2438ed](https://github.com/lensapp/ogre-tools/commit/a2438edaa33d4328528ce60932274c53497881dd))
+
 ### [20.2.1](https://github.com/lensapp/ogre-tools/compare/v20.2.0...v20.2.1) (2025-01-23)
 
 ### Bug Fixes

@@ -1,7 +1,7 @@
 {
   "name": "@lensapp/generable",
   "private": false,
-  "version": "20.2.1",
+  "version": "20.3.0",
   "description": "A collection of low abstraction functions in functional programming flavor for generators",
   "files": [
     "build",
@@ -38,8 +38,8 @@
     "code-style:fix": "ogre-tools-fix-code-style"
   },
   "devDependencies": {
-    "@lensapp/infrastructure-jest": "^20.2.1",
-    "@lensapp/infrastructure-prettier": "^20.2.1",
-    "@lensapp/infrastructure-webpack-for-js": "^20.2.1"
+    "@lensapp/infrastructure-jest": "^20.3.0",
+    "@lensapp/infrastructure-prettier": "^20.3.0",
+    "@lensapp/infrastructure-webpack-for-js": "^20.3.0"
   }
 }
