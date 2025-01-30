@@ -816,3 +816,15 @@ const actualSpecificInstance = di.inject(
 );
 
 expectType<(arg: string) => string>(actualSpecificInstance);
+
+// Todo: this is broken and needs to be fixed!
+// Given general injection token with a typed specifier, when injected without specifier, typing is ok
+// const minimalTokenWithSpecifics = getInjectionToken<
+//   (arg: unknown) => boolean,
+//   void,
+//   (specifier: string) => SpecificInjectionToken<(arg: number) => boolean>
+// >({
+//   id: 'some-general-token-with-typed-specifier',
+// });
+//
+// expectType<(arg: unknown) => boolean>(di.inject(minimalTokenWithSpecifics));
