@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+### [20.4.1](https://github.com/lensapp/ogre-tools/compare/v20.4.0...v20.4.1) (2025-01-31)
+
+### Bug Fixes
+
+- Make js implementation of getTypedSpecifier match type ([f731bda](https://github.com/lensapp/ogre-tools/commit/f731bda946da38bc2e82c003e1bf7ff9bdceba28))
+
 ## [20.4.0](https://github.com/lensapp/ogre-tools/compare/v20.3.0...v20.4.0) (2025-01-30)
 
 ### Features
