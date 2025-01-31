@@ -1,3 +1,3 @@
-import { identity } from 'lodash/fp';
+import { identity, constant } from 'lodash/fp';
 
-export const getTypedSpecifier = identity;
+export const getTypedSpecifier = constant(identity);

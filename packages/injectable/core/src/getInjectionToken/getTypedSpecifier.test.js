@@ -1,8 +1,11 @@
-import { identity } from 'lodash/fp';
 import { getTypedSpecifier } from './getTypedSpecifier';
 
 describe('getTypedSpecifier', () => {
-  it('is identity, and only relevant for typing', () => {
-    expect(getTypedSpecifier).toBe(identity);
+  it('returns function for constant identity', () => {
+    const input = { some: 'value' };
+
+    const actualOutput = getTypedSpecifier()(input);
+
+    expect(actualOutput).toBe(input);
   });
 });
