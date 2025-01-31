@@ -17,6 +17,9 @@ export function useInject<TReturnValue, TInstantiationParameter>(
   instantiationParameter: TInstantiationParameter,
 ): Awaited<TReturnValue>;
 
+export type InjectableComponent<Props extends object = {}> =
+  React.ComponentType<Props> & Injectable<React.ComponentType<Props>>;
+
 export function getInjectableComponent<Props, TokenProps extends Props>(
   injectable: Omit<
     Injectable<unknown>,
@@ -26,7 +29,7 @@ export function getInjectableComponent<Props, TokenProps extends Props>(
     PlaceholderComponent?: React.ComponentType<Props>;
     injectionToken?: InjectionToken<React.ComponentType<TokenProps>>;
   },
-): React.ComponentType<Props> & Injectable<React.ComponentType<Props>>;
+): InjectableComponent<Props>;
 
 interface DiContainerProviderProps {
   di: DiContainer | DiContainerForInjection;
