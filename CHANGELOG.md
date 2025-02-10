@@ -3,6 +3,13 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [20.5.0](https://github.com/lensapp/ogre-tools/compare/v20.4.1...v20.5.0) (2025-02-10)
+
+### Features
+
+- Make useInject support suspending between updates ([46302aa](https://github.com/lensapp/ogre-tools/commit/46302aa36a80f765c675f9fbe01d98cbe212a3c6))
+- Make useInject suspend between updates as default ([54746ef](https://github.com/lensapp/ogre-tools/commit/54746eff91ed84a1042914be8980d9114584b78d))
+
 ### [20.4.1](https://github.com/lensapp/ogre-tools/compare/v20.4.0...v20.4.1) (2025-01-31)
 
 ### Bug Fixes
