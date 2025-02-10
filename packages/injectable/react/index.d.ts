@@ -17,6 +17,17 @@ export function useInject<TReturnValue, TInstantiationParameter>(
   instantiationParameter: TInstantiationParameter,
 ): Awaited<TReturnValue>;
 
+export function useInjectDeferred<TReturnValue>(
+  injectable: Injectable<TReturnValue, any> | InjectionToken<TReturnValue>,
+): Awaited<TReturnValue>;
+
+export function useInjectDeferred<TReturnValue, TInstantiationParameter>(
+  injectable:
+    | Injectable<TReturnValue, any, TInstantiationParameter>
+    | InjectionToken<TReturnValue, TInstantiationParameter>,
+  instantiationParameter: TInstantiationParameter,
+): Awaited<TReturnValue>;
+
 export type InjectableComponent<Props extends object = {}> =
   React.ComponentType<Props> & Injectable<React.ComponentType<Props>>;
 

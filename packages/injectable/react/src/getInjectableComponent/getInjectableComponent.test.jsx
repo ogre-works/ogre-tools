@@ -12,7 +12,7 @@ import {
 import { DiContextProvider } from '../withInjectables/withInjectables';
 import { getInjectableComponent } from './getInjectableComponent';
 import { isPromise } from '@lensapp/fp';
-import { useInject } from '../useInject/useInject';
+import { useInjectDeferred } from '../useInject/useInject';
 import { discoverFor } from '@lensapp/discoverable';
 
 describe('getInjectableComponent', () => {
@@ -138,7 +138,7 @@ describe('getInjectableComponent', () => {
     const SomeChildInjectableComponent = getInjectableComponent({
       id: 'some-child-injectable-component',
       Component: () => {
-        useInject(someNonRegisteredInjectable);
+        useInjectDeferred(someNonRegisteredInjectable);
 
         return <div>irrelevant</div>;
       },
@@ -183,7 +183,7 @@ describe('getInjectableComponent', () => {
     const SomeChildInjectableComponent = getInjectableComponent({
       id: 'some-child-injectable-component',
       Component: () => {
-        useInject(someNonRegisteredInjectable);
+        useInjectDeferred(someNonRegisteredInjectable);
 
         return <div>irrelevant</div>;
       },
@@ -239,7 +239,7 @@ describe('getInjectableComponent', () => {
       id: 'some-placeholder-injectable-component',
 
       Component: () => {
-        useInject(someNonRegisteredInjectable);
+        useInjectDeferred(someNonRegisteredInjectable);
 
         return <div>irrelevant</div>;
       },
@@ -321,7 +321,7 @@ describe('getInjectableComponent', () => {
     );
 
     di.override(SomeInjectableComponent, () => () => {
-      useInject(someNonRegisteredInjectable);
+      useInjectDeferred(someNonRegisteredInjectable);
     });
 
     withSuppressedConsoleError(() => {
@@ -351,7 +351,7 @@ describe('getInjectableComponent', () => {
       id: 'some-injectable-component',
 
       Component: () => {
-        const someSyncInstance = useInject(someAsyncInjectable);
+        const someSyncInstance = useInjectDeferred(someAsyncInjectable);
 
         return <div>{someSyncInstance}</div>;
       },
@@ -386,7 +386,7 @@ describe('getInjectableComponent', () => {
       id: 'some-injectable-component',
 
       Component: () => {
-        const someSyncInstance = useInject(someAsyncInjectable);
+        const someSyncInstance = useInjectDeferred(someAsyncInjectable);
 
         return <div>{someSyncInstance}</div>;
       },
@@ -526,7 +526,7 @@ describe('getInjectableComponent', () => {
       id: 'some-injectable-component',
 
       Component: props => {
-        const someDiSpecificValue = useInject(someInjectionToken);
+        const someDiSpecificValue = useInjectDeferred(someInjectionToken);
 
         return (
           <div data-di-specific-value-test={someDiSpecificValue} {...props} />
@@ -626,7 +626,10 @@ describe('getInjectableComponent', () => {
     const SomeComponent = getInjectableComponent({
       id: 'some-injectable-component',
       Component: props => {
-        const someValue = useInject(someAsyncValueInjectable, props.name);
+        const someValue = useInjectDeferred(
+          someAsyncValueInjectable,
+          props.name,
+        );
 
         return <div data-some-value-test={someValue} />;
       },

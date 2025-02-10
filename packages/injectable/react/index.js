@@ -7,4 +7,4 @@ import registerInjectableReact from './src/registerInjectableReact/registerInjec
 export { withInjectables, DiContextProvider, registerInjectableReact };
 
 export { getInjectableComponent } from './src/getInjectableComponent/getInjectableComponent';
-export { useInject } from './src/useInject/useInject';
+export { useInject, useInjectDeferred } from './src/useInject/useInject';

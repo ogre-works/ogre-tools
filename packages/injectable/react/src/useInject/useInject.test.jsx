@@ -14,7 +14,7 @@ import {
 import asyncFn from '@async-fn/jest';
 import registerInjectableReact from '../registerInjectableReact/registerInjectableReact';
 import { DiContextProvider } from '../withInjectables/withInjectables';
-import { useInject } from './useInject';
+import { useInjectDeferred, useInject } from './useInject';
 import { flushPromises } from '@lensapp/ogre-test-utils';
 import { isPromise } from '@lensapp/fp';
 
@@ -163,7 +163,7 @@ describe('useInject', () => {
     });
   });
 
-  describe('given an async injectable, and showing latest value between updates (default), when rendered', () => {
+  describe('given an async injectable, and deferring to show latest value between updates, when rendered', () => {
     let rendered;
     let someRelatedPropState;
     let someUnrelatedPropState;
@@ -190,10 +190,7 @@ describe('useInject', () => {
         'some-prop': someProp,
         'some-unrelated-prop': someUnrelatedProp,
       }) => {
-        const someInstance = useInject(someAsyncInjectable, someProp, {
-          // Note: no need to set the value, as it's the default
-          // betweenUpdates: 'show-latest-value',
-        });
+        const someInstance = useInjectDeferred(someAsyncInjectable, someProp);
 
         useEffect(() => {
           onMountMock();
@@ -656,9 +653,7 @@ describe('useInject', () => {
         'some-prop': someProp,
         'some-unrelated-prop': someUnrelatedProp,
       }) => {
-        const someInstance = useInject(someAsyncInjectable, someProp, {
-          betweenUpdates: 'suspend',
-        });
+        const someInstance = useInject(someAsyncInjectable, someProp);
 
         useEffect(() => {
           onMountMock();
@@ -1128,7 +1123,7 @@ describe('useInject', () => {
       });
 
       SomeComponentUsingAsyncInject = ({ 'some-prop': someProp }) => {
-        const someInstance = useInject(someAsyncInjectable, someProp);
+        const someInstance = useInjectDeferred(someAsyncInjectable, someProp);
 
         return <div data-some-related-prop-test={someInstance} />;
       };
@@ -1330,7 +1325,7 @@ describe('useInject', () => {
       });
 
       SomeComponentUsingAsyncInject = ({ 'some-prop': someProp }) => {
-        const someInstance = useInject(
+        const someInstance = useInjectDeferred(
           someAsyncInjectableWithCompositeKey,
           someProp,
         );
