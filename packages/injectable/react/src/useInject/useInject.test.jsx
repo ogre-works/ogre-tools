@@ -163,7 +163,7 @@ describe('useInject', () => {
     });
   });
 
-  describe('given an async injectable, when rendered', () => {
+  describe('given an async injectable, and showing latest value between updates (default), when rendered', () => {
     let rendered;
     let someRelatedPropState;
     let someUnrelatedPropState;
@@ -190,7 +190,10 @@ describe('useInject', () => {
         'some-prop': someProp,
         'some-unrelated-prop': someUnrelatedProp,
       }) => {
-        const someInstance = useInject(someAsyncInjectable, someProp);
+        const someInstance = useInject(someAsyncInjectable, someProp, {
+          // Note: no need to set the value, as it's the default
+          // betweenUpdates: 'show-latest-value',
+        });
 
         useEffect(() => {
           onMountMock();
@@ -483,6 +486,485 @@ describe('useInject', () => {
                                     </div>
                                   </body>
                               `);
+              });
+            });
+          });
+        });
+      });
+
+      describe('when a prop unrelated to async injection changes', () => {
+        beforeEach(() => {
+          onMountMock.mockClear();
+          di.inject.mockClear();
+
+          act(() => {
+            runInAction(() => {
+              someUnrelatedPropState.set('some-new-unrelated-prop-value');
+            });
+          });
+        });
+
+        it('is still not suspended', () => {
+          const actuallySuspended = !!rendered.queryByTestId('some-suspense');
+
+          expect(actuallySuspended).toBe(false);
+        });
+
+        it('still renders as non-suspended', () => {
+          expect(rendered.baseElement).toMatchInlineSnapshot(`
+              <body>
+                <div>
+                  <div
+                    data-some-related-prop-test="some-async-value"
+                    data-some-unrelated-prop-test="some-new-unrelated-prop-value"
+                  />
+                </div>
+              </body>
+            `);
+        });
+      });
+    });
+
+    describe('given the async instantiation has not resolved yet, but a prop related to async injection still changes', () => {
+      beforeEach(() => {
+        someAsyncInstantiateMock.mockClear();
+        onMountMock.mockClear();
+        di.inject.mockClear();
+
+        act(() => {
+          runInAction(() => {
+            someRelatedPropState.set('some-fast-prop-value');
+          });
+        });
+      });
+
+      it('is still suspended', () => {
+        const actuallySuspended = !!rendered.queryByTestId('some-suspense');
+
+        expect(actuallySuspended).toBe(true);
+      });
+
+      it('weirdly, does not call to inject the new async injectable yet, because the old call needs to resolve before the new component can be rendered', () => {
+        expect(di.inject).not.toHaveBeenCalledWith(
+          someAsyncInjectable,
+          expect.anything(),
+        );
+      });
+
+      it('still renders as suspended', () => {
+        expect(rendered.baseElement).toMatchInlineSnapshot(`
+                              <body>
+                                <div>
+                                  <div
+                                    data-testid="some-suspense"
+                                  />
+                                </div>
+                              </body>
+                          `);
+      });
+
+      describe('when the slow, obsolete async instantiation resolves', () => {
+        beforeEach(async () => {
+          someAsyncInstantiateMock.mockClear();
+          di.inject.mockClear();
+
+          await act(async () => {
+            await someAsyncInstantiateMock.resolveSpecific(
+              ([, param]) => param === 'some-initial-prop-value',
+              'irrelevant',
+            );
+          });
+        });
+
+        it('calls to inject the "fast" async instance', () => {
+          expect(
+            di.inject.mock.calls.filter(
+              ([injectable]) => injectable === someAsyncInjectable,
+            ),
+          ).toEqual([[someAsyncInjectable, 'some-fast-prop-value']]);
+        });
+
+        it('remains suspended, as the new injection is still pending', () => {
+          const actuallySuspended = !!rendered.queryByTestId('some-suspense');
+
+          expect(actuallySuspended).toBe(true);
+        });
+
+        it('renders as suspended', () => {
+          expect(rendered.baseElement).toMatchInlineSnapshot(`
+              <body>
+                <div>
+                  <div
+                    data-testid="some-suspense"
+                  />
+                </div>
+              </body>
+            `);
+        });
+
+        describe('when the fast async value resolves', () => {
+          beforeEach(async () => {
+            await act(async () => {
+              await someAsyncInstantiateMock.resolveSpecific(
+                ([, param]) => param === 'some-fast-prop-value',
+                'some-fast-async-value',
+              );
+            });
+          });
+
+          it('renders as having the fast value', () => {
+            expect(rendered.baseElement).toMatchInlineSnapshot(`
+                                  <body>
+                                    <div>
+                                      <div
+                                        data-some-related-prop-test="some-fast-async-value"
+                                        data-some-unrelated-prop-test="some-initial-unrelated-prop-value"
+                                      />
+                                    </div>
+                                  </body>
+                              `);
+          });
+        });
+      });
+    });
+  });
+
+  describe('given an async injectable, and suspending between updates, when rendered', () => {
+    let rendered;
+    let someRelatedPropState;
+    let someUnrelatedPropState;
+    let someAsyncInstantiateMock;
+    let SomeComponentUsingAsyncInject;
+    let onMountMock;
+    let someAsyncInjectable;
+
+    beforeEach(() => {
+      onMountMock = jest.fn();
+
+      someAsyncInstantiateMock = asyncFn();
+
+      someAsyncInjectable = getInjectable({
+        id: 'some-async-injectable',
+        instantiate: someAsyncInstantiateMock,
+
+        lifecycle: lifecycleEnum.keyedSingleton({
+          getInstanceKey: (di, param) => param,
+        }),
+      });
+
+      SomeComponentUsingAsyncInject = ({
+        'some-prop': someProp,
+        'some-unrelated-prop': someUnrelatedProp,
+      }) => {
+        const someInstance = useInject(someAsyncInjectable, someProp, {
+          betweenUpdates: 'suspend',
+        });
+
+        useEffect(() => {
+          onMountMock();
+        }, []);
+
+        return (
+          <div
+            data-some-related-prop-test={someInstance}
+            data-some-unrelated-prop-test={someUnrelatedProp}
+          />
+        );
+      };
+
+      di.register(someAsyncInjectable);
+
+      someRelatedPropState = observable.box('some-initial-prop-value');
+
+      someUnrelatedPropState = observable.box(
+        'some-initial-unrelated-prop-value',
+      );
+
+      rendered = mount(
+        <Suspense fallback={<div data-testid="some-suspense" />}>
+          <Observer>
+            {() => (
+              <SomeComponentUsingAsyncInject
+                some-prop={someRelatedPropState.get()}
+                some-unrelated-prop={someUnrelatedPropState.get()}
+              />
+            )}
+          </Observer>
+        </Suspense>,
+      );
+    });
+
+    it('is suspended', () => {
+      const actuallySuspended = !!rendered.queryByTestId('some-suspense');
+
+      expect(actuallySuspended).toBe(true);
+    });
+
+    it('does not mount yet', () => {
+      expect(onMountMock).not.toHaveBeenCalled();
+    });
+
+    it('calls to inject the async injectable', () => {
+      expect(
+        di.inject.mock.calls.filter(
+          ([injectable]) => injectable === someAsyncInjectable,
+        ),
+      ).toEqual([[someAsyncInjectable, 'some-initial-prop-value']]);
+    });
+
+    it('renders as suspended', async () => {
+      expect(rendered.baseElement).toMatchInlineSnapshot(`
+          <body>
+            <div>
+              <div
+                data-testid="some-suspense"
+              />
+            </div>
+          </body>
+        `);
+    });
+
+    describe('when the async instantiation resolves', () => {
+      beforeEach(async () => {
+        onMountMock.mockClear();
+        someAsyncInstantiateMock.mockClear();
+        di.inject.mockClear();
+
+        await act(async () => {
+          await someAsyncInstantiateMock.resolve('some-async-value');
+        });
+      });
+
+      it('is no longer suspended', () => {
+        const actuallySuspended = !!rendered.queryByTestId('some-suspense');
+
+        expect(actuallySuspended).toBe(false);
+      });
+
+      it('mounts', () => {
+        expect(onMountMock).toHaveBeenCalled();
+      });
+
+      it('renders as non-suspended', () => {
+        expect(rendered.baseElement).toMatchInlineSnapshot(`
+            <body>
+              <div>
+                <div
+                  data-some-related-prop-test="some-async-value"
+                  data-some-unrelated-prop-test="some-initial-unrelated-prop-value"
+                />
+              </div>
+            </body>
+          `);
+      });
+
+      it('the related promise does not appear mutated', () => {
+        const actualPromise = di.inject(
+          someAsyncInjectable,
+          'some-initial-prop-value',
+        );
+
+        const actualMutatedProperties =
+          Object.getOwnPropertyNames(actualPromise);
+
+        expect(actualMutatedProperties).toEqual([]);
+      });
+
+      describe('when a prop related to async injection changes', () => {
+        beforeEach(() => {
+          someAsyncInstantiateMock.mockClear();
+          onMountMock.mockClear();
+
+          act(() => {
+            runInAction(() => {
+              someRelatedPropState.set('some-new-prop-value');
+            });
+          });
+        });
+
+        it('becomes suspended again', () => {
+          const actuallySuspended = !!rendered.queryByTestId('some-suspense');
+
+          expect(actuallySuspended).toBe(true);
+        });
+
+        it('renders as suspended (but with hidden stale state because of react)', () => {
+          expect(rendered.baseElement).toMatchInlineSnapshot(`
+            <body>
+              <div>
+                <div
+                  data-some-related-prop-test="some-async-value"
+                  data-some-unrelated-prop-test="some-initial-unrelated-prop-value"
+                  style="display: none;"
+                />
+                <div
+                  data-testid="some-suspense"
+                />
+              </div>
+            </body>
+          `);
+        });
+
+        describe('when the new async value resolves', () => {
+          beforeEach(async () => {
+            await act(async () => {
+              await someAsyncInstantiateMock.resolve('some-new-async-value');
+            });
+          });
+
+          it('becomes not suspended', () => {
+            const actuallySuspended = !!rendered.queryByTestId('some-suspense');
+
+            expect(actuallySuspended).toBe(false);
+          });
+
+          it('renders as having the new async value', () => {
+            expect(rendered.baseElement).toMatchInlineSnapshot(`
+              <body>
+                <div>
+                  <div
+                    data-some-related-prop-test="some-new-async-value"
+                    data-some-unrelated-prop-test="some-initial-unrelated-prop-value"
+                    style=""
+                  />
+                </div>
+              </body>
+            `);
+          });
+
+          describe('when a prop related to async injection changes back to its initial value', () => {
+            beforeEach(async () => {
+              someAsyncInstantiateMock.mockClear();
+              onMountMock.mockClear();
+              di.inject.mockClear();
+
+              await act(async () => {
+                runInAction(() => {
+                  someRelatedPropState.set('some-initial-prop-value');
+                });
+              });
+            });
+
+            it('is still not suspended', () => {
+              const actuallySuspended =
+                !!rendered.queryByTestId('some-suspense');
+
+              expect(actuallySuspended).toBe(false);
+            });
+
+            it('immediately renders as having the previous async value', () => {
+              expect(rendered.baseElement).toMatchInlineSnapshot(`
+                <body>
+                  <div>
+                    <div
+                      data-some-related-prop-test="some-async-value"
+                      data-some-unrelated-prop-test="some-initial-unrelated-prop-value"
+                      style=""
+                    />
+                  </div>
+                </body>
+              `);
+            });
+          });
+        });
+
+        describe('given the async instantiation has not resolved yet, but a prop related to async injection still changes', () => {
+          beforeEach(() => {
+            someAsyncInstantiateMock.mockClear();
+            onMountMock.mockClear();
+            di.inject.mockClear();
+
+            act(() => {
+              runInAction(() => {
+                someRelatedPropState.set('some-fast-prop-value');
+              });
+            });
+          });
+
+          it('is still suspended', () => {
+            const actuallySuspended = !!rendered.queryByTestId('some-suspense');
+
+            expect(actuallySuspended).toBe(true);
+          });
+
+          it('calls to inject the new async injectable', () => {
+            expect(
+              di.inject.mock.calls.filter(
+                ([injectable]) => injectable === someAsyncInjectable,
+              ),
+            ).toEqual([[someAsyncInjectable, 'some-fast-prop-value']]);
+          });
+
+          it('still renders as suspended', () => {
+            expect(rendered.baseElement).toMatchInlineSnapshot(`
+              <body>
+                <div>
+                  <div
+                    data-some-related-prop-test="some-async-value"
+                    data-some-unrelated-prop-test="some-initial-unrelated-prop-value"
+                    style="display: none;"
+                  />
+                  <div
+                    data-testid="some-suspense"
+                  />
+                </div>
+              </body>
+            `);
+          });
+
+          describe('when the fast async value resolves', () => {
+            beforeEach(async () => {
+              await act(async () => {
+                await someAsyncInstantiateMock.resolveSpecific(
+                  ([, param]) => param === 'some-fast-prop-value',
+                  'some-fast-async-value',
+                );
+              });
+            });
+
+            it('becomes not suspended', () => {
+              const actuallySuspended =
+                !!rendered.queryByTestId('some-suspense');
+
+              expect(actuallySuspended).toBe(false);
+            });
+
+            it('renders as having the new fast value', () => {
+              expect(rendered.baseElement).toMatchInlineSnapshot(`
+                <body>
+                  <div>
+                    <div
+                      data-some-related-prop-test="some-fast-async-value"
+                      data-some-unrelated-prop-test="some-initial-unrelated-prop-value"
+                      style=""
+                    />
+                  </div>
+                </body>
+              `);
+            });
+
+            describe('when the slow, now irrelevant async value resolves', () => {
+              beforeEach(async () => {
+                await act(async () => {
+                  await someAsyncInstantiateMock.resolveSpecific(
+                    ([, param]) => param === 'some-new-prop-value',
+                    'irrelevant',
+                  );
+                });
+              });
+
+              it('still renders as having the fast value', () => {
+                expect(rendered.baseElement).toMatchInlineSnapshot(`
+                  <body>
+                    <div>
+                      <div
+                        data-some-related-prop-test="some-fast-async-value"
+                        data-some-unrelated-prop-test="some-initial-unrelated-prop-value"
+                        style=""
+                      />
+                    </div>
+                  </body>
+                `);
               });
             });
           });
