@@ -53,3 +53,13 @@ exports[`element given plugins that override output of previous plugin, when ren
   </div>
 </body>
 `;
+
+exports[`element given ref, when rendered works 1`] = `
+<body>
+  <div>
+    <div
+      data-some-native-html-prop-test="true"
+    />
+  </div>
+</body>
+`;

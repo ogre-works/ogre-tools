@@ -2,6 +2,7 @@ import * as React from 'react';
 import { Plugin, PropsFromPluginTuple } from './plugin/plugin';
 import { withMergeOutputOverInput } from './_private/with-merge-output-over-input';
 import { fastPipeline } from './_private/fast-pipeline';
+import { forwardRef } from 'react';
 
 export type TagNames = keyof JSX.IntrinsicElements;
 
@@ -28,7 +29,7 @@ export function getElementComponent<TagName extends TagNames>(
 ) {
   const processedPlugins = plugins.map(withMergeOutputOverInput);
 
-  return (unprocessedProps: any) => {
+  return forwardRef((unprocessedProps: any, ref) => {
     const processedProps = fastPipeline(
       unprocessedProps,
       ...processedPlugins,
@@ -36,6 +37,6 @@ export function getElementComponent<TagName extends TagNames>(
 
     const TagName = tagName as React.ElementType;
 
-    return <TagName {...processedProps} />;
-  };
+    return <TagName ref={ref} {...processedProps} />;
+  });
 }

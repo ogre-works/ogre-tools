@@ -38,6 +38,26 @@ describe('element', () => {
     });
   });
 
+  describe('given ref, when rendered', () => {
+    let rendered: RenderResult;
+
+    beforeEach(() => {
+      const Div = getElementComponent('div');
+
+      const TestComponent = () => {
+        const testRef = React.useRef(null);
+
+        return <Div ref={testRef} data-some-native-html-prop-test />;
+      };
+
+      rendered = render(<TestComponent />);
+    });
+
+    it('works', () => {
+      expect(rendered.baseElement).toMatchSnapshot();
+    });
+  });
+
   describe('given plugin', () => {
     let somePlugin: Plugin<{ $somePluginProp: string }>;
 
