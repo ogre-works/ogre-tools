@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+### [20.5.1](https://github.com/lensapp/ogre-tools/compare/v20.5.0...v20.5.1) (2025-02-21)
+
+### Bug Fixes
+
+- Fix usage of refs in element components ([76bb1d2](https://github.com/lensapp/ogre-tools/commit/76bb1d2fababea544ac8988c8dd9fc51b2c2e5d7))
+
 ## [20.5.0](https://github.com/lensapp/ogre-tools/compare/v20.4.1...v20.5.0) (2025-02-10)
 
 **Note:** Version bump only for package @lensapp/element-component

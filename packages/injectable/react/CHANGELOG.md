@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+### [20.5.1](https://github.com/lensapp/ogre-tools/compare/v20.5.0...v20.5.1) (2025-02-21)
+
+### Bug Fixes
+
+- Fix typing of getInjectableComponent ([1f805c6](https://github.com/lensapp/ogre-tools/commit/1f805c6a50f520ea3b82604b31988e049a3001cc))
+
 ## [20.5.0](https://github.com/lensapp/ogre-tools/compare/v20.4.1...v20.5.0) (2025-02-10)
 
 ### Features
