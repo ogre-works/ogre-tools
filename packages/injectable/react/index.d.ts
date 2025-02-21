@@ -31,7 +31,10 @@ export function useInjectDeferred<TReturnValue, TInstantiationParameter>(
 export type InjectableComponent<Props extends object = {}> =
   React.ComponentType<Props> & Injectable<React.ComponentType<Props>>;
 
-export function getInjectableComponent<Props, TokenProps extends Props>(
+export function getInjectableComponent<
+  Props extends object,
+  TokenProps extends Props,
+>(
   injectable: Omit<
     Injectable<unknown>,
     'instantiate' | 'lifecycle' | 'scope' | 'decorable'
