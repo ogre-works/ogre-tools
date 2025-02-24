@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+### [20.5.3](https://github.com/lensapp/ogre-tools/compare/v20.5.2...v20.5.3) (2025-02-24)
+
+### Bug Fixes
+
+- Add support for plugin specific refs ([2f0bf76](https://github.com/lensapp/ogre-tools/commit/2f0bf76364024fa49c40a3cc62f15c27677b85c9))
+
 ### [20.5.2](https://github.com/lensapp/ogre-tools/compare/v20.5.1...v20.5.2) (2025-02-21)
 
 **Note:** Version bump only for package ogre-tools
