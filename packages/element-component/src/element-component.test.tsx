@@ -6,6 +6,7 @@ import { render } from '@testing-library/react';
 import { Discover, discoverFor } from '@lensapp/discoverable';
 
 import { getPlugin, Plugin } from './plugin/plugin';
+import { useEffect, useRef } from 'react';
 
 describe('element', () => {
   beforeEach(() => {
@@ -35,26 +36,6 @@ describe('element', () => {
       expect(() => {
         discover.getSingleElement('some-native-html-prop');
       }).not.toThrow();
-    });
-  });
-
-  describe('given ref, when rendered', () => {
-    let rendered: RenderResult;
-
-    beforeEach(() => {
-      const Div = getElementComponent('div');
-
-      const TestComponent = () => {
-        const testRef = React.useRef(null);
-
-        return <Div ref={testRef} data-some-native-html-prop-test />;
-      };
-
-      rendered = render(<TestComponent />);
-    });
-
-    it('works', () => {
-      expect(rendered.baseElement).toMatchSnapshot();
     });
   });
 
@@ -138,6 +119,107 @@ describe('element', () => {
         'title',
         'plugin1(plugin2(some-plugin-prop-value))',
       );
+    });
+  });
+
+  it('given hook ref, when rendered, works', () => {
+    const Div = getElementComponent('div');
+
+    const TestComponent = () => {
+      const testRef = React.useRef(null);
+
+      useEffect(() => {
+        testRef.current.classList.add('some-class-from-ref');
+      });
+
+      return <Div ref={testRef} data-some-element-test />;
+    };
+
+    const rendered = render(<TestComponent />);
+
+    const discover = discoverFor(() => rendered);
+
+    expect(
+      discover
+        .getSingleElement('some-element')
+        .discovered.classList.contains('some-class-from-ref'),
+    ).toBe(true);
+  });
+
+  it('given functional ref, when rendered, works', () => {
+    const Div = getElementComponent('div');
+
+    const rendered = render(
+      <Div
+        ref={node => {
+          node?.classList.add('some-class-from-ref');
+        }}
+        data-some-element-test
+      />,
+    );
+
+    const discover = discoverFor(() => rendered);
+
+    expect(
+      discover
+        .getSingleElement('some-element')
+        .discovered.classList.contains('some-class-from-ref'),
+    ).toBe(true);
+  });
+
+  describe('given multiple plugins with ref', () => {
+    let rendered: RenderResult;
+    let discover: Discover;
+
+    beforeEach(() => {
+      const somePlugin1 = getPlugin<{ $somePlugin1Input?: boolean }>(
+        (props: any): any => {
+          const ref = useRef(null);
+
+          useEffect(() => {
+            ref.current.classList.add('some-class-from-hook-ref');
+          }, []);
+
+          return {
+            $somePlugin1Input: undefined,
+            ref,
+          };
+        },
+      );
+
+      const somePlugin2 = getPlugin<{ $somePlugin2Input?: boolean }>(
+        (props): any => ({
+          $somePlugin2Input: undefined,
+
+          ref: node => {
+            node?.classList.add('some-class-from-functional-ref');
+          },
+        }),
+      );
+
+      const Div = getElementComponent('div', somePlugin2, somePlugin1);
+
+      rendered = render(
+        <Div data-some-element-test $somePlugin1Input $somePlugin2Input />,
+      );
+
+      discover = discoverFor(() => rendered);
+    });
+
+    it('functional refs work', () => {
+      expect(
+        discover
+          .getSingleElement('some-element')
+          .discovered.classList.contains('some-class-from-functional-ref'),
+      ).toBe(true);
+    });
+
+    it('non functional refs work', () => {
+      expect(
+        discover
+          .getSingleElement('some-element')
+          .discovered.classList.contains('some-class-from-hook-ref'),
+      ).toBe(true);
     });
   });
 
