@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+### [20.5.4](https://github.com/lensapp/ogre-tools/compare/v20.5.3...v20.5.4) (2025-03-19)
+
+### Bug Fixes
+
+- Fix injectable bunch registrations and deregistrations not calling callbacks ([110cb57](https://github.com/lensapp/ogre-tools/commit/110cb571d8a6118b4b922bf03518d68abf3bbe5e))
+
 ### [20.5.3](https://github.com/lensapp/ogre-tools/compare/v20.5.2...v20.5.3) (2025-02-24)
 
 **Note:** Version bump only for package @lensapp/injectable
