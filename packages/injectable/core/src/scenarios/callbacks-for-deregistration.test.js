@@ -3,6 +3,7 @@ import getInjectable from '../getInjectable/getInjectable';
 import { createContainer } from '../../index';
 import { getInjectionToken } from '../getInjectionToken/getInjectionToken';
 import { deregistrationCallbackToken } from '../dependency-injection-container/tokens';
+import getInjectableBunch from '../getInjectableBunch/getInjectableBunch';
 
 describe('createContainer.callbacks-for-deregistration', () => {
   describe('given there is an injectable and callback for deregistration', () => {
@@ -42,6 +43,56 @@ describe('createContainer.callbacks-for-deregistration', () => {
 
     it('when the injectable is deregistered together with the callback, still calls the callback with the injectable', () => {
       di.deregister(someDeregistrationCallbackInjectable, someInjectable);
+
+      expect(deregisterCallbackMock.mock.calls.map(get('0.id'))).toEqual([
+        'some-deregistration-callback',
+        'some-injectable',
+      ]);
+    });
+  });
+
+  describe('given there is an injectable bunch and callback for deregistration', () => {
+    let di;
+    let someInjectable;
+    let someBunch;
+    let someDeregistrationCallbackInjectable;
+    let deregisterCallbackMock;
+
+    beforeEach(() => {
+      di = createContainer('some-container');
+
+      deregisterCallbackMock = jest.fn();
+
+      someDeregistrationCallbackInjectable = getInjectable({
+        id: 'some-deregistration-callback',
+
+        instantiate: () => deregisterCallbackMock,
+
+        injectionToken: deregistrationCallbackToken,
+      });
+
+      someInjectable = getInjectable({
+        id: 'some-injectable',
+        instantiate: () => 'irrelevant',
+      });
+
+      someBunch = getInjectableBunch({
+        someInjectable,
+      });
+
+      di.register(someDeregistrationCallbackInjectable, someBunch);
+    });
+
+    it('when the injectable is deregistered, calls callback with injectable', () => {
+      di.deregister(someBunch);
+
+      expect(deregisterCallbackMock.mock.calls.map(get('0.id'))).toEqual([
+        'some-injectable',
+      ]);
+    });
+
+    it('when the injectable is deregistered together with the callback, still calls the callback with the injectable', () => {
+      di.deregister(someDeregistrationCallbackInjectable, someBunch);
 
       expect(deregisterCallbackMock.mock.calls.map(get('0.id'))).toEqual([
         'some-deregistration-callback',

@@ -7,7 +7,9 @@ import { getRelatedTokens } from './getRelatedTokens';
 export const registerFor =
   ({ registerSingle, injectMany }) =>
   ({ injectables, context, source }) => {
-    toFlatInjectables(injectables).forEach(injectable => {
+    const flatInjectables = toFlatInjectables(injectables);
+
+    flatInjectables.forEach(injectable => {
       registerSingle(injectable, context);
     });
 
@@ -18,7 +20,7 @@ export const registerFor =
       source,
     );
 
-    injectables.forEach(injectable => {
+    flatInjectables.forEach(injectable => {
       callbacks.forEach(callback => {
         callback(injectable);
       });
