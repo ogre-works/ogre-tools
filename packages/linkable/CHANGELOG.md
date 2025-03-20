@@ -3,6 +3,10 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [20.6.0](https://github.com/lensapp/ogre-tools/compare/v20.5.4...v20.6.0) (2025-03-20)
+
+**Note:** Version bump only for package @lensapp/linkable
+
 ### [20.5.4](https://github.com/lensapp/ogre-tools/compare/v20.5.3...v20.5.4) (2025-03-19)
 
 **Note:** Version bump only for package @lensapp/linkable

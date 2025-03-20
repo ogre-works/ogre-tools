@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [20.6.0](https://github.com/lensapp/ogre-tools/compare/v20.5.4...v20.6.0) (2025-03-20)
+
+### Features
+
+- Make registerMobX tolerate being called multiple times ([09769c3](https://github.com/lensapp/ogre-tools/commit/09769c3c585e5d80d97911e828a6fc841ad3266a))
+
 ### [20.5.4](https://github.com/lensapp/ogre-tools/compare/v20.5.3...v20.5.4) (2025-03-19)
 
 **Note:** Version bump only for package @lensapp/injectable-extension-for-mobx

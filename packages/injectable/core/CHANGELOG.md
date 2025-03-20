@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [20.6.0](https://github.com/lensapp/ogre-tools/compare/v20.5.4...v20.6.0) (2025-03-20)
+
+### Features
+
+- Make also DiContainerForInjection expose hasRegistrations ([4364110](https://github.com/lensapp/ogre-tools/commit/4364110218813f6e6d7c6c69e48b90a84588bfbb))
+
 ### [20.5.4](https://github.com/lensapp/ogre-tools/compare/v20.5.3...v20.5.4) (2025-03-19)
 
 ### Bug Fixes
