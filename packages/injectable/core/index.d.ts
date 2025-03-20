@@ -451,7 +451,6 @@ export const isInjectionToken: (
 
 export function createContainer(
   containerId: string,
-  options?: { detectCycles?: boolean },
 ): DiContainer;
 
 export function getKeyedSingletonCompositeKey<T extends [...unknown[]]>(

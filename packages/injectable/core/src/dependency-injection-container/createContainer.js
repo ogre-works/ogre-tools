@@ -8,14 +8,12 @@ import { overrideFor, unoverrideFor } from './override';
 import { decorateFor, decorateFunctionFor } from './decorate';
 import { getNamespacedIdFor } from './getNamespacedIdFor';
 import { checkForNoMatchesFor } from './checkForNoMatchesFor';
-import { checkForCyclesFor } from './checkForCyclesFor';
 import { setDependeeFor } from './setDependeeFor';
 import { checkForSideEffectsFor } from './checkForSideEffectsFor';
 import { getRelatedInjectablesFor } from './getRelatedInjectablesFor';
-import { noop } from 'lodash/fp';
 import { earlyOverrideFor } from './early-override';
 
-export default (containerId, { detectCycles = true } = {}) => {
+export default (containerId) => {
   const injectableSet = new Set();
   const overridingInjectables = new Map();
   let sideEffectsArePrevented = false;
@@ -65,18 +63,9 @@ export default (containerId, { detectCycles = true } = {}) => {
       withMeta: true,
     });
 
-  const checkForCycles = detectCycles
-    ? checkForCyclesFor({
-        dependeesByDependencyMap,
-        getNamespacedId,
-      })
-    : noop;
-
   const withInjectionDecorators = withInjectionDecoratorsFor({
     injectMany: nonDecoratedPrivateInjectMany,
     setDependee,
-    checkForCycles,
-    dependenciesByDependencyMap,
   });
 
   const getSideEffectsArePrevented = injectable =>

@@ -221,36 +221,6 @@ describe('injection with meta data', () => {
     expect(await actual[0].instance).toBe('some-instance');
   });
 
-  it('given injectables with a dependency cycle, when injecting many with meta and with custom root context, throws error with the custom context', () => {
-    const injectionToken = getInjectionToken({ id: 'some-injection-token' });
-
-    const childInjectable = getInjectable({
-      id: 'some-child-injectable',
-      instantiate: di => di.inject(parentInjectable),
-      injectionToken,
-    });
-
-    const parentInjectable = getInjectable({
-      id: 'some-parent-injectable',
-      instantiate: di => di.inject(childInjectable),
-      injectionToken,
-    });
-
-    const di = createContainer('some-container');
-
-    di.register(parentInjectable, childInjectable);
-
-    expect(() => {
-      di.injectManyWithMeta(injectionToken, undefined, {
-        injectable: {
-          id: 'some-custom-context-id',
-        },
-      });
-    }).toThrow(
-      'Cycle of injectables encountered: "some-parent-injectable" -> "some-child-injectable" -> "some-parent-injectable"',
-    );
-  });
-
   it('given injectables, when injecting many with custom root context, works', () => {
     const injectionToken = getInjectionToken({ id: 'some-injection-token' });
 
