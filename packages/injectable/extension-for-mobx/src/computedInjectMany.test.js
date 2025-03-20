@@ -91,6 +91,12 @@ describe('registerMobx', () => {
       registerMobX(di);
     });
 
+    it('when calling registerMobX again, does not throw', () => {
+      expect(() => {
+        registerMobX(di);
+      }).not.toThrow();
+    });
+
     describe('given in reactive context and observed as computedInjectMany, when multiple injectables that implement the injection token are registered', () => {
       beforeEach(() => {
         const computedInjectMany = di.inject(computedInjectManyInjectable);

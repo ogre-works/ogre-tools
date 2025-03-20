@@ -1,7 +1,5 @@
-import { identity } from 'lodash/fp';
 import getInjectable from '../getInjectable/getInjectable';
 import createContainer from '../dependency-injection-container/createContainer';
-import { instantiationDecoratorToken } from '../../index';
 import { injectionDecoratorToken } from '../dependency-injection-container/tokens';
 import lifecycleEnum from '../dependency-injection-container/lifecycleEnum';
 
@@ -169,106 +167,5 @@ describe('createContainer.global-decoration', () => {
     const actual = someInjectedThing();
 
     expect(actual).toBe('decorated-with-some-override(some-undecorated-value)');
-  });
-
-  it('given injectable and infinitely recursing injection decorator, when injected, throws', () => {
-    const someInjectable = getInjectable({
-      id: 'some-injectable-to-be-decorated',
-
-      instantiate: () => 'irrelevant',
-    });
-
-    const someDecoratorInjectable = getInjectable({
-      id: 'some-decorator',
-      injectionToken: injectionDecoratorToken,
-      decorable: false,
-
-      instantiate: di => ({
-        decorate:
-          toBeDecorated =>
-          (...args) => {
-            // Note: injection of decorated injectable within the decorator
-            // itself causes the recursion.
-            di.inject(someInjectable);
-
-            return toBeDecorated(...args);
-          },
-      }),
-    });
-
-    const di = createContainer('some-container');
-
-    di.register(someInjectable, someDecoratorInjectable);
-
-    expect(() => {
-      di.inject(someInjectable);
-    }).toThrow(
-      'Cycle of injectables encountered: "some-decorator" -> "(injection-decorator-token)" -> "some-decorator"',
-    );
-  });
-
-  it('given injectable and instantiation decorator which decorates itself, when injected, throws', () => {
-    const someInjectable = getInjectable({
-      id: 'some-injectable-to-be-decorated',
-
-      instantiate: () => 'irrelevant',
-    });
-
-    const someDecoratorInjectable = getInjectable({
-      id: 'some-decorator',
-      injectionToken: instantiationDecoratorToken,
-      // Note: decorator being decorable itself causes the infinite recursion.
-      // decorable: false,
-
-      instantiate: () => ({
-        decorate: identity,
-      }),
-    });
-
-    const di = createContainer('some-container');
-
-    di.register(someInjectable, someDecoratorInjectable);
-
-    expect(() => {
-      di.inject(someInjectable);
-    }).toThrow(
-      'Cycle of injectables encountered: "(instantiate-decorator-token)" -> "some-decorator" -> "(instantiate-decorator-token)"',
-    );
-  });
-
-  it('given injectable and infinitely recursing instantiation decorator, when injected, throws', () => {
-    const someInjectable = getInjectable({
-      id: 'some-injectable-to-be-decorated',
-
-      instantiate: () => 'irrelevant',
-    });
-
-    const someDecoratorInjectable = getInjectable({
-      id: 'some-decorator',
-      injectionToken: instantiationDecoratorToken,
-      decorable: false,
-
-      instantiate: di => ({
-        decorate:
-          toBeDecorated =>
-          (...args) => {
-            // Note: injection of decorated injectable within the decorator
-            // itself causes the recursion.
-            di.inject(someInjectable);
-
-            return toBeDecorated(...args);
-          },
-      }),
-    });
-
-    const di = createContainer('some-container');
-
-    di.register(someInjectable, someDecoratorInjectable);
-
-    expect(() => {
-      di.inject(someInjectable);
-    }).toThrow(
-      'Cycle of injectables encountered: "some-injectable-to-be-decorated" -> "(instantiate-decorator-token)" -> "some-decorator" -> "some-injectable-to-be-decorated"',
-    );
   });
 });

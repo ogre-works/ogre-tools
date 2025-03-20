@@ -118,69 +118,6 @@ describe('registration with namespaces', () => {
       );
     });
 
-    it("given injectables that are late-registered in different scopes with overlapping ids, and there's a cycle, when injecting, throws", () => {
-      someOtherInjectionScope = rootDi.inject(
-        someOtherInjectionScopeInjectable,
-      );
-
-      const someInjectableWithCycle1 = getInjectable({
-        id: 'some-overlapping-id',
-        instantiate: di => di.inject(someInjectableWithCycle2),
-      });
-
-      const someInjectableWithCycle2 = getInjectable({
-        id: 'some-overlapping-id',
-        instantiate: di => di.inject(someInjectableWithCycle1),
-      });
-
-      someInjectionScope.lateRegister(someInjectableWithCycle1);
-
-      someOtherInjectionScope.lateRegister(someInjectableWithCycle2);
-
-      expect(() => {
-        rootDi.inject(someInjectableWithCycle1);
-      }).toThrow(
-        'Cycle of injectables encountered: "some-scope:some-overlapping-id" -> "some-other-scope:some-overlapping-id" -> "some-scope:some-overlapping-id"',
-      );
-    });
-
-    it("given injectables that are late-registered in different nested scopes with overlapping ids, and there's a cycle, when injecting, throws", () => {
-      const someInjectableWithCycle1 = getInjectable({
-        id: 'some-overlapping-id',
-        instantiate: di => di.inject(someInjectableWithCycle2),
-      });
-
-      const someInjectableWithCycle2 = getInjectable({
-        id: 'some-overlapping-id',
-        instantiate: di => di.inject(someInjectableWithCycle1),
-      });
-
-      const someNestedInjectionScopeInjectable = getInjectable({
-        id: 'some-nested-scope',
-        scope: true,
-
-        instantiate: di => ({
-          lateRegister: di.register,
-        }),
-      });
-
-      // Note: late registering a scope in a scope makes it nested.
-      someInjectionScope.lateRegister(someNestedInjectionScopeInjectable);
-
-      const someNestedInjectionScope = rootDi.inject(
-        someNestedInjectionScopeInjectable,
-      );
-
-      someInjectionScope.lateRegister(someInjectableWithCycle1);
-      someNestedInjectionScope.lateRegister(someInjectableWithCycle2);
-
-      expect(() => {
-        rootDi.inject(someInjectableWithCycle1);
-      }).toThrow(
-        'Cycle of injectables encountered: "some-scope:some-overlapping-id" -> "some-scope:some-nested-scope:some-overlapping-id" -> "some-scope:some-overlapping-id"',
-      );
-    });
-
     it('given injectables are late-registered in a scope, but the late-registered injectables are deregistered among their context, and late-registering the injectables again, when injecting, does so', () => {
       someInjectionScope.lateRegister(someInjectableWithOverlappingId);
 

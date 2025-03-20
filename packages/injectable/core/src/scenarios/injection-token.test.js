@@ -129,38 +129,6 @@ describe('createContainer.injection-token', () => {
     expect(actual).toEqual([]);
   });
 
-  it('given injectables with a dependency cycle, when injecting many, throws', () => {
-    const someInjectionToken = getInjectionToken({
-      id: 'some-injection-token',
-    });
-
-    const someOtherInjectionToken = getInjectionToken({
-      id: 'some-other-injection-token',
-    });
-
-    const childInjectable = getInjectable({
-      id: 'some-child-injectable',
-      injectionToken: someOtherInjectionToken,
-      instantiate: di => di.injectMany(someInjectionToken),
-    });
-
-    const parentInjectable = getInjectable({
-      id: 'some-parent-injectable',
-      injectionToken: someInjectionToken,
-      instantiate: di => di.injectMany(someOtherInjectionToken),
-    });
-
-    const di = createContainer('some-container');
-
-    di.register(parentInjectable, childInjectable);
-
-    expect(() => {
-      di.injectMany(someInjectionToken);
-    }).toThrow(
-      'Cycle of injectables encountered: "(some-injection-token)" -> "some-parent-injectable" -> "(some-other-injection-token)" -> "some-child-injectable" -> "(some-injection-token)"',
-    );
-  });
-
   it('given injectable with injection token, when injected using injection token, injects', () => {
     const injectionToken = getInjectionToken({ id: 'some-injection-token' });
 

@@ -129,6 +129,8 @@ const getInstance = ({
         getNamespacedId(source).split(':').slice(0, -1).join(':') || undefined
       );
     },
+
+    hasRegistrations: di.hasRegistrations,
   };
 
   const instanceKey = injectableToBeInstantiated.lifecycle.getInstanceKey(

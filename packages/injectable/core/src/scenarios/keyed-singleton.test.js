@@ -73,7 +73,7 @@ describe('createContainer.keyed-singleton', () => {
       expect(actual1).toBe(actual2);
     });
 
-    fit('when injected multiple times with different length of composite key, injects different instances', () => {
+    it('when injected multiple times with different length of composite key, injects different instances', () => {
       const actual1 = di.inject(
         injectable,
         getCompositeKey(
