@@ -13,7 +13,7 @@ import { checkForSideEffectsFor } from './checkForSideEffectsFor';
 import { getRelatedInjectablesFor } from './getRelatedInjectablesFor';
 import { earlyOverrideFor } from './early-override';
 
-export default (containerId) => {
+export default containerId => {
   const injectableSet = new Set();
   const overridingInjectables = new Map();
   let sideEffectsArePrevented = false;
@@ -215,6 +215,7 @@ export default (containerId) => {
 
     purge: purgeInstances,
     purgeAllButOverrides,
+    hasRegistrations: alias => !!getRelatedInjectables(alias).length,
   };
 
   const publicInject = (alias, parameter, customContextItem) =>
@@ -276,8 +277,6 @@ export default (containerId) => {
       getRelatedInjectables(alias).flatMap(injectable => [
         ...instancesByInjectableMap.get(injectable).values(),
       ]),
-
-    hasRegistrations: alias => !!getRelatedInjectables(alias).length,
   };
 
   return publicDi;

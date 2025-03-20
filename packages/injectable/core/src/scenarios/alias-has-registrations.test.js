@@ -88,4 +88,23 @@ describe('alias-has-registrations', () => {
       expect(injectableHasRegistrations).toBe(false);
     });
   });
+
+  it('hasRegistrations of root di and child di are the same thing', () => {
+    const rootDi = di;
+
+    let childDi;
+
+    const someInjectable = getInjectable({
+      id: 'some-injectable-to-manifest-a-child-di',
+
+      instantiate: di => {
+        childDi = di;
+      },
+    });
+
+    di.register(someInjectable);
+    di.inject(someInjectable);
+
+    expect(rootDi.hasRegistrations).toBe(childDi.hasRegistrations);
+  });
 });

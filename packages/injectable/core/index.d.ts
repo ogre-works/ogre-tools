@@ -31,10 +31,6 @@ export interface DiContainer extends DiContainerForInjection {
   deregister(
     ...injectables: (Injectable<any, any, any> | InjectableBunch<any>)[]
   ): void;
-
-  hasRegistrations: (
-    alias: InjectionToken<any, any> | Injectable<any, any, any>,
-  ) => boolean;
 }
 
 export type Instantiate<InjectionInstance, InstantiationParam> = {
@@ -287,6 +283,10 @@ export interface DiContainerForInjection {
   context: ContextItem[];
   getInstances: GetInstances;
   sourceNamespace: string | undefined;
+
+  hasRegistrations: (
+    alias: InjectionToken<any, any, any> | Injectable<any, any, any>,
+  ) => boolean;
 }
 
 export interface ILifecycle<InstantiationParam> {

@@ -828,3 +828,15 @@ expectType<(arg: string) => string>(actualSpecificInstance);
 // });
 //
 // expectType<(arg: unknown) => boolean>(di.inject(minimalTokenWithSpecifics));
+
+const someInjectableForHasRegistrations = getInjectable({
+  id: 'irrelevant',
+
+  instantiate: di => {
+    // given injectable, typing for "alias has registrations" is ok
+    expectType<boolean>(di.hasRegistrations(someInjectable));
+
+    // given token, typing for "alias has registrations" is ok
+    expectType<boolean>(di.hasRegistrations(someInjectionToken));
+  },
+});
