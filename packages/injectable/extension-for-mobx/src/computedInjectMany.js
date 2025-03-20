@@ -120,6 +120,10 @@ export const computedInjectManyWithMetaInjectable =
   });
 
 export const registerMobX = di => {
+  if (di.hasRegistrations(invalidabilityForReactiveInstances)) {
+    return;
+  }
+
   runInAction(() => {
     di.register(
       invalidabilityForReactiveInstances,
