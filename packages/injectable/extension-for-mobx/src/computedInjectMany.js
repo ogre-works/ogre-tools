@@ -1,12 +1,21 @@
 import {
   deregistrationCallbackToken,
   getInjectable,
+  getInjectionToken,
+  getKeyedSingletonCompositeKey,
   lifecycleEnum,
   registrationCallbackToken,
 } from '@lensapp/injectable';
 
 import { computed, createAtom, runInAction } from 'mobx';
-import { getKeyedSingletonCompositeKey } from '@lensapp/injectable';
+
+export const computedInjectManyInjectionToken = getInjectionToken({
+  id: 'computed-inject-many',
+});
+
+export const computedInjectManyWithMetaInjectionToken = getInjectionToken({
+  id: 'computed-inject-many-with-meta',
+});
 
 export const isInternalOfComputedInjectMany = Symbol(
   'isInternalOfComputedInjectMany',
@@ -79,8 +88,6 @@ const reactiveInstancesFor = ({ id, methodInDiToInjectMany }) =>
       getInstanceKey: (di, { injectionToken, instantiationParameter }) =>
         getKeyedSingletonCompositeKey(injectionToken, instantiationParameter),
     }),
-
-    cannotCauseCycles: true,
   });
 
 const reactiveInstancesInjectable = reactiveInstancesFor({
@@ -93,7 +100,11 @@ const reactiveInstancesWithMetaInjectable = reactiveInstancesFor({
   methodInDiToInjectMany: 'injectManyWithMeta',
 });
 
-const computedInjectManyInjectableFor = ({ id, reactiveInstances }) =>
+const computedInjectManyInjectableFor = ({
+  id,
+  reactiveInstances,
+  injectionToken,
+}) =>
   getInjectable({
     id,
 
@@ -104,19 +115,20 @@ const computedInjectManyInjectableFor = ({ id, reactiveInstances }) =>
       }),
 
     lifecycle: lifecycleEnum.transient,
-
-    cannotCauseCycles: true,
+    injectionToken,
   });
 
 export const computedInjectManyInjectable = computedInjectManyInjectableFor({
   id: 'computed-inject-many',
   reactiveInstances: reactiveInstancesInjectable,
+  injectionToken: computedInjectManyInjectionToken,
 });
 
 export const computedInjectManyWithMetaInjectable =
   computedInjectManyInjectableFor({
     id: 'computed-inject-many-with-meta',
     reactiveInstances: reactiveInstancesWithMetaInjectable,
+    injectionToken: computedInjectManyWithMetaInjectionToken,
   });
 
 export const registerMobX = di => {

@@ -9,8 +9,8 @@ import {
 import { IComputedValue } from 'mobx';
 
 import {
-  computedInjectManyInjectable,
-  computedInjectManyWithMetaInjectable,
+  computedInjectManyInjectionToken,
+  computedInjectManyWithMetaInjectionToken,
 } from '.';
 
 const di = createContainer('some-container');
@@ -20,13 +20,13 @@ export const someInjectionToken = getInjectionToken<string>({
 });
 
 // Given computedInjectMany, typing is ok.
-const computedInjectMany = di.inject(computedInjectManyInjectable);
+const computedInjectMany = di.inject(computedInjectManyInjectionToken);
 
 expectType<IComputedValue<string[]>>(computedInjectMany(someInjectionToken));
 
 // Given computedInjectManyWithMeta, typing is ok.
 const computedInjectManyWithMeta = di.inject(
-  computedInjectManyWithMetaInjectable,
+  computedInjectManyWithMetaInjectionToken,
 );
 
 expectType<IComputedValue<InjectionInstanceWithMeta<string>[]>>(

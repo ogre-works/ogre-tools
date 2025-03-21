@@ -16,6 +16,7 @@ import {
 
 import {
   computedInjectManyInjectable,
+  computedInjectManyInjectionToken,
   isInternalOfComputedInjectMany,
   registerMobX,
 } from './computedInjectMany';
@@ -99,7 +100,7 @@ describe('registerMobx', () => {
 
     describe('given in reactive context and observed as computedInjectMany, when multiple injectables that implement the injection token are registered', () => {
       beforeEach(() => {
-        const computedInjectMany = di.inject(computedInjectManyInjectable);
+        const computedInjectMany = di.inject(computedInjectManyInjectionToken);
 
         actual = computedInjectMany(someFirstInjectionToken);
 
