@@ -1,4 +1,6 @@
 import {
+  computedInjectManyInjectionToken,
+  computedInjectManyWithMetaInjectionToken,
   computedInjectManyInjectable,
   computedInjectManyWithMetaInjectable,
   registerMobX,
@@ -8,4 +10,6 @@ export {
   registerMobX,
   computedInjectManyInjectable,
   computedInjectManyWithMetaInjectable,
+  computedInjectManyInjectionToken,
+  computedInjectManyWithMetaInjectionToken,
 };
