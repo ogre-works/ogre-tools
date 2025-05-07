@@ -32,37 +32,29 @@ export function getElementComponent<TagName extends TagNames>(
     .map(withMappedRef)
     .map(withMergeOutputOverInput);
 
-  return forwardRef((unprocessedProps: any, ref) => {
+  return forwardRef((unprocessedProps, ref) => {
     const { $$ref = [], ...processedProps }: any = fastPipeline(
       unprocessedProps,
       ...processedPlugins,
     ) as JSX.IntrinsicElements[TagName];
-
+    const callbackRef = React.useCallback(
+      (node: HTMLElement) => [ref, ...$$ref].forEach(handleRefFor(node)),
+      $$ref,
+    );
     const TagName = tagName as React.ElementType;
 
-    return (
-      <TagName
-        {...processedProps}
-        ref={(node: HTMLElement) => {
-          const handleRef = handleRefFor(node);
-
-          if (ref) {
-            handleRef(ref);
-          }
-
-          $$ref.forEach(handleRef);
-        }}
-      />
-    );
+    return <TagName {...processedProps} ref={callbackRef} />;
   });
 }
 
 const handleRefFor =
   (node: HTMLElement) =>
-  (ref: ((node: HTMLElement) => void) | MutableRefObject<unknown>) => {
+  (
+    ref: ((node: HTMLElement) => void) | MutableRefObject<unknown> | undefined,
+  ) => {
     if (typeof ref === 'function') {
       ref(node);
-    } else {
+    } else if (ref) {
       ref.current = node;
     }
   };
