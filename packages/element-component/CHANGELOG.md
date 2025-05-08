@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+### [20.6.1](https://github.com/lensapp/ogre-tools/compare/v20.6.0...v20.6.1) (2025-05-08)
+
+### Bug Fixes
+
+- Ensure that callback style refs on ElementComponents are only called when changed ([0a523f7](https://github.com/lensapp/ogre-tools/commit/0a523f757df67d888639a677e73a891187232ff3))
+
 ## [20.6.0](https://github.com/lensapp/ogre-tools/compare/v20.5.4...v20.6.0) (2025-03-20)
 
 **Note:** Version bump only for package @lensapp/element-component
