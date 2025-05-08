@@ -126,10 +126,10 @@ describe('element', () => {
     const Div = getElementComponent('div');
 
     const TestComponent = () => {
-      const testRef = React.useRef(null);
+      const testRef = React.useRef<HTMLDivElement>(null);
 
       useEffect(() => {
-        testRef.current.classList.add('some-class-from-ref');
+        testRef.current!.classList.add('some-class-from-ref');
       });
 
       return <Div ref={testRef} data-some-element-test />;
@@ -167,35 +167,43 @@ describe('element', () => {
     ).toBe(true);
   });
 
+  it('given functional ref, when rendered, when rerendered with a different prop changed, does not call again', () => {
+    const Div = getElementComponent('div');
+    const someRef = jest.fn();
+
+    const rendered = render(<Div ref={someRef} data-some-element-test />);
+
+    someRef.mockClear();
+    rendered.rerender(<Div ref={someRef} />);
+
+    expect(someRef).not.toHaveBeenCalled();
+  });
+
   describe('given multiple plugins with ref', () => {
     let rendered: RenderResult;
     let discover: Discover;
 
     beforeEach(() => {
-      const somePlugin1 = getPlugin<{ $somePlugin1Input?: boolean }>(
-        (props: any): any => {
-          const ref = useRef(null);
+      const somePlugin1 = getPlugin<{ $somePlugin1Input?: boolean }>(() => {
+        const ref = useRef<HTMLElement>(null);
 
-          useEffect(() => {
-            ref.current.classList.add('some-class-from-hook-ref');
-          }, []);
+        useEffect(() => {
+          ref.current!.classList.add('some-class-from-hook-ref');
+        }, []);
 
-          return {
-            $somePlugin1Input: undefined,
-            ref,
-          };
+        return {
+          $somePlugin1Input: undefined,
+          ref,
+        };
+      });
+
+      const somePlugin2 = getPlugin<{ $somePlugin2Input?: boolean }>(() => ({
+        $somePlugin2Input: undefined,
+
+        ref: node => {
+          node?.classList.add('some-class-from-functional-ref');
         },
-      );
-
-      const somePlugin2 = getPlugin<{ $somePlugin2Input?: boolean }>(
-        (props): any => ({
-          $somePlugin2Input: undefined,
-
-          ref: node => {
-            node?.classList.add('some-class-from-functional-ref');
-          },
-        }),
-      );
+      }));
 
       const Div = getElementComponent('div', somePlugin2, somePlugin1);
 
