@@ -1,11 +1,16 @@
 import React from 'react';
 
-import { expectAssignable, expectError, printType } from 'tsd';
+import { expectAssignable, expectError, expectType } from 'tsd';
 import { getInjectableComponent } from '../../index';
 import {
+  createContainer,
   getInjectionToken,
+  getTypedSpecifier,
   Injectable,
   lifecycleEnum,
+  SpecificInjectionToken,
+  TypedSpecifierType,
+  TypedSpecifierWithType,
 } from '@lensapp/injectable';
 
 const someInjectionTokenUsingProps = getInjectionToken<
@@ -126,7 +131,12 @@ expectAssignable<Injectable<React.ComponentType<{ someProp: string }>>>(
   SomeInjectableComponentUsingInjectionToken,
 );
 
-// given injection token, and functional component using less props than token, typing is still ok
+const di = createContainer('irrelevant');
+expectType<React.ComponentType<{ someProp: string }>>(
+  di.inject(SomeInjectableComponentUsingInjectionToken),
+);
+
+// given injection token, and component using less props than token, typing is not ok
 const SomeInjectableComponentUsingLessPropsThanInjectionToken =
   getInjectableComponent({
     id: 'irrelevant',
@@ -134,11 +144,11 @@ const SomeInjectableComponentUsingLessPropsThanInjectionToken =
     injectionToken: someInjectionTokenUsingProps,
   });
 
-expectAssignable<React.ComponentType>(
+expectError<React.ComponentType>(
   SomeInjectableComponentUsingLessPropsThanInjectionToken,
 );
 
-expectAssignable<Injectable<React.ComponentType>>(
+expectError<Injectable<React.ComponentType>>(
   SomeInjectableComponentUsingLessPropsThanInjectionToken,
 );
 
@@ -246,4 +256,43 @@ expectError(
     Component: SomeFunctionalComponentNotUsingProps,
     decorable: false,
   }),
+);
+
+// given injection token with typed specifier, and functional component using props, typing is ok
+const someInjectionTokenWithTypedSpecifier = getInjectionToken<
+  React.ComponentType<unknown>,
+  void,
+  <T extends TypedSpecifierWithType<'someSpecifier'>>(
+    specifier: T,
+  ) => SpecificInjectionToken<
+    React.ComponentType<TypedSpecifierType<'someSpecifier', T>>
+  >
+>({ id: 'irrelevant' });
+
+const someTypedSpecifier =
+  getTypedSpecifier<{ someSpecifier: { someProp: 'some-type' } }>()(
+    'irrelevant',
+  );
+
+const SomeInjectableComponentForTypedSpecifier = getInjectableComponent({
+  id: 'irrelevant',
+  Component: props => {
+    expectType<{ someProp: 'some-type' }>(props);
+
+    return <div>irrelevant</div>;
+  },
+
+  injectionToken: someInjectionTokenWithTypedSpecifier.for(someTypedSpecifier),
+});
+
+expectAssignable<React.ComponentType<{ someProp: 'some-type' }>>(
+  SomeInjectableComponentForTypedSpecifier,
+);
+
+expectAssignable<Injectable<React.ComponentType<{ someProp: 'some-type' }>>>(
+  SomeInjectableComponentForTypedSpecifier,
+);
+
+expectType<React.ComponentType<{ someProp: 'some-type' }>>(
+  di.inject(someInjectionTokenWithTypedSpecifier.for(someTypedSpecifier)),
 );
