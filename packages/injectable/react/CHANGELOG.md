@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+### [20.6.2](https://github.com/lensapp/ogre-tools/compare/v20.6.1...v20.6.2) (2025-05-20)
+
+### Bug Fixes
+
+- Make injectableComponent able to infer typing of props from injectionToken ([3edbeb9](https://github.com/lensapp/ogre-tools/commit/3edbeb9f59744697277f1b505c68aa995ffe7793))
+
 ### [20.6.1](https://github.com/lensapp/ogre-tools/compare/v20.6.0...v20.6.1) (2025-05-08)
 
 **Note:** Version bump only for package @lensapp/injectable-react

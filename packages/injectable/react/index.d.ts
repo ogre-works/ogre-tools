@@ -32,8 +32,8 @@ export type InjectableComponent<Props extends object = {}> =
   React.ComponentType<Props> & Injectable<React.ComponentType<Props>>;
 
 export function getInjectableComponent<
-  Props extends object,
-  TokenProps extends Props,
+  Props extends TokenProps,
+  TokenProps extends object,
 >(
   injectable: Omit<
     Injectable<unknown>,

@@ -1,4 +1,4 @@
-import { expectAssignable, expectError, expectNotType, expectType } from 'tsd';
+import {expectAssignable, expectError, expectNotType, expectType} from 'tsd';
 
 import {
   createContainer,
@@ -24,6 +24,7 @@ import {
   lifecycleEnum,
   SpecificInject,
   SpecificInjectionToken,
+  TypedSpecifier,
   TypedSpecifierType,
   TypedSpecifierWithType,
 } from '.';
@@ -840,3 +841,11 @@ const someInjectableForHasRegistrations = getInjectable({
     expectType<boolean>(di.hasRegistrations(someInjectionToken));
   },
 });
+
+const typedSpecifier = getTypedSpecifier<{ someSpeciality: "some-type" }>()("irrelevant");
+
+// given typed specifier, TypedSpecifier is compatible with "extends" and type inference
+expectAssignable<TypedSpecifier<string, { someSpeciality: "some-type" }>>(typedSpecifier)
+
+// given typed specifier, TypedSpecifierWithType is compatible with "extends" and type inference
+expectAssignable<TypedSpecifierWithType<"someSpeciality", "some-type">>(typedSpecifier)

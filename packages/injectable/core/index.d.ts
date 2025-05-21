@@ -461,7 +461,7 @@ export type TypedSpecifier<SpecifierName extends string = string, Typing extends
   SpecifierName
   & [Typing];
 
-export type TypedSpecifierWithType<TypeName extends string> = TypedSpecifier<string, { [K in TypeName]: unknown }>;
+export type TypedSpecifierWithType<TypeName extends string, T = unknown> = TypedSpecifier<string, { [K in TypeName]: T }>;
 
 export type TypedSpecifierType<TypeName extends string, Specifier extends TypedSpecifierWithType<TypeName>> =
   Specifier extends TypedSpecifier<string, infer Typing extends Record<TypeName, unknown>>
