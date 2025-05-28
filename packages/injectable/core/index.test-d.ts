@@ -485,15 +485,23 @@ getInjectable({
   },
 });
 
-// given injectable that is singleton, when used to inject a factory, typing is not ok
-expectError(
+// given injectable that is singleton, when used to inject a factory, typing is ok
+expectType<() => string>(di.injectFactory(
+  getInjectable({
+    id: 'some-injectable',
+    instantiate: () => 'irrelevant',
+  }),
+))
+
+// given token without instantiation parameter, when used to inject a factory, typing is ok
+expectType<() => number>(
   di.injectFactory(
-    getInjectable({
-      id: 'some-injectable',
-      instantiate: () => 'irrelevant',
+    getInjectionToken<number, void>({
+      id: 'some-token',
     }),
   ),
 );
+
 
 // Overrides and unoverrides
 const someStringInjectionToken = getInjectionToken<string>({
