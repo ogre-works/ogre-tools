@@ -175,11 +175,11 @@ export type InjectWithParameter = <InjectionInstance, InstantiationParam>(
 
 export type Inject = InjectWithoutParameter & InjectWithParameter;
 
-export type InjectFactory = <InjectionInstance, InstantiationParam extends {}>(
+export type InjectFactory = <InjectionInstance, InstantiationParam>(
   alias:
     | Injectable<InjectionInstance, unknown, InstantiationParam>
     | InjectionToken<InjectionInstance, InstantiationParam>,
-) => (param: InstantiationParam) => InjectionInstance;
+) => InstantiationParam extends void ? (() => InjectionInstance) : ((param: InstantiationParam) => InjectionInstance);
 
 export type GetInstances = <InjectionInstance>(
   alias:

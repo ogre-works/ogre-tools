@@ -76,6 +76,13 @@ const InjectableComponentUsingPlaceholder = getInjectableComponent({
   PlaceholderComponent: () => <div>irrelevant</div>,
 });
 
+// given a null placeholder, typing is ok
+const InjectableComponentUsingNullPlaceholder = getInjectableComponent({
+  id: 'irrelevant',
+  Component: SomeFunctionalComponentUsingProps,
+  PlaceholderComponent: () => null,
+});
+
 expectAssignable<React.ComponentType>(InjectableComponentUsingPlaceholder);
 
 expectAssignable<Injectable<React.ComponentType>>(
@@ -295,4 +302,38 @@ expectAssignable<Injectable<React.ComponentType<{ someProp: 'some-type' }>>>(
 
 expectType<React.ComponentType<{ someProp: 'some-type' }>>(
   di.inject(someInjectionTokenWithTypedSpecifier.for(someTypedSpecifier)),
+);
+
+const SomeGenericInjectableComponent = getInjectableComponent({
+  id: 'some-generic',
+
+  Component: <T extends { someOtherProp: unknown }>({
+    someProp,
+    someOtherProp,
+  }: {
+    someProp: T;
+    someOtherProp: T['someOtherProp'];
+  }) => <div />,
+});
+
+expectError(
+  <SomeGenericInjectableComponent
+    someProp={{ someOtherProp: 42 }}
+    someOtherProp="some-string"
+  />,
+);
+
+const SomeGenericComponent = <T extends { someOtherProp: unknown }>({
+  someProp,
+  someOtherProp,
+}: {
+  someProp: T;
+  someOtherProp: T['someOtherProp'];
+}) => <div />;
+
+expectError(
+  <SomeGenericComponent
+    someProp={{ someOtherProp: 42 }}
+    someOtherProp="some-string"
+  />,
 );

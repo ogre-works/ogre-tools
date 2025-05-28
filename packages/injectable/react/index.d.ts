@@ -28,22 +28,22 @@ export function useInjectDeferred<TReturnValue, TInstantiationParameter>(
   instantiationParameter: TInstantiationParameter,
 ): Awaited<TReturnValue>;
 
-export type InjectableComponent<Props extends object = {}> =
-  React.ComponentType<Props> & Injectable<React.ComponentType<Props>>;
 
-export function getInjectableComponent<
-  Props extends TokenProps,
-  TokenProps extends object,
+export type InjectableComponent<Component extends React.ComponentType<any>> =
+  Component & Injectable<Component>;
+
+type ExcludedKeys = 'instantiate' | 'lifecycle' | 'scope' | 'decorable';
+
+export declare function getInjectableComponent<
+  Component extends React.ComponentType<any>
 >(
-  injectable: Omit<
-    Injectable<unknown>,
-    'instantiate' | 'lifecycle' | 'scope' | 'decorable'
-  > & {
-    Component: React.ComponentType<Props>;
-    PlaceholderComponent?: React.ComponentType<Props>;
-    injectionToken?: InjectionToken<React.ComponentType<TokenProps>>;
+  injectable: Omit<Injectable<Component>, ExcludedKeys> & {
+    id: string;
+    Component: Component;
+    PlaceholderComponent?: React.ComponentType<React.ComponentProps<Component>>;
+    injectionToken?: InjectionToken<Component>;
   },
-): InjectableComponent<Props>;
+): InjectableComponent<Component>;
 
 interface DiContainerProviderProps {
   di: DiContainer | DiContainerForInjection;
