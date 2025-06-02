@@ -1,7 +1,7 @@
 {
   "name": "@lensapp/infrastructure-prettier",
   "private": true,
-  "version": "20.6.2",
+  "version": "20.6.3",
   "description": "Shared prettier configuration",
   "repository": {
     "type": "git",

@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+### [20.6.3](https://github.com/lensapp/ogre-tools/compare/v20.6.2...v20.6.3) (2025-06-02)
+
+### Bug Fixes
+
+- Fix typing of generic injectable components ([a548d51](https://github.com/lensapp/ogre-tools/commit/a548d51c8d03eb57fb8c5752fe1308e62b39966c))
+
 ### [20.6.2](https://github.com/lensapp/ogre-tools/compare/v20.6.1...v20.6.2) (2025-05-20)
 
 ### Bug Fixes

@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+### [20.6.3](https://github.com/lensapp/ogre-tools/compare/v20.6.2...v20.6.3) (2025-06-02)
+
+### Bug Fixes
+
+- Fix typing of inject factory when used for injecting singletons ([14cdd3d](https://github.com/lensapp/ogre-tools/commit/14cdd3d9466e93dc38176afda6c8b8abd0c1fa0b))
+
 ### [20.6.2](https://github.com/lensapp/ogre-tools/compare/v20.6.1...v20.6.2) (2025-05-20)
 
 **Note:** Version bump only for package @lensapp/injectable
