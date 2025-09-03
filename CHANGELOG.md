@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+### [20.6.4](https://github.com/lensapp/ogre-tools/compare/v20.6.3...v20.6.4) (2025-09-03)
+
+### Bug Fixes
+
+- Fix re-renders of component with di context provider causing unnecessary rerenders for children ([36dfb70](https://github.com/lensapp/ogre-tools/commit/36dfb70727a6dd2befb3f975b1c7662eb42e5ab8))
+
 ### [20.6.3](https://github.com/lensapp/ogre-tools/compare/v20.6.2...v20.6.3) (2025-06-02)
 
 ### Bug Fixes

@@ -1,7 +1,7 @@
 {
   "name": "@lensapp/infrastructure-jest",
   "private": true,
-  "version": "20.6.3",
+  "version": "20.6.4",
   "description": "Shared jest configuration",
   "repository": {
     "type": "git",
