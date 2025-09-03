@@ -13,15 +13,12 @@ import withInjectables, { DiContextProvider } from './withInjectables';
 import asyncFn from '@async-fn/jest';
 import { observable, runInAction } from 'mobx';
 import { observer } from 'mobx-react';
-import registerInjectableReact from '../registerInjectableReact/registerInjectableReact';
 import { keys } from 'lodash/fp';
-
-const flushPromises = () => new Promise(flushMicroTasks);
 
 const mountFor =
   di =>
   (node, ...rest) =>
-    render(<DiContextProvider value={{ di }}>{node}</DiContextProvider>, {
+    render(<DiContextProvider value={di}>{node}</DiContextProvider>, {
       ...rest,
     });
 
@@ -31,8 +28,6 @@ describe('withInjectables', () => {
 
   beforeEach(() => {
     di = createContainer('some-container');
-
-    registerInjectableReact(di);
 
     mount = mountFor(di);
   });

@@ -539,15 +539,15 @@ describe('getInjectableComponent', () => {
 
     const rendered = render(
       <div>
-        <DiContextProvider value={{ di: di1 }}>
+        <DiContextProvider value={di1}>
           <SomeComponent data-component-in-di-1-test />
         </DiContextProvider>
 
-        <DiContextProvider value={{ di: di2 }}>
+        <DiContextProvider value={di2}>
           <SomeComponent data-component-in-di-2-test />
         </DiContextProvider>
 
-        <DiContextProvider value={{ di: di1 }}>
+        <DiContextProvider value={di1}>
           <SomeComponent data-component-in-di-1-test />
         </DiContextProvider>
       </div>,
@@ -642,7 +642,7 @@ describe('getInjectableComponent', () => {
 
     const rendered = render(
       <div>
-        <DiContextProvider value={{ di }}>
+        <DiContextProvider value={di}>
           <SomeComponent name="some-name" />
         </DiContextProvider>
       </div>,
@@ -660,7 +660,7 @@ describe('getInjectableComponent', () => {
 const mountFor = (di, onRenderingError) => node =>
   render(
     <ErrorBoundary onError={onRenderingError}>
-      <DiContextProvider value={{ di }}>{node}</DiContextProvider>
+      <DiContextProvider value={di}>{node}</DiContextProvider>
     </ErrorBoundary>,
   );
 

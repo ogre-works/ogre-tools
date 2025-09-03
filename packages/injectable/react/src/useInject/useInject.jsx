@@ -9,7 +9,7 @@ const useNonDeferredValue = x => x;
 const _useInject = (injectable, instantiationParameter, config) => {
   checkForUnsupportedAsyncTransient(injectable);
 
-  const { di } = useContext(diContext);
+  const di = useContext(diContext);
 
   const maybePromise = useMemo(
     () => di.inject(injectable, instantiationParameter),

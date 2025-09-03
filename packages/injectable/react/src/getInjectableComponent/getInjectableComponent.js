@@ -1,4 +1,4 @@
-import React, { forwardRef, Suspense, useContext } from 'react';
+import React, { forwardRef, Suspense, useContext, useMemo } from 'react';
 
 import { getInjectable, lifecycleEnum } from '@lensapp/injectable';
 import { useInjectDeferred } from '../useInject/useInject';
@@ -34,11 +34,11 @@ export const getInjectableComponent = ({
 
   const InjectableComponent = Object.assign(
     forwardRef((props, ref) => {
-      const { di: failSafeDi } = useContext(diContext);
+      const failSafeDi = useContext(diContext);
       const InjectedComponent = useInjectDeferred(InjectableComponent);
 
       return (
-        <DiContextProvider value={{ di: diForComponentContext || failSafeDi }}>
+        <DiContextProvider value={diForComponentContext || failSafeDi}>
           {PlaceholderComponent ? (
             <Suspense fallback={<PlaceholderComponent {...props} />}>
               <InjectedComponent {...props} ref={ref} />

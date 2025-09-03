@@ -1,6 +1,6 @@
 import { noop } from 'lodash/fp';
 import { observable, runInAction } from 'mobx';
-import { Observer } from 'mobx-react';
+import { Observer, observer } from 'mobx-react';
 import React, { Suspense, useEffect } from 'react';
 import { act, render } from '@testing-library/react';
 
@@ -12,7 +12,6 @@ import {
 } from '@lensapp/injectable';
 
 import asyncFn from '@async-fn/jest';
-import registerInjectableReact from '../registerInjectableReact/registerInjectableReact';
 import { DiContextProvider } from '../withInjectables/withInjectables';
 import { useInjectDeferred, useInject } from './useInject';
 import { flushPromises } from '@lensapp/ogre-test-utils';
@@ -29,9 +28,48 @@ describe('useInject', () => {
 
     jest.spyOn(di, 'inject');
 
-    registerInjectableReact(di);
-
     mount = mountFor(di, onErrorWhileRenderingMock);
+  });
+
+  it('given parent component with context provider, when parent rerenders, does not cause unnecessary rerenders for childs', async () => {
+    const someInjectable = getInjectable({
+      id: 'some',
+      instantiate: di => 'irrelevant',
+    });
+
+    di.register(someInjectable);
+
+    const childComponentRenderMock = jest.fn();
+
+    const SomeChildComponentWithUseInject = () => {
+      childComponentRenderMock();
+
+      useInject(someInjectable);
+
+      return <div>irrelevant</div>;
+    };
+
+    const someObservable = observable.box(0);
+
+    const SomeParentComponentWithContextProvider = observer(({ children }) => {
+      someObservable.get();
+
+      return <DiContextProvider value={di}>>{children}</DiContextProvider>;
+    });
+
+    render(
+      <SomeParentComponentWithContextProvider>
+        <SomeChildComponentWithUseInject />
+      </SomeParentComponentWithContextProvider>,
+    );
+
+    await act(async () => {
+      runInAction(() => {
+        someObservable.set(1);
+      });
+    });
+
+    expect(childComponentRenderMock).toHaveBeenCalledTimes(1);
   });
 
   describe('given a sync injectable, when rendered', () => {
@@ -1682,7 +1720,7 @@ describe('useInject', () => {
 const mountFor = (di, onRenderingError) => node =>
   render(
     <ErrorBoundary onError={onRenderingError}>
-      <DiContextProvider value={{ di }}>{node}</DiContextProvider>
+      <DiContextProvider value={di}>{node}</DiContextProvider>
     </ErrorBoundary>,
   );
 

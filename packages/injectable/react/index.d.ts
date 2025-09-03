@@ -45,11 +45,7 @@ export declare function getInjectableComponent<
   },
 ): InjectableComponent<Component>;
 
-interface DiContainerProviderProps {
-  di: DiContainer | DiContainerForInjection;
-}
-
-export const DiContextProvider: React.Provider<DiContainerProviderProps>;
+export const DiContextProvider: React.Provider<DiContainer | DiContainerForInjection>;
 
 export interface WithInjectablesSyncOptions<
   Dependencies extends object,
@@ -96,5 +92,3 @@ export interface WithInjectables {
 }
 
 export const withInjectables: WithInjectables;
-
-export function registerInjectableReact(di: DiContainer): void;
