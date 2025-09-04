@@ -156,8 +156,11 @@ describe('useInject', () => {
         });
       });
 
-      it('does not inject', () => {
-        expect(di.inject).not.toHaveBeenCalled();
+      it('reinjects', () => {
+        expect(di.inject).toHaveBeenCalledWith(
+          someRelatedSyncInjectable,
+          'some-initial-prop-value',
+        );
       });
 
       it('renders', () => {
@@ -447,14 +450,6 @@ describe('useInject', () => {
             const actuallySuspended = !!rendered.queryByTestId('some-suspense');
 
             expect(actuallySuspended).toBe(false);
-          });
-
-          it('calls to inject the new async injectable', () => {
-            expect(
-              di.inject.mock.calls.filter(
-                ([injectable]) => injectable === someAsyncInjectable,
-              ),
-            ).toEqual([[someAsyncInjectable, 'some-fast-prop-value']]);
           });
 
           it('still renders as having the old async value', () => {
@@ -1274,18 +1269,6 @@ describe('useInject', () => {
           expect(actuallySuspended).toBe(false);
         });
 
-        it('calls to inject the async injectable for each component', () => {
-          expect(
-            di.inject.mock.calls.filter(
-              ([injectable]) => injectable === someAsyncInjectable,
-            ),
-          ).toEqual([
-            [someAsyncInjectable, 'some-new-prop-value'],
-            [someAsyncInjectable, 'some-new-prop-value'],
-            [someAsyncInjectable, 'some-new-prop-value'],
-          ]);
-        });
-
         it('still renders as having the old async values', () => {
           expect(rendered.baseElement).toMatchInlineSnapshot(`
               <body>
@@ -1319,20 +1302,20 @@ describe('useInject', () => {
 
           it('renders as having the new async value', () => {
             expect(rendered.baseElement).toMatchInlineSnapshot(`
-                <body>
-                  <div>
-                    <div
-                      data-some-related-prop-test="some-new-async-value"
-                    />
-                    <div
-                      data-some-related-prop-test="some-new-async-value"
-                    />
-                    <div
-                      data-some-related-prop-test="some-new-async-value"
-                    />
-                  </div>
-                </body>
-              `);
+              <body>
+                <div>
+                  <div
+                    data-some-related-prop-test="some-new-async-value"
+                  />
+                  <div
+                    data-some-related-prop-test="some-new-async-value"
+                  />
+                  <div
+                    data-some-related-prop-test="some-new-async-value"
+                  />
+                </div>
+              </body>
+            `);
           });
         });
       });
@@ -1479,22 +1462,6 @@ describe('useInject', () => {
           const actuallySuspended = !!rendered.queryByTestId('some-suspense');
 
           expect(actuallySuspended).toBe(false);
-        });
-
-        it('calls to inject the async injectable', () => {
-          expect(
-            di.inject.mock.calls.filter(
-              ([injectable]) =>
-                injectable === someAsyncInjectableWithCompositeKey,
-            ),
-          ).toEqual([
-            [
-              someAsyncInjectableWithCompositeKey,
-              {
-                somePartOfCompositeKey: 'some-new-part-of-composite-key',
-              },
-            ],
-          ]);
         });
 
         it('still renders as having the old async values', () => {

@@ -2,7 +2,6 @@ import asyncFn from '@async-fn/jest';
 import { noop } from 'lodash/fp';
 import React, { forwardRef, Suspense } from 'react';
 import { render } from '@testing-library/react';
-
 import {
   createContainer,
   getInjectable,
@@ -503,8 +502,8 @@ describe('getInjectableComponent', () => {
   });
 
   it('given different dis, and same injectable component, when rendered in one di, another one, and first one again, the component remains di-specific', () => {
-    const di1 = createContainer('some-container-1', { detectCycles: false });
-    const di2 = createContainer('some-container-2', { detectCycles: false });
+    const di1 = createContainer('some-container-1');
+    const di2 = createContainer('some-container-2');
 
     const someInjectionToken = getInjectionToken({
       id: 'some-token',
@@ -573,7 +572,7 @@ describe('getInjectableComponent', () => {
   });
 
   it('given component which has itself as children, and finally an unregistered component as children, when rendered, throws full path', () => {
-    const di = createContainer('some-container-1', { detectCycles: false });
+    const di = createContainer('some-container-1');
 
     const SomeComponent = getInjectableComponent({
       id: 'some-injectable-component',
@@ -612,7 +611,7 @@ describe('getInjectableComponent', () => {
   });
 
   it('given an injectable component with some placeholder that accepts some props > when the component suspense > shows the placeholder with the original props', () => {
-    const di = createContainer('some-container-1', { detectCycles: false });
+    const di = createContainer('some-container-1');
     const someFn = asyncFn();
 
     const someAsyncValueInjectable = getInjectable({
