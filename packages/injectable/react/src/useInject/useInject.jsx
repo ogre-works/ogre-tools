@@ -11,10 +11,7 @@ const _useInject = (injectable, instantiationParameter, config) => {
 
   const di = useContext(diContext);
 
-  const maybePromise = useMemo(
-    () => di.inject(injectable, instantiationParameter),
-    [injectable, instantiationParameter],
-  );
+  const maybePromise = di.inject(injectable, instantiationParameter);
 
   checkForUnsupportedPromiseLikeTransient(injectable, maybePromise);
 
