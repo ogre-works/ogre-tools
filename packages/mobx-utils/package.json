@@ -1,7 +1,7 @@
 {
   "name": "@lensapp/mobx-utils",
   "private": false,
-  "version": "20.6.4",
+  "version": "20.6.5",
   "description": "A brutal component for injecting components that use injectable",
   "files": [
     "build",
@@ -42,9 +42,9 @@
     "code-style:fix": "ogre-tools-fix-code-style"
   },
   "devDependencies": {
-    "@lensapp/infrastructure-babel-for-js": "^20.6.4",
-    "@lensapp/infrastructure-jest": "^20.6.4",
-    "@lensapp/infrastructure-prettier": "^20.6.4",
-    "@lensapp/infrastructure-webpack-for-js": "^20.6.4"
+    "@lensapp/infrastructure-babel-for-js": "^20.6.5",
+    "@lensapp/infrastructure-jest": "^20.6.5",
+    "@lensapp/infrastructure-prettier": "^20.6.5",
+    "@lensapp/infrastructure-webpack-for-js": "^20.6.5"
   }
 }

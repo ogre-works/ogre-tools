@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+### [20.6.5](https://github.com/lensapp/ogre-tools/compare/v20.6.4...v20.6.5) (2025-09-04)
+
+### Bug Fixes
+
+- Fix react memoization causing incorrect di-container when nested containers are used ([6fbd8f0](https://github.com/lensapp/ogre-tools/commit/6fbd8f07f16dc1f6bced21710f4947cd629fa6c8))
+
 ### [20.6.4](https://github.com/lensapp/ogre-tools/compare/v20.6.3...v20.6.4) (2025-09-03)
 
 ### Bug Fixes
