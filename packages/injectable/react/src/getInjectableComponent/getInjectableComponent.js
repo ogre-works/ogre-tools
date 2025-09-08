@@ -15,21 +15,12 @@ export const getInjectableComponent = ({
   tags,
   injectionToken,
 }) => {
-  let diForComponentContext;
-
   const normalInjectable = getInjectable({
     id,
     injectionToken,
     causesSideEffects,
     tags,
-
-    instantiate: di => {
-      diForComponentContext = di;
-
-      return Component;
-    },
-
-    lifecycle: lifecycleEnum.transient,
+    instantiate: () => Component,
   });
 
   const InjectableComponent = Object.assign(
@@ -38,7 +29,7 @@ export const getInjectableComponent = ({
       const InjectedComponent = useInjectDeferred(InjectableComponent);
 
       return (
-        <DiContextProvider value={diForComponentContext || failSafeDi}>
+        <DiContextProvider value={failSafeDi}>
           {PlaceholderComponent ? (
             <Suspense fallback={<PlaceholderComponent {...props} />}>
               <InjectedComponent {...props} ref={ref} />

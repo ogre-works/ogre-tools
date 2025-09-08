@@ -159,7 +159,7 @@ describe('getInjectableComponent', () => {
     });
 
     expect(onErrorWhileRenderingMock).toHaveBeenCalledWith(
-      'Tried to inject non-registered injectable "some-container" -> "some-parent-injectable-component" -> "some-child-injectable-component" -> "some-non-registered-injectable".',
+      'Tried to inject non-registered injectable "some-container" -> "some-non-registered-injectable".',
     );
   });
 
@@ -220,11 +220,11 @@ describe('getInjectableComponent', () => {
     onErrorWhileRenderingMock.mockClear();
 
     expect(someError1).toBe(
-      'Tried to inject non-registered injectable "some-container" -> "some-parent-injectable-component" -> "some-child-injectable-component" -> "some-non-registered-injectable".',
+      'Tried to inject non-registered injectable "some-container" -> "some-non-registered-injectable".',
     );
 
     expect(someError2).toBe(
-      'Tried to inject non-registered injectable "some-container" -> "some-other-parent-injectable-component" -> "some-child-injectable-component" -> "some-non-registered-injectable".',
+      'Tried to inject non-registered injectable "some-container" -> "some-non-registered-injectable".',
     );
   });
 
@@ -267,7 +267,7 @@ describe('getInjectableComponent', () => {
     });
 
     expect(onErrorWhileRenderingMock).toHaveBeenCalledWith(
-      'Tried to inject non-registered injectable "some-container" -> "some-suspending-injectable-component" -> "some-placeholder-injectable-component" -> "some-non-registered-injectable".',
+      'Tried to inject non-registered injectable "some-container" -> "some-non-registered-injectable".',
     );
   });
 
@@ -334,7 +334,7 @@ describe('getInjectableComponent', () => {
     expect(onErrorWhileRenderingMock).toHaveBeenCalledWith(
       // Notice: some-injectable-component is missing from the context, as the override does not have access to it.
       // This is a kludge, but a very pragmatic one, as this is a very niche corner-case.
-      'Tried to inject non-registered injectable "some-container" -> "some-parent-injectable-component" -> "some-non-registered-injectable".',
+      'Tried to inject non-registered injectable "some-container" -> "some-non-registered-injectable".',
     );
   });
 
@@ -606,7 +606,7 @@ describe('getInjectableComponent', () => {
     });
 
     expect(onRenderingErrorMock).toHaveBeenCalledWith(
-      'Tried to inject non-registered injectable "some-container-1" -> "some-injectable-component" -> "some-injectable-component" -> "some-non-registered-injectable-component".',
+      'Tried to inject non-registered injectable "some-container-1" -> "some-non-registered-injectable-component".',
     );
   });
 
