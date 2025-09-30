@@ -11,8 +11,9 @@ import {
 import { DiContextProvider } from '../withInjectables/withInjectables';
 import { getInjectableComponent } from './getInjectableComponent';
 import { isPromise } from '@lensapp/fp';
-import { useInjectDeferred } from '../useInject/useInject';
+import { useInject, useInjectDeferred } from '../useInject/useInject';
 import { discoverFor } from '@lensapp/discoverable';
+import { flushPromises } from '@lensapp/ogre-test-utils';
 
 describe('getInjectableComponent', () => {
   let di;
@@ -653,6 +654,68 @@ describe('getInjectableComponent', () => {
       discover.getSingleElement('some-placeholder-with-name', 'some-name')
         .discovered,
     ).toBeInTheDocument();
+  });
+
+  describe('given component always suspends, placeholder and injection token', () => {
+    let someComponentInjectionToken;
+    let SomeComponent;
+
+    beforeEach(() => {
+      const eternalPromise = new Promise(resolve => {
+        // resolve never
+      });
+
+      someComponentInjectionToken = getInjectionToken('some-component');
+
+      SomeComponent = getInjectableComponent({
+        id: 'some-injectable-component',
+
+        Component: () => {
+          throw eternalPromise;
+        },
+
+        PlaceholderComponent: () => <div data-some-placeholder-test />,
+
+        injectionToken: someComponentInjectionToken,
+      });
+
+      di.register(SomeComponent);
+    });
+
+    it('given injecting the component using the token > when rendered > shows the placeholder', async () => {
+      const SomeInjectedComponent = di.inject(someComponentInjectionToken);
+      const rendered = mount(<SomeInjectedComponent />);
+      const discover = discoverFor(() => rendered);
+
+      expect(
+        discover.getSingleElement('some-placeholder').discovered,
+      ).toBeInTheDocument();
+    });
+
+    it('given injecting the component using the injectable > when rendered > shows the placeholder', async () => {
+      const SomeInjectedComponent = di.inject(SomeComponent);
+      const rendered = mount(<SomeInjectedComponent />);
+      const discover = discoverFor(() => rendered);
+
+      expect(
+        discover.getSingleElement('some-placeholder').discovered,
+      ).toBeInTheDocument();
+    });
+
+    it('given component is overridden, and injecting the component > when rendered > shows only the override, and no placeholder', async () => {
+      di.override(someComponentInjectionToken, () => () => (
+        <div data-some-override-without-a-placeholder-test />
+      ));
+
+      const SomeInjectedComponent = di.inject(someComponentInjectionToken);
+      const rendered = mount(<SomeInjectedComponent />);
+      const discover = discoverFor(() => rendered);
+
+      expect(
+        discover.getSingleElement('some-override-without-a-placeholder')
+          .discovered,
+      ).toBeInTheDocument();
+    });
   });
 });
 
