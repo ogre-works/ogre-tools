@@ -1,7 +1,7 @@
 {
   "name": "@lensapp/infrastructure-typescript",
   "private": true,
-  "version": "20.6.6",
+  "version": "20.6.7",
   "description": "Shared typescript configuration",
   "repository": {
     "type": "git",

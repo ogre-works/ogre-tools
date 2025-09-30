@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+### [20.6.7](https://github.com/lensapp/ogre-tools/compare/v20.6.6...v20.6.7) (2025-09-30)
+
+### Bug Fixes
+
+- Make injectableComponent work consistently when injected using a token ([4e8f7b2](https://github.com/lensapp/ogre-tools/commit/4e8f7b20838a9d3973d3942eb253186ae99eb011))
+
 ### [20.6.6](https://github.com/lensapp/ogre-tools/compare/v20.6.5...v20.6.6) (2025-09-08)
 
 ### Bug Fixes
