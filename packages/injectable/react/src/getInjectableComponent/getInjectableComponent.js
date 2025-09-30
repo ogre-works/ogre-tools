@@ -1,7 +1,7 @@
-import React, { forwardRef, Suspense, useContext, useMemo } from 'react';
+import React, { forwardRef, Suspense, useContext } from 'react';
 
-import { getInjectable, lifecycleEnum } from '@lensapp/injectable';
-import { useInjectDeferred } from '../useInject/useInject';
+import { getInjectable } from '@lensapp/injectable';
+import { useInject } from '../useInject/useInject';
 import {
   diContext,
   DiContextProvider,
@@ -15,36 +15,58 @@ export const getInjectableComponent = ({
   tags,
   injectionToken,
 }) => {
-  const normalInjectable = getInjectable({
+  const componentForInjectable = getComponentAsInjectableAndAbleToSuspend(
+    Component,
+    PlaceholderComponent,
     id,
-    injectionToken,
     causesSideEffects,
     tags,
-    instantiate: () => Component,
+    injectionToken,
+  );
+
+  const ComponentForReact = forwardRef((props, ref) => {
+    const InjectedComponent = useInject(InjectableComponent);
+
+    return <InjectedComponent {...props} ref={ref} />;
   });
 
   const InjectableComponent = Object.assign(
-    forwardRef((props, ref) => {
-      const failSafeDi = useContext(diContext);
-      const InjectedComponent = useInjectDeferred(InjectableComponent);
-
-      return (
-        <DiContextProvider value={failSafeDi}>
-          {PlaceholderComponent ? (
-            <Suspense fallback={<PlaceholderComponent {...props} />}>
-              <InjectedComponent {...props} ref={ref} />
-            </Suspense>
-          ) : (
-            <InjectedComponent {...props} ref={ref} />
-          )}
-        </DiContextProvider>
-      );
-    }),
-
-    normalInjectable,
-
+    ComponentForReact,
+    componentForInjectable,
     { displayName: `InjectableComponent(${id})` },
   );
 
   return InjectableComponent;
 };
+
+const getComponentAsInjectableAndAbleToSuspend = (
+  Component,
+  PlaceholderComponent,
+  id,
+  causesSideEffects,
+  tags,
+  injectionToken,
+) =>
+  getInjectable({
+    id,
+    injectionToken,
+    causesSideEffects,
+    tags,
+
+    instantiate: () =>
+      forwardRef((props, ref) => {
+        const di = useContext(diContext);
+
+        return (
+          <DiContextProvider value={di}>
+            {PlaceholderComponent ? (
+              <Suspense fallback={<PlaceholderComponent {...props} />}>
+                <Component {...props} ref={ref} />
+              </Suspense>
+            ) : (
+              <Component {...props} ref={ref} />
+            )}
+          </DiContextProvider>
+        );
+      }),
+  });
