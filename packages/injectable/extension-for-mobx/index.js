@@ -3,8 +3,11 @@ import {
   computedInjectManyWithMetaInjectionToken,
   computedInjectManyInjectable,
   computedInjectManyWithMetaInjectable,
-  registerMobX,
 } from './src/computedInjectMany';
+
+import {
+  registerMobX
+} from './src/registerMobx';
 
 export {
   registerMobX,
@@ -13,3 +16,5 @@ export {
   computedInjectManyInjectionToken,
   computedInjectManyWithMetaInjectionToken,
 };
+
+export  { computedInjectMaybeInjectionToken } from './src/computedInjectMaybe';

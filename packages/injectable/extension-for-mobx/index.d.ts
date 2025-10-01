@@ -41,3 +41,15 @@ export const computedInjectManyWithMetaInjectable: Injectable<
 >;
 
 export const computedInjectManyWithMetaInjectionToken: InjectionToken<ComputedInjectManyWithMeta>;
+
+type ComputedInjectMaybe = <
+  TInjectionToken extends InjectionToken<any, any>,
+  TInstance extends TInjectionToken extends InjectionToken<infer T, any>
+    ? T
+    : never,
+>(
+  injectionToken: TInjectionToken,
+  ...param: TInjectionToken extends InjectionToken<any, infer T> ? [T] : []
+) => IComputedValue<TInstance | undefined>;
+
+export const computedInjectMaybeInjectionToken: InjectionToken<ComputedInjectMaybe>;

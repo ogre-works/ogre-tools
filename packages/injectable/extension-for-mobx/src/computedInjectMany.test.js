@@ -18,8 +18,8 @@ import {
   computedInjectManyInjectable,
   computedInjectManyInjectionToken,
   isInternalOfComputedInjectMany,
-  registerMobX,
 } from './computedInjectMany';
+import { registerMobX } from './registerMobx';
 
 describe('registerMobx', () => {
   let reactiveInstances;
