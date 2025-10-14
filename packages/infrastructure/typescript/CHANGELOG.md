@@ -3,6 +3,10 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [20.7.0](https://github.com/lensapp/ogre-tools/compare/v20.6.6...v20.7.0) (2025-10-14)
+
+**Note:** Version bump only for package @lensapp/infrastructure-typescript
+
 ### [20.6.7](https://github.com/lensapp/ogre-tools/compare/v20.6.6...v20.6.7) (2025-09-30)
 
 **Note:** Version bump only for package @lensapp/infrastructure-typescript

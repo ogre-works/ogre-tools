@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [20.7.0](https://github.com/lensapp/ogre-tools/compare/v20.6.6...v20.7.0) (2025-10-14)
+
+### Features
+
+- Support react 19 ([134e081](https://github.com/lensapp/ogre-tools/commit/134e08143aa319003edee4cf438d0fe172ea359c))
+
 ### [20.6.7](https://github.com/lensapp/ogre-tools/compare/v20.6.6...v20.6.7) (2025-09-30)
 
 **Note:** Version bump only for package @lensapp/element-component
