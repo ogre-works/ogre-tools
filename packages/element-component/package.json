@@ -23,8 +23,8 @@
   "peerDependencies": {
     "@lensapp/fp": "^16 || ^17 || ^18 || ^19 || ^20",
     "lodash": "^4.17.21",
-    "react": "^18",
-    "react-dom": "^18"
+    "react": "^18 || ^19",
+    "react-dom": "^18 || ^19"
   },
   "devDependencies": {
     "@async-fn/jest": "^1.6.4",
