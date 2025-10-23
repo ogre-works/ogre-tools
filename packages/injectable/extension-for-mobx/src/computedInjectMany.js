@@ -21,7 +21,7 @@ export const isInternalOfComputedInjectMany = Symbol(
   'isInternalOfComputedInjectMany',
 );
 
-const invalidabilityForReactiveInstances = getInjectable({
+export const invalidabilityForReactiveInstances = getInjectable({
   id: 'invalidability-for-reactive-instances',
 
   instantiate: (_, injectionToken) =>
@@ -48,7 +48,7 @@ const getInvalidatorInstance = di => injectable => {
     });
 };
 
-const invalidateReactiveInstancesOnRegisterCallback = getInjectable({
+export const invalidateReactiveInstancesOnRegisterCallback = getInjectable({
   id: 'invalidate-reactive-instances-on-register',
   instantiate: getInvalidatorInstance,
   injectionToken: registrationCallbackToken,
@@ -56,7 +56,7 @@ const invalidateReactiveInstancesOnRegisterCallback = getInjectable({
   decorable: false,
 });
 
-const invalidateReactiveInstancesOnDeregisterCallback = getInjectable({
+export const invalidateReactiveInstancesOnDeregisterCallback = getInjectable({
   id: 'invalidate-reactive-instances-on-deregister',
   instantiate: getInvalidatorInstance,
   injectionToken: deregistrationCallbackToken,
@@ -90,12 +90,12 @@ const reactiveInstancesFor = ({ id, methodInDiToInjectMany }) =>
     }),
   });
 
-const reactiveInstancesInjectable = reactiveInstancesFor({
+export const reactiveInstancesInjectable = reactiveInstancesFor({
   id: 'reactive-instances',
   methodInDiToInjectMany: 'injectMany',
 });
 
-const reactiveInstancesWithMetaInjectable = reactiveInstancesFor({
+export const reactiveInstancesWithMetaInjectable = reactiveInstancesFor({
   id: 'reactive-instances-with-meta',
   methodInDiToInjectMany: 'injectManyWithMeta',
 });
@@ -130,24 +130,6 @@ export const computedInjectManyWithMetaInjectable =
     reactiveInstances: reactiveInstancesWithMetaInjectable,
     injectionToken: computedInjectManyWithMetaInjectionToken,
   });
-
-export const registerMobX = di => {
-  if (di.hasRegistrations(invalidabilityForReactiveInstances)) {
-    return;
-  }
-
-  runInAction(() => {
-    di.register(
-      invalidabilityForReactiveInstances,
-      reactiveInstancesInjectable,
-      reactiveInstancesWithMetaInjectable,
-      computedInjectManyInjectable,
-      computedInjectManyWithMetaInjectable,
-      invalidateReactiveInstancesOnRegisterCallback,
-      invalidateReactiveInstancesOnDeregisterCallback,
-    );
-  });
-};
 
 const getRelatedTokens = token =>
   token === undefined
