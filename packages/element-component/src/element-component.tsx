@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { forwardRef, MutableRefObject } from 'react';
+import { forwardRef, JSX, MutableRefObject } from 'react';
 import { Plugin, PropsFromPluginTuple } from './plugin/plugin';
 import { withMergeOutputOverInput } from './_private/with-merge-output-over-input';
 import { fastPipeline } from './_private/fast-pipeline';
