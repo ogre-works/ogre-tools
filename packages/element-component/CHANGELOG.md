@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [20.8.0](https://github.com/lensapp/ogre-tools/compare/v20.7.0...v20.8.0) (2025-10-23)
+
+### Features
+
+- Update to react 19 types ([2469edc](https://github.com/lensapp/ogre-tools/commit/2469edc22a05f21ede048313e86f31d2722c1d8f))
+
 ## [20.7.0](https://github.com/lensapp/ogre-tools/compare/v20.6.6...v20.7.0) (2025-10-14)
 
 ### Features

@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [20.8.0](https://github.com/lensapp/ogre-tools/compare/v20.7.0...v20.8.0) (2025-10-23)
+
+### Features
+
+- Introduce computedInjectMaybe ([7be909d](https://github.com/lensapp/ogre-tools/commit/7be909d329c2af15ba43629c56138f2b905271f2))
+
 ## [20.7.0](https://github.com/lensapp/ogre-tools/compare/v20.6.6...v20.7.0) (2025-10-14)
 
 **Note:** Version bump only for package @lensapp/injectable-extension-for-mobx
