@@ -84,41 +84,24 @@ export interface Injectable<
     InstantiationParam
   >;
   readonly instantiate: Instantiate<InjectionInstance, InstantiationParam>;
-  readonly lifecycle: ILifecycle<InstantiationParam>;
+  readonly lifecycle: Lifecycle<InstantiationParam>;
   readonly decorable?: boolean;
   readonly tags?: any[];
   readonly scope?: boolean;
 }
 
-type InjectableLifecycle<InstantiationParam> = InstantiationParam extends void
-  ? {
-      lifecycle?: ILifecycle<void>;
-    }
-  : {
-      lifecycle: ILifecycle<InstantiationParam>;
-    };
+export type GetInjectableOptionsWithoutInstantiationParameter<I extends TI, TI> = Omit<Injectable<I, TI, void>, "lifecycle"> & {
+  lifecycle?: Lifecycle<void>;
+}
 
-type GetInjectableOptions<
-  InjectionInstance extends InjectionTokenInstance,
-  InjectionTokenInstance,
-  InstantiationParam,
-> = InjectableLifecycle<InstantiationParam> &
-  Omit<
-    Injectable<InjectionInstance, InjectionTokenInstance, InstantiationParam>,
-    'lifecycle'
-  >;
+export type GetInjectableOptionsWithInstantiationParameter<I extends TI, TI, P> = Injectable<I, TI, P>;
 
-export function getInjectable<
-  InjectionInstance extends InjectionTokenInstance,
-  InjectionTokenInstance,
-  InstantiationParam = void,
->(
-  options: GetInjectableOptions<
-    InjectionInstance,
-    InjectionTokenInstance,
-    InstantiationParam
-  >,
-): Injectable<InjectionInstance, InjectionTokenInstance, InstantiationParam>;
+export interface GetInjectable{
+  <I extends TI, TI>(options: GetInjectableOptionsWithoutInstantiationParameter<I, TI>): Injectable<I, TI, void>;
+  <I extends TI, TI, P>(options: GetInjectableOptionsWithInstantiationParameter<I, TI, P>): Injectable<I, TI, P>;
+}
+
+export const getInjectable: GetInjectable;
 
 export type InjectableBunch<InjectableConfig extends object> = InjectableConfig;
 
@@ -289,7 +272,7 @@ export interface DiContainerForInjection {
   ) => boolean;
 }
 
-export interface ILifecycle<InstantiationParam> {
+export interface Lifecycle<InstantiationParam> {
   getInstanceKey: (di: DiContainer, params: InstantiationParam) => any;
 }
 
@@ -302,7 +285,7 @@ export const lifecycleEnum: {
   };
 
   keyedSingleton<InstantiationParam>(
-    options: ILifecycle<InstantiationParam>,
+    options: Lifecycle<InstantiationParam>,
   ): typeof options;
 
   transient: {

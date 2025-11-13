@@ -12,6 +12,7 @@ import {
   getKeyedSingletonCompositeKey,
   getSpecificInjectionToken,
   getTypedSpecifier,
+  Lifecycle,
   Injectable,
   InjectableBunch,
   injectionDecoratorToken,
@@ -857,3 +858,10 @@ expectAssignable<TypedSpecifier<string, { someSpeciality: "some-type" }>>(typedS
 
 // given typed specifier, TypedSpecifierWithType is compatible with "extends" and type inference
 expectAssignable<TypedSpecifierWithType<"someSpeciality", "some-type">>(typedSpecifier)
+
+// given some factory that produces injectables with some generic lifecycle it works and typing is okay
+const someInjectableFactory = <P>(id: string, lifecycle: Lifecycle<P>) => getInjectable({
+  id,
+  instantiate: () => 10,
+  lifecycle,
+});
