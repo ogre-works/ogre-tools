@@ -3,6 +3,20 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [21.0.0](https://github.com/lensapp/ogre-tools/compare/v20.8.0...v21.0.0) (2025-11-14)
+
+### ⚠ BREAKING CHANGES
+
+- **core:** - Renamed `ILifecycle` to `Lifecycle` to match naming convention
+
+* Removed `InjectableLifecycle` and `GetInjectableOptions` in favour of
+  `GetInjectableOptionsWithoutInstantiationParameter` and
+  `GetInjectableOptionsWithInstantiationParameter`
+
+### Bug Fixes
+
+- **core:** GetInjectable should be able to be called with a generic lifecycle enum ([809a65b](https://github.com/lensapp/ogre-tools/commit/809a65bf02572f330ecc18f76834ba5532523e8e))
+
 ## [20.8.0](https://github.com/lensapp/ogre-tools/compare/v20.7.0...v20.8.0) (2025-10-23)
 
 **Note:** Version bump only for package @lensapp/injectable
