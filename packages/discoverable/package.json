@@ -23,6 +23,8 @@
   "peerDependencies": {
     "@lensapp/fp": "^16 || ^17 || ^18 || ^19 || ^20",
     "@lensapp/ogre-test-utils": "^20.1.0",
+    "@lensapp/fp": "^16 || ^17 || ^18 || ^19 || ^20 || ^21",
+    "@lensapp/ogre-test-utils": "^20.1.0 || ^21",
     "@testing-library/dom": "^10.4.0",
     "@testing-library/react": "^16.0.1",
     "@testing-library/user-event": "^14.5.2",
