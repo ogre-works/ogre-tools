@@ -1,9 +1,7 @@
 import * as React from 'react';
 import { forwardRef, JSX, MutableRefObject } from 'react';
 import { Plugin, PropsFromPluginTuple } from './plugin/plugin';
-import { withMergeOutputOverInput } from './_private/with-merge-output-over-input';
-import { fastPipeline } from './_private/fast-pipeline';
-import { withMappedRef } from './_private/with-mapped-ref';
+import { runPlugins } from './_private/run-plugins';
 
 export type TagNames = keyof JSX.IntrinsicElements;
 
@@ -28,33 +26,47 @@ export function getElementComponent<TagName extends TagNames>(
   tagName: TagName,
   ...plugins: any[]
 ) {
-  const processedPlugins = plugins
-    .map(withMappedRef)
-    .map(withMergeOutputOverInput);
+  const TagNameComponent = tagName as React.ElementType;
+
+  if (plugins.length === 0) {
+    // Fast path: no plugins, just forward everything
+    return forwardRef((props, ref) => (
+      <TagNameComponent {...props} ref={ref} />
+    ));
+  }
 
   return forwardRef((unprocessedProps, ref) => {
-    const { $$ref = [], ...processedProps }: any = fastPipeline(
+    // Run all plugins in a single optimized pass
+    const { props: processedProps, refs } = runPlugins(
       unprocessedProps,
-      ...processedPlugins,
-    ) as JSX.IntrinsicElements[TagName];
-    const callbackRef = React.useCallback(
-      (node: HTMLElement) => [ref, ...$$ref].forEach(handleRefFor(node)),
-      $$ref,
+      plugins,
     );
-    const TagName = tagName as React.ElementType;
 
-    return <TagName {...processedProps} ref={callbackRef} />;
+    const callbackRef = React.useCallback(
+      (node: HTMLElement) => {
+        handleRef(node, ref);
+        for (let i = 0; i < refs.length; i++) {
+          handleRef(node, refs[i]);
+        }
+      },
+      [ref, ...refs],
+    );
+
+    return <TagNameComponent {...processedProps} ref={callbackRef} />;
   });
 }
 
-const handleRefFor =
-  (node: HTMLElement) =>
-  (
-    ref: ((node: HTMLElement) => void) | MutableRefObject<unknown> | undefined,
-  ) => {
-    if (typeof ref === 'function') {
-      ref(node);
-    } else if (ref) {
-      ref.current = node;
-    }
-  };
+const handleRef = (
+  node: HTMLElement,
+  ref:
+    | ((node: HTMLElement) => void)
+    | MutableRefObject<unknown>
+    | null
+    | undefined,
+) => {
+  if (typeof ref === 'function') {
+    ref(node);
+  } else if (ref) {
+    ref.current = node;
+  }
+};
