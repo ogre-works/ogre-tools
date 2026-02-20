@@ -21,8 +21,8 @@
   "license": "MIT",
   "homepage": "https://github.com/ogre-works/ogre-tools#readme",
   "peerDependencies": {
-    "@ogre-tools/fp": "^18",
-    "@ogre-tools/test-utils": "^18",
+    "@ogre-tools/fp": "^19",
+    "@ogre-tools/test-utils": "^19",
     "@testing-library/dom": "^10.4.0",
     "@testing-library/react": "^16.0.1",
     "@testing-library/user-event": "^14.5.2",

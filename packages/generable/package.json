@@ -21,7 +21,7 @@
   "author": "Ogre Works",
   "license": "MIT",
   "peerDependencies": {
-    "@ogre-tools/fp": "^18",
+    "@ogre-tools/fp": "^19",
     "lodash": "^4.17.21"
   },
   "bugs": {
