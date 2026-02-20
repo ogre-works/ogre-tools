@@ -24,20 +24,16 @@ export interface DiContainer extends DiContainerForInjection {
   earlyOverride: Override;
   unoverride(alias: InjectionToken<any, any> | Injectable<any, any, any>): void;
 
-  register(...injectables: Injectable<any, any, any>[]): void;
-  deregister(...injectables: Injectable<any, any, any>[]): void;
+  register(
+    ...injectables: (Injectable<any, any, any> | InjectableBunch<any>)[]
+  ): void;
 
-  hasRegistrations: (
-    alias: InjectionToken<any, any> | Injectable<any, any, any>,
-  ) => boolean;
+  deregister(
+    ...injectables: (Injectable<any, any, any> | InjectableBunch<any>)[]
+  ): void;
 }
 
-export type Instantiate<InjectionInstance, InstantiationParam> = {
-  (
-    di: DiContainerForInjection,
-    param: InstantiationParam extends void ? void : InstantiationParam,
-  ): InjectionInstance;
-};
+export type Instantiate<InjectionInstance, InstantiationParam> = (di: DiContainerForInjection, param: InstantiationParam) => InjectionInstance;
 
 export interface InjectionToken<
   InjectionInstance,
@@ -83,53 +79,33 @@ export interface Injectable<
     InstantiationParam
   >;
   readonly instantiate: Instantiate<InjectionInstance, InstantiationParam>;
-  readonly lifecycle: ILifecycle<InstantiationParam>;
+  readonly lifecycle: Lifecycle<InstantiationParam>;
   readonly decorable?: boolean;
   readonly tags?: any[];
   readonly scope?: boolean;
 }
 
-type InjectableLifecycle<InstantiationParam> = InstantiationParam extends void
-  ? {
-      lifecycle?: ILifecycle<void>;
-    }
-  : {
-      lifecycle: ILifecycle<InstantiationParam>;
-    };
+export type GetInjectableOptionsWithoutInstantiationParameter<I extends TI, TI> = Omit<Injectable<I, TI, void>, "lifecycle" | "instantiate"> & {
+  readonly instantiate: (di: DiContainerForInjection, param: void) => I;
+  readonly lifecycle?: Lifecycle<void>;
+}
 
-type GetInjectableOptions<
-  InjectionInstance extends InjectionTokenInstance,
-  InjectionTokenInstance,
-  InstantiationParam,
-> = InjectableLifecycle<InstantiationParam> &
-  Omit<
-    Injectable<InjectionInstance, InjectionTokenInstance, InstantiationParam>,
-    'lifecycle'
-  >;
-
-export function getInjectable<
-  InjectionInstance extends InjectionTokenInstance,
-  InjectionTokenInstance,
-  InstantiationParam = void,
->(
-  options: GetInjectableOptions<
-    InjectionInstance,
-    InjectionTokenInstance,
-    InstantiationParam
-  >,
-): Injectable<InjectionInstance, InjectionTokenInstance, InstantiationParam>;
-
-type InjectableBunch<InjectableConfig> = {
-  [Key in keyof InjectableConfig]: InjectableConfig[Key] extends Injectable<
-    infer InjectionInstance,
-    infer InjectionTokenInstance,
-    infer InstantiationParam
-  >
-    ? Injectable<InjectionInstance, InjectionTokenInstance, InstantiationParam>
-    : never;
+export type GetInjectableOptionsWithInstantiationParameter<I extends TI, TI, P> = Omit<Injectable<I, TI, P>, "instantiate"> & {
+  readonly instantiate: (di: DiContainerForInjection, param: P) => I;
 };
 
-export function getInjectableBunch<Type>(bunch: Type): InjectableBunch<Type>;
+export interface GetInjectable{
+  <I extends TI, TI>(options: GetInjectableOptionsWithoutInstantiationParameter<I, TI>): Injectable<I, TI, void>;
+  <I extends TI, TI, P>(options: GetInjectableOptionsWithInstantiationParameter<I, TI, P>): Injectable<I, TI, P>;
+}
+
+export const getInjectable: GetInjectable;
+
+export type InjectableBunch<InjectableConfig extends object> = InjectableConfig;
+
+export function getInjectableBunch<Type extends object>(
+  bunch: Type,
+): InjectableBunch<Type>;
 
 export function getInjectionToken<
   InjectionInstance,
@@ -180,11 +156,11 @@ export type InjectWithParameter = <InjectionInstance, InstantiationParam>(
 
 export type Inject = InjectWithoutParameter & InjectWithParameter;
 
-export type InjectFactory = <InjectionInstance, InstantiationParam extends {}>(
+export type InjectFactory = <InjectionInstance, InstantiationParam>(
   alias:
     | Injectable<InjectionInstance, unknown, InstantiationParam>
     | InjectionToken<InjectionInstance, InstantiationParam>,
-) => (param: InstantiationParam) => InjectionInstance;
+) => InstantiationParam extends void ? (() => InjectionInstance) : ((param: InstantiationParam) => InjectionInstance);
 
 export type GetInstances = <InjectionInstance>(
   alias:
@@ -276,14 +252,25 @@ export interface DiContainerForInjection {
   injectFactory: InjectFactory;
   injectMany: InjectMany;
   injectManyWithMeta: InjectManyWithMeta;
-  register(...injectables: Injectable<any, any, any>[]): void;
-  deregister(...injectables: Injectable<any, any, any>[]): void;
+
+  register(
+    ...injectables: (Injectable<any, any, any> | InjectableBunch<any>)[]
+  ): void;
+
+  deregister(
+    ...injectables: (Injectable<any, any, any> | InjectableBunch<any>)[]
+  ): void;
+
   context: ContextItem[];
   getInstances: GetInstances;
   sourceNamespace: string | undefined;
+
+  hasRegistrations: (
+    alias: InjectionToken<any, any, any> | Injectable<any, any, any>,
+  ) => boolean;
 }
 
-export interface ILifecycle<InstantiationParam> {
+export interface Lifecycle<InstantiationParam> {
   getInstanceKey: (di: DiContainer, params: InstantiationParam) => any;
 }
 
@@ -296,7 +283,7 @@ export const lifecycleEnum: {
   };
 
   keyedSingleton<InstantiationParam>(
-    options: ILifecycle<InstantiationParam>,
+    options: Lifecycle<InstantiationParam>,
   ): typeof options;
 
   transient: {
@@ -438,16 +425,31 @@ export const isInjectable: (
 ) => thing is Injectable<unknown, unknown, unknown>;
 export const isInjectableBunch: (
   thing: unknown,
-) => thing is InjectableBunch<unknown>;
+) => thing is InjectableBunch<any>;
 export const isInjectionToken: (
   thing: unknown,
 ) => thing is InjectionToken<unknown, unknown>;
 
 export function createContainer(
   containerId: string,
-  options?: { detectCycles?: boolean },
 ): DiContainer;
 
 export function getKeyedSingletonCompositeKey<T extends [...unknown[]]>(
   ...keys: T
 ): { keys: T };
+
+export type TypedSpecifier<SpecifierName extends string = string, Typing extends object = {}> =
+  SpecifierName
+  & [Typing];
+
+export type TypedSpecifierWithType<TypeName extends string, T = unknown> = TypedSpecifier<string, { [K in TypeName]: T }>;
+
+export type TypedSpecifierType<TypeName extends string, Specifier extends TypedSpecifierWithType<TypeName>> =
+  Specifier extends TypedSpecifier<string, infer Typing extends Record<TypeName, unknown>>
+    ? Typing[TypeName]
+    : never;
+
+export function getTypedSpecifier
+  <Typing extends object>():
+    <SpecifierName extends string>(specifier: SpecifierName) =>
+      TypedSpecifier<SpecifierName, Typing>;
