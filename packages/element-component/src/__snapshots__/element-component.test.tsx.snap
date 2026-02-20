@@ -1,0 +1,55 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`element given a plugin depending on another, when rendered renders 1`] = `
+<body>
+  <div>
+    <div
+      data-some-element-test="true"
+      title="plugin1(plugin2(some-plugin-prop-value))"
+    />
+  </div>
+</body>
+`;
+
+exports[`element given no plugins, when rendered with native HTML-props renders 1`] = `
+<body>
+  <div>
+    <div
+      data-some-native-html-prop-test="true"
+    />
+  </div>
+</body>
+`;
+
+exports[`element given plugin given plugin and plugin-specific props, when rendered renders 1`] = `
+<body>
+  <div>
+    <div
+      class="some-plugin-prop-value"
+      data-some-element-test="true"
+    />
+  </div>
+</body>
+`;
+
+exports[`element given plugins that contribute to same prop, when rendered renders 1`] = `
+<body>
+  <div>
+    <div
+      data-some-element-test="true"
+      title="plugin2(plugin1(some-prop-value))"
+    />
+  </div>
+</body>
+`;
+
+exports[`element given plugins that override output of previous plugin, when rendered renders 1`] = `
+<body>
+  <div>
+    <div
+      data-some-element-test="true"
+      title="some-plugin-2-value"
+    />
+  </div>
+</body>
+`;

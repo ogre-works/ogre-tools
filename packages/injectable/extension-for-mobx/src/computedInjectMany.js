@@ -1,18 +1,27 @@
 import {
   deregistrationCallbackToken,
   getInjectable,
+  getInjectionToken,
+  getKeyedSingletonCompositeKey,
   lifecycleEnum,
   registrationCallbackToken,
 } from '@ogre-tools/injectable';
 
 import { computed, createAtom, runInAction } from 'mobx';
-import { getKeyedSingletonCompositeKey } from '@ogre-tools/injectable';
+
+export const computedInjectManyInjectionToken = getInjectionToken({
+  id: 'computed-inject-many',
+});
+
+export const computedInjectManyWithMetaInjectionToken = getInjectionToken({
+  id: 'computed-inject-many-with-meta',
+});
 
 export const isInternalOfComputedInjectMany = Symbol(
   'isInternalOfComputedInjectMany',
 );
 
-const invalidabilityForReactiveInstances = getInjectable({
+export const invalidabilityForReactiveInstances = getInjectable({
   id: 'invalidability-for-reactive-instances',
 
   instantiate: (_, injectionToken) =>
@@ -39,7 +48,7 @@ const getInvalidatorInstance = di => injectable => {
     });
 };
 
-const invalidateReactiveInstancesOnRegisterCallback = getInjectable({
+export const invalidateReactiveInstancesOnRegisterCallback = getInjectable({
   id: 'invalidate-reactive-instances-on-register',
   instantiate: getInvalidatorInstance,
   injectionToken: registrationCallbackToken,
@@ -47,7 +56,7 @@ const invalidateReactiveInstancesOnRegisterCallback = getInjectable({
   decorable: false,
 });
 
-const invalidateReactiveInstancesOnDeregisterCallback = getInjectable({
+export const invalidateReactiveInstancesOnDeregisterCallback = getInjectable({
   id: 'invalidate-reactive-instances-on-deregister',
   instantiate: getInvalidatorInstance,
   injectionToken: deregistrationCallbackToken,
@@ -79,21 +88,23 @@ const reactiveInstancesFor = ({ id, methodInDiToInjectMany }) =>
       getInstanceKey: (di, { injectionToken, instantiationParameter }) =>
         getKeyedSingletonCompositeKey(injectionToken, instantiationParameter),
     }),
-
-    cannotCauseCycles: true,
   });
 
-const reactiveInstancesInjectable = reactiveInstancesFor({
+export const reactiveInstancesInjectable = reactiveInstancesFor({
   id: 'reactive-instances',
   methodInDiToInjectMany: 'injectMany',
 });
 
-const reactiveInstancesWithMetaInjectable = reactiveInstancesFor({
+export const reactiveInstancesWithMetaInjectable = reactiveInstancesFor({
   id: 'reactive-instances-with-meta',
   methodInDiToInjectMany: 'injectManyWithMeta',
 });
 
-const computedInjectManyInjectableFor = ({ id, reactiveInstances }) =>
+const computedInjectManyInjectableFor = ({
+  id,
+  reactiveInstances,
+  injectionToken,
+}) =>
   getInjectable({
     id,
 
@@ -104,34 +115,21 @@ const computedInjectManyInjectableFor = ({ id, reactiveInstances }) =>
       }),
 
     lifecycle: lifecycleEnum.transient,
-
-    cannotCauseCycles: true,
+    injectionToken,
   });
 
 export const computedInjectManyInjectable = computedInjectManyInjectableFor({
   id: 'computed-inject-many',
   reactiveInstances: reactiveInstancesInjectable,
+  injectionToken: computedInjectManyInjectionToken,
 });
 
 export const computedInjectManyWithMetaInjectable =
   computedInjectManyInjectableFor({
     id: 'computed-inject-many-with-meta',
     reactiveInstances: reactiveInstancesWithMetaInjectable,
+    injectionToken: computedInjectManyWithMetaInjectionToken,
   });
-
-export const registerMobX = di => {
-  runInAction(() => {
-    di.register(
-      invalidabilityForReactiveInstances,
-      reactiveInstancesInjectable,
-      reactiveInstancesWithMetaInjectable,
-      computedInjectManyInjectable,
-      computedInjectManyWithMetaInjectable,
-      invalidateReactiveInstancesOnRegisterCallback,
-      invalidateReactiveInstancesOnDeregisterCallback,
-    );
-  });
-};
 
 const getRelatedTokens = token =>
   token === undefined

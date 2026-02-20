@@ -46,7 +46,7 @@ describe('early-override', () => {
           expect(() => {
             di.inject(someInjectionToken);
           }).toThrow(
-            'Tried to inject non-registered injectable "irrelevant" -> "some-token-id".',
+            'Tried to inject non-registered injectable "irrelevant" -> "(some-token-id)".',
           );
         });
       });

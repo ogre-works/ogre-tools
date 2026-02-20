@@ -51,3 +51,26 @@ expectType<{
   invalidate: () => void;
   pending: IComputedValue<boolean>;
 }>(instance4);
+
+// asyncComputed, given an equality comparer, but no specified pending value, typing is ok.
+asyncComputed({
+  getValueFromObservedPromise: () => Promise.resolve('some-value'),
+  betweenUpdates: 'show-pending-value',
+  equals: (a, b) => {
+    expectType<string | undefined>(a);
+    expectType<string | undefined>(b);
+    return true;
+  },
+});
+
+// asyncComputed, given an equality comparer, but a specified pending value, typing is ok.
+asyncComputed({
+  getValueFromObservedPromise: () => Promise.resolve('some-value'),
+  betweenUpdates: 'show-pending-value',
+  valueWhenPending: 42,
+  equals: (a, b) => {
+    expectType<string | number>(a);
+    expectType<string | number>(b);
+    return true;
+  },
+});

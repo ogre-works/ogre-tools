@@ -1,13 +1,15 @@
 import { getNamespacedIdFor } from './getNamespacedIdFor';
 import { registrationCallbackToken } from './tokens';
 import toFlatInjectables from './toFlatInjectables';
-import { DeepMap } from '@ogre-tools/fp';
+import { CompositeMap } from '../composite-map/composite-map';
 import { getRelatedTokens } from './getRelatedTokens';
 
 export const registerFor =
   ({ registerSingle, injectMany }) =>
   ({ injectables, context, source }) => {
-    toFlatInjectables(injectables).forEach(injectable => {
+    const flatInjectables = toFlatInjectables(injectables);
+
+    flatInjectables.forEach(injectable => {
       registerSingle(injectable, context);
     });
 
@@ -18,7 +20,7 @@ export const registerFor =
       source,
     );
 
-    injectables.forEach(injectable => {
+    flatInjectables.forEach(injectable => {
       callbacks.forEach(callback => {
         callback(injectable);
       });
@@ -64,7 +66,7 @@ export const registerSingleFor =
     injectableIdSet.add(namespacedId);
     injectableSet.add(injectable);
     namespacedIdByInjectableMap.set(injectable, namespacedId);
-    instancesByInjectableMap.set(injectable, new DeepMap());
+    instancesByInjectableMap.set(injectable, new CompositeMap());
 
     const tokens = getRelatedTokens(injectable.injectionToken);
 

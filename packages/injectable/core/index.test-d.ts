@@ -1,29 +1,33 @@
-import { expectError, expectAssignable, expectNotType, expectType } from 'tsd';
+import {expectAssignable, expectError, expectNotType, expectType} from 'tsd';
 
 import {
   createContainer,
+  createInjectionTargetDecorator,
+  createInstantiationTargetDecorator,
   DiContainer,
   DiContainerForInjection,
   getInjectable,
-  getInjectionToken,
-  instantiationDecoratorToken,
-  createInstantiationTargetDecorator,
-  lifecycleEnum,
-  Instantiate,
-  Injectable,
-  injectionDecoratorToken,
-  Inject,
-  createInjectionTargetDecorator,
-  SpecificInject,
-  InjectionToken,
-  isInjectable,
-  isInjectionToken,
   getInjectableBunch,
+  getInjectionToken,
   getKeyedSingletonCompositeKey,
-  isInjectableBunch,
-  InjectableBunch,
-  SpecificInjectionToken,
   getSpecificInjectionToken,
+  getTypedSpecifier,
+  Lifecycle,
+  Injectable,
+  InjectableBunch,
+  injectionDecoratorToken,
+  InjectionToken,
+  Instantiate,
+  instantiationDecoratorToken,
+  isInjectable,
+  isInjectableBunch,
+  isInjectionToken,
+  lifecycleEnum,
+  SpecificInject,
+  SpecificInjectionToken,
+  TypedSpecifier,
+  TypedSpecifierType,
+  TypedSpecifierWithType,
 } from '.';
 
 const di = createContainer('some-container');
@@ -64,7 +68,7 @@ if (isInjectionToken(foo)) {
 }
 
 if (isInjectableBunch(foo)) {
-  expectType<InjectableBunch<unknown>>(foo);
+  expectType<InjectableBunch<any>>(foo);
 }
 
 const x1: boolean = isInjectable(foo);
@@ -164,6 +168,23 @@ const decoratorForInjectionParameterInjectable = getInjectable({
   injectionToken: injectionDecoratorToken,
 });
 
+type SomeKey<T, P> = TypedSpecifier<string, { value: T, param: P }>;
+
+const somethingInjectionToken = getInjectionToken<unknown, unknown, <T, P>(id: SomeKey<T, P>) => SpecificInjectionToken<(item: T) => number, P>>({
+  id: "something",
+})
+
+const injectableFor = <T, P>(id: SomeKey<T, P>, lifecycle: Lifecycle<P>) => getInjectable({
+  id: `something-for(${id})`,
+  instantiate: (di, param) => {
+    expectType<P>(param);
+
+    return (item) => 10;
+  },
+  injectionToken: somethingInjectionToken.for(id),
+  lifecycle,
+});
+
 const decoratorForSpecificInjectionParameterInjectable = getInjectable({
   id: 'decorator-for-parameter-injectable',
 
@@ -204,7 +225,7 @@ const someInjectableForTypingOfInstantiate = getInjectable({
 const someInjectableWithMatchingInstantiationParameters = getInjectable({
   id: 'some-injectable',
 
-  instantiate: (di, instantiationParameter: string) => {
+  instantiate: (di, instantiationParameter) => {
     expectType<string>(instantiationParameter);
   },
 
@@ -482,15 +503,23 @@ getInjectable({
   },
 });
 
-// given injectable that is singleton, when used to inject a factory, typing is not ok
-expectError(
+// given injectable that is singleton, when used to inject a factory, typing is ok
+expectType<() => string>(di.injectFactory(
+  getInjectable({
+    id: 'some-injectable',
+    instantiate: () => 'irrelevant',
+  }),
+))
+
+// given token without instantiation parameter, when used to inject a factory, typing is ok
+expectType<() => number>(
   di.injectFactory(
-    getInjectable({
-      id: 'some-injectable',
-      instantiate: () => 'irrelevant',
+    getInjectionToken<number, void>({
+      id: 'some-token',
     }),
   ),
 );
+
 
 // Overrides and unoverrides
 const someStringInjectionToken = getInjectionToken<string>({
@@ -542,17 +571,28 @@ di.purgeAllButOverrides();
 
 // given injectable bunch, typing is ok
 const someInjectableBunch = getInjectableBunch({
-  someInjectable: {
+  someInjectable: getInjectable({
     id: 'some-injectable',
+
     instantiate: (di: DiContainerForInjection, parameter: number) =>
       `some-instance-${parameter}`,
+
     lifecycle: lifecycleEnum.transient,
-  },
+  }),
 });
 
 expectType<{ someInjectable: Injectable<string, unknown, number> }>(
   someInjectableBunch,
 );
+
+// given injectable bunch with unrelated, non-injectable properties, typing is ok and still contains all properties
+const bunchContent = {
+  someCompletelyUnrelatedProperty: 'irrelevant',
+};
+
+const someInjectableBunch2 = getInjectableBunch(bunchContent);
+
+expectType<typeof bunchContent>(someInjectableBunch2);
 
 expectType<{ keys: [1, 2, 3] }>(getKeyedSingletonCompositeKey(1, 2, 3));
 
@@ -671,3 +711,174 @@ expectType<{ someProperty: number }[]>(
     someInstantiationParameter: 37,
   }),
 );
+
+// given array of injectables and bunches, when registering, is ok
+const someArrayOfInjectablesAndBunches = [someInjectable, someInjectableBunch];
+
+expectType<void>(di.register(someInjectable));
+expectType<void>(di.register(someInjectableBunch));
+expectType<void>(di.register(someInjectable, someInjectableBunch));
+expectType<void>(di.register(...someArrayOfInjectablesAndBunches));
+
+// given array of injectables and bunches, when deregistering, is ok
+expectType<void>(di.deregister(someInjectable));
+expectType<void>(di.deregister(someInjectableBunch));
+expectType<void>(di.deregister(someInjectable, someInjectableBunch));
+expectType<void>(di.deregister(...someArrayOfInjectablesAndBunches));
+
+const someInjectable1 = getInjectable({
+  id: 'some-injectable',
+
+  instantiate: di => {
+    expectType<void>(di.register(someInjectable));
+    expectType<void>(di.register(someInjectableBunch));
+    expectType<void>(di.register(someInjectable, someInjectableBunch));
+    expectType<void>(di.register(...someArrayOfInjectablesAndBunches));
+
+    // given array of injectables and bunches, when deregistering, is ok
+    expectType<void>(di.deregister(someInjectable));
+    expectType<void>(di.deregister(someInjectableBunch));
+    expectType<void>(di.deregister(someInjectable, someInjectableBunch));
+    expectType<void>(di.deregister(...someArrayOfInjectablesAndBunches));
+  },
+});
+
+// given general injection token and a typed specifier, typing is ok
+const someGeneralTokenWithTypedSpecifier = getInjectionToken<
+  // For general case, the arg is still unknown
+  (arg: unknown) => boolean,
+  void,
+  <S extends TypedSpecifierWithType<'someTypeNameOfSpecifier'>>(
+    specifier: S,
+  ) => SpecificInjectionToken<
+    (arg: TypedSpecifierType<'someTypeNameOfSpecifier', S>) => boolean
+  >
+>({
+  id: 'some-general-token-with-typed-specifier',
+});
+
+const someTypedSpecifier = getTypedSpecifier<{
+  someTypeNameOfSpecifier: string;
+  someUnrelatedTypeName: boolean;
+}>()('some-typed-specifier');
+
+const actualTypedInstance = di.inject(
+  someGeneralTokenWithTypedSpecifier.for(someTypedSpecifier),
+);
+
+expectType<(arg: string) => boolean>(actualTypedInstance);
+
+// given injectable implementing general injection token with a typed specifier, typing is ok
+getInjectable({
+  id: 'some-injectable',
+
+  instantiate: di => arg => {
+    expectType<string>(arg);
+
+    return true;
+  },
+
+  injectionToken: someGeneralTokenWithTypedSpecifier.for(someTypedSpecifier),
+});
+
+// given general injection token with a typed specifier, and a typed specifier for a non-matching type, typing is not ok
+const someTypedSpecifierWithNonMatchingTypes = getTypedSpecifier<{
+  someNonMatchingTypeNameOfSpecifier: string;
+}>()('some-non-matching-typed-specifier');
+
+expectError(
+  someGeneralTokenWithTypedSpecifier.for(
+    someTypedSpecifierWithNonMatchingTypes,
+  ),
+);
+
+// given general injection token and with contradictory typed specifier, typing is not ok
+expectError(
+  getInjectionToken<
+    unknown,
+    void,
+    <S extends TypedSpecifierWithType<'someTypeNameOfSpecifier'>>(
+      specifier: S,
+    ) => SpecificInjectionToken<
+      (
+        arg: TypedSpecifierType<'someContradictoryTypeNameOfSpecifier', S>,
+      ) => boolean
+    >
+  >({
+    id: 'some-general-token-with-contradictory-typed-specifier',
+  }),
+);
+
+// given general injection token and with contradictory typed specifier for return type, typing is not ok
+expectError(
+  getInjectionToken<
+    (arg: unknown) => boolean,
+    void,
+    <S extends TypedSpecifierWithType<'someTypeNameOfSpecifier'>>(
+      specifier: S,
+    ) => SpecificInjectionToken<
+      (arg: TypedSpecifierType<'someTypeNameOfSpecifier', S>) => string
+    >
+  >({
+    id: 'some-general-token-with-contradictory-typed-specifier-for-return-type',
+  }),
+);
+
+// given general injection token and with typed specifier that is more specific, when injected, typing is ok
+const tokenWithMoreSpecificInstance = getInjectionToken<
+  (arg: unknown) => boolean | string,
+  void,
+  <S extends TypedSpecifierWithType<'someTypeNameOfSpecifier'>>(
+    specifier: S,
+  ) => SpecificInjectionToken<
+    // Note: just string is more specific than boolean | string
+    (arg: TypedSpecifierType<'someTypeNameOfSpecifier', S>) => string
+  >
+>({
+  id: 'some-general-token-with-contradictory-typed-specifier-for-return-type',
+});
+
+const actualSpecificInstance = di.inject(
+  tokenWithMoreSpecificInstance.for(someTypedSpecifier),
+);
+
+expectType<(arg: string) => string>(actualSpecificInstance);
+
+// Todo: this is broken and needs to be fixed!
+// Given general injection token with a typed specifier, when injected without specifier, typing is ok
+// const minimalTokenWithSpecifics = getInjectionToken<
+//   (arg: unknown) => boolean,
+//   void,
+//   (specifier: string) => SpecificInjectionToken<(arg: number) => boolean>
+// >({
+//   id: 'some-general-token-with-typed-specifier',
+// });
+//
+// expectType<(arg: unknown) => boolean>(di.inject(minimalTokenWithSpecifics));
+
+const someInjectableForHasRegistrations = getInjectable({
+  id: 'irrelevant',
+
+  instantiate: di => {
+    // given injectable, typing for "alias has registrations" is ok
+    expectType<boolean>(di.hasRegistrations(someInjectable));
+
+    // given token, typing for "alias has registrations" is ok
+    expectType<boolean>(di.hasRegistrations(someInjectionToken));
+  },
+});
+
+const typedSpecifier = getTypedSpecifier<{ someSpeciality: "some-type" }>()("irrelevant");
+
+// given typed specifier, TypedSpecifier is compatible with "extends" and type inference
+expectAssignable<TypedSpecifier<string, { someSpeciality: "some-type" }>>(typedSpecifier)
+
+// given typed specifier, TypedSpecifierWithType is compatible with "extends" and type inference
+expectAssignable<TypedSpecifierWithType<"someSpeciality", "some-type">>(typedSpecifier)
+
+// given some factory that produces injectables with some generic lifecycle it works and typing is okay
+const someInjectableFactory = <P>(id: string, lifecycle: Lifecycle<P>) => getInjectable({
+  id,
+  instantiate: () => 10,
+  lifecycle,
+});

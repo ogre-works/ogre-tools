@@ -1,11 +1,51 @@
 /// <reference types="react" />
-import type { DiContainer, DiContainerForInjection } from '@ogre-tools/injectable';
+import {
+  DiContainer,
+  DiContainerForInjection,
+  Injectable,
+  InjectionToken,
+} from '@ogre-tools/injectable';
 
-interface DiContainerProviderProps {
-  di: DiContainer | DiContainerForInjection;
-}
+export function useInject<TReturnValue>(
+  injectable: Injectable<TReturnValue, any> | InjectionToken<TReturnValue>,
+): Awaited<TReturnValue>;
 
-export const DiContextProvider: React.Provider<DiContainerProviderProps>;
+export function useInject<TReturnValue, TInstantiationParameter>(
+  injectable:
+    | Injectable<TReturnValue, any, TInstantiationParameter>
+    | InjectionToken<TReturnValue, TInstantiationParameter>,
+  instantiationParameter: TInstantiationParameter,
+): Awaited<TReturnValue>;
+
+export function useInjectDeferred<TReturnValue>(
+  injectable: Injectable<TReturnValue, any> | InjectionToken<TReturnValue>,
+): Awaited<TReturnValue>;
+
+export function useInjectDeferred<TReturnValue, TInstantiationParameter>(
+  injectable:
+    | Injectable<TReturnValue, any, TInstantiationParameter>
+    | InjectionToken<TReturnValue, TInstantiationParameter>,
+  instantiationParameter: TInstantiationParameter,
+): Awaited<TReturnValue>;
+
+
+export type InjectableComponent<Component extends React.ComponentType<any>> =
+  Component & Injectable<Component>;
+
+type ExcludedKeys = 'instantiate' | 'lifecycle' | 'scope' | 'decorable';
+
+export declare function getInjectableComponent<
+  Component extends React.ComponentType<any>
+>(
+  injectable: Omit<Injectable<Component>, ExcludedKeys> & {
+    id: string;
+    Component: Component;
+    PlaceholderComponent?: React.ComponentType<React.ComponentProps<Component>>;
+    injectionToken?: InjectionToken<Component>;
+  },
+): InjectableComponent<Component>;
+
+export const DiContextProvider: React.Provider<DiContainer | DiContainerForInjection>;
 
 export interface WithInjectablesSyncOptions<
   Dependencies extends object,
@@ -52,5 +92,3 @@ export interface WithInjectables {
 }
 
 export const withInjectables: WithInjectables;
-
-export function registerInjectableReact(di: DiContainer): void;

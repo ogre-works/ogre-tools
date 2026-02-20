@@ -42,7 +42,7 @@ describe('createContainer.deregistration', () => {
     expect(() => {
       di.inject(someInjectionToken);
     }).toThrow(
-      'Tried to inject non-registered injectable "some-container" -> "some-injection-token".',
+      'Tried to inject non-registered injectable "some-container" -> "(some-injection-token)".',
     );
   });
 

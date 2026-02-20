@@ -24,6 +24,7 @@ coverage
 .idea/**/sqlDataSources.xml
 .idea/**/dynamic.xml
 .idea/**/uiDesigner.xml
+.idea/copilot.*
 
 # Gradle:
 .idea/**/gradle.xml

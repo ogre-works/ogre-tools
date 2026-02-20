@@ -16,7 +16,6 @@ export const pushLinkInjectable = getInjectable({
 
   instantiate: (di): PushLink => {
     const workingDirectory = di.inject(workingDirectoryInjectable);
-    const publishYalcPackage = di.inject(publishYalcPackageInjectable);
     const readJsonFile = di.inject(readJsonFileInjectable);
     const resolvePath = di.inject(resolvePathInjectable);
 
@@ -92,7 +91,7 @@ export const getLockFileProblemsUsingGloballyOverwrittenLoggingInjectable =
       const consoleWarn = di.inject(consoleWarnInjectable);
       const lockFileProblems: LockFileProblem[] = [];
 
-      return async callback => {
+      return async (callback: () => Promise<void>) => {
         const originalConsoleLog = console.log;
         const originalConsoleWarn = console.warn;
 
@@ -130,7 +129,7 @@ export const logAboutLockFileProblemsInjectable = getInjectable({
   instantiate: di => {
     const consoleLog = di.inject(consoleLogInjectable);
 
-    return problems => {
+    return (problems: any[]) => {
       problems.forEach(problem => {
         consoleLog(
           `Encountered corrupted yalc.lock in ${problem.targetDirectory}, resolving automatically by adding ${problem.moduleName}.`,
@@ -147,7 +146,7 @@ export const tryFixLockFileProblemsInjectable = getInjectable({
   instantiate: di => {
     const addYalcPackages = di.inject(addYalcPackagesInjectable);
 
-    return async problems => {
+    return async (problems: any[]) => {
       for (let problem of problems) {
         await addYalcPackages([problem.moduleName], {
           link: true,
