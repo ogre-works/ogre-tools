@@ -1,0 +1,45 @@
+{
+  "name": "@ogre-tools/element-component",
+  "private": false,
+  "version": "18.2.2",
+  "description": "Re-usable props in React",
+  "type": "commonjs",
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ogre-works/ogre-tools.git"
+  },
+  "main": "build/index.js",
+  "types": "build/index.d.ts",
+  "files": [
+    "build"
+  ],
+  "author": "Ogre Works",
+  "license": "MIT",
+  "homepage": "https://github.com/ogre-works/ogre-tools#readme",
+  "peerDependencies": {
+    "@ogre-tools/fp": "^18",
+    "lodash": "^4.17.21",
+    "react": "^18 || ^19",
+    "react-dom": "^18 || ^19"
+  },
+  "devDependencies": {
+    "@async-fn/jest": "^1.6.4",
+    "@ogre-tools/discoverable": "^18.2.2",
+    "@ogre-tools/infrastructure-babel-for-ts": "^18.2.2",
+    "@ogre-tools/infrastructure-jest": "^18.2.2",
+    "@ogre-tools/infrastructure-prettier": "^18.2.2",
+    "@ogre-tools/infrastructure-webpack-for-ts": "^18.2.2",
+    "@ogre-tools/test-utils": "^18.2.2",
+    "type-fest": "^4.27.0"
+  },
+  "scripts": {
+    "build": "ogre-tools-build-ts",
+    "test": "ogre-tools-test",
+    "code-style:verify": "ogre-tools-verify-code-style",
+    "code-style:fix": "ogre-tools-fix-code-style"
+  }
+}
