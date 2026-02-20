@@ -1,6 +1,12 @@
 {
   "compilerOptions": {
     "declaration": true,
-    "esModuleInterop": true
+    "esModuleInterop": true,
+    "target": "ES2022",
+    "module": "Node16",
+    "lib": ["ESNext", "DOM", "DOM.Iterable"],
+    "moduleResolution": "Node16",
+    "strict": true,
+    "allowSyntheticDefaultImports": true
   }
 }
