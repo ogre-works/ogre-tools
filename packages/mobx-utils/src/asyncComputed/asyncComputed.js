@@ -1,5 +1,12 @@
+import {
+  comparer,
+  computed,
+  createAtom,
+  observable,
+  runInAction,
+  untracked,
+} from 'mobx';
 import { noop } from 'lodash/fp';
-import { computed, createAtom, observable, runInAction, untracked } from 'mobx';
 
 const neutralizeObsoletePromiseSymbol = Symbol.for(
   'neutralize-obsolete-promise',
@@ -9,6 +16,7 @@ export default ({
   getValueFromObservedPromise,
   valueWhenPending,
   betweenUpdates = 'show-pending-value',
+  equals = comparer.default,
 }) => {
   const invalidateAtom = createAtom('invalidate');
 
@@ -19,6 +27,7 @@ export default ({
   const syncValueBox = observable.box(valueWhenPending, {
     name: 'sync-value-box-for-async-computed',
     deep: false,
+    equals,
   });
 
   const computedPromise = computed(
@@ -45,6 +54,7 @@ export default ({
         }),
       ]);
     },
+
     {
       name: 'computed-promise-for-async-computed',
     },

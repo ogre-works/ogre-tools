@@ -1,3 +1,5 @@
+import isInjectionToken from '../getInjectionToken/isInjectionToken';
+
 export const getNamespacedIdFor = injectableAndRegistrationContext => {
   const getScopeContextItems = injectable => {
     const registrationContext =
@@ -21,9 +23,13 @@ export const getNamespacedIdFor = injectableAndRegistrationContext => {
     ];
   };
 
-  return injectable => {
-    const scopeIds = getScopeContextItems(injectable).map(x => x.injectable.id);
+  return alias => {
+    const scopeIds = getScopeContextItems(alias).map(x => x.injectable.id);
 
-    return [...scopeIds, injectable.id].join(':');
+    const injectableOrInjectionTokenId = isInjectionToken(alias)
+      ? `(${alias.id})`
+      : alias.id;
+
+    return [...scopeIds, injectableOrInjectionTokenId].join(':');
   };
 };

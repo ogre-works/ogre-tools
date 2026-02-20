@@ -16,6 +16,8 @@ import isInjectableBunch from './src/getInjectableBunch/isInjectableBunch';
 import toFlatInjectables from './src/dependency-injection-container/toFlatInjectables';
 import { getCompositeKey } from './src/getCompositeKey/getCompositeKey';
 
+export { getTypedSpecifier } from './src/getInjectionToken/getTypedSpecifier';
+
 export const getKeyedSingletonCompositeKey = getCompositeKey;
 
 export { createInstantiationTargetDecorator } from './src/dependency-injection-container/createInstantiationTargetDecorator';

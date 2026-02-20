@@ -81,7 +81,7 @@ describe('injecting-a-specific-implementation-of-a-token', () => {
               }),
             );
           }).toThrow(
-            'Tried to inject non-registered injectable "irrelevant" -> "some-injection-token/some-speciality".',
+            'Tried to inject non-registered injectable "irrelevant" -> "(some-injection-token/some-speciality)".',
           );
         });
 
@@ -172,7 +172,7 @@ describe('injecting-a-specific-implementation-of-a-token', () => {
           }),
         );
       }).toThrow(
-        'Tried to inject non-registered injectable "irrelevant" -> "some-injection-token/some-speciality".',
+        'Tried to inject non-registered injectable "irrelevant" -> "(some-injection-token/some-speciality)".',
       );
     });
   });
@@ -452,7 +452,7 @@ describe('injecting-a-specific-implementation-of-a-token', () => {
               'irrelevant',
             );
           }).toThrow(
-            'Tried to inject non-registered injectable "irrelevant" -> "some-injection-token/some-speciality".',
+            'Tried to inject non-registered injectable "irrelevant" -> "(some-injection-token/some-speciality)".',
           );
         });
 

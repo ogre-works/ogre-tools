@@ -26,7 +26,9 @@ export const deregisterFor =
       source,
     );
 
-    injectables.forEach(injectable => {
+    const flatInjectables = toFlatInjectables(injectables);
+
+    flatInjectables.forEach(injectable => {
       callbacks.forEach(callback => {
         callback(injectable);
       });
@@ -45,7 +47,7 @@ export const deregisterFor =
       di,
     });
 
-    toFlatInjectables(injectables).forEach(injectable => {
+    flatInjectables.forEach(injectable => {
       dependenciesByDependencyMap.delete(injectable);
       dependeesByDependencyMap.delete(injectable);
 
