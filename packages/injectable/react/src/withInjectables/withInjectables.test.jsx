@@ -1,7 +1,6 @@
 import React from 'react';
 import { setImmediate as flushMicroTasks } from 'timers';
-import { render } from '@testing-library/react';
-import { act } from '@testing-library/react';
+import { act, render } from '@testing-library/react';
 
 import {
   createContainer,
@@ -14,15 +13,12 @@ import withInjectables, { DiContextProvider } from './withInjectables';
 import asyncFn from '@async-fn/jest';
 import { observable, runInAction } from 'mobx';
 import { observer } from 'mobx-react';
-import registerInjectableReact from '../registerInjectableReact/registerInjectableReact';
 import { keys } from 'lodash/fp';
-
-const flushPromises = () => new Promise(flushMicroTasks);
 
 const mountFor =
   di =>
   (node, ...rest) =>
-    render(<DiContextProvider value={{ di }}>{node}</DiContextProvider>, {
+    render(<DiContextProvider value={di}>{node}</DiContextProvider>, {
       ...rest,
     });
 
@@ -32,8 +28,6 @@ describe('withInjectables', () => {
 
   beforeEach(() => {
     di = createContainer('some-container');
-
-    registerInjectableReact(di);
 
     mount = mountFor(di);
   });
@@ -167,6 +161,22 @@ describe('withInjectables', () => {
     expect(rendered.baseElement).toMatchSnapshot();
   });
 
+  it('normally, when rendered, gets props already as layoutEffect to probably serve unit-testability in a tragically forgotten, yet meaningful scenario', () => {
+    jest.spyOn(React, 'useLayoutEffect');
+
+    const DumbTestComponent = ({ someDependency, ...props }) => (
+      <div {...props}>Some content: "{someDependency}"</div>
+    );
+
+    const SmartTestComponent = withInjectables(DumbTestComponent, {
+      getProps: () => ({}),
+    });
+
+    mount(<SmartTestComponent />);
+
+    expect(React.useLayoutEffect).toHaveBeenCalled();
+  });
+
   it('given component, when rendered, has access to full di from react context', () => {
     const DumbTestComponent = () => <div />;
 
@@ -182,119 +192,6 @@ describe('withInjectables', () => {
     mount(<SmartTestComponent />);
 
     expect.assertions(2);
-  });
-
-  [
-    {
-      name: 'given anonymous component and a dependency cycle, when rendered, throws context for a uniquely generated component name and cycle',
-      getComponent: () => () => 'irrelevant',
-      injectOrInjectMany: 'inject',
-
-      expectedError:
-        'Cycle of injectables encountered: "some-container" -> "anonymous-component-0" -> "some-injectable-id" -> "some-other-injectable-id" -> "some-injectable-id"',
-    },
-
-    {
-      name: 'given named component and a dependency cycle, when rendered, throws context for the component and cycle',
-
-      getComponent: () =>
-        function SomeNamedComponent() {
-          return 'irrelevant';
-        },
-
-      injectOrInjectMany: 'inject',
-
-      expectedError:
-        'Cycle of injectables encountered: "some-container" -> "SomeNamedComponent" -> "some-injectable-id" -> "some-other-injectable-id" -> "some-injectable-id"',
-    },
-
-    {
-      name: 'given component with display name and a dependency cycle, when rendered, throws context for the component and cycle',
-
-      getComponent: () => {
-        const Component = () => 'irrelevant';
-        Component.displayName = 'some-component-display-name';
-        return Component;
-      },
-
-      injectOrInjectMany: 'inject',
-
-      expectedError:
-        'Cycle of injectables encountered: "some-container" -> "some-component-display-name" -> "some-injectable-id" -> "some-other-injectable-id" -> "some-injectable-id"',
-    },
-
-    {
-      name: 'given class component and a dependency cycle, when rendered, throws context for the component and cycle',
-
-      getComponent: () =>
-        class SomeClassComponent extends React.Component {
-          render() {
-            return 'irrelevant';
-          }
-        },
-
-      injectOrInjectMany: 'inject',
-
-      expectedError:
-        'Cycle of injectables encountered: "some-container" -> "SomeClassComponent" -> "some-injectable-id" -> "some-other-injectable-id" -> "some-injectable-id"',
-    },
-
-    {
-      name: 'given component, a dependency cycle and injecting a token, when rendered, throws context for the component and cycle',
-
-      getComponent: () => () => 'irrelevant',
-
-      injectUsing: 'injectionToken',
-
-      expectedError:
-        'Cycle of injectables encountered: "some-container" -> "anonymous-component-0" -> "some-injection-token" -> "some-injectable-id" -> "some-other-injectable-id" -> "some-injectable-id"',
-    },
-  ].forEach(scenario => {
-    xit(scenario.name, () => {
-      const someInjectionToken = getInjectionToken({
-        id: 'some-injection-token',
-      });
-
-      const injectable = getInjectable({
-        id: 'some-injectable-id',
-        instantiate: di => di.inject(otherInjectable),
-        injectionToken: someInjectionToken,
-      });
-
-      const otherInjectable = getInjectable({
-        id: 'some-other-injectable-id',
-        instantiate: di => di.inject(injectable),
-      });
-
-      di.register(injectable, otherInjectable);
-
-      const DumbTestComponent = scenario.getComponent();
-
-      const SmartTestComponent = withInjectables(DumbTestComponent, {
-        getProps: (di, props) => ({
-          someDependency:
-            scenario.injectUsing === 'injectionToken'
-              ? di.injectMany(someInjectionToken)
-              : di.inject(injectable),
-          ...props,
-        }),
-      });
-
-      const onErrorMock = jest.fn();
-
-      const storedConsoleError = console.error;
-      console.error = () => {};
-
-      mount(
-        <ErrorBoundary onError={onErrorMock}>
-          <SmartTestComponent data-some-prop-test />
-        </ErrorBoundary>,
-      );
-
-      console.error = storedConsoleError;
-
-      expect(onErrorMock).toHaveBeenCalledWith(scenario.expectedError);
-    });
   });
 
   it('given anonymous component, injecting a token, when rendered, works', () => {
@@ -430,6 +327,193 @@ describe('withInjectables', () => {
         expect(
           rendered.queryByTestId('some-placeholder'),
         ).not.toBeInTheDocument();
+      });
+    });
+  });
+
+  describe('given nested components, with async dependencies, when rendered', () => {
+    let rendered;
+    let someProp;
+    let asyncDependencyMock;
+    let mountOfDecoratedComponentMock;
+    let createPlaceholderMock;
+
+    beforeEach(async () => {
+      mountOfDecoratedComponentMock = jest.fn();
+
+      const ToBeDecoratedComponent = ({ someDependency, ...props }) => {
+        React.useEffect(() => {
+          mountOfDecoratedComponentMock();
+        }, []);
+
+        return (
+          <div
+            data-testid="some-dumb-test-component"
+            data-some-dependency-test={someDependency}
+            {...props}
+          >
+            <input type="text" data-some-input-test />
+            Some content: "{someDependency}"
+          </div>
+        );
+      };
+
+      asyncDependencyMock = asyncFn();
+      createPlaceholderMock = jest.fn();
+      const SmartChildTestComponent = withInjectables(ToBeDecoratedComponent, {
+        getProps: async (di, props) => ({
+          someDependency: await asyncDependencyMock(),
+          ...props,
+        }),
+
+        getPlaceholder: () => {
+          createPlaceholderMock();
+
+          return <div data-testid="some-placeholder" />;
+        },
+      });
+
+      const DumbParentTestComponent = observer(({ someProp }) => (
+        <div>
+          <SmartChildTestComponent data-some-prop-test={someProp.get()} />
+        </div>
+      ));
+
+      someProp = observable.box('some-initial-value');
+      rendered = mount(<DumbParentTestComponent someProp={someProp} />);
+    });
+
+    it('renders as placeholder', () => {
+      expect(rendered.baseElement).toMatchSnapshot();
+    });
+
+    it('does not render component yet', () => {
+      expect(
+        rendered.queryByTestId('some-dumb-test-component'),
+      ).not.toBeInTheDocument();
+    });
+
+    it('does not mount the decorated component yet', () => {
+      expect(mountOfDecoratedComponentMock).not.toHaveBeenCalled();
+    });
+
+    it('has placeholder', () => {
+      expect(rendered.queryByTestId('some-placeholder')).toBeInTheDocument();
+    });
+
+    describe('when the dependency resolves', () => {
+      beforeEach(async () => {
+        await act(async () => {
+          await asyncDependencyMock.resolve('some-async-value');
+        });
+      });
+
+      it('renders', () => {
+        expect(rendered.baseElement).toMatchSnapshot();
+      });
+
+      it('has component with async content', () => {
+        expect(rendered.baseElement).toHaveTextContent(
+          'Some content: "some-async-value"',
+        );
+      });
+
+      it('mounts the decorated component', () => {
+        expect(mountOfDecoratedComponentMock).toHaveBeenCalled();
+      });
+
+      it('has component', () => {
+        expect(
+          rendered.queryByTestId('some-dumb-test-component'),
+        ).toBeInTheDocument();
+      });
+
+      it('no longer has placeholder', () => {
+        expect(
+          rendered.queryByTestId('some-placeholder'),
+        ).not.toBeInTheDocument();
+      });
+
+      it('renders', () => {
+        expect(rendered.baseElement).toMatchSnapshot();
+      });
+
+      describe('when an input is focused', () => {
+        beforeEach(() => {
+          act(() => {
+            rendered.baseElement
+              .querySelector('[data-some-input-test]')
+              .focus();
+          });
+        });
+
+        it('the input really is focused', () => {
+          expect(
+            rendered.baseElement.querySelector('[data-some-input-test]:focus'),
+          ).toBeInTheDocument();
+        });
+
+        describe('when a (non-dependency) prop changes', () => {
+          beforeEach(async () => {
+            asyncDependencyMock.mockClear();
+            mountOfDecoratedComponentMock.mockClear();
+            createPlaceholderMock.mockClear();
+
+            await act(async () => {
+              runInAction(() => {
+                someProp.set('some-new-value');
+              });
+            });
+
+            await act(async () => {
+              await asyncDependencyMock.resolve('some-async-value');
+            });
+          });
+
+          it('renders the new value', () => {
+            expect(
+              rendered.baseElement.querySelector(
+                '[data-some-prop-test=some-new-value]',
+              ),
+            ).toBeInTheDocument();
+          });
+
+          it('the input is still focused', () => {
+            expect(
+              rendered.baseElement.querySelector(
+                '[data-some-input-test]:focus',
+              ),
+            ).toBeInTheDocument();
+          });
+
+          it('instantiates async dependencies again', () => {
+            expect(asyncDependencyMock).toHaveBeenCalled();
+          });
+
+          it('does not create another placeholder', () => {
+            expect(createPlaceholderMock).not.toHaveBeenCalled();
+          });
+
+          it('does not mount the decorated component again', () => {
+            expect(mountOfDecoratedComponentMock).not.toHaveBeenCalled();
+          });
+
+          it('renders', () => {
+            expect(rendered.baseElement).toMatchSnapshot();
+          });
+
+          it('still has component with the async content', () => {
+            expect(rendered.baseElement).toHaveTextContent(
+              'Some content: "some-async-value"',
+            );
+          });
+
+          it('has no placeholder', () => {
+            expect(
+              rendered.queryByTestId('some-placeholder'),
+            ).not.toBeInTheDocument();
+          });
+        });
       });
     });
   });
