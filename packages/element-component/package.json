@@ -1,7 +1,7 @@
 {
   "name": "@ogre-tools/element-component",
   "private": false,
-  "version": "18.2.2",
+  "version": "19.0.0",
   "description": "Re-usable props in React",
   "type": "commonjs",
   "publishConfig": {
@@ -28,12 +28,12 @@
   },
   "devDependencies": {
     "@async-fn/jest": "^1.6.4",
-    "@ogre-tools/discoverable": "^18.2.2",
-    "@ogre-tools/infrastructure-babel-for-ts": "^18.2.2",
-    "@ogre-tools/infrastructure-jest": "^18.2.2",
-    "@ogre-tools/infrastructure-prettier": "^18.2.2",
-    "@ogre-tools/infrastructure-webpack-for-ts": "^18.2.2",
-    "@ogre-tools/test-utils": "^18.2.2",
+    "@ogre-tools/discoverable": "^19.0.0",
+    "@ogre-tools/infrastructure-babel-for-ts": "^19.0.0",
+    "@ogre-tools/infrastructure-jest": "^19.0.0",
+    "@ogre-tools/infrastructure-prettier": "^19.0.0",
+    "@ogre-tools/infrastructure-webpack-for-ts": "^19.0.0",
+    "@ogre-tools/test-utils": "^19.0.0",
     "type-fest": "^4.27.0"
   },
   "scripts": {
