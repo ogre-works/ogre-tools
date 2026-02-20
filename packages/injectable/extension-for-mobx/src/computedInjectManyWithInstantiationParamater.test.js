@@ -7,10 +7,8 @@ import {
   lifecycleEnum,
 } from '@ogre-tools/injectable';
 
-import {
-  computedInjectManyInjectable,
-  registerMobX,
-} from './computedInjectMany';
+import { computedInjectManyInjectable } from './computedInjectMany';
+import { registerMobX } from './registerMobx';
 
 describe('computed inject many with instantiation parameter', () => {
   let reactiveInstances;

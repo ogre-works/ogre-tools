@@ -16,9 +16,10 @@ import {
 
 import {
   computedInjectManyWithMetaInjectable,
+  computedInjectManyWithMetaInjectionToken,
   isInternalOfComputedInjectMany,
-  registerMobX,
 } from './computedInjectMany';
+import { registerMobX } from './registerMobx';
 
 describe('registerMobx', () => {
   let reactiveInstances;
@@ -94,7 +95,7 @@ describe('registerMobx', () => {
     describe('given in reactive context and observed as computedInjectManyWithMeta, when multiple injectables that implement the injection token are registered', () => {
       beforeEach(() => {
         const computedInjectManyWithMeta = di.inject(
-          computedInjectManyWithMetaInjectable,
+          computedInjectManyWithMetaInjectionToken,
         );
 
         actual = computedInjectManyWithMeta(someFirstInjectionToken);
