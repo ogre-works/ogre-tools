@@ -87,12 +87,15 @@ export const deregisterSingleFor =
       .forEach(injectable => {
         injectableAndRegistrationContext.delete(injectable);
 
-        di.deregister({
-          injectables: [injectable],
-        });
+        if (injectableSet.has(injectable)) {
+          di.deregister({
+            injectables: [injectable],
+          });
+        }
       });
 
     purgeInstances(injectable);
+    injectableAndRegistrationContext.delete(injectable);
     const namespacedId = namespacedIdByInjectableMap.get(injectable);
     injectableIdSet.delete(namespacedId);
     injectableSet.delete(injectable);

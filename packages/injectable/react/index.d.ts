@@ -47,6 +47,7 @@ export declare function getInjectableComponent<
 
 export const DiContextProvider: React.Provider<DiContainer | DiContainerForInjection>;
 
+/** @deprecated Use injection hooks (`useSyncInject`, `useInjectDeferAwait`, `useInjectAsReactive`) or `getInjectableComponent` instead. */
 export interface WithInjectablesSyncOptions<
   Dependencies extends object,
   Props extends object,
@@ -54,6 +55,7 @@ export interface WithInjectablesSyncOptions<
   getProps: (di: DiContainerForInjection, props: Props) => Props & Dependencies;
 }
 
+/** @deprecated Use injection hooks (`useSyncInject`, `useInjectDeferAwait`, `useInjectAsReactive`) or `getInjectableComponent` instead. */
 export interface WithInjectablesAsyncOptions<
   Dependencies extends object,
   Props extends object,
@@ -65,6 +67,7 @@ export interface WithInjectablesAsyncOptions<
   getPlaceholder: React.FunctionComponent<Props>;
 }
 
+/** @deprecated Use injection hooks (`useSyncInject`, `useInjectDeferAwait`, `useInjectAsReactive`) or `getInjectableComponent` instead. */
 export interface WithInjectables {
   <Dependencies extends object, Props extends object = {}>(
     Component: React.ElementType<Dependencies & Props>,
@@ -91,4 +94,5 @@ export interface WithInjectables {
   ): React.ForwardRefExoticComponent<Props & React.RefAttributes<Ref>>;
 }
 
+/** @deprecated Use injection hooks (`useSyncInject`, `useInjectDeferAwait`, `useInjectAsReactive`) or `getInjectableComponent` instead. */
 export const withInjectables: WithInjectables;
