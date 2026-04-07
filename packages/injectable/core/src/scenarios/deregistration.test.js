@@ -324,6 +324,80 @@ describe('createContainer.deregistration', () => {
     });
   });
 
+  it('given injectable registered by another, when child is deregistered directly and then parent is deregistered, does not throw', () => {
+    const di = createContainer('some-container');
+
+    const childInjectable = getInjectable({
+      id: 'some-child-injectable',
+      instantiate: () => 'some-child-instance',
+    });
+
+    const registererInjectable = getInjectable({
+      id: 'some-registerer',
+
+      instantiate: di => injectable => {
+        di.register(injectable);
+      },
+    });
+
+    di.register(registererInjectable);
+
+    const register = di.inject(registererInjectable);
+
+    register(childInjectable);
+
+    // Deregister child directly (simulates experiment uninstall)
+    di.deregister(childInjectable);
+
+    // Deregister parent (simulates feature scope cascade) — should not throw
+    expect(() => {
+      di.deregister(registererInjectable);
+    }).not.toThrow();
+  });
+
+  it('given grandchild registered via nested scopes, when grandparent is deregistered, does not throw for grandchild already deregistered by child cascade', () => {
+    const di = createContainer('some-container');
+
+    const grandchildInjectable = getInjectable({
+      id: 'some-grandchild',
+      instantiate: () => 'grandchild-instance',
+    });
+
+    // Child scope: registers the grandchild
+    const childScopeInjectable = getInjectable({
+      id: 'some-child-scope',
+      instantiate: di => {
+        di.register(grandchildInjectable);
+        return 'child-scope-instance';
+      },
+      scope: true,
+    });
+
+    // Parent scope: registers the child scope
+    const parentScopeInjectable = getInjectable({
+      id: 'some-parent-scope',
+      instantiate: di => {
+        di.register(childScopeInjectable);
+        di.inject(childScopeInjectable);
+        return 'parent-scope-instance';
+      },
+      scope: true,
+    });
+
+    di.register(parentScopeInjectable);
+    di.inject(parentScopeInjectable);
+
+    expect(di.hasRegistrations(grandchildInjectable)).toBe(true);
+
+    // Deregistering parent cascades to child, which cascades to grandchild.
+    // Grandchild appears in both parent's and child's cascade results.
+    expect(() => {
+      di.deregister(parentScopeInjectable);
+    }).not.toThrow();
+
+    expect(di.hasRegistrations(grandchildInjectable)).toBe(false);
+  });
+
   it('given injectable with token, and registered, when deregistered using the token, throws', () => {
     const someToken = getInjectionToken({
       id: 'some-token',
