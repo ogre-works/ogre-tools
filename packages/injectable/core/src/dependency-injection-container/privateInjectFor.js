@@ -13,6 +13,7 @@ export const privateInjectFor =
     checkForNoMatches,
     checkForSideEffects,
     getNamespacedId,
+    decoratorCache,
   }) =>
   ({ withMeta }) =>
   (alias, instantiationParameter, context = [], source) => {
@@ -41,6 +42,7 @@ export const privateInjectFor =
       instancesByInjectableMap,
       source,
       getNamespacedId,
+      decoratorCache,
     });
 
     if (!withMeta) {
@@ -63,6 +65,7 @@ const getInstance = ({
   instancesByInjectableMap,
   source,
   getNamespacedId,
+  decoratorCache,
 }) => {
   const newContext = [
     ...oldContext,
@@ -151,6 +154,7 @@ const getInstance = ({
   const withInstantiationDecorators = withInstantiationDecoratorsFor({
     injectMany: di.injectMany,
     injectable: injectableToBeInstantiated,
+    decoratorCache,
   });
 
   const instantiateWithDecorators = withInstantiationDecorators(

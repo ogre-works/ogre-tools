@@ -12,9 +12,16 @@ import { setDependeeFor } from './setDependeeFor';
 import { checkForSideEffectsFor } from './checkForSideEffectsFor';
 import { getRelatedInjectablesFor } from './getRelatedInjectablesFor';
 import { earlyOverrideFor } from './early-override';
+import {
+  injectionDecoratorToken,
+  instantiationDecoratorToken,
+} from './tokens';
 
 export default containerId => {
   const injectableSet = new Set();
+
+  // Cache for decorator lists — invalidated on decorator registration/deregistration
+  const decoratorCache = { injection: null, instantiation: null };
   const overridingInjectables = new Map();
   let sideEffectsArePrevented = false;
   const alreadyInjected = new Set();
@@ -66,6 +73,7 @@ export default containerId => {
   const withInjectionDecorators = withInjectionDecoratorsFor({
     injectMany: nonDecoratedPrivateInjectMany,
     setDependee,
+    decoratorCache,
   });
 
   const getSideEffectsArePrevented = injectable =>
@@ -89,6 +97,7 @@ export default containerId => {
     checkForNoMatches,
     checkForSideEffects,
     getNamespacedId,
+    decoratorCache,
   });
 
   const nonDecoratedPrivateInject = nonDecoratedPrivateInjectUnknownMeta({
@@ -116,7 +125,7 @@ export default containerId => {
     nonDecoratedPrivateInjectManyWithMeta,
   );
 
-  const registerSingle = registerSingleFor({
+  const rawRegisterSingle = registerSingleFor({
     injectableSet,
     namespacedIdByInjectableMap,
     instancesByInjectableMap,
@@ -124,6 +133,16 @@ export default containerId => {
     injectableIdSet,
     injectableAndRegistrationContext,
   });
+
+  const registerSingle = (injectable, context) => {
+    rawRegisterSingle(injectable, context);
+
+    if (injectable.injectionToken === injectionDecoratorToken) {
+      decoratorCache.injection = null;
+    } else if (injectable.injectionToken === instantiationDecoratorToken) {
+      decoratorCache.instantiation = null;
+    }
+  };
 
   const purgeInstances = purgeInstancesFor({
     getRelatedInjectables,
@@ -145,6 +164,7 @@ export default containerId => {
     getDi: () => privateDi,
     dependenciesByDependencyMap,
     dependeesByDependencyMap,
+    decoratorCache,
   });
 
   const privateRegister = registerFor({
@@ -180,6 +200,8 @@ export default containerId => {
     namespacedIdByInjectableMap.clear();
     dependeesByDependencyMap.clear();
     dependenciesByDependencyMap.clear();
+    decoratorCache.injection = null;
+    decoratorCache.instantiation = null;
   };
 
   const privateDi = {

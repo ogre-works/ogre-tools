@@ -2,7 +2,11 @@ import { isRelevantDecoratorFor } from './isRelevantDecoratorFor';
 import flow from './fastFlow';
 import { instantiationDecoratorToken } from './tokens';
 
-export const withInstantiationDecoratorsFor = ({ injectMany, injectable }) => {
+export const withInstantiationDecoratorsFor = ({
+  injectMany,
+  injectable,
+  decoratorCache,
+}) => {
   const isRelevantDecorator = isRelevantDecoratorFor(injectable);
 
   return toBeDecorated =>
@@ -11,14 +15,26 @@ export const withInstantiationDecoratorsFor = ({ injectMany, injectable }) => {
         return toBeDecorated(...args);
       }
 
+      // Populate cache if invalidated
+      if (decoratorCache.instantiation === null) {
+        const [{ context }] = args;
+
+        decoratorCache.instantiation = injectMany(
+          instantiationDecoratorToken,
+          undefined,
+          context,
+          injectable,
+        );
+      }
+
+      // Fast path: no instantiation decorators registered
+      if (decoratorCache.instantiation.length === 0) {
+        return toBeDecorated(...args);
+      }
+
       const [{ context }] = args;
 
-      const decorators = injectMany(
-        instantiationDecoratorToken,
-        undefined,
-        context,
-        injectable,
-      )
+      const decorators = decoratorCache.instantiation
         .filter(isRelevantDecorator)
         .map(x => x.decorate);
 

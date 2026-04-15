@@ -1,6 +1,8 @@
 import {
   deregistrationCallbackToken,
   deregistrationDecoratorToken,
+  injectionDecoratorToken,
+  instantiationDecoratorToken,
   registrationDecoratorToken,
 } from './tokens';
 import toFlatInjectables from './toFlatInjectables';
@@ -23,6 +25,7 @@ export const deregisterFor =
     getDi,
     dependenciesByDependencyMap,
     dependeesByDependencyMap,
+    decoratorCache,
   }) =>
   ({ injectables, context, source }) => {
     // Collect callbacks first (while all injectables are still registered)
@@ -67,6 +70,13 @@ export const deregisterFor =
     flatInjectables.forEach(injectable => {
       dependenciesByDependencyMap.delete(injectable);
       dependeesByDependencyMap.delete(injectable);
+
+      // Invalidate decorator caches when decorator injectables are deregistered
+      if (injectable.injectionToken === injectionDecoratorToken) {
+        decoratorCache.injection = null;
+      } else if (injectable.injectionToken === instantiationDecoratorToken) {
+        decoratorCache.instantiation = null;
+      }
 
       const isDecorator =
         injectable.injectionToken === registrationDecoratorToken ||
