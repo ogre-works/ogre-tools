@@ -1,7 +1,10 @@
-import { nonStoredInstanceKey } from './lifecycleEnum';
+import { nonStoredInstanceKey, storedInstanceKey } from './lifecycleEnum';
 import { withInstantiationDecoratorsFor } from './withInstantiationDecoratorsFor';
 import { checkForTooManyMatches } from './checkForTooManyMatches';
 import { isCompositeKey } from '../getCompositeKey/getCompositeKey';
+
+// Pre-allocated key for singleton instance lookup — avoids array creation per inject()
+const singletonCompositeKey = [storedInstanceKey];
 
 export const privateInjectFor =
   ({
@@ -34,7 +37,29 @@ export const privateInjectFor =
 
     checkForSideEffects(injectable, context);
 
-    const instance = getInstance({
+    // Fast path: singleton cache hit — avoid creating minimalDi entirely.
+    // For singletons without instantiationParameter, the instance key is always
+    // storedInstanceKey. Check the cache directly before the expensive getInstance.
+    if (instantiationParameter === undefined) {
+      const instanceMap = instancesByInjectableMap.get(
+        injectable.overriddenInjectable || injectable,
+      );
+
+      const existingInstance = instanceMap.get(singletonCompositeKey);
+
+      if (existingInstance) {
+        if (!withMeta) {
+          return existingInstance;
+        }
+
+        return {
+          instance: existingInstance,
+          meta: { id: getNamespacedId(injectable) },
+        };
+      }
+    }
+
+    const instance = getInstance(
       di,
       injectable,
       instantiationParameter,
@@ -43,7 +68,7 @@ export const privateInjectFor =
       source,
       getNamespacedId,
       decoratorCache,
-    });
+    );
 
     if (!withMeta) {
       return instance;
@@ -57,16 +82,16 @@ export const privateInjectFor =
     };
   };
 
-const getInstance = ({
+const getInstance = (
   di,
-  injectable: injectableToBeInstantiated,
+  injectableToBeInstantiated,
   instantiationParameter,
-  context: oldContext,
+  oldContext,
   instancesByInjectableMap,
   source,
   getNamespacedId,
   decoratorCache,
-}) => {
+) => {
   const newContext = [
     ...oldContext,
 
@@ -143,7 +168,9 @@ const getInstance = ({
 
   const instanceCompositeKey = isCompositeKey(instanceKey)
     ? instanceKey.keys
-    : [instanceKey];
+    : instanceKey === storedInstanceKey
+      ? singletonCompositeKey
+      : [instanceKey];
 
   const existingInstance = instanceMap.get(instanceCompositeKey);
 

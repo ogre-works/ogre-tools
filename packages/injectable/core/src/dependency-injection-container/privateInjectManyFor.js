@@ -13,7 +13,7 @@ export const privateInjectManyFor =
     oldContext = [containerRootContextItem],
     source,
   ) => {
-    setDependee({ dependency: injectionToken, dependee: source });
+    setDependee(injectionToken, source);
 
     const inject = getInject();
 

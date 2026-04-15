@@ -240,13 +240,15 @@ export default containerId => {
     hasRegistrations: alias => !!getRelatedInjectables(alias).length,
   };
 
+  const rootContext = [containerRootContextItem];
+
   const publicInject = (alias, parameter, customContextItem) =>
     privateDi.inject(
       alias,
       parameter,
       customContextItem
         ? [containerRootContextItem, customContextItem]
-        : [containerRootContextItem],
+        : rootContext,
       containerRootContextItem.injectable,
     );
 
@@ -255,7 +257,7 @@ export default containerId => {
     parameter,
     customContextItem
       ? [containerRootContextItem, customContextItem]
-      : [containerRootContextItem],
+      : rootContext,
     containerRootContextItem.injectable,
   ];
 

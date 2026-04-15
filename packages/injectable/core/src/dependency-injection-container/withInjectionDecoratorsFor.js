@@ -6,7 +6,7 @@ export const withInjectionDecoratorsFor =
   ({ injectMany, setDependee, decoratorCache }) =>
   toBeDecorated =>
   (alias, parameter, oldContext, source) => {
-    setDependee({ dependency: alias, dependee: source });
+    setDependee(alias, source);
 
     if (alias.decorable === false) {
       return toBeDecorated(alias, parameter, oldContext, source);
