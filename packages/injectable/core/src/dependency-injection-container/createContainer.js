@@ -12,8 +12,6 @@ import { setDependeeFor } from './setDependeeFor';
 import { checkForSideEffectsFor } from './checkForSideEffectsFor';
 import { getRelatedInjectablesFor } from './getRelatedInjectablesFor';
 import { earlyOverrideFor } from './early-override';
-import { withRegistrationDecoratorsFor } from './withRegistrationDecoratorsFor';
-import { withDeregistrationDecoratorsFor } from './withDeregistrationDecoratorsFor';
 
 export default containerId => {
   const injectableSet = new Set();
@@ -134,14 +132,6 @@ export default containerId => {
 
   const decorate = decorateFor({ registerSingle });
 
-  const withRegistrationDecorators = withRegistrationDecoratorsFor({
-    injectMany: nonDecoratedPrivateInjectMany,
-  });
-
-  const withDeregistrationDecorators = withDeregistrationDecoratorsFor({
-    injectMany: nonDecoratedPrivateInjectMany,
-  });
-
   const deregister = deregisterFor({
     injectMany: nonDecoratedPrivateInjectMany,
     injectableSet,
@@ -155,13 +145,11 @@ export default containerId => {
     getDi: () => privateDi,
     dependenciesByDependencyMap,
     dependeesByDependencyMap,
-    withDeregistrationDecorators,
   });
 
   const privateRegister = registerFor({
     registerSingle,
     injectMany: nonDecoratedPrivateInjectMany,
-    withRegistrationDecorators,
   });
 
   const earlyOverride = earlyOverrideFor({

@@ -7,13 +7,15 @@ import {
 import toFlatInjectables from './toFlatInjectables';
 import { CompositeMap } from '../composite-map/composite-map';
 import { getRelatedTokens } from './getRelatedTokens';
+import { isRelevantDecoratorFor } from './isRelevantDecoratorFor';
+import flow from './fastFlow';
 
 const isDecoratorInjectable = injectable =>
   injectable.injectionToken === registrationDecoratorToken ||
   injectable.injectionToken === deregistrationDecoratorToken;
 
 export const registerFor =
-  ({ registerSingle, injectMany, withRegistrationDecorators }) =>
+  ({ registerSingle, injectMany }) =>
   ({ injectables, context, source }) => {
     const flatInjectables = toFlatInjectables(injectables);
 
@@ -29,10 +31,39 @@ export const registerFor =
       injectable => !isDecoratorInjectable(injectable),
     );
 
+    // Collect all registration decorators once (not per-injectable)
+    const allRegistrationDecorators = injectMany(
+      registrationDecoratorToken,
+      undefined,
+      context,
+      source,
+    );
+
     const registeredInjectables = [];
     let batchInProgress = true;
 
     nonDecoratorInjectables.forEach(injectable => {
+      // Fast path: no decorators or injectable is not decorable
+      if (
+        allRegistrationDecorators.length === 0 ||
+        injectable.decorable === false
+      ) {
+        registerSingle(injectable, context);
+        registeredInjectables.push(injectable);
+        return;
+      }
+
+      // Slow path: apply relevant decorators
+      const relevantDecorators = allRegistrationDecorators
+        .filter(isRelevantDecoratorFor(injectable))
+        .map(x => x.decorate);
+
+      if (relevantDecorators.length === 0) {
+        registerSingle(injectable, context);
+        registeredInjectables.push(injectable);
+        return;
+      }
+
       let wasRegistered = false;
 
       const boundRegisterSingle = inj => {
@@ -54,11 +85,8 @@ export const registerFor =
         }
       };
 
-      const decoratedRegister = withRegistrationDecorators(
+      const decoratedRegister = flow(...relevantDecorators)(
         boundRegisterSingle,
-        injectable,
-        context,
-        source,
       );
 
       decoratedRegister(injectable);
