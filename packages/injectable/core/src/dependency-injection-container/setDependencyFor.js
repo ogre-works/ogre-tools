@@ -1,6 +1,6 @@
-export const setDependeeFor =
+export const setDependencyFor =
   ({ dependeesByDependencyMap, dependenciesByDependencyMap }) =>
-  (dependency, dependee) => {
+  (dependee, dependency) => {
     let dependees = dependeesByDependencyMap.get(dependency);
 
     if (!dependees) {

@@ -8,7 +8,7 @@ import { overrideFor, unoverrideFor } from './override';
 import { decorateFor, decorateFunctionFor } from './decorate';
 import { getNamespacedIdFor } from './getNamespacedIdFor';
 import { checkForNoMatches } from './checkForNoMatchesFor';
-import { setDependeeFor } from './setDependeeFor';
+import { setDependencyFor } from './setDependencyFor';
 import { checkForSideEffectsFor } from './checkForSideEffectsFor';
 import { getRelatedInjectablesFor } from './getRelatedInjectablesFor';
 import { earlyOverrideFor } from './early-override';
@@ -48,7 +48,7 @@ export default containerId => {
 
   const rootInjectable = containerRootContextItem.injectable;
 
-  const setDependee = setDependeeFor({
+  const setDependency = setDependencyFor({
     dependeesByDependencyMap,
     dependenciesByDependencyMap,
   });
@@ -57,7 +57,7 @@ export default containerId => {
     nonDecoratedPrivateInjectManyFor({
       getRelatedInjectables,
       getInject: () => decoratedPrivateInject,
-      setDependee,
+      setDependency,
       getNamespacedId,
     });
 
@@ -73,7 +73,7 @@ export default containerId => {
 
   const withInjectionDecorators = withInjectionDecoratorsFor({
     injectMany: nonDecoratedPrivateInjectMany,
-    setDependee,
+    setDependency,
     decoratorCache,
   });
 
