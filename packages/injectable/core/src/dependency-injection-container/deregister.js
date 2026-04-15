@@ -24,8 +24,6 @@ export const deregisterFor =
     namespacedIdByInjectableMap,
     // Todo: get rid of function usage.
     getDi,
-    dependenciesByDependencyMap,
-    dependeesByDependencyMap,
     decoratorCache,
   }) =>
   ({ injectables, context, source }) => {
@@ -69,9 +67,6 @@ export const deregisterFor =
 
     // Deregister through decoration chain
     flatInjectables.forEach(injectable => {
-      dependenciesByDependencyMap.delete(injectable);
-      dependeesByDependencyMap.delete(injectable);
-
       // Invalidate decorator caches when decorator injectables are deregistered
       if (injectable.injectionToken === injectionDecoratorToken) {
         decoratorCache.injection = null;

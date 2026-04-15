@@ -8,7 +8,6 @@ import { overrideFor, unoverrideFor } from './override';
 import { decorateFor, decorateFunctionFor } from './decorate';
 import { getNamespacedIdFor } from './getNamespacedIdFor';
 import { checkForNoMatches } from './checkForNoMatchesFor';
-import { setDependencyFor } from './setDependencyFor';
 import { checkForSideEffectsFor } from './checkForSideEffectsFor';
 import { getRelatedInjectablesFor } from './getRelatedInjectablesFor';
 import { earlyOverrideFor } from './early-override';
@@ -32,8 +31,6 @@ export default containerId => {
   const instancesByInjectableMap = new Map();
   const injectablesByInjectionToken = new Map();
   const namespacedIdByInjectableMap = new Map();
-  const dependeesByDependencyMap = new Map();
-  const dependenciesByDependencyMap = new Map();
 
   const getNamespacedId = getNamespacedIdFor(injectableAndRegistrationContext);
 
@@ -48,16 +45,10 @@ export default containerId => {
 
   const rootInjectable = containerRootContextItem.injectable;
 
-  const setDependency = setDependencyFor({
-    dependeesByDependencyMap,
-    dependenciesByDependencyMap,
-  });
-
   const nonDecoratedPrivateInjectManyForUnknownMeta =
     nonDecoratedPrivateInjectManyFor({
       getRelatedInjectables,
       getInject: () => decoratedPrivateInject,
-      setDependency,
       getNamespacedId,
     });
 
@@ -73,7 +64,6 @@ export default containerId => {
 
   const withInjectionDecorators = withInjectionDecoratorsFor({
     injectMany: nonDecoratedPrivateInjectMany,
-    setDependency,
     decoratorCache,
   });
 
@@ -161,8 +151,6 @@ export default containerId => {
     namespacedIdByInjectableMap,
     // Todo: get rid of function usage.
     getDi: () => privateDi,
-    dependenciesByDependencyMap,
-    dependeesByDependencyMap,
     decoratorCache,
   });
 
@@ -197,8 +185,6 @@ export default containerId => {
     instancesByInjectableMap.clear();
     injectablesByInjectionToken.clear();
     namespacedIdByInjectableMap.clear();
-    dependeesByDependencyMap.clear();
-    dependenciesByDependencyMap.clear();
     decoratorCache.injection = null;
     decoratorCache.instantiation = null;
   };
