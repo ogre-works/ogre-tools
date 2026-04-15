@@ -6,20 +6,6 @@ import { isCompositeKey } from '../getCompositeKey/getCompositeKey';
 // Pre-allocated key for singleton instance lookup — avoids array creation per inject()
 const singletonCompositeKey = [storedInstanceKey];
 
-// Flatten the linked list into an array for registration context.
-// Only called when register/deregister is used inside instantiate (rare).
-const flattenSourceChain = node => {
-  const result = [];
-  let current = node;
-
-  while (current) {
-    result.push({ injectable: current.injectable });
-    current = current.parent;
-  }
-
-  return result.reverse();
-};
-
 export const privateInjectFor =
   ({
     getRelatedInjectables,
@@ -33,7 +19,7 @@ export const privateInjectFor =
     decoratorCache,
   }) =>
   ({ withMeta }) =>
-  (alias, instantiationParameter, source, sourceChainNode) => {
+  (alias, instantiationParameter, source) => {
     const di = getDi();
 
     const relatedInjectables = getRelatedInjectables(alias);
@@ -79,7 +65,6 @@ export const privateInjectFor =
       source,
       getNamespacedId,
       decoratorCache,
-      sourceChainNode,
     );
 
     if (!withMeta) {
@@ -100,48 +85,26 @@ const getInstance = (
   source,
   getNamespacedId,
   decoratorCache,
-  parentSourceChainNode,
 ) => {
   const instanceMap = instancesByInjectableMap.get(
     injectableToBeInstantiated.overriddenInjectable ||
       injectableToBeInstantiated,
   );
 
-  // Linked list node — O(1) per injection instead of O(depth) array spread
-  const sourceChainNode = {
-    injectable: injectableToBeInstantiated,
-    parent: parentSourceChainNode,
-  };
-
   const minimalInject = (alias, parameter) =>
-    di.inject(alias, parameter, injectableToBeInstantiated, sourceChainNode);
+    di.inject(alias, parameter, injectableToBeInstantiated);
 
   const minimalDi = {
     inject: minimalInject,
 
     injectWithMeta: (alias, parameter) =>
-      di.injectWithMeta(
-        alias,
-        parameter,
-        injectableToBeInstantiated,
-        sourceChainNode,
-      ),
+      di.injectWithMeta(alias, parameter, injectableToBeInstantiated),
 
     injectMany: (alias, parameter) =>
-      di.injectMany(
-        alias,
-        parameter,
-        injectableToBeInstantiated,
-        sourceChainNode,
-      ),
+      di.injectMany(alias, parameter, injectableToBeInstantiated),
 
     injectManyWithMeta: (alias, parameter) =>
-      di.injectManyWithMeta(
-        alias,
-        parameter,
-        injectableToBeInstantiated,
-        sourceChainNode,
-      ),
+      di.injectManyWithMeta(alias, parameter, injectableToBeInstantiated),
 
     injectFactory: alias => instantiationParameter =>
       minimalInject(alias, instantiationParameter),
@@ -149,7 +112,7 @@ const getInstance = (
     register: (...injectables) => {
       di.register({
         injectables,
-        context: flattenSourceChain(sourceChainNode),
+        context: [{ injectable: injectableToBeInstantiated }],
         source: injectableToBeInstantiated,
       });
     },
@@ -157,7 +120,7 @@ const getInstance = (
     deregister: (...injectables) => {
       di.deregister({
         injectables,
-        context: flattenSourceChain(sourceChainNode),
+        context: [{ injectable: injectableToBeInstantiated }],
         source: injectableToBeInstantiated,
       });
     },

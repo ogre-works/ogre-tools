@@ -53,11 +53,6 @@ export default containerId => {
     dependenciesByDependencyMap,
   });
 
-  const rootSourceChainNode = {
-    injectable: rootSource,
-    parent: null,
-  };
-
   const nonDecoratedPrivateInjectManyForUnknownMeta =
     nonDecoratedPrivateInjectManyFor({
       getRelatedInjectables,
@@ -245,7 +240,7 @@ export default containerId => {
   };
 
   const publicInject = (alias, parameter) =>
-    privateDi.inject(alias, parameter, rootSource, rootSourceChainNode);
+    privateDi.inject(alias, parameter, rootSource, rootSource);
 
   const publicDi = {
     ...privateDi,
@@ -253,10 +248,10 @@ export default containerId => {
     inject: publicInject,
 
     injectWithMeta: (alias, parameter) =>
-      privateDi.injectWithMeta(alias, parameter, rootSource, rootSourceChainNode),
+      privateDi.injectWithMeta(alias, parameter, rootSource, rootSource),
 
     injectMany: (alias, parameter) =>
-      privateDi.injectMany(alias, parameter, rootSource, rootSourceChainNode),
+      privateDi.injectMany(alias, parameter, rootSource, rootSource),
 
     register: (...injectables) => {
       privateDi.register({
@@ -275,7 +270,7 @@ export default containerId => {
     },
 
     injectManyWithMeta: (alias, parameter) =>
-      privateDi.injectManyWithMeta(alias, parameter, rootSource, rootSourceChainNode),
+      privateDi.injectManyWithMeta(alias, parameter, rootSource, rootSource),
 
     getInstances: alias =>
       getRelatedInjectables(alias).flatMap(injectable => [

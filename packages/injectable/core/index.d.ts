@@ -82,7 +82,6 @@ export interface Injectable<
   readonly lifecycle: Lifecycle<InstantiationParam>;
   readonly decorable?: boolean;
   readonly tags?: any[];
-  readonly scope?: boolean;
 }
 
 export type GetInjectableOptionsWithoutInstantiationParameter<I extends TI, TI> = Omit<Injectable<I, TI, void>, "lifecycle" | "instantiate"> & {

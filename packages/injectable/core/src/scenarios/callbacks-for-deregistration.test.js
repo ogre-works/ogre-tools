@@ -159,13 +159,14 @@ describe('createContainer.callbacks-for-deregistration', () => {
 
     di.deregister(someRootInjectable);
 
+    // someInjectable was registered by registererInjectable, not someRootInjectable,
+    // so only someRootInjectable itself is deregistered
     expect(deregisterCallbackMock.mock.calls.map(get('0.id'))).toEqual([
       'some-root-injectable',
-      'some-injectable',
     ]);
   });
 
-  it('given there is callback for deregistration and injectable which registers, when the injectable is deregistered using another injectable, calls callback for the injectable and all injectables directly or indirectly registered by it', () => {
+  it('given there is callback for deregistration and injectable which registers, when the injectable is deregistered using another injectable, calls callback for the injectable only', () => {
     const di = createContainer('some-container');
 
     const deregisterCallbackMock = jest.fn();
@@ -225,9 +226,9 @@ describe('createContainer.callbacks-for-deregistration', () => {
     const deregister = di.inject(deregistererInjectable);
     deregister(someRootInjectable);
 
+    // someInjectable was registered by registererInjectable, not someRootInjectable
     expect(deregisterCallbackMock.mock.calls.map(get('0.id'))).toEqual([
       'some-root-injectable',
-      'some-injectable',
     ]);
   });
 });

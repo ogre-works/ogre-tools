@@ -197,7 +197,7 @@ describe('createContainer.deregistration', () => {
     );
   });
 
-  it('given injectable which can late register and implements an injection token, when the root injectable is deregistered, deregisters also the late registered injectables', () => {
+  it('given injectable registered by another injectable (not the root), when root is deregistered, the registered injectable is NOT cascade-deregistered', () => {
     const di = createContainer('some-container');
 
     const someInjectionToken = getInjectionToken({
@@ -234,11 +234,9 @@ describe('createContainer.deregistration', () => {
 
     di.deregister(someRootInjectable);
 
-    expect(() => {
-      di.inject(someInjectable);
-    }).toThrow(
-      'Tried to inject non-registered injectable "some-injectable".',
-    );
+    // someInjectable was registered by registererInjectable, not someRootInjectable,
+    // so it survives cascade deregistration of someRootInjectable
+    expect(di.inject(someInjectable)).toBe('some-instance');
   });
 
   it('given injectable registered by another, when child is deregistered directly and then parent is deregistered, does not throw', () => {

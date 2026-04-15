@@ -1,7 +1,7 @@
 import isInjectionToken from '../getInjectionToken/isInjectionToken';
 
 export const getNamespacedIdFor = injectableAndRegistrationContext => {
-  const getScopeContextItems = injectable => {
+  const getParentIds = injectable => {
     const registrationContext =
       injectableAndRegistrationContext.get(injectable);
 
@@ -9,26 +9,20 @@ export const getNamespacedIdFor = injectableAndRegistrationContext => {
       return [];
     }
 
-    const scopeContextItem = registrationContext
-      .findLast(x => x.injectable.scope);
+    const parent = registrationContext[registrationContext.length - 1];
 
-    if (!scopeContextItem) {
+    if (!parent || parent.injectable.aliasType === 'container') {
       return [];
     }
 
-    return [
-      ...getScopeContextItems(scopeContextItem.injectable),
-      scopeContextItem,
-    ];
+    return [...getParentIds(parent.injectable), parent.injectable.id];
   };
 
   return alias => {
-    const scopeIds = getScopeContextItems(alias).map(x => x.injectable.id);
+    const parentIds = getParentIds(alias);
 
-    const injectableOrInjectionTokenId = isInjectionToken(alias)
-      ? `(${alias.id})`
-      : alias.id;
+    const id = isInjectionToken(alias) ? `(${alias.id})` : alias.id;
 
-    return [...scopeIds, injectableOrInjectionTokenId].join(':');
+    return [...parentIds, id].join(':');
   };
 };

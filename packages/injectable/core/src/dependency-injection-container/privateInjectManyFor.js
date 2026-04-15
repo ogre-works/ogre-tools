@@ -6,7 +6,7 @@ export const privateInjectManyFor =
     getNamespacedId,
   }) =>
   ({ withMeta }) =>
-  (injectionToken, instantiationParameter, source, sourceChainNode) => {
+  (injectionToken, instantiationParameter, source) => {
     setDependee(injectionToken, source);
 
     const inject = getInject();
@@ -18,7 +18,6 @@ export const privateInjectManyFor =
         injectable,
         instantiationParameter,
         injectionToken,
-        sourceChainNode,
       );
 
       if (!withMeta) {
