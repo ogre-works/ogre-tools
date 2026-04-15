@@ -19,3 +19,13 @@ export const injectionDecoratorToken = getInjectionToken({
   id: 'injection-decorator-token',
   decorable: false,
 });
+
+export const registrationDecoratorToken = getInjectionToken({
+  id: 'registration-decorator-token',
+  decorable: false,
+});
+
+export const deregistrationDecoratorToken = getInjectionToken({
+  id: 'deregistration-decorator-token',
+  decorable: false,
+});

@@ -25,9 +25,11 @@ export { createInjectionTargetDecorator } from './src/dependency-injection-conta
 
 export {
   deregistrationCallbackToken,
+  deregistrationDecoratorToken,
   injectionDecoratorToken,
   instantiationDecoratorToken,
   registrationCallbackToken,
+  registrationDecoratorToken,
 } from './src/dependency-injection-container/tokens';
 
 export {

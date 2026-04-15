@@ -1,17 +1,77 @@
 import { getNamespacedIdFor } from './getNamespacedIdFor';
-import { registrationCallbackToken } from './tokens';
+import {
+  registrationCallbackToken,
+  registrationDecoratorToken,
+  deregistrationDecoratorToken,
+} from './tokens';
 import toFlatInjectables from './toFlatInjectables';
 import { CompositeMap } from '../composite-map/composite-map';
 import { getRelatedTokens } from './getRelatedTokens';
 
+const isDecoratorInjectable = injectable =>
+  injectable.injectionToken === registrationDecoratorToken ||
+  injectable.injectionToken === deregistrationDecoratorToken;
+
 export const registerFor =
-  ({ registerSingle, injectMany }) =>
+  ({ registerSingle, injectMany, withRegistrationDecorators }) =>
   ({ injectables, context, source }) => {
     const flatInjectables = toFlatInjectables(injectables);
 
-    flatInjectables.forEach(injectable => {
+    // Pass 1: register reg/dereg decorator injectables first (undecorated)
+    const decoratorInjectables = flatInjectables.filter(isDecoratorInjectable);
+
+    decoratorInjectables.forEach(injectable => {
       registerSingle(injectable, context);
     });
+
+    // Pass 2: register everything else through the decoration chain
+    const nonDecoratorInjectables = flatInjectables.filter(
+      injectable => !isDecoratorInjectable(injectable),
+    );
+
+    const registeredInjectables = [];
+    let batchInProgress = true;
+
+    nonDecoratorInjectables.forEach(injectable => {
+      let wasRegistered = false;
+
+      const boundRegisterSingle = inj => {
+        registerSingle(inj, context);
+        wasRegistered = true;
+
+        // When called deferred (after batch completes), trigger callbacks
+        if (!batchInProgress) {
+          const callbacks = injectMany(
+            registrationCallbackToken,
+            undefined,
+            context,
+            source,
+          );
+
+          callbacks.forEach(callback => {
+            callback(inj);
+          });
+        }
+      };
+
+      const decoratedRegister = withRegistrationDecorators(
+        boundRegisterSingle,
+        injectable,
+        context,
+        source,
+      );
+
+      decoratedRegister(injectable);
+
+      if (wasRegistered) {
+        registeredInjectables.push(injectable);
+      }
+    });
+
+    batchInProgress = false;
+
+    // Fire callbacks for all actually registered injectables (batch semantics)
+    const allRegistered = [...decoratorInjectables, ...registeredInjectables];
 
     const callbacks = injectMany(
       registrationCallbackToken,
@@ -20,7 +80,7 @@ export const registerFor =
       source,
     );
 
-    flatInjectables.forEach(injectable => {
+    allRegistered.forEach(injectable => {
       callbacks.forEach(callback => {
         callback(injectable);
       });

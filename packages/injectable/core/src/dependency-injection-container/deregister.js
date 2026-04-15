@@ -1,4 +1,8 @@
-import { deregistrationCallbackToken } from './tokens';
+import {
+  deregistrationCallbackToken,
+  deregistrationDecoratorToken,
+  registrationDecoratorToken,
+} from './tokens';
 import toFlatInjectables from './toFlatInjectables';
 import isInjectionToken from '../getInjectionToken/isInjectionToken';
 import { getRelatedTokens } from './getRelatedTokens';
@@ -17,8 +21,10 @@ export const deregisterFor =
     getDi,
     dependenciesByDependencyMap,
     dependeesByDependencyMap,
+    withDeregistrationDecorators,
   }) =>
   ({ injectables, context, source }) => {
+    // Collect callbacks first (while all injectables are still registered)
     const callbacks = injectMany(
       deregistrationCallbackToken,
       undefined,
@@ -28,6 +34,7 @@ export const deregisterFor =
 
     const flatInjectables = toFlatInjectables(injectables);
 
+    // Fire callbacks for all injectables being deregistered (original batch semantics)
     flatInjectables.forEach(injectable => {
       callbacks.forEach(callback => {
         callback(injectable);
@@ -47,11 +54,31 @@ export const deregisterFor =
       di,
     });
 
+    // Deregister through decoration chain
     flatInjectables.forEach(injectable => {
       dependenciesByDependencyMap.delete(injectable);
       dependeesByDependencyMap.delete(injectable);
 
-      deregisterSingle(injectable);
+      const boundDeregisterSingle = inj => {
+        deregisterSingle(inj);
+      };
+
+      const isDecorator =
+        injectable.injectionToken === registrationDecoratorToken ||
+        injectable.injectionToken === deregistrationDecoratorToken;
+
+      if (isDecorator) {
+        boundDeregisterSingle(injectable);
+      } else {
+        const decoratedDeregister = withDeregistrationDecorators(
+          boundDeregisterSingle,
+          injectable,
+          context,
+          source,
+        );
+
+        decoratedDeregister(injectable);
+      }
     });
   };
 
