@@ -160,7 +160,7 @@ describe('getInjectableComponent', () => {
     });
 
     expect(onErrorWhileRenderingMock).toHaveBeenCalledWith(
-      'Tried to inject non-registered injectable "some-container" -> "some-non-registered-injectable".',
+      'Tried to inject non-registered injectable "some-non-registered-injectable".',
     );
   });
 
@@ -221,11 +221,11 @@ describe('getInjectableComponent', () => {
     onErrorWhileRenderingMock.mockClear();
 
     expect(someError1).toBe(
-      'Tried to inject non-registered injectable "some-container" -> "some-non-registered-injectable".',
+      'Tried to inject non-registered injectable "some-non-registered-injectable".',
     );
 
     expect(someError2).toBe(
-      'Tried to inject non-registered injectable "some-container" -> "some-non-registered-injectable".',
+      'Tried to inject non-registered injectable "some-non-registered-injectable".',
     );
   });
 
@@ -268,7 +268,7 @@ describe('getInjectableComponent', () => {
     });
 
     expect(onErrorWhileRenderingMock).toHaveBeenCalledWith(
-      'Tried to inject non-registered injectable "some-container" -> "some-non-registered-injectable".',
+      'Tried to inject non-registered injectable "some-non-registered-injectable".',
     );
   });
 
@@ -333,9 +333,7 @@ describe('getInjectableComponent', () => {
     });
 
     expect(onErrorWhileRenderingMock).toHaveBeenCalledWith(
-      // Notice: some-injectable-component is missing from the context, as the override does not have access to it.
-      // This is a kludge, but a very pragmatic one, as this is a very niche corner-case.
-      'Tried to inject non-registered injectable "some-container" -> "some-non-registered-injectable".',
+      'Tried to inject non-registered injectable "some-non-registered-injectable".',
     );
   });
 
@@ -453,7 +451,7 @@ describe('getInjectableComponent', () => {
     });
 
     expect(onErrorWhileRenderingMock).toHaveBeenCalledWith(
-      'Tried to inject "some-container" -> "some-injectable-component" when side-effects are prevented.',
+      'Tried to inject "some-injectable-component" when side-effects are prevented.',
     );
   });
 
@@ -607,7 +605,7 @@ describe('getInjectableComponent', () => {
     });
 
     expect(onRenderingErrorMock).toHaveBeenCalledWith(
-      'Tried to inject non-registered injectable "some-container-1" -> "some-non-registered-injectable-component".',
+      'Tried to inject non-registered injectable "some-non-registered-injectable-component".',
     );
   });
 
