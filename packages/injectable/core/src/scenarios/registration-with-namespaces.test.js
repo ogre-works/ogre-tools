@@ -168,7 +168,7 @@ describe('registration with namespaces', () => {
     expect(() => {
       someInjectableInScope.inject(someNonRegisteredInjectable);
     }).toThrow(
-      'Tried to inject non-registered injectable "some-container" -> "some-scope:some-injectable-in-scope" -> "some-non-registered-injectable".',
+      'Tried to inject non-registered injectable "some-non-registered-injectable".',
     );
   });
 
@@ -199,7 +199,7 @@ describe('registration with namespaces', () => {
     expect(() => {
       di.inject(someInjectableCausingSideEffects);
     }).toThrow(
-      'Tried to inject "some-container" -> "some-scope:some-injectable-in-scope-causing-side-effects" when side-effects are prevented.',
+      'Tried to inject "some-scope:some-injectable-in-scope-causing-side-effects" when side-effects are prevented.',
     );
   });
 
@@ -233,7 +233,7 @@ describe('registration with namespaces', () => {
     expect(() => {
       di.injectMany(someInjectionToken);
     }).toThrow(
-      'Tried to inject "some-container" -> "(some-token)" -> "some-scope:some-injectable-in-scope-causing-side-effects" when side-effects are prevented.',
+      'Tried to inject "some-scope:some-injectable-in-scope-causing-side-effects" when side-effects are prevented.',
     );
   });
 });

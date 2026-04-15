@@ -7,7 +7,7 @@ import { deregisterFor } from './deregister';
 import { overrideFor, unoverrideFor } from './override';
 import { decorateFor, decorateFunctionFor } from './decorate';
 import { getNamespacedIdFor } from './getNamespacedIdFor';
-import { checkForNoMatchesFor } from './checkForNoMatchesFor';
+import { checkForNoMatches } from './checkForNoMatchesFor';
 import { setDependeeFor } from './setDependeeFor';
 import { checkForSideEffectsFor } from './checkForSideEffectsFor';
 import { getRelatedInjectablesFor } from './getRelatedInjectablesFor';
@@ -46,14 +46,20 @@ export default containerId => {
     injectable: { id: containerId, aliasType: 'container' },
   };
 
+  const rootSource = containerRootContextItem.injectable;
+
   const setDependee = setDependeeFor({
     dependeesByDependencyMap,
     dependenciesByDependencyMap,
   });
 
+  const rootSourceChainNode = {
+    injectable: rootSource,
+    parent: null,
+  };
+
   const nonDecoratedPrivateInjectManyForUnknownMeta =
     nonDecoratedPrivateInjectManyFor({
-      containerRootContextItem,
       getRelatedInjectables,
       getInject: () => decoratedPrivateInject,
       setDependee,
@@ -80,8 +86,6 @@ export default containerId => {
     sideEffectsArePrevented &&
     injectable.causesSideEffects &&
     !injectablesWithPermittedSideEffects.has(injectable);
-
-  const checkForNoMatches = checkForNoMatchesFor(getNamespacedId);
 
   const checkForSideEffects = checkForSideEffectsFor({
     getSideEffectsArePrevented,
@@ -240,47 +244,25 @@ export default containerId => {
     hasRegistrations: alias => !!getRelatedInjectables(alias).length,
   };
 
-  const rootContext = [containerRootContextItem];
-
-  const publicInject = (alias, parameter, customContextItem) =>
-    privateDi.inject(
-      alias,
-      parameter,
-      customContextItem
-        ? [containerRootContextItem, customContextItem]
-        : rootContext,
-      containerRootContextItem.injectable,
-    );
-
-  const getInjectionArgs = (alias, parameter, customContextItem) => [
-    alias,
-    parameter,
-    customContextItem
-      ? [containerRootContextItem, customContextItem]
-      : rootContext,
-    containerRootContextItem.injectable,
-  ];
+  const publicInject = (alias, parameter) =>
+    privateDi.inject(alias, parameter, rootSource, rootSourceChainNode);
 
   const publicDi = {
     ...privateDi,
 
     inject: publicInject,
 
-    injectWithMeta: (alias, parameter, customContextItem) =>
-      privateDi.injectWithMeta(
-        ...getInjectionArgs(alias, parameter, customContextItem),
-      ),
+    injectWithMeta: (alias, parameter) =>
+      privateDi.injectWithMeta(alias, parameter, rootSource, rootSourceChainNode),
 
-    injectMany: (alias, parameter, customContextItem) =>
-      privateDi.injectMany(
-        ...getInjectionArgs(alias, parameter, customContextItem),
-      ),
+    injectMany: (alias, parameter) =>
+      privateDi.injectMany(alias, parameter, rootSource, rootSourceChainNode),
 
     register: (...injectables) => {
       privateDi.register({
         injectables,
         context: [containerRootContextItem],
-        source: containerRootContextItem.injectable,
+        source: rootSource,
       });
     },
 
@@ -288,14 +270,12 @@ export default containerId => {
       privateDi.deregister({
         injectables,
         context: [containerRootContextItem],
-        source: containerRootContextItem.injectable,
+        source: rootSource,
       });
     },
 
-    injectManyWithMeta: (alias, parameter, customContextItem) =>
-      privateDi.injectManyWithMeta(
-        ...getInjectionArgs(alias, parameter, customContextItem),
-      ),
+    injectManyWithMeta: (alias, parameter) =>
+      privateDi.injectManyWithMeta(alias, parameter, rootSource, rootSourceChainNode),
 
     getInstances: alias =>
       getRelatedInjectables(alias).flatMap(injectable => [

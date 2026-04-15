@@ -17,13 +17,11 @@ export const withInstantiationDecoratorsFor = ({
 
       // Populate cache if invalidated
       if (decoratorCache.instantiation === null) {
-        const [{ context }] = args;
-
         decoratorCache.instantiation = injectMany(
           instantiationDecoratorToken,
           undefined,
-          context,
           injectable,
+          null,
         );
       }
 
@@ -31,8 +29,6 @@ export const withInstantiationDecoratorsFor = ({
       if (decoratorCache.instantiation.length === 0) {
         return toBeDecorated(...args);
       }
-
-      const [{ context }] = args;
 
       const decorators = decoratorCache.instantiation
         .filter(isRelevantDecorator)

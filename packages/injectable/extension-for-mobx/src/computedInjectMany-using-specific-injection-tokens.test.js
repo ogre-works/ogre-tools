@@ -39,11 +39,9 @@ describe('registerMobx', () => {
     let someOtherInjectable;
     let reactionCountForFirstToken;
     let someInjectable;
-    let contextsOfSomeInjectable;
     let someGeneralInjectable;
 
     beforeEach(() => {
-      contextsOfSomeInjectable = [];
       reactionCountForFirstToken = 0;
 
       someFirstInjectionToken = getInjectionToken({
@@ -69,16 +67,7 @@ describe('registerMobx', () => {
         instantiate: () => ({
           target: someInjectable,
 
-          decorate:
-            toBeDecorated =>
-            (alias, instantiationParameter, context = []) => {
-              contextsOfSomeInjectable.push([
-                ...context.map(x => x.injectable.id),
-                alias.id,
-              ]);
-
-              return toBeDecorated(alias, instantiationParameter, context);
-            },
+          decorate: toBeDecorated => (...args) => toBeDecorated(...args),
         }),
 
         decorable: false,

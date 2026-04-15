@@ -32,10 +32,7 @@ describe('computedInjectMaybe', () => {
     let someOtherInjectable;
     let actualObservationsCount;
     let someInjectable;
-    let contextsOfSomeInjectable;
-
     beforeEach(() => {
-      contextsOfSomeInjectable = [];
       actualObservationsCount = 0;
 
       someInjectionToken = getInjectionToken({
@@ -54,16 +51,7 @@ describe('computedInjectMaybe', () => {
         instantiate: () => ({
           target: someInjectable,
 
-          decorate:
-            toBeDecorated =>
-            (alias, instantiationParameter, context = []) => {
-              contextsOfSomeInjectable.push([
-                ...context.map(x => x.injectable.id),
-                alias.id,
-              ]);
-
-              return toBeDecorated(alias, instantiationParameter, context);
-            },
+          decorate: toBeDecorated => (...args) => toBeDecorated(...args),
         }),
 
         decorable: false,

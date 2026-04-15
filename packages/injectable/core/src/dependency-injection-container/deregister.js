@@ -33,8 +33,8 @@ export const deregisterFor =
     const callbacks = injectMany(
       deregistrationCallbackToken,
       undefined,
-      context,
       source,
+      null,
     );
 
     const flatInjectables = toFlatInjectables(injectables);
@@ -63,8 +63,8 @@ export const deregisterFor =
     const allDeregistrationDecorators = injectMany(
       deregistrationDecoratorToken,
       undefined,
-      context,
       source,
+      null,
     );
 
     // Deregister through decoration chain

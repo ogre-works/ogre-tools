@@ -6,6 +6,20 @@ import { isCompositeKey } from '../getCompositeKey/getCompositeKey';
 // Pre-allocated key for singleton instance lookup — avoids array creation per inject()
 const singletonCompositeKey = [storedInstanceKey];
 
+// Flatten the linked list into an array for registration context.
+// Only called when register/deregister is used inside instantiate (rare).
+const flattenSourceChain = node => {
+  const result = [];
+  let current = node;
+
+  while (current) {
+    result.push({ injectable: current.injectable });
+    current = current.parent;
+  }
+
+  return result.reverse();
+};
+
 export const privateInjectFor =
   ({
     getRelatedInjectables,
@@ -19,13 +33,13 @@ export const privateInjectFor =
     decoratorCache,
   }) =>
   ({ withMeta }) =>
-  (alias, instantiationParameter, context = [], source) => {
+  (alias, instantiationParameter, source, sourceChainNode) => {
     const di = getDi();
 
     const relatedInjectables = getRelatedInjectables(alias);
 
     checkForTooManyMatches(relatedInjectables, alias);
-    checkForNoMatches(relatedInjectables, alias, context);
+    checkForNoMatches(relatedInjectables, alias);
 
     const originalInjectable = relatedInjectables[0];
 
@@ -35,11 +49,9 @@ export const privateInjectFor =
 
     const injectable = overriddenInjectable || originalInjectable;
 
-    checkForSideEffects(injectable, context);
+    checkForSideEffects(injectable);
 
     // Fast path: singleton cache hit — avoid creating minimalDi entirely.
-    // For singletons without instantiationParameter, the instance key is always
-    // storedInstanceKey. Check the cache directly before the expensive getInstance.
     if (instantiationParameter === undefined) {
       const instanceMap = instancesByInjectableMap.get(
         injectable.overriddenInjectable || injectable,
@@ -63,22 +75,20 @@ export const privateInjectFor =
       di,
       injectable,
       instantiationParameter,
-      context,
       instancesByInjectableMap,
       source,
       getNamespacedId,
       decoratorCache,
+      sourceChainNode,
     );
 
     if (!withMeta) {
       return instance;
     }
 
-    const namespacedId = getNamespacedId(injectable);
-
     return {
       instance,
-      meta: { id: namespacedId },
+      meta: { id: getNamespacedId(injectable) },
     };
   };
 
@@ -86,28 +96,25 @@ const getInstance = (
   di,
   injectableToBeInstantiated,
   instantiationParameter,
-  oldContext,
   instancesByInjectableMap,
   source,
   getNamespacedId,
   decoratorCache,
+  parentSourceChainNode,
 ) => {
-  const newContext = [
-    ...oldContext,
-
-    {
-      injectable: injectableToBeInstantiated,
-      instantiationParameter,
-    },
-  ];
-
   const instanceMap = instancesByInjectableMap.get(
     injectableToBeInstantiated.overriddenInjectable ||
       injectableToBeInstantiated,
   );
 
+  // Linked list node — O(1) per injection instead of O(depth) array spread
+  const sourceChainNode = {
+    injectable: injectableToBeInstantiated,
+    parent: parentSourceChainNode,
+  };
+
   const minimalInject = (alias, parameter) =>
-    di.inject(alias, parameter, newContext, injectableToBeInstantiated);
+    di.inject(alias, parameter, injectableToBeInstantiated, sourceChainNode);
 
   const minimalDi = {
     inject: minimalInject,
@@ -116,30 +123,33 @@ const getInstance = (
       di.injectWithMeta(
         alias,
         parameter,
-        newContext,
         injectableToBeInstantiated,
+        sourceChainNode,
       ),
 
     injectMany: (alias, parameter) =>
-      di.injectMany(alias, parameter, newContext, injectableToBeInstantiated),
+      di.injectMany(
+        alias,
+        parameter,
+        injectableToBeInstantiated,
+        sourceChainNode,
+      ),
 
     injectManyWithMeta: (alias, parameter) =>
       di.injectManyWithMeta(
         alias,
         parameter,
-        newContext,
         injectableToBeInstantiated,
+        sourceChainNode,
       ),
 
     injectFactory: alias => instantiationParameter =>
       minimalInject(alias, instantiationParameter),
 
-    context: newContext,
-
     register: (...injectables) => {
       di.register({
         injectables,
-        context: newContext,
+        context: flattenSourceChain(sourceChainNode),
         source: injectableToBeInstantiated,
       });
     },
@@ -147,7 +157,7 @@ const getInstance = (
     deregister: (...injectables) => {
       di.deregister({
         injectables,
-        context: newContext,
+        context: flattenSourceChain(sourceChainNode),
         source: injectableToBeInstantiated,
       });
     },

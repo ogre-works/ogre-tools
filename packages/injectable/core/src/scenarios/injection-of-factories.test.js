@@ -65,10 +65,7 @@ describe('injection-of-factories', () => {
         const someKeyedInjectable = getInjectable({
           id: 'some-keyed-injectable',
 
-          instantiate: (di, key) => ({
-            instance: `some-instance-for-${key}`,
-            context: di.context,
-          }),
+          instantiate: (di, key) => `some-instance-for-${key}`,
 
           lifecycle: lifecycleEnum.keyedSingleton({
             getInstanceKey: (di, key) => key,
@@ -85,24 +82,8 @@ describe('injection-of-factories', () => {
         factory = di.inject(injectableUsingFactory);
       });
 
-      describe('when factory is used', () => {
-        let actual;
-
-        beforeEach(() => {
-          actual = factory('some-key');
-        });
-
-        it('instance is expected', () => {
-          expect(actual.instance).toBe('some-instance-for-some-key');
-        });
-
-        it('context is expected', () => {
-          expect(actual.context.map(x => x.injectable.id)).toEqual([
-            'some-container',
-            'some-injectable-using-factory',
-            'some-keyed-injectable',
-          ]);
-        });
+      it('when factory is used, returns instance', () => {
+        expect(factory('some-key')).toBe('some-instance-for-some-key');
       });
     });
   });

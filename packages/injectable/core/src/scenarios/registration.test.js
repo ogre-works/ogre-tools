@@ -95,7 +95,7 @@ describe('createContainer.registration', () => {
     expect(() => {
       di.inject(someNonRegisteredInjectable);
     }).toThrow(
-      'Tried to inject non-registered injectable "some-container" -> "some-non-registered-injectable".',
+      'Tried to inject non-registered injectable "some-non-registered-injectable".',
     );
   });
 
@@ -117,7 +117,7 @@ describe('createContainer.registration', () => {
     expect(() => {
       di.inject(someRegisteredInjectable);
     }).toThrow(
-      'Tried to inject non-registered injectable "some-container" -> "some-registered-injectable" -> "some-non-registered-injectable".',
+      'Tried to inject non-registered injectable "some-non-registered-injectable".',
     );
   });
 });

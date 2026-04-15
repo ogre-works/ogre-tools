@@ -36,8 +36,8 @@ export const registerFor =
     const allRegistrationDecorators = injectMany(
       registrationDecoratorToken,
       undefined,
-      context,
       source,
+      null,
     );
 
     const registeredInjectables = [];
@@ -105,8 +105,8 @@ export const registerFor =
     const callbacks = injectMany(
       registrationCallbackToken,
       undefined,
-      context,
       source,
+      null,
     );
 
     allRegistered.forEach(injectable => {

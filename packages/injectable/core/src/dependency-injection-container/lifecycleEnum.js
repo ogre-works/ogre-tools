@@ -7,10 +7,8 @@ export default {
 
     getInstanceKey: (di, instantiationParameter) => {
       if (instantiationParameter) {
-        const injectableId = di.context.at(-1).injectable.id;
-
         throw new Error(
-          `Tried to inject singleton "${injectableId}", but illegally to singletons, an instantiationParameter was provided: "${instantiationParameter}".`,
+          `Tried to inject a singleton, but illegally to singletons, an instantiationParameter was provided: "${instantiationParameter}".`,
         );
       }
 

@@ -18,7 +18,7 @@ describe('createContainer.deregistration', () => {
     expect(() => {
       di.inject(someInjectable);
     }).toThrow(
-      'Tried to inject non-registered injectable "some-container" -> "some-injectable".',
+      'Tried to inject non-registered injectable "some-injectable".',
     );
   });
 
@@ -42,7 +42,7 @@ describe('createContainer.deregistration', () => {
     expect(() => {
       di.inject(someInjectionToken);
     }).toThrow(
-      'Tried to inject non-registered injectable "some-container" -> "(some-injection-token)".',
+      'Tried to inject non-registered injectable "some-injection-token".',
     );
   });
 
@@ -66,7 +66,7 @@ describe('createContainer.deregistration', () => {
     expect(() => {
       di.inject(someOtherInjectable);
     }).toThrow(
-      'Tried to inject non-registered injectable "some-container" -> "some-other-injectable".',
+      'Tried to inject non-registered injectable "some-other-injectable".',
     );
   });
 
@@ -128,7 +128,7 @@ describe('createContainer.deregistration', () => {
     expect(() => {
       di.inject(someInjectable);
     }).toThrow(
-      'Tried to inject non-registered injectable "some-container" -> "some-injectable".',
+      'Tried to inject non-registered injectable "some-injectable".',
     );
   });
 
@@ -193,7 +193,7 @@ describe('createContainer.deregistration', () => {
     expect(() => {
       di.inject(someInjectable);
     }).toThrow(
-      'Tried to inject non-registered injectable "some-container" -> "some-injectable".',
+      'Tried to inject non-registered injectable "some-injectable".',
     );
   });
 
@@ -237,7 +237,7 @@ describe('createContainer.deregistration', () => {
     expect(() => {
       di.inject(someInjectable);
     }).toThrow(
-      'Tried to inject non-registered injectable "some-container" -> "some-injectable".',
+      'Tried to inject non-registered injectable "some-injectable".',
     );
   });
 

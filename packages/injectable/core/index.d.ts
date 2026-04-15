@@ -241,11 +241,6 @@ interface InjectWithMeta {
   ): InjectionInstanceWithMeta<InjectionInstance>;
 }
 
-interface ContextItem {
-  injectable: Injectable<any, any, any>;
-  instantiationParameter: unknown;
-}
-
 export interface DiContainerForInjection {
   inject: Inject;
   injectWithMeta: InjectWithMeta;
@@ -261,7 +256,6 @@ export interface DiContainerForInjection {
     ...injectables: (Injectable<any, any, any> | InjectableBunch<any>)[]
   ): void;
 
-  context: ContextItem[];
   getInstances: GetInstances;
   sourceNamespace: string | undefined;
 

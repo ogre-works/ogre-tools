@@ -40,10 +40,7 @@ describe('registerMobx', () => {
     let someOtherInjectable;
     let reactionCountForFirstToken;
     let someInjectable;
-    let contextsOfSomeInjectable;
-
     beforeEach(() => {
-      contextsOfSomeInjectable = [];
       reactionCountForFirstToken = 0;
 
       someFirstInjectionToken = getInjectionToken({
@@ -62,16 +59,7 @@ describe('registerMobx', () => {
         instantiate: () => ({
           target: someInjectable,
 
-          decorate:
-            toBeDecorated =>
-            (alias, instantiationParameter, context = []) => {
-              contextsOfSomeInjectable.push([
-                ...context.map(x => x.injectable.id),
-                alias.id,
-              ]);
-
-              return toBeDecorated(alias, instantiationParameter, context);
-            },
+          decorate: toBeDecorated => (...args) => toBeDecorated(...args),
         }),
 
         decorable: false,
@@ -357,21 +345,6 @@ describe('registerMobx', () => {
         ]);
       });
 
-      it('a deeply nested injectable has full context', () => {
-        expect(contextsOfSomeInjectable).toEqual([
-          [
-            'some-container',
-            'computed-inject-many-with-meta',
-            'reactive-instances-with-meta',
-            'some-root-injection-token',
-            'some-root-injectable',
-            'computed-inject-many-with-meta',
-            'reactive-instances-with-meta',
-            'some-injection-token',
-            'some-injectable',
-          ],
-        ]);
-      });
     });
   });
 
