@@ -46,7 +46,7 @@ export default containerId => {
     injectable: { id: containerId, aliasType: 'container' },
   };
 
-  const rootSource = containerRootContextItem.injectable;
+  const rootInjectable = containerRootContextItem.injectable;
 
   const setDependee = setDependeeFor({
     dependeesByDependencyMap,
@@ -240,7 +240,7 @@ export default containerId => {
   };
 
   const publicInject = (alias, parameter) =>
-    privateDi.inject(alias, parameter, rootSource, rootSource);
+    privateDi.inject(alias, parameter, rootInjectable, rootInjectable);
 
   const publicDi = {
     ...privateDi,
@@ -248,16 +248,16 @@ export default containerId => {
     inject: publicInject,
 
     injectWithMeta: (alias, parameter) =>
-      privateDi.injectWithMeta(alias, parameter, rootSource, rootSource),
+      privateDi.injectWithMeta(alias, parameter, rootInjectable, rootInjectable),
 
     injectMany: (alias, parameter) =>
-      privateDi.injectMany(alias, parameter, rootSource, rootSource),
+      privateDi.injectMany(alias, parameter, rootInjectable, rootInjectable),
 
     register: (...injectables) => {
       privateDi.register({
         injectables,
         context: [containerRootContextItem],
-        source: rootSource,
+        source: rootInjectable,
       });
     },
 
@@ -265,12 +265,12 @@ export default containerId => {
       privateDi.deregister({
         injectables,
         context: [containerRootContextItem],
-        source: rootSource,
+        source: rootInjectable,
       });
     },
 
     injectManyWithMeta: (alias, parameter) =>
-      privateDi.injectManyWithMeta(alias, parameter, rootSource, rootSource),
+      privateDi.injectManyWithMeta(alias, parameter, rootInjectable, rootInjectable),
 
     getInstances: alias =>
       getRelatedInjectables(alias).flatMap(injectable => [

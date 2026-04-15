@@ -5,11 +5,11 @@ import { injectionDecoratorToken } from './tokens';
 export const withInjectionDecoratorsFor =
   ({ injectMany, setDependee, decoratorCache }) =>
   toBeDecorated =>
-  (alias, parameter, source) => {
-    setDependee(alias, source);
+  (alias, parameter, injectingInjectable) => {
+    setDependee(alias, injectingInjectable);
 
     if (alias.decorable === false) {
-      return toBeDecorated(alias, parameter, source);
+      return toBeDecorated(alias, parameter, injectingInjectable);
     }
 
     // Populate cache if invalidated
@@ -17,13 +17,13 @@ export const withInjectionDecoratorsFor =
       decoratorCache.injection = injectMany(
         injectionDecoratorToken,
         undefined,
-        source,
+        injectingInjectable,
       );
     }
 
     // Fast path: no injection decorators registered
     if (decoratorCache.injection.length === 0) {
-      return toBeDecorated(alias, parameter, source);
+      return toBeDecorated(alias, parameter, injectingInjectable);
     }
 
     const isRelevantDecorator = isRelevantDecoratorFor(alias);
@@ -34,5 +34,5 @@ export const withInjectionDecoratorsFor =
 
     const decorated = flow(...decorators)(toBeDecorated);
 
-    return decorated(alias, parameter, source);
+    return decorated(alias, parameter, injectingInjectable);
   };

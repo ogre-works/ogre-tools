@@ -19,7 +19,7 @@ export const privateInjectFor =
     decoratorCache,
   }) =>
   ({ withMeta }) =>
-  (alias, instantiationParameter, source) => {
+  (alias, instantiationParameter, injectingInjectable) => {
     const di = getDi();
 
     const relatedInjectables = getRelatedInjectables(alias);
@@ -62,7 +62,7 @@ export const privateInjectFor =
       injectable,
       instantiationParameter,
       instancesByInjectableMap,
-      source,
+      injectingInjectable,
       getNamespacedId,
       decoratorCache,
     );
@@ -82,7 +82,7 @@ const getInstance = (
   injectableToBeInstantiated,
   instantiationParameter,
   instancesByInjectableMap,
-  source,
+  injectingInjectable,
   getNamespacedId,
   decoratorCache,
 ) => {
@@ -127,7 +127,8 @@ const getInstance = (
 
     get sourceNamespace() {
       return (
-        getNamespacedId(source).split(':').slice(0, -1).join(':') || undefined
+        getNamespacedId(injectingInjectable).split(':').slice(0, -1).join(':') ||
+        undefined
       );
     },
 
