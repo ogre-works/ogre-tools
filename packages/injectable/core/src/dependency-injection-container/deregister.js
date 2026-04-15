@@ -10,6 +10,7 @@ import isInjectionToken from '../getInjectionToken/isInjectionToken';
 import { getRelatedTokens } from './getRelatedTokens';
 import { isRelevantDecoratorFor } from './isRelevantDecoratorFor';
 import flow from './fastFlow';
+import { invalidateRelatedInjectablesCache } from './getRelatedInjectablesFor';
 
 export const deregisterFor =
   ({
@@ -158,7 +159,9 @@ export const deregisterSingleFor =
     const tokens = getRelatedTokens(injectable.injectionToken);
 
     tokens.forEach(token => {
-      injectablesByInjectionToken.get(token).delete(injectable);
+      const tokenSet = injectablesByInjectionToken.get(token);
+      tokenSet.delete(injectable);
+      invalidateRelatedInjectablesCache(tokenSet);
     });
 
     overridingInjectables.delete(injectable);

@@ -1,15 +1,21 @@
 export const setDependeeFor =
   ({ dependeesByDependencyMap, dependenciesByDependencyMap }) =>
   ({ dependency, dependee }) => {
-    if (!dependeesByDependencyMap.has(dependency)) {
-      dependeesByDependencyMap.set(dependency, new Set());
+    let dependees = dependeesByDependencyMap.get(dependency);
+
+    if (!dependees) {
+      dependees = new Set();
+      dependeesByDependencyMap.set(dependency, dependees);
     }
 
-    dependeesByDependencyMap.get(dependency).add(dependee);
+    dependees.add(dependee);
 
-    if (!dependenciesByDependencyMap.has(dependee)) {
-      dependenciesByDependencyMap.set(dependee, new Set());
+    let dependencies = dependenciesByDependencyMap.get(dependee);
+
+    if (!dependencies) {
+      dependencies = new Set();
+      dependenciesByDependencyMap.set(dependee, dependencies);
     }
 
-    dependenciesByDependencyMap.get(dependee).add(dependency);
+    dependencies.add(dependency);
   };

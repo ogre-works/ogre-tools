@@ -10,8 +10,7 @@ export const getNamespacedIdFor = injectableAndRegistrationContext => {
     }
 
     const scopeContextItem = registrationContext
-      .reverse()
-      .find(x => x.injectable.scope);
+      .findLast(x => x.injectable.scope);
 
     if (!scopeContextItem) {
       return [];

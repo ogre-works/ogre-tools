@@ -24,7 +24,7 @@ export const privateInjectFor =
     checkForTooManyMatches(relatedInjectables, alias);
     checkForNoMatches(relatedInjectables, alias, context);
 
-    const originalInjectable = getRelatedInjectables(alias)[0];
+    const originalInjectable = relatedInjectables[0];
 
     alreadyInjected.add(originalInjectable);
 

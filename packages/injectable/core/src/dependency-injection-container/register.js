@@ -9,6 +9,7 @@ import { CompositeMap } from '../composite-map/composite-map';
 import { getRelatedTokens } from './getRelatedTokens';
 import { isRelevantDecoratorFor } from './isRelevantDecoratorFor';
 import flow from './fastFlow';
+import { invalidateRelatedInjectablesCache } from './getRelatedInjectablesFor';
 
 const isDecoratorInjectable = injectable =>
   injectable.injectionToken === registrationDecoratorToken ||
@@ -123,8 +124,10 @@ export const registerSingleFor =
     namespacedIdByInjectableMap,
     injectablesByInjectionToken,
     injectableAndRegistrationContext,
-  }) =>
-  (injectable, injectionContext) => {
+  }) => {
+  const getNamespacedId = getNamespacedIdFor(injectableAndRegistrationContext);
+
+  return (injectable, injectionContext) => {
     const injectableId = injectable.id;
 
     if (!injectableId) {
@@ -132,10 +135,6 @@ export const registerSingleFor =
     }
 
     injectableAndRegistrationContext.set(injectable, injectionContext);
-
-    const getNamespacedId = getNamespacedIdFor(
-      injectableAndRegistrationContext,
-    );
 
     const namespacedId = getNamespacedId(injectable);
 
@@ -163,7 +162,9 @@ export const registerSingleFor =
         injectablesByInjectionToken.get(token) || new Set();
 
       injectablesSet.add(injectable);
+      invalidateRelatedInjectablesCache(injectablesSet);
 
       injectablesByInjectionToken.set(token, injectablesSet);
     });
+  };
   };
