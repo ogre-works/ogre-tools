@@ -200,8 +200,10 @@ export default containerId => {
     injectMany: decoratedPrivateInjectMany,
     injectManyWithMeta: decoratedPrivateInjectManyWithMeta,
 
-    injectFactory: alias => (...params) =>
-      publicInject(alias, ...params),
+    injectFactory:
+      alias =>
+      (...params) =>
+        publicInject(alias, ...params),
 
     register: privateRegister,
     deregister,
@@ -239,12 +241,7 @@ export default containerId => {
     inject: publicInject,
 
     injectWithMeta: (alias, ...args) =>
-      privateDi.injectWithMeta(
-        alias,
-        args,
-        rootInjectable,
-        rootInjectable,
-      ),
+      privateDi.injectWithMeta(alias, args, rootInjectable, rootInjectable),
 
     injectMany: (alias, ...args) =>
       privateDi.injectMany(alias, args, rootInjectable, rootInjectable),
@@ -266,12 +263,7 @@ export default containerId => {
     },
 
     injectManyWithMeta: (alias, ...args) =>
-      privateDi.injectManyWithMeta(
-        alias,
-        args,
-        rootInjectable,
-        rootInjectable,
-      ),
+      privateDi.injectManyWithMeta(alias, args, rootInjectable, rootInjectable),
 
     getInstances: alias =>
       getRelatedInjectables(alias).flatMap(injectable => [

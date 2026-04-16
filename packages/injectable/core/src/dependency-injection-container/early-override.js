@@ -35,7 +35,9 @@ export const earlyOverrideFor =
     // even when the underlying injectable uses (di) => (...args) => result.
     const wrappedInstantiate =
       originalInjectable.aliasType === injectableSymbol2
-        ? di => (...args) => instantiateStub(di, ...args)
+        ? di =>
+            (...args) =>
+              instantiateStub(di, ...args)
         : instantiateStub;
 
     overridingInjectables.set(originalInjectable, {

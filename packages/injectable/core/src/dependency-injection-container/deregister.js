@@ -29,11 +29,7 @@ export const deregisterFor =
   }) =>
   ({ injectables, context, source }) => {
     // Collect callbacks first (while all injectables are still registered)
-    const callbacks = injectMany(
-      deregistrationCallbackToken,
-      [],
-      source,
-    );
+    const callbacks = injectMany(deregistrationCallbackToken, [], source);
 
     const flatInjectables = toFlatInjectables(injectables);
 

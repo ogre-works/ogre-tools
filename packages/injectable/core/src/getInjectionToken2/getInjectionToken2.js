@@ -47,5 +47,4 @@ export const getInjectionToken2 = ({
 export const getSpecificInjectionToken2 = (...args) =>
   getInjectionToken2(...args);
 
-const getSpecificToken2ById = id =>
-  getInjectionToken2({ id, speciality: id });
+const getSpecificToken2ById = id => getInjectionToken2({ id, speciality: id });

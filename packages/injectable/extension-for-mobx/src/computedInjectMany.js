@@ -77,10 +77,7 @@ const reactiveInstancesFor = ({ id, methodInDiToInjectMany }) =>
       return computed(() => {
         mobxAtomForToken.reportObserved();
 
-        return di[methodInDiToInjectMany](
-          injectionToken,
-          ...args,
-        );
+        return di[methodInDiToInjectMany](injectionToken, ...args);
       });
     },
 
@@ -108,11 +105,13 @@ const computedInjectManyInjectableFor = ({
   getInjectable({
     id,
 
-    instantiate: di => (injectionToken, ...args) =>
-      di.inject(reactiveInstances, {
-        injectionToken,
-        args,
-      }),
+    instantiate:
+      di =>
+      (injectionToken, ...args) =>
+        di.inject(reactiveInstances, {
+          injectionToken,
+          args,
+        }),
 
     lifecycle: lifecycleEnum.transient,
     injectionToken,

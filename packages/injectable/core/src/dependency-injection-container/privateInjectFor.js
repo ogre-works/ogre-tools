@@ -116,17 +116,25 @@ const createMinimalDi = (
     return {
       ...shared,
 
-      inject: alias =>
-        (...args) => di.inject(alias, args, injectableToBeInstantiated),
+      inject:
+        alias =>
+        (...args) =>
+          di.inject(alias, args, injectableToBeInstantiated),
 
-      injectMany: alias =>
-        (...args) => di.injectMany(alias, args, injectableToBeInstantiated),
+      injectMany:
+        alias =>
+        (...args) =>
+          di.injectMany(alias, args, injectableToBeInstantiated),
 
-      injectWithMeta: alias =>
-        (...args) => di.injectWithMeta(alias, args, injectableToBeInstantiated),
+      injectWithMeta:
+        alias =>
+        (...args) =>
+          di.injectWithMeta(alias, args, injectableToBeInstantiated),
 
-      injectManyWithMeta: alias =>
-        (...args) => di.injectManyWithMeta(alias, args, injectableToBeInstantiated),
+      injectManyWithMeta:
+        alias =>
+        (...args) =>
+          di.injectManyWithMeta(alias, args, injectableToBeInstantiated),
     };
   }
 
@@ -148,8 +156,10 @@ const createMinimalDi = (
     injectManyWithMeta: (alias, ...args) =>
       di.injectManyWithMeta(alias, args, injectableToBeInstantiated),
 
-    injectFactory: alias => (...params) =>
-      minimalInject(alias, ...params),
+    injectFactory:
+      alias =>
+      (...params) =>
+        minimalInject(alias, ...params),
   };
 };
 
@@ -174,7 +184,10 @@ const instantiate = (
 
   // Old-style: spread args
   if (canSkipDecorators) {
-    return injectableToBeInstantiated.instantiate(minimalDi, ...instantiationParameter);
+    return injectableToBeInstantiated.instantiate(
+      minimalDi,
+      ...instantiationParameter,
+    );
   }
 
   const withInstantiationDecorators = withInstantiationDecoratorsFor({

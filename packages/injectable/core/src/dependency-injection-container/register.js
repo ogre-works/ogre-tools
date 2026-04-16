@@ -79,11 +79,7 @@ export const registerFor =
 
         // When called deferred (after batch completes), trigger callbacks
         if (!batchInProgress) {
-          const callbacks = injectMany(
-            registrationCallbackToken,
-            [],
-            context,
-          );
+          const callbacks = injectMany(registrationCallbackToken, [], context);
 
           callbacks.forEach(callback => {
             callback(inj);
@@ -105,11 +101,7 @@ export const registerFor =
     batchInProgress = false;
 
     // Fire callbacks for all actually registered injectables (batch semantics)
-    const callbacks = injectMany(
-      registrationCallbackToken,
-      [],
-      source,
-    );
+    const callbacks = injectMany(registrationCallbackToken, [], source);
 
     const fireCallbacks = injectable => {
       callbacks.forEach(callback => {

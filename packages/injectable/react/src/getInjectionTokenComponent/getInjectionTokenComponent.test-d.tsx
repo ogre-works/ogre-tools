@@ -1,7 +1,10 @@
 import React from 'react';
 
 import { expectAssignable, expectError, expectType } from 'tsd';
-import { getInjectionTokenComponent, getInjectableComponent } from '../../index';
+import {
+  getInjectionTokenComponent,
+  getInjectableComponent,
+} from '../../index';
 import {
   createContainer,
   getTypedSpecifier,
@@ -86,9 +89,9 @@ expectError(
 // .for() returns a SpecificInjectionToken
 const SomeSpecificToken = SomeTokenComponentWithProps.for('some-specific');
 
-expectAssignable<SpecificInjectionToken<React.ComponentType<{ someProp: string }>>>(
-  SomeSpecificToken,
-);
+expectAssignable<
+  SpecificInjectionToken<React.ComponentType<{ someProp: string }>>
+>(SomeSpecificToken);
 
 // given typed specifier, .for() returns a specific token with typed props, and InjectableComponent using it has correct props
 const SomeTokenComponentWithTypedSpecifier = getInjectionTokenComponent<

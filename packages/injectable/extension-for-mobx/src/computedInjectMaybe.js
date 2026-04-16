@@ -46,7 +46,9 @@ export const _computedInjectMaybeInjectable = getInjectable({
 
 export const computedInjectMaybeInjectable = getInjectable({
   id: 'computed-inject-maybe',
-  instantiate: di => (token, ...args) =>
-    di.inject(_computedInjectMaybeInjectable, { token, args }),
+  instantiate:
+    di =>
+    (token, ...args) =>
+      di.inject(_computedInjectMaybeInjectable, { token, args }),
   injectionToken: computedInjectMaybeInjectionToken,
 });
