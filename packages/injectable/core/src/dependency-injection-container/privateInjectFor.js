@@ -15,7 +15,7 @@ export const privateInjectFor =
     getDi,
     checkForNoMatches,
     checkForSideEffects,
-    getNamespacedId,
+    namespacedIdByInjectableMap,
     decoratorCache,
   }) =>
   ({ withMeta }) =>
@@ -52,7 +52,7 @@ export const privateInjectFor =
 
         return {
           instance: existingInstance,
-          meta: { id: getNamespacedId(injectable) },
+          meta: { id: namespacedIdByInjectableMap.get(injectable) },
         };
       }
     }
@@ -63,7 +63,7 @@ export const privateInjectFor =
       instantiationParameter,
       instancesByInjectableMap,
       injectingInjectable,
-      getNamespacedId,
+      namespacedIdByInjectableMap,
       decoratorCache,
     );
 
@@ -73,7 +73,7 @@ export const privateInjectFor =
 
     return {
       instance,
-      meta: { id: getNamespacedId(injectable) },
+      meta: { id: namespacedIdByInjectableMap.get(injectable) },
     };
   };
 
@@ -83,7 +83,7 @@ const getInstance = (
   instantiationParameter,
   instancesByInjectableMap,
   injectingInjectable,
-  getNamespacedId,
+  namespacedIdByInjectableMap,
   decoratorCache,
 ) => {
   const instanceMap = instancesByInjectableMap.get(
@@ -126,10 +126,10 @@ const getInstance = (
     },
 
     get sourceNamespace() {
-      return (
-        getNamespacedId(injectingInjectable).split(':').slice(0, -1).join(':') ||
-        undefined
-      );
+      const nsId = namespacedIdByInjectableMap.get(injectingInjectable);
+      const lastColon = nsId ? nsId.lastIndexOf(':') : -1;
+
+      return lastColon > 0 ? nsId.slice(0, lastColon) : undefined;
     },
 
     hasRegistrations: di.hasRegistrations,

@@ -1,4 +1,11 @@
-export const getRelatedTokens = token =>
-  token === undefined
-    ? []
-    : [token, ...getRelatedTokens(token.specificTokenOf)];
+export const getRelatedTokens = token => {
+  const tokens = [];
+  let current = token;
+
+  while (current !== undefined) {
+    tokens.push(current);
+    current = current.specificTokenOf;
+  }
+
+  return tokens;
+};

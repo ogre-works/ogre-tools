@@ -2,20 +2,29 @@ import isInjectionToken from '../getInjectionToken/isInjectionToken';
 
 export const getNamespacedIdFor = injectableAndRegistrationContext => {
   const getParentIds = injectable => {
-    const registrationContext =
-      injectableAndRegistrationContext.get(injectable);
+    const ids = [];
+    let current = injectable;
 
-    if (!registrationContext) {
-      return [];
+    while (true) {
+      const registrationContext =
+        injectableAndRegistrationContext.get(current);
+
+      if (!registrationContext) {
+        break;
+      }
+
+      const parent = registrationContext[registrationContext.length - 1];
+
+      if (!parent || parent.injectable.aliasType === 'container') {
+        break;
+      }
+
+      ids.push(parent.injectable.id);
+      current = parent.injectable;
     }
 
-    const parent = registrationContext[registrationContext.length - 1];
-
-    if (!parent || parent.injectable.aliasType === 'container') {
-      return [];
-    }
-
-    return [...getParentIds(parent.injectable), parent.injectable.id];
+    ids.reverse();
+    return ids;
   };
 
   return alias => {
@@ -23,6 +32,7 @@ export const getNamespacedIdFor = injectableAndRegistrationContext => {
 
     const id = isInjectionToken(alias) ? `(${alias.id})` : alias.id;
 
-    return [...parentIds, id].join(':');
+    parentIds.push(id);
+    return parentIds.join(':');
   };
 };

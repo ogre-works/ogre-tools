@@ -2,7 +2,7 @@ export const privateInjectManyFor =
   ({
     getRelatedInjectables,
     getInject,
-    getNamespacedId,
+    namespacedIdByInjectableMap,
   }) =>
   ({ withMeta }) =>
   (injectionToken, instantiationParameter, injectingInjectable) => {
@@ -21,11 +21,9 @@ export const privateInjectManyFor =
         return instance;
       }
 
-      const namespacedId = getNamespacedId(injectable);
-
       return {
         instance,
-        meta: { id: namespacedId },
+        meta: { id: namespacedIdByInjectableMap.get(injectable) },
       };
     });
   };

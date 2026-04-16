@@ -17,6 +17,9 @@ export const withInjectionDecoratorsFor =
         undefined,
         injectingInjectable,
       );
+
+      // Invalidate per-alias cache when the decorator list changes.
+      decoratorCache.injectionByAlias = new Map();
     }
 
     // Fast path: no injection decorators registered
@@ -24,13 +27,25 @@ export const withInjectionDecoratorsFor =
       return toBeDecorated(alias, parameter, injectingInjectable);
     }
 
-    const isRelevantDecorator = isRelevantDecoratorFor(alias);
+    // Per-alias cache: avoid filter/map/flow on every inject for the same alias.
+    let decorated = decoratorCache.injectionByAlias.get(alias);
 
-    const decorators = decoratorCache.injection
-      .filter(isRelevantDecorator)
-      .map(x => x.decorate);
+    if (decorated === undefined) {
+      const isRelevantDecorator = isRelevantDecoratorFor(alias);
 
-    const decorated = flow(...decorators)(toBeDecorated);
+      const decorators = decoratorCache.injection
+        .filter(isRelevantDecorator)
+        .map(x => x.decorate);
+
+      decorated =
+        decorators.length > 0 ? flow(...decorators)(toBeDecorated) : null;
+
+      decoratorCache.injectionByAlias.set(alias, decorated);
+    }
+
+    if (decorated === null) {
+      return toBeDecorated(alias, parameter, injectingInjectable);
+    }
 
     return decorated(alias, parameter, injectingInjectable);
   };
