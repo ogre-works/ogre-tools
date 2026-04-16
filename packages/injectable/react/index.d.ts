@@ -4,6 +4,7 @@ import {
   DiContainerForInjection,
   Injectable,
   InjectionToken,
+  SpecificInjectionToken,
 } from '@ogre-tools/injectable';
 
 export function useInject<TReturnValue>(
@@ -44,6 +45,29 @@ export declare function getInjectableComponent<
     injectionToken?: InjectionToken<Component>;
   },
 ): InjectableComponent<Component>;
+
+export type InjectionTokenComponent<
+  Component extends React.ComponentType<any>,
+  SpecificInjectionTokenFactory extends (
+    ...args: any[]
+  ) => SpecificInjectionToken<Component> = (
+    id: string,
+  ) => SpecificInjectionToken<Component>,
+> = Component & InjectionToken<Component, void, SpecificInjectionTokenFactory>;
+
+export declare function getInjectionTokenComponent<
+  Component extends React.ComponentType<any>,
+  SpecificInjectionTokenFactory extends (
+    ...args: any[]
+  ) => SpecificInjectionToken<Component> = (
+    id: string,
+  ) => SpecificInjectionToken<Component>,
+>(options: {
+  id: string;
+  PlaceholderComponent?: React.ComponentType<React.ComponentProps<Component>>;
+  decorable?: boolean;
+  specificInjectionTokenFactory?: SpecificInjectionTokenFactory;
+}): InjectionTokenComponent<Component, SpecificInjectionTokenFactory>;
 
 export const DiContextProvider: React.Provider<DiContainer | DiContainerForInjection>;
 

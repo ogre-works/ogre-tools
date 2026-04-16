@@ -117,6 +117,7 @@ export function getInjectionToken<
 >(options: {
   id: string;
   specificInjectionTokenFactory?: SpecificInjectionTokenFactory;
+  target?: object;
 }): InjectionToken<
   InjectionInstance,
   InstantiationParam,
