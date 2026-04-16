@@ -42,9 +42,8 @@ export const registerFor =
     // Collect all registration decorators once (not per-injectable)
     const allRegistrationDecorators = injectMany(
       registrationDecoratorToken,
-      undefined,
+      [],
       source,
-      null,
     );
 
     const registeredInjectables = [];
@@ -82,9 +81,8 @@ export const registerFor =
         if (!batchInProgress) {
           const callbacks = injectMany(
             registrationCallbackToken,
-            undefined,
+            [],
             context,
-            source,
           );
 
           callbacks.forEach(callback => {
@@ -109,9 +107,8 @@ export const registerFor =
     // Fire callbacks for all actually registered injectables (batch semantics)
     const callbacks = injectMany(
       registrationCallbackToken,
-      undefined,
+      [],
       source,
-      null,
     );
 
     const fireCallbacks = injectable => {

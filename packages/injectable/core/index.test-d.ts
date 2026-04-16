@@ -882,3 +882,224 @@ const someInjectableFactory = <P>(id: string, lifecycle: Lifecycle<P>) => getInj
   instantiate: () => 10,
   lifecycle,
 });
+
+// ======================================================================
+// Injectable2 / InjectionToken2 type tests
+// ======================================================================
+
+import {
+  getInjectable2,
+  getInjectionToken2,
+  getSpecificInjectionToken2,
+  Injectable2,
+  InjectionToken2,
+  SpecificInjectionToken2,
+  DiContainerForInjection2,
+} from '.';
+
+// --- getInjectable2: non-parametric singleton ---
+
+const nonParametricInjectable2 = getInjectable2({
+  id: 'non-parametric',
+  instantiate: () => () => 42 as number,
+});
+
+expectType<Injectable2<() => number>>(nonParametricInjectable2);
+
+// public di.inject returns instance (factory called internally)
+expectType<number>(di.inject(nonParametricInjectable2));
+
+// --- getInjectable2: parametric keyed singleton ---
+
+const parametricInjectable2 = getInjectable2({
+  id: 'parametric',
+  instantiate: () => (name: string, age: number) => ({ name, age }),
+});
+
+expectType<Injectable2<(name: string, age: number) => { name: string; age: number }>>(parametricInjectable2);
+
+// public di.inject with correct params returns instance
+expectType<{ name: string; age: number }>(di.inject(parametricInjectable2, 'Alice', 30));
+
+// wrong number of args is a type error
+expectError(di.inject(parametricInjectable2, 'Alice'));
+expectError(di.inject(parametricInjectable2));
+expectError(di.inject(parametricInjectable2, 'Alice', 30, 'extra'));
+
+// wrong arg type is a type error
+expectError(di.inject(parametricInjectable2, 42, 30));
+
+// --- getInjectable2: transient ---
+
+const transientInjectable2 = getInjectable2({
+  id: 'transient',
+  instantiate: () => () => new Date(),
+  transient: true,
+});
+
+expectType<Date>(di.inject(transientInjectable2));
+
+// --- getInjectable2: instance is a function (wrapped in zero-arg factory) ---
+
+const functionInstanceInjectable2 = getInjectable2({
+  id: 'doubler',
+  instantiate: () => () => (x: number) => x * 2,
+});
+
+expectType<(x: number) => number>(di.inject(functionInstanceInjectable2));
+
+// --- InjectionToken2: non-parametric ---
+
+const handlerToken2 = getInjectionToken2<() => string>({ id: 'handler' });
+
+expectType<InjectionToken2<() => string>>(handlerToken2);
+
+// public di.inject returns instance
+expectType<string>(di.inject(handlerToken2));
+
+// public di.injectMany returns instance array
+expectType<string[]>(di.injectMany(handlerToken2));
+
+// --- InjectionToken2: parametric ---
+
+const userServiceToken2 = getInjectionToken2<(userId: string) => { id: string }>({
+  id: 'user-service',
+});
+
+expectType<{ id: string }>(di.inject(userServiceToken2, 'user-123'));
+expectType<{ id: string }[]>(di.injectMany(userServiceToken2, 'user-123'));
+
+// wrong args are type errors
+expectError(di.inject(userServiceToken2));
+expectError(di.inject(userServiceToken2, 42));
+
+// --- InjectionToken2: ManyFactory auto-derived for non-generic ---
+
+// For non-generic, ManyFactory is auto-derived: (() => string) becomes (() => string[])
+const autoManyToken = getInjectionToken2<(x: number) => string>({ id: 'auto-many' });
+
+// --- InjectionToken2: explicit ManyFactory for generic ---
+
+type WrapperFactory = <T>(value: T) => { wrapped: T };
+type WrapperManyFactory = <T>(value: T) => { wrapped: T }[];
+
+const wrapperToken2 = getInjectionToken2<WrapperFactory, WrapperManyFactory>({
+  id: 'wrapper',
+});
+
+// --- InjectionToken2: ManyFactory constraint prevents disagreement ---
+
+expectError(
+  getInjectionToken2<
+    (x: string) => number,
+    (x: number) => number[]  // Error: number param doesn't match string param
+  >({ id: 'bad-many' }),
+);
+
+// --- InjectionToken2: implementing with getInjectable2 ---
+
+const handlerImpl = getInjectable2({
+  id: 'handler-impl',
+  injectionToken: handlerToken2,
+  instantiate: () => () => 'hello',
+});
+
+// --- DiContainerForInjection2: inject returns factories inside new-style instantiate ---
+
+const innerInjectable2 = getInjectable2({
+  id: 'inner',
+  instantiate: (di: DiContainerForInjection2) => {
+    // new-style injectable2 → returns factory directly
+    const getParametric = di.inject(parametricInjectable2);
+    expectType<(name: string, age: number) => { name: string; age: number }>(getParametric);
+
+    // new-style token2 → returns factory directly
+    const getHandler = di.inject(handlerToken2);
+    expectType<() => string>(getHandler);
+
+    // old-style injectable without param → wrapped in () => I factory
+    const getOldSingleton = di.inject(someInjectableToBeDecorated);
+    expectType<() => () => 42>(getOldSingleton);
+
+    // old-style injectable with param → wrapped in (param: P) => I factory
+    const getOldParam = di.inject(someParameterInjectableToBeDecorated);
+    expectType<(param: number) => string>(getOldParam);
+
+    // old-style token without param → wrapped in () => I factory
+    const getOldTokenValue = di.inject(someGetNumberInjectionToken);
+    expectType<() => GetNumber>(getOldTokenValue);
+
+    return () => 'result';
+  },
+});
+
+// --- DiContainerForInjection2: injectMany returns ManyFactory inside new-style ---
+
+const innerWithInjectMany = getInjectable2({
+  id: 'inner-many',
+  instantiate: (di: DiContainerForInjection2) => {
+    // token2 → returns ManyFactory
+    const getHandlers = di.injectMany(handlerToken2);
+    expectType<() => string[]>(getHandlers);
+
+    // token2 with explicit ManyFactory → returns the explicit ManyFactory
+    const getWrappers = di.injectMany(wrapperToken2);
+    expectType<WrapperManyFactory>(getWrappers);
+
+    // old-style token without param → returns () => I[]
+    const getOldMany = di.injectMany(someGetNumberInjectionToken);
+    expectType<() => GetNumber[]>(getOldMany);
+
+    return () => 'result';
+  },
+});
+
+// --- DiContainerForInjection2: hasRegistrations ---
+
+const innerWithHasRegistrations = getInjectable2({
+  id: 'inner-has-reg',
+  instantiate: (di: DiContainerForInjection2) => {
+    expectType<boolean>(di.hasRegistrations(parametricInjectable2));
+    expectType<boolean>(di.hasRegistrations(handlerToken2));
+    expectType<boolean>(di.hasRegistrations(someInjectable));
+    expectType<boolean>(di.hasRegistrations(someInjectionToken));
+
+    return () => {};
+  },
+});
+
+// --- register/deregister accept both old and new ---
+
+expectType<void>(di.register(nonParametricInjectable2));
+expectType<void>(di.register(nonParametricInjectable2, someInjectable));
+expectType<void>(di.deregister(nonParametricInjectable2));
+
+// --- SpecificInjectionToken2 with typed specifiers ---
+
+const generalToken2WithSpecifier = getInjectionToken2<
+  (arg: unknown) => boolean,
+  (arg: unknown) => boolean[],
+  <S extends TypedSpecifierWithType<'someType'>>(
+    specifier: S,
+  ) => SpecificInjectionToken2<
+    (arg: TypedSpecifierType<'someType', S>) => boolean,
+    (arg: TypedSpecifierType<'someType', S>) => boolean[]
+  >
+>({
+  id: 'general-token2-with-specifier',
+});
+
+const someTypedSpecifier2 = getTypedSpecifier<{
+  someType: string;
+}>()('some-specifier');
+
+const specificToken2 = generalToken2WithSpecifier.for(someTypedSpecifier2);
+
+// public inject with specific token returns instance
+expectType<boolean>(di.inject(specificToken2, 'hello'));
+
+// public injectMany returns instance array
+expectType<boolean[]>(di.injectMany(specificToken2, 'hello'));
+
+// wrong arg type is a type error
+expectError(di.inject(specificToken2, 42));

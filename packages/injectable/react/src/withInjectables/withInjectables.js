@@ -20,10 +20,10 @@ const ComponentOrPlaceholder = ({
     return {
       ...di,
 
-      inject: (alias, parameter) => di.inject(alias, parameter, {}),
+      inject: (alias, ...params) => di.inject(alias, ...params),
 
-      injectMany: (injectionToken, parameter) =>
-        di.injectMany(injectionToken, parameter, {}),
+      injectMany: (injectionToken, ...params) =>
+        di.injectMany(injectionToken, ...params),
     };
   }, [di]);
 

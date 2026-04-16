@@ -12,24 +12,24 @@ export type Override = <
 ) => void;
 
 export interface DiContainer extends DiContainerForInjection {
-  purge: (injectableKey: Injectable<any, any, any>) => void;
+  purge: (injectableKey: Injectable<any, any, any> | Injectable2<any>) => void;
   purgeAllButOverrides: () => void;
 
   preventSideEffects: () => void;
   permitSideEffects: (
-    injectableKey: InjectionToken<any, any> | Injectable<any, any, any>,
+    injectableKey: InjectionToken<any, any> | Injectable<any, any, any> | InjectionToken2<any, any, any> | Injectable2<any>,
   ) => void;
 
   override: Override;
   earlyOverride: Override;
-  unoverride(alias: InjectionToken<any, any> | Injectable<any, any, any>): void;
+  unoverride(alias: InjectionToken<any, any> | Injectable<any, any, any> | InjectionToken2<any, any, any> | Injectable2<any>): void;
 
   register(
-    ...injectables: (Injectable<any, any, any> | InjectableBunch<any>)[]
+    ...injectables: (Injectable<any, any, any> | Injectable2<any> | InjectableBunch<any>)[]
   ): void;
 
   deregister(
-    ...injectables: (Injectable<any, any, any> | InjectableBunch<any>)[]
+    ...injectables: (Injectable<any, any, any> | Injectable2<any> | InjectableBunch<any>)[]
   ): void;
 }
 
@@ -154,7 +154,12 @@ export type InjectWithParameter = <InjectionInstance, InstantiationParam>(
   param: InstantiationParam,
 ) => InjectionInstance;
 
-export type Inject = InjectWithoutParameter & InjectWithParameter;
+export type InjectInjectable2 = <F extends (...args: any[]) => any>(
+  key: Injectable2<F> | InjectionToken2<F, any, any>,
+  ...params: Parameters<F>
+) => ReturnType<F>;
+
+export type Inject = InjectInjectable2 & InjectWithoutParameter & InjectWithParameter;
 
 export type InjectFactory = <InjectionInstance, InstantiationParam>(
   alias:
@@ -188,6 +193,11 @@ export type SpecificInject<InjectionInstance, InstantiationParam> =
     : SpecificInjectWithParameter<InjectionInstance, InstantiationParam>;
 
 interface InjectMany {
+  <F extends (...args: any[]) => any>(
+    key: InjectionToken2<F, any, any>,
+    ...params: Parameters<F>
+  ): ReturnType<F>[];
+
   <InjectionInstance>(
     key:
       | Injectable<InjectionInstance, unknown>
@@ -212,6 +222,11 @@ export type InjectionInstanceWithMeta<InjectionInstance> = {
 };
 
 interface InjectManyWithMeta {
+  <F extends (...args: any[]) => any>(
+    key: InjectionToken2<F, any, any>,
+    ...params: Parameters<F>
+  ): InjectionInstanceWithMeta<ReturnType<F>>[];
+
   <InjectionInstance>(
     key:
       | Injectable<InjectionInstance, unknown>
@@ -227,6 +242,11 @@ interface InjectManyWithMeta {
 }
 
 interface InjectWithMeta {
+  <F extends (...args: any[]) => any>(
+    key: Injectable2<F> | InjectionToken2<F, any, any>,
+    ...params: Parameters<F>
+  ): InjectionInstanceWithMeta<ReturnType<F>>;
+
   <InjectionInstance>(
     key:
       | Injectable<InjectionInstance, unknown>
@@ -249,18 +269,18 @@ export interface DiContainerForInjection {
   injectManyWithMeta: InjectManyWithMeta;
 
   register(
-    ...injectables: (Injectable<any, any, any> | InjectableBunch<any>)[]
+    ...injectables: (Injectable<any, any, any> | Injectable2<any> | InjectableBunch<any>)[]
   ): void;
 
   deregister(
-    ...injectables: (Injectable<any, any, any> | InjectableBunch<any>)[]
+    ...injectables: (Injectable<any, any, any> | Injectable2<any> | InjectableBunch<any>)[]
   ): void;
 
   getInstances: GetInstances;
   sourceNamespace: string | undefined;
 
   hasRegistrations: (
-    alias: InjectionToken<any, any, any> | Injectable<any, any, any>,
+    alias: InjectionToken<any, any, any> | Injectable<any, any, any> | InjectionToken2<any, any, any> | Injectable2<any>,
   ) => boolean;
 }
 
@@ -486,3 +506,150 @@ export function getTypedSpecifier
   <Typing extends object>():
     <SpecifierName extends string>(specifier: SpecifierName) =>
       TypedSpecifier<SpecifierName, Typing>;
+
+// ---- Injectable2 / InjectionToken2 ----
+
+export interface Injectable2<Factory extends (...args: any[]) => any> {
+  readonly aliasType: 'injectable2';
+  readonly id: string;
+  readonly instantiate: (di: DiContainerForInjection2) => Factory;
+  readonly injectionToken?: InjectionToken2<Factory, any, any>;
+  readonly transient?: boolean;
+  readonly causesSideEffects?: boolean;
+  readonly decorable?: boolean;
+  readonly tags?: any[];
+}
+
+export function getInjectable2<Factory extends (...args: any[]) => any>(options: {
+  readonly id: string;
+  readonly instantiate: (di: DiContainerForInjection2) => Factory;
+  readonly injectionToken?: InjectionToken2<Factory, any, any>;
+  readonly transient?: boolean;
+  readonly causesSideEffects?: boolean;
+  readonly decorable?: boolean;
+  readonly tags?: any[];
+}): Injectable2<Factory>;
+
+type AutoManyFactory<F> = F extends (...args: infer P) => infer R
+  ? (...args: P) => R[]
+  : never;
+
+export interface InjectionToken2<
+  Factory extends (...args: any[]) => any,
+  ManyFactory extends (...args: Parameters<Factory>) => ReturnType<Factory>[] = AutoManyFactory<Factory>,
+  SpecificFactory extends (
+    ...args: any[]
+  ) => SpecificInjectionToken2<Factory, ManyFactory> = (
+    id: string,
+  ) => SpecificInjectionToken2<Factory, ManyFactory>,
+> {
+  template: Factory;
+  manyTemplate: ManyFactory;
+  key: Symbol;
+  id: string;
+  for: SpecificFactory;
+}
+
+export interface SpecificInjectionToken2<
+  Factory extends (...args: any[]) => any,
+  ManyFactory extends (...args: Parameters<Factory>) => ReturnType<Factory>[] = AutoManyFactory<Factory>,
+  SpecificFactory extends (
+    ...args: any[]
+  ) => SpecificInjectionToken2<Factory, ManyFactory> = (
+    id: string,
+  ) => SpecificInjectionToken2<Factory, ManyFactory>,
+> extends InjectionToken2<Factory, ManyFactory, SpecificFactory> {
+  speciality: any;
+}
+
+export function getInjectionToken2<
+  Factory extends (...args: any[]) => any,
+  ManyFactory extends (...args: Parameters<Factory>) => ReturnType<Factory>[] = AutoManyFactory<Factory>,
+  SpecificFactory extends (
+    ...args: any[]
+  ) => SpecificInjectionToken2<Factory, ManyFactory> = (
+    id: string,
+  ) => SpecificInjectionToken2<Factory, ManyFactory>,
+>(options: {
+  id: string;
+  specificInjectionTokenFactory?: SpecificFactory;
+  target?: object;
+  decorable?: boolean;
+}): InjectionToken2<Factory, ManyFactory, SpecificFactory>;
+
+export function getSpecificInjectionToken2<
+  Factory extends (...args: any[]) => any,
+  ManyFactory extends (...args: Parameters<Factory>) => ReturnType<Factory>[] = AutoManyFactory<Factory>,
+  SpecificFactory extends (
+    ...args: any[]
+  ) => SpecificInjectionToken2<Factory, ManyFactory> = (
+    id: string,
+  ) => SpecificInjectionToken2<Factory, ManyFactory>,
+>(options: {
+  id: string;
+  speciality: any;
+}): SpecificInjectionToken2<Factory, ManyFactory, SpecificFactory>;
+
+// ---- DiContainerForInjection2 (new-style minimalDi) ----
+
+export interface DiContainerForInjection2 {
+  inject: Inject2;
+  injectMany: InjectMany2;
+  injectWithMeta: InjectWithMeta2;
+  injectManyWithMeta: InjectManyWithMeta2;
+
+  register(
+    ...injectables: (Injectable2<any> | Injectable<any, any, any> | InjectableBunch<any>)[]
+  ): void;
+
+  deregister(
+    ...injectables: (Injectable2<any> | Injectable<any, any, any> | InjectableBunch<any>)[]
+  ): void;
+
+  sourceNamespace: string | undefined;
+
+  hasRegistrations: HasRegistrations2;
+}
+
+interface HasRegistrations2 {
+  <F extends (...args: any[]) => any, MF extends (...args: Parameters<F>) => ReturnType<F>[]>(
+    alias: Injectable2<F> | InjectionToken2<F, MF, any>,
+  ): boolean;
+  <I extends TI, TI, P>(
+    alias: Injectable<I, TI, P> | InjectionToken<TI, P>,
+  ): boolean;
+}
+
+// Inside new-style instantiate: inject always returns factory
+interface Inject2 {
+  <F extends (...args: any[]) => any>(key: Injectable2<F>): F;
+  <F extends (...args: any[]) => any>(key: InjectionToken2<F, any, any>): F;
+  <I>(key: Injectable<I, any, void> | InjectionToken<I, void>): () => I;
+  <I, P>(key: Injectable<I, any, P> | InjectionToken<I, P>): (...params: P extends any[] ? P : [P]) => I;
+}
+
+// Inside new-style instantiate: injectMany returns ManyFactory
+interface InjectMany2 {
+  <F extends (...args: any[]) => any, MF extends (...args: Parameters<F>) => ReturnType<F>[]>(key: InjectionToken2<F, MF, any>): MF;
+  <I>(key: InjectionToken<I, void>): () => I[];
+  <I, P>(key: InjectionToken<I, P>): (...params: P extends any[] ? P : [P]) => I[];
+}
+
+interface InjectWithMeta2 {
+  <F extends (...args: any[]) => any>(key: Injectable2<F>): F extends (...args: infer P) => infer R
+    ? (...args: P) => InjectionInstanceWithMeta<R>
+    : never;
+  <F extends (...args: any[]) => any>(key: InjectionToken2<F, any, any>): F extends (...args: infer P) => infer R
+    ? (...args: P) => InjectionInstanceWithMeta<R>
+    : never;
+  <I>(key: Injectable<I, any, void> | InjectionToken<I, void>): () => InjectionInstanceWithMeta<I>;
+  <I, P>(key: Injectable<I, any, P> | InjectionToken<I, P>): (...params: P extends any[] ? P : [P]) => InjectionInstanceWithMeta<I>;
+}
+
+interface InjectManyWithMeta2 {
+  <F extends (...args: any[]) => any>(key: InjectionToken2<F, any, any>): F extends (...args: infer P) => infer R
+    ? (...args: P) => InjectionInstanceWithMeta<R>[]
+    : never;
+  <I>(key: InjectionToken<I, void>): () => InjectionInstanceWithMeta<I>[];
+  <I, P>(key: InjectionToken<I, P>): (...params: P extends any[] ? P : [P]) => InjectionInstanceWithMeta<I>[];
+}

@@ -5,10 +5,10 @@ export default {
   singleton: {
     id: 'singleton',
 
-    getInstanceKey: (di, instantiationParameter) => {
-      if (instantiationParameter) {
+    getInstanceKey: (di, ...args) => {
+      if (args.length > 0) {
         throw new Error(
-          `Tried to inject a singleton, but illegally to singletons, an instantiationParameter was provided: "${instantiationParameter}".`,
+          `Tried to inject a singleton, but illegally to singletons, instantiationParameters were provided: "${args}".`,
         );
       }
 

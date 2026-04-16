@@ -14,7 +14,7 @@ export const withInjectionDecoratorsFor =
     if (decoratorCache.injection === null) {
       decoratorCache.injection = injectMany(
         injectionDecoratorToken,
-        undefined,
+        [],
         injectingInjectable,
       );
 

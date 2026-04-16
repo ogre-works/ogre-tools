@@ -68,7 +68,7 @@ const reactiveInstancesFor = ({ id, methodInDiToInjectMany }) =>
   getInjectable({
     id,
 
-    instantiate: (di, { injectionToken, instantiationParameter }) => {
+    instantiate: (di, { injectionToken, args }) => {
       const mobxAtomForToken = di.inject(
         invalidabilityForReactiveInstances,
         injectionToken,
@@ -79,14 +79,14 @@ const reactiveInstancesFor = ({ id, methodInDiToInjectMany }) =>
 
         return di[methodInDiToInjectMany](
           injectionToken,
-          instantiationParameter,
+          ...args,
         );
       });
     },
 
     lifecycle: lifecycleEnum.keyedSingleton({
-      getInstanceKey: (di, { injectionToken, instantiationParameter }) =>
-        getKeyedSingletonCompositeKey(injectionToken, instantiationParameter),
+      getInstanceKey: (di, { injectionToken, args }) =>
+        getKeyedSingletonCompositeKey(injectionToken, ...args),
     }),
   });
 
@@ -108,10 +108,10 @@ const computedInjectManyInjectableFor = ({
   getInjectable({
     id,
 
-    instantiate: di => (injectionToken, instantiationParameter) =>
+    instantiate: di => (injectionToken, ...args) =>
       di.inject(reactiveInstances, {
         injectionToken,
-        instantiationParameter,
+        args,
       }),
 
     lifecycle: lifecycleEnum.transient,

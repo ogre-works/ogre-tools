@@ -1,6 +1,7 @@
 import createContainer from './src/dependency-injection-container/createContainer';
 
 import getInjectable from './src/getInjectable/getInjectable';
+import getInjectable2 from './src/getInjectable2/getInjectable2';
 import isInjectable from './src/getInjectable/isInjectable';
 import lifecycleEnum from './src/dependency-injection-container/lifecycleEnum';
 
@@ -8,6 +9,11 @@ import {
   getInjectionToken,
   getSpecificInjectionToken,
 } from './src/getInjectionToken/getInjectionToken';
+
+import {
+  getInjectionToken2,
+  getSpecificInjectionToken2,
+} from './src/getInjectionToken2/getInjectionToken2';
 
 import isInjectionToken from './src/getInjectionToken/isInjectionToken';
 
@@ -35,11 +41,14 @@ export {
 export {
   createContainer,
   getInjectable,
+  getInjectable2,
   isInjectable,
   getInjectableBunch,
   isInjectableBunch,
   getInjectionToken,
+  getInjectionToken2,
   getSpecificInjectionToken,
+  getSpecificInjectionToken2,
   isInjectionToken,
   lifecycleEnum,
   toFlatInjectables,

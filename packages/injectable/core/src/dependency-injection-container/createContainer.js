@@ -200,8 +200,8 @@ export default containerId => {
     injectMany: decoratedPrivateInjectMany,
     injectManyWithMeta: decoratedPrivateInjectManyWithMeta,
 
-    injectFactory: alias => instantiationParameter =>
-      publicInject(alias, instantiationParameter),
+    injectFactory: alias => (...params) =>
+      publicInject(alias, ...params),
 
     register: privateRegister,
     deregister,
@@ -230,24 +230,24 @@ export default containerId => {
     hasRegistrations: alias => !!getRelatedInjectables(alias).length,
   };
 
-  const publicInject = (alias, parameter) =>
-    privateDi.inject(alias, parameter, rootInjectable, rootInjectable);
+  const publicInject = (alias, ...args) =>
+    privateDi.inject(alias, args, rootInjectable, rootInjectable);
 
   const publicDi = {
     ...privateDi,
 
     inject: publicInject,
 
-    injectWithMeta: (alias, parameter) =>
+    injectWithMeta: (alias, ...args) =>
       privateDi.injectWithMeta(
         alias,
-        parameter,
+        args,
         rootInjectable,
         rootInjectable,
       ),
 
-    injectMany: (alias, parameter) =>
-      privateDi.injectMany(alias, parameter, rootInjectable, rootInjectable),
+    injectMany: (alias, ...args) =>
+      privateDi.injectMany(alias, args, rootInjectable, rootInjectable),
 
     register: (...injectables) => {
       privateDi.register({
@@ -265,10 +265,10 @@ export default containerId => {
       });
     },
 
-    injectManyWithMeta: (alias, parameter) =>
+    injectManyWithMeta: (alias, ...args) =>
       privateDi.injectManyWithMeta(
         alias,
-        parameter,
+        args,
         rootInjectable,
         rootInjectable,
       ),

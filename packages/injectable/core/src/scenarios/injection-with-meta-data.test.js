@@ -234,12 +234,7 @@ describe('injection with meta data', () => {
 
     di.register(someInjectable);
 
-    const actual = di.injectManyWithMeta(injectionToken, undefined, {
-      injectable: {
-        id: 'some-custom-context-id',
-        lifecycle: lifecycleEnum.transient,
-      },
-    });
+    const actual = di.injectManyWithMeta(injectionToken);
 
     expect(actual).toEqual([{ instance: 42, meta: { id: 'some-injectable' } }]);
   });

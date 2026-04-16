@@ -14,11 +14,11 @@ export const computedInjectMaybeInjectionToken = getInjectionToken({
 export const _computedInjectMaybeInjectable = getInjectable({
   id: 'computed-inject-maybe-internal',
 
-  instantiate: (di, { token, param }) => {
+  instantiate: (di, { token, args }) => {
     const computedInjectManyWithMeta = di.inject(
       computedInjectManyWithMetaInjectionToken,
     );
-    const computedMany = computedInjectManyWithMeta(token, param);
+    const computedMany = computedInjectManyWithMeta(token, ...args);
 
     return computed(() => {
       const [value, ...collidingValues] = computedMany.get();
@@ -39,14 +39,14 @@ export const _computedInjectMaybeInjectable = getInjectable({
   },
 
   lifecycle: lifecycleEnum.keyedSingleton({
-    getInstanceKey: (_, { token, param }) =>
-      getKeyedSingletonCompositeKey(token, param),
+    getInstanceKey: (_, { token, args }) =>
+      getKeyedSingletonCompositeKey(token, ...args),
   }),
 });
 
 export const computedInjectMaybeInjectable = getInjectable({
   id: 'computed-inject-maybe',
-  instantiate: di => (token, param) =>
-    di.inject(_computedInjectMaybeInjectable, { token, param }),
+  instantiate: di => (token, ...args) =>
+    di.inject(_computedInjectMaybeInjectable, { token, args }),
   injectionToken: computedInjectMaybeInjectionToken,
 });

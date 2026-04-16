@@ -9,7 +9,9 @@ describe('createContainer.targeted-decoration-via-shorthand', () => {
     const decorator =
       toBeDecorated =>
       (alias, instantiationParameter, ...args) => {
-        const decoratedInstantiationParameter = `decorated-parameter(${instantiationParameter})`;
+        const decoratedInstantiationParameter = instantiationParameter.map(
+          p => `decorated-parameter(${p})`,
+        );
 
         return `decorated-instance(${toBeDecorated(
           alias,
@@ -58,7 +60,9 @@ describe('createContainer.targeted-decoration-via-shorthand', () => {
     });
 
     let decorator = injectToBeDecorated => (alias, instantiationParameter) => {
-      const decoratedParameter = `decorated-parameter(${instantiationParameter})`;
+      const decoratedParameter = instantiationParameter.map(
+        p => `decorated-parameter(${p})`,
+      );
 
       return `decorated-instance(${injectToBeDecorated(
         alias,
@@ -106,7 +110,9 @@ describe('createContainer.targeted-decoration-via-shorthand', () => {
     const someDecorator =
       toBeDecorated =>
       (alias, instantiationParameter, ...args) => {
-        const decoratedInstantiationParameter = `some-decorated-parameter(${instantiationParameter})`;
+        const decoratedInstantiationParameter = instantiationParameter.map(
+          p => `some-decorated-parameter(${p})`,
+        );
 
         return `some-decorated-instance(${toBeDecorated(
           alias,
@@ -118,7 +124,9 @@ describe('createContainer.targeted-decoration-via-shorthand', () => {
     const someOtherDecorator =
       toBeDecorated =>
       (alias, instantiationParameter, ...args) => {
-        const decoratedInstantiationParameter = `some-other-decorated-parameter(${instantiationParameter})`;
+        const decoratedInstantiationParameter = instantiationParameter.map(
+          p => `some-other-decorated-parameter(${p})`,
+        );
 
         return `some-other-decorated-instance(${toBeDecorated(
           alias,

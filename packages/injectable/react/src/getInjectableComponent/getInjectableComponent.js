@@ -1,6 +1,6 @@
 import React, { forwardRef, Suspense } from 'react';
 
-import { getInjectable } from '@ogre-tools/injectable';
+import { getInjectable2 } from '@ogre-tools/injectable';
 import { useInject } from '../useInject/useInject';
 
 export const getInjectableComponent = ({
@@ -43,13 +43,13 @@ const getComponentAsInjectableAndAbleToSuspend = (
   tags,
   injectionToken,
 ) =>
-  getInjectable({
+  getInjectable2({
     id,
     injectionToken,
     causesSideEffects,
     tags,
 
-    instantiate: () =>
+    instantiate: () => () =>
       forwardRef((props, ref) =>
         PlaceholderComponent ? (
           <Suspense fallback={<PlaceholderComponent {...props} />}>

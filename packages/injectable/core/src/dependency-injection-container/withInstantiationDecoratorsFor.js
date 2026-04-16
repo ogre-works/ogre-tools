@@ -19,9 +19,8 @@ export const withInstantiationDecoratorsFor = ({
       if (decoratorCache.instantiation === null) {
         decoratorCache.instantiation = injectMany(
           instantiationDecoratorToken,
-          undefined,
+          [],
           injectable,
-          null,
         );
       }
 

@@ -15,7 +15,9 @@ describe('createContainer.targeted-decoration', () => {
         decorate:
           injectToBeDecorated =>
           (alias, instantiationParameter, ...args) => {
-            const decoratedInstantiationParameter = `decorated-parameter(${instantiationParameter})`;
+            const decoratedInstantiationParameter = instantiationParameter.map(
+              p => `decorated-parameter(${p})`,
+            );
 
             return `decorated-instance(${injectToBeDecorated(
               alias,
@@ -72,7 +74,9 @@ describe('createContainer.targeted-decoration', () => {
 
       instantiate: () => ({
         decorate: injectToBeDecorated => (alias, instantiationParameter) => {
-          const decoratedParameter = `decorated-parameter(${instantiationParameter})`;
+          const decoratedParameter = instantiationParameter.map(
+            p => `decorated-parameter(${p})`,
+          );
 
           return `decorated-instance(${injectToBeDecorated(
             alias,

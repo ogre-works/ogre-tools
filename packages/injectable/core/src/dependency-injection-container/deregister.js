@@ -31,9 +31,8 @@ export const deregisterFor =
     // Collect callbacks first (while all injectables are still registered)
     const callbacks = injectMany(
       deregistrationCallbackToken,
-      undefined,
+      [],
       source,
-      null,
     );
 
     const flatInjectables = toFlatInjectables(injectables);
@@ -62,9 +61,8 @@ export const deregisterFor =
     // Collect all deregistration decorators once
     const allDeregistrationDecorators = injectMany(
       deregistrationDecoratorToken,
-      undefined,
+      [],
       source,
-      null,
     );
 
     // Deregister through decoration chain

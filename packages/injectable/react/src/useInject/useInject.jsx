@@ -6,12 +6,12 @@ import { checkForUnsupportedPromiseLikeTransient } from './_private/checkForUnsu
 
 const useNonDeferredValue = x => x;
 
-const _useInject = (injectable, instantiationParameter, config) => {
+const _useInject = (injectable, instantiationParameters, config) => {
   checkForUnsupportedAsyncTransient(injectable);
 
   const di = useContext(diContext);
 
-  const maybePromise = di.inject(injectable, instantiationParameter);
+  const maybePromise = di.inject(injectable, ...instantiationParameters);
 
   checkForUnsupportedPromiseLikeTransient(injectable, maybePromise);
 
@@ -20,12 +20,12 @@ const _useInject = (injectable, instantiationParameter, config) => {
   return use(maybePromiseBetweenUpdates);
 };
 
-export const useInject = (injectable, instantiationParameter) =>
-  _useInject(injectable, instantiationParameter, {
+export const useInject = (injectable, ...instantiationParameters) =>
+  _useInject(injectable, instantiationParameters, {
     betweenUpdates: useNonDeferredValue,
   });
 
-export const useInjectDeferred = (injectable, instantiationParameter) =>
-  _useInject(injectable, instantiationParameter, {
+export const useInjectDeferred = (injectable, ...instantiationParameters) =>
+  _useInject(injectable, instantiationParameters, {
     betweenUpdates: useDeferredValue,
   });

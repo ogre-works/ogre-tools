@@ -13,7 +13,7 @@ describe('createContainer.global-decoration', () => {
         decorate: injectToBeDecorated => (di, instantiationParameter) =>
           `decorated-instance(${injectToBeDecorated(
             di,
-            `decorated-parameter(${instantiationParameter})`,
+            instantiationParameter.map(p => `decorated-parameter(${p})`),
           )})`,
       }),
 
@@ -62,7 +62,9 @@ describe('createContainer.global-decoration', () => {
         decorate:
           injectToBeDecorated =>
           (alias, instantiationParameter, ...args) => {
-            const decoratedParameter = `decorated-parameter-1(${instantiationParameter})`;
+            const decoratedParameter = instantiationParameter.map(
+              p => `decorated-parameter-1(${p})`,
+            );
 
             return `decorated-instance-1(${injectToBeDecorated(
               alias,
@@ -82,7 +84,9 @@ describe('createContainer.global-decoration', () => {
         decorate:
           injectToBeDecorated =>
           (alias, instantiationParameter, ...args) => {
-            const decoratedParameter = `decorated-parameter-2(${instantiationParameter})`;
+            const decoratedParameter = instantiationParameter.map(
+              p => `decorated-parameter-2(${p})`,
+            );
 
             return `decorated-instance-2(${injectToBeDecorated(
               alias,
