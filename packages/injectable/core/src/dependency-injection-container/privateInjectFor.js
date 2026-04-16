@@ -77,24 +77,16 @@ export const privateInjectFor =
     };
   };
 
-const getInstance = (
+const createMinimalDi = (
   di,
   injectableToBeInstantiated,
-  instantiationParameter,
-  instancesByInjectableMap,
   injectingInjectable,
   namespacedIdByInjectableMap,
-  decoratorCache,
 ) => {
-  const instanceMap = instancesByInjectableMap.get(
-    injectableToBeInstantiated.overriddenInjectable ||
-      injectableToBeInstantiated,
-  );
-
   const minimalInject = (alias, parameter) =>
     di.inject(alias, parameter, injectableToBeInstantiated);
 
-  const minimalDi = {
+  return {
     inject: minimalInject,
 
     injectWithMeta: (alias, parameter) =>
@@ -134,22 +126,25 @@ const getInstance = (
 
     hasRegistrations: di.hasRegistrations,
   };
+};
 
-  const instanceKey = injectableToBeInstantiated.lifecycle.getInstanceKey(
-    minimalDi,
-    instantiationParameter,
-  );
+const instantiate = (
+  di,
+  injectableToBeInstantiated,
+  minimalDi,
+  instantiationParameter,
+  decoratorCache,
+) => {
+  // Skip decorator machinery when no decorators are registered (common case).
+  const canSkipDecorators =
+    injectableToBeInstantiated.decorable === false ||
+    (decoratorCache.instantiation !== null &&
+      decoratorCache.instantiation.length === 0);
 
-  const instanceCompositeKey = isCompositeKey(instanceKey)
-    ? instanceKey.keys
-    : instanceKey === storedInstanceKey
-      ? singletonCompositeKey
-      : [instanceKey];
-
-  const existingInstance = instanceMap.get(instanceCompositeKey);
-
-  if (existingInstance) {
-    return existingInstance;
+  if (canSkipDecorators) {
+    return instantiationParameter === undefined
+      ? injectableToBeInstantiated.instantiate(minimalDi)
+      : injectableToBeInstantiated.instantiate(minimalDi, instantiationParameter);
   }
 
   const withInstantiationDecorators = withInstantiationDecoratorsFor({
@@ -162,9 +157,82 @@ const getInstance = (
     injectableToBeInstantiated.instantiate,
   );
 
-  const newInstance = instantiateWithDecorators(
+  return instantiationParameter === undefined
+    ? instantiateWithDecorators(minimalDi)
+    : instantiateWithDecorators(minimalDi, instantiationParameter);
+};
+
+const getInstance = (
+  di,
+  injectableToBeInstantiated,
+  instantiationParameter,
+  instancesByInjectableMap,
+  injectingInjectable,
+  namespacedIdByInjectableMap,
+  decoratorCache,
+) => {
+  const instanceMap = instancesByInjectableMap.get(
+    injectableToBeInstantiated.overriddenInjectable ||
+      injectableToBeInstantiated,
+  );
+
+  const lifecycleId = injectableToBeInstantiated.lifecycle.id;
+
+  // Singleton: fast path in privateInjectFor already checked cache and missed.
+  // Skip redundant getInstanceKey + cache check — go straight to instantiation.
+  if (lifecycleId === 'singleton') {
+    if (instantiationParameter) {
+      throw new Error(
+        `Tried to inject a singleton, but illegally to singletons, an instantiationParameter was provided: "${instantiationParameter}".`,
+      );
+    }
+
+    const minimalDi = createMinimalDi(
+      di, injectableToBeInstantiated, injectingInjectable, namespacedIdByInjectableMap,
+    );
+
+    const newInstance = instantiate(
+      di, injectableToBeInstantiated, minimalDi, instantiationParameter, decoratorCache,
+    );
+
+    instanceMap.set(singletonCompositeKey, newInstance);
+
+    return newInstance;
+  }
+
+  // Transient: never cached — skip key resolution, cache check, and cache store.
+  if (lifecycleId === 'transient') {
+    const minimalDi = createMinimalDi(
+      di, injectableToBeInstantiated, injectingInjectable, namespacedIdByInjectableMap,
+    );
+
+    return instantiate(
+      di, injectableToBeInstantiated, minimalDi, instantiationParameter, decoratorCache,
+    );
+  }
+
+  // keyedSingleton / custom lifecycle: full key resolution + cache check.
+  const minimalDi = createMinimalDi(
+    di, injectableToBeInstantiated, injectingInjectable, namespacedIdByInjectableMap,
+  );
+
+  const instanceKey = injectableToBeInstantiated.lifecycle.getInstanceKey(
     minimalDi,
-    ...(instantiationParameter === undefined ? [] : [instantiationParameter]),
+    instantiationParameter,
+  );
+
+  const instanceCompositeKey = isCompositeKey(instanceKey)
+    ? instanceKey.keys
+    : [instanceKey];
+
+  const existingInstance = instanceMap.get(instanceCompositeKey);
+
+  if (existingInstance) {
+    return existingInstance;
+  }
+
+  const newInstance = instantiate(
+    di, injectableToBeInstantiated, minimalDi, instantiationParameter, decoratorCache,
   );
 
   if (instanceCompositeKey[0] !== nonStoredInstanceKey) {
