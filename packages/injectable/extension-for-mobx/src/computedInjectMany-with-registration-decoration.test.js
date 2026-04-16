@@ -50,13 +50,11 @@ describe('computedInjectMany with registration decoration', () => {
         instantiate: () => ({
           target: someToken,
 
-          decorate:
-            registerToBeDecorated =>
-            injectable => {
-              deferredRegistrations.set(injectable, () =>
-                registerToBeDecorated(injectable),
-              );
-            },
+          decorate: registerToBeDecorated => injectable => {
+            deferredRegistrations.set(injectable, () =>
+              registerToBeDecorated(injectable),
+            );
+          },
         }),
       });
 
@@ -105,7 +103,9 @@ describe('computedInjectMany with registration decoration', () => {
       });
 
       expect(observations).toEqual([['some-instance']]);
-      expect(runInAction(() => reactiveInstances.get())).toEqual(['some-instance']);
+      expect(runInAction(() => reactiveInstances.get())).toEqual([
+        'some-instance',
+      ]);
     });
 
     it('when multiple injectables are deferred and then released one by one, computedInjectMany reacts to each', () => {
@@ -172,12 +172,10 @@ describe('computedInjectMany with registration decoration', () => {
         instantiate: () => ({
           target: someToken,
 
-          decorate:
-            registerToBeDecorated =>
-            injectable => {
-              blocked.add(injectable);
-              deferred.set(injectable, () => registerToBeDecorated(injectable));
-            },
+          decorate: registerToBeDecorated => injectable => {
+            blocked.add(injectable);
+            deferred.set(injectable, () => registerToBeDecorated(injectable));
+          },
         }),
       });
 
@@ -240,15 +238,13 @@ describe('computedInjectMany with registration decoration', () => {
         instantiate: () => ({
           target: someToken,
 
-          decorate:
-            registerToBeDecorated =>
-            injectable => {
-              if (injectable === blockedInjectable) {
-                return;
-              }
+          decorate: registerToBeDecorated => injectable => {
+            if (injectable === blockedInjectable) {
+              return;
+            }
 
-              registerToBeDecorated(injectable);
-            },
+            registerToBeDecorated(injectable);
+          },
         }),
       });
 
@@ -270,7 +266,9 @@ describe('computedInjectMany with registration decoration', () => {
       });
 
       expect(observations).toEqual([['allowed-instance']]);
-      expect(runInAction(() => reactiveInstances.get())).toEqual(['allowed-instance']);
+      expect(runInAction(() => reactiveInstances.get())).toEqual([
+        'allowed-instance',
+      ]);
     });
   });
 });

@@ -59,7 +59,10 @@ describe('registerMobx', () => {
         instantiate: () => ({
           target: someInjectable,
 
-          decorate: toBeDecorated => (...args) => toBeDecorated(...args),
+          decorate:
+            toBeDecorated =>
+            (...args) =>
+              toBeDecorated(...args),
         }),
 
         decorable: false,
@@ -344,7 +347,6 @@ describe('registerMobx', () => {
           'some-root-instance(some-instance, some-other-instance)',
         ]);
       });
-
     });
   });
 

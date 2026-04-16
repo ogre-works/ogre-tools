@@ -328,7 +328,6 @@ describe('registerMobx', () => {
           'some-root-instance(some-instance, some-other-instance)',
         ]);
       });
-
     });
   });
 

@@ -55,7 +55,10 @@ describe('computedInjectMaybe with instantiation parameter', () => {
         instantiate: () => ({
           target: someInjectable,
 
-          decorate: toBeDecorated => (...args) => toBeDecorated(...args),
+          decorate:
+            toBeDecorated =>
+            (...args) =>
+              toBeDecorated(...args),
         }),
 
         decorable: false,
