@@ -12,7 +12,7 @@ export function registerMobX(di: DiContainer): void;
 type ComputedInjectMany = {
   // InjectionToken2: variadic, returns IComputedValue of instance array
   <F extends (...args: any[]) => any>(
-    injectionToken: InjectionToken2<F, any, any>,
+    injectionToken: InjectionToken2<F>,
     ...params: Parameters<F>
   ): IComputedValue<ReturnType<F>[]>;
 
@@ -30,7 +30,7 @@ type ComputedInjectMany = {
 type ComputedInjectManyWithMeta = {
   // InjectionToken2: variadic, returns IComputedValue of instance-with-meta array
   <F extends (...args: any[]) => any>(
-    injectionToken: InjectionToken2<F, any, any>,
+    injectionToken: InjectionToken2<F>,
     ...params: Parameters<F>
   ): IComputedValue<InjectionInstanceWithMeta<ReturnType<F>>[]>;
 
@@ -62,7 +62,7 @@ export const computedInjectManyWithMetaInjectionToken: InjectionToken<ComputedIn
 type ComputedInjectMaybe = {
   // InjectionToken2: variadic, returns IComputedValue of instance or undefined
   <F extends (...args: any[]) => any>(
-    injectionToken: InjectionToken2<F, any, any>,
+    injectionToken: InjectionToken2<F>,
     ...params: Parameters<F>
   ): IComputedValue<ReturnType<F> | undefined>;
 
