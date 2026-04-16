@@ -1,6 +1,6 @@
 import { expectError, expectType } from "tsd";
 
-import { createContainer, getInjectionToken, type InjectionInstanceWithMeta } from "@ogre-tools/injectable";
+import { createContainer, getInjectionToken, getInjectionToken2, type InjectionInstanceWithMeta } from "@ogre-tools/injectable";
 
 import type { IComputedValue } from "mobx";
 
@@ -80,3 +80,41 @@ expectType<IComputedValue<string | undefined>>(computedInjectMaybe(someInjection
 
 // given injection token with parameter, when used without parameter, typing is ok
 expectError(computedInjectMaybe(someInjectionTokenWithParameter));
+
+// ======================================================================
+// InjectionToken2 support
+// ======================================================================
+
+// Given InjectionToken2 without parameters
+const someToken2 = getInjectionToken2<() => string>({ id: "some-token2" });
+
+// computedInjectMany with InjectionToken2
+expectType<IComputedValue<string[]>>(computedInjectMany(someToken2));
+
+// computedInjectManyWithMeta with InjectionToken2
+expectType<IComputedValue<InjectionInstanceWithMeta<string>[]>>(computedInjectManyWithMeta(someToken2));
+
+// computedInjectMaybe with InjectionToken2
+expectType<IComputedValue<string | undefined>>(computedInjectMaybe(someToken2));
+
+// Given InjectionToken2 with parameters
+const someParamToken2 = getInjectionToken2<(key: string) => number>({ id: "some-param-token2" });
+
+// computedInjectMany with parametric InjectionToken2
+expectType<IComputedValue<number[]>>(computedInjectMany(someParamToken2, "some-key"));
+
+// computedInjectManyWithMeta with parametric InjectionToken2
+expectType<IComputedValue<InjectionInstanceWithMeta<number>[]>>(computedInjectManyWithMeta(someParamToken2, "some-key"));
+
+// computedInjectMaybe with parametric InjectionToken2
+expectType<IComputedValue<number | undefined>>(computedInjectMaybe(someParamToken2, "some-key"));
+
+// wrong param type for InjectionToken2 is a type error
+expectError(computedInjectMany(someParamToken2, 42));
+expectError(computedInjectManyWithMeta(someParamToken2, 42));
+expectError(computedInjectMaybe(someParamToken2, 42));
+
+// missing param for parametric InjectionToken2 is a type error
+expectError(computedInjectMany(someParamToken2));
+expectError(computedInjectManyWithMeta(someParamToken2));
+expectError(computedInjectMaybe(someParamToken2));

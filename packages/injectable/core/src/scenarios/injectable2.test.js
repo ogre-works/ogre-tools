@@ -237,4 +237,111 @@ describe('getInjectable2', () => {
       expect(doubler(5)).toBe(10);
     });
   });
+
+  describe('injectWithMeta', () => {
+    it('returns instance with meta for non-parametric injectable2', () => {
+      const fooInjectable = getInjectable2({
+        id: 'foo-with-meta',
+        instantiate: () => () => 42,
+      });
+
+      di.register(fooInjectable);
+
+      const result = di.injectWithMeta(fooInjectable);
+
+      expect(result).toEqual({
+        instance: 42,
+        meta: { id: 'foo-with-meta' },
+      });
+    });
+
+    it('returns instance with meta for parametric injectable2', () => {
+      const greetInjectable = getInjectable2({
+        id: 'greet-with-meta',
+        instantiate: () => name => `hello-${name}`,
+      });
+
+      di.register(greetInjectable);
+
+      const result = di.injectWithMeta(greetInjectable, 'world');
+
+      expect(result).toEqual({
+        instance: 'hello-world',
+        meta: { id: 'greet-with-meta' },
+      });
+    });
+  });
+
+  describe('injectManyWithMeta', () => {
+    it('returns instances with meta for token2', () => {
+      const token = getInjectionToken2({ id: 'meta-token' });
+
+      const impl1 = getInjectable2({
+        id: 'meta-impl-1',
+        injectionToken: token,
+        instantiate: () => () => 'a',
+      });
+
+      const impl2 = getInjectable2({
+        id: 'meta-impl-2',
+        injectionToken: token,
+        instantiate: () => () => 'b',
+      });
+
+      di.register(impl1, impl2);
+
+      const result = di.injectManyWithMeta(token);
+
+      expect(result).toEqual([
+        { instance: 'a', meta: { id: 'meta-impl-1' } },
+        { instance: 'b', meta: { id: 'meta-impl-2' } },
+      ]);
+    });
+
+    it('returns instances with meta for parametric token2', () => {
+      const token = getInjectionToken2({ id: 'param-meta-token' });
+
+      const impl = getInjectable2({
+        id: 'param-meta-impl',
+        injectionToken: token,
+        instantiate: () => key => `value-${key}`,
+      });
+
+      di.register(impl);
+
+      const result = di.injectManyWithMeta(token, 'x');
+
+      expect(result).toEqual([
+        { instance: 'value-x', meta: { id: 'param-meta-impl' } },
+      ]);
+    });
+  });
+
+  describe('override', () => {
+    it('override with flat stub works for injectable2', () => {
+      const fooInjectable = getInjectable2({
+        id: 'overridable-foo',
+        instantiate: () => () => 'original',
+      });
+
+      di.register(fooInjectable);
+
+      di.override(fooInjectable, () => 'overridden');
+
+      expect(di.inject(fooInjectable)).toBe('overridden');
+    });
+
+    it('override with parametric stub works for injectable2', () => {
+      const fooInjectable = getInjectable2({
+        id: 'overridable-param',
+        instantiate: () => name => `original-${name}`,
+      });
+
+      di.register(fooInjectable);
+
+      di.override(fooInjectable, (di, name) => `overridden-${name}`);
+
+      expect(di.inject(fooInjectable, 'test')).toBe('overridden-test');
+    });
+  });
 });
