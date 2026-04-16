@@ -80,7 +80,7 @@ describe('computedInjectMany with registration decoration', () => {
       });
 
       expect(observed).toBeUndefined();
-      expect(reactiveInstances.get()).toEqual([]);
+      expect(runInAction(() => reactiveInstances.get())).toEqual([]);
     });
 
     it('when the deferred registration is released, computedInjectMany reacts and includes the injectable', () => {
@@ -97,7 +97,7 @@ describe('computedInjectMany with registration decoration', () => {
         di.register(someInjectable);
       });
 
-      expect(reactiveInstances.get()).toEqual([]);
+      expect(runInAction(() => reactiveInstances.get())).toEqual([]);
 
       runInAction(() => {
         const release = deferredRegistrations.get(someInjectable);
@@ -105,7 +105,7 @@ describe('computedInjectMany with registration decoration', () => {
       });
 
       expect(observations).toEqual([['some-instance']]);
-      expect(reactiveInstances.get()).toEqual(['some-instance']);
+      expect(runInAction(() => reactiveInstances.get())).toEqual(['some-instance']);
     });
 
     it('when multiple injectables are deferred and then released one by one, computedInjectMany reacts to each', () => {
@@ -128,7 +128,7 @@ describe('computedInjectMany with registration decoration', () => {
         di.register(someInjectable, someOtherInjectable);
       });
 
-      expect(reactiveInstances.get()).toEqual([]);
+      expect(runInAction(() => reactiveInstances.get())).toEqual([]);
 
       runInAction(() => {
         deferredRegistrations.get(someInjectable)();
@@ -202,7 +202,7 @@ describe('computedInjectMany with registration decoration', () => {
         di.register(someInjectable);
       });
 
-      expect(reactiveInstances.get()).toEqual([]);
+      expect(runInAction(() => reactiveInstances.get())).toEqual([]);
 
       runInAction(() => {
         di.deregister(flagDecorator);
@@ -270,7 +270,7 @@ describe('computedInjectMany with registration decoration', () => {
       });
 
       expect(observations).toEqual([['allowed-instance']]);
-      expect(reactiveInstances.get()).toEqual(['allowed-instance']);
+      expect(runInAction(() => reactiveInstances.get())).toEqual(['allowed-instance']);
     });
   });
 });
