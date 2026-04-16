@@ -1,10 +1,6 @@
-import React, { forwardRef, Suspense, useContext } from 'react';
+import React, { forwardRef, Suspense } from 'react';
 import { getInjectionToken } from '@lensapp/injectable';
 import { useInject } from '../useInject/useInject';
-import {
-  diContext,
-  DiContextProvider,
-} from '../withInjectables/withInjectables';
 
 export const getInjectionTokenComponent = ({
   PlaceholderComponent,
@@ -17,18 +13,13 @@ export const getInjectionTokenComponent = ({
 
   const ComponentForReact = forwardRef((props, ref) => {
     const InjectedComponent = useInject(TokenComponent);
-    const di = useContext(diContext);
 
-    return (
-      <DiContextProvider value={di}>
-        {PlaceholderComponent ? (
-          <Suspense fallback={<PlaceholderComponent {...props} />}>
-            <InjectedComponent {...props} ref={ref} />
-          </Suspense>
-        ) : (
-          <InjectedComponent {...props} ref={ref} />
-        )}
-      </DiContextProvider>
+    return PlaceholderComponent ? (
+      <Suspense fallback={<PlaceholderComponent {...props} />}>
+        <InjectedComponent {...props} ref={ref} />
+      </Suspense>
+    ) : (
+      <InjectedComponent {...props} ref={ref} />
     );
   });
 

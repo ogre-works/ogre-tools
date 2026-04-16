@@ -1,11 +1,7 @@
-import React, { forwardRef, Suspense, useContext } from 'react';
+import React, { forwardRef, Suspense } from 'react';
 
 import { getInjectable } from '@ogre-tools/injectable';
 import { useInject } from '../useInject/useInject';
-import {
-  diContext,
-  DiContextProvider,
-} from '../withInjectables/withInjectables';
 
 export const getInjectableComponent = ({
   Component,
@@ -54,19 +50,13 @@ const getComponentAsInjectableAndAbleToSuspend = (
     tags,
 
     instantiate: () =>
-      forwardRef((props, ref) => {
-        const di = useContext(diContext);
-
-        return (
-          <DiContextProvider value={di}>
-            {PlaceholderComponent ? (
-              <Suspense fallback={<PlaceholderComponent {...props} />}>
-                <Component {...props} ref={ref} />
-              </Suspense>
-            ) : (
-              <Component {...props} ref={ref} />
-            )}
-          </DiContextProvider>
-        );
-      }),
+      forwardRef((props, ref) =>
+        PlaceholderComponent ? (
+          <Suspense fallback={<PlaceholderComponent {...props} />}>
+            <Component {...props} ref={ref} />
+          </Suspense>
+        ) : (
+          <Component {...props} ref={ref} />
+        ),
+      ),
   });
