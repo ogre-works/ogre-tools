@@ -179,14 +179,17 @@ export const registerSingleFor =
 
     const tokens = getRelatedTokens(injectable.injectionToken);
 
-    tokens.forEach(token => {
-      const injectablesSet =
-        injectablesByInjectionToken.get(token) || new Set();
+    for (let t = 0; t < tokens.length; t++) {
+      const token = tokens[t];
+      let injectablesSet = injectablesByInjectionToken.get(token);
+
+      if (!injectablesSet) {
+        injectablesSet = new Set();
+        injectablesByInjectionToken.set(token, injectablesSet);
+      }
 
       injectablesSet.add(injectable);
       invalidateRelatedInjectablesCache(injectablesSet);
-
-      injectablesByInjectionToken.set(token, injectablesSet);
-    });
+    }
   };
   };

@@ -1,19 +1,36 @@
 import isInjectionToken from '../getInjectionToken/isInjectionToken';
 
 export const getNamespacedIdFor = injectableAndRegistrationContext => {
-  const getParentIds = injectable => {
-    const ids = [];
-    let current = injectable;
+  return alias => {
+    const id = isInjectionToken(alias) ? `(${alias.id})` : alias.id;
+
+    // Fast path: container-level registration (the common case).
+    // Context is [containerRootContextItem] — parent is the container itself.
+    const registrationContext = injectableAndRegistrationContext.get(alias);
+
+    if (!registrationContext) {
+      return id;
+    }
+
+    const immediateParent =
+      registrationContext[registrationContext.length - 1];
+
+    if (!immediateParent || immediateParent.injectable.aliasType === 'container') {
+      return id;
+    }
+
+    // Slow path: nested registration — walk the parent chain.
+    const ids = [immediateParent.injectable.id];
+    let current = immediateParent.injectable;
 
     while (true) {
-      const registrationContext =
-        injectableAndRegistrationContext.get(current);
+      const parentContext = injectableAndRegistrationContext.get(current);
 
-      if (!registrationContext) {
+      if (!parentContext) {
         break;
       }
 
-      const parent = registrationContext[registrationContext.length - 1];
+      const parent = parentContext[parentContext.length - 1];
 
       if (!parent || parent.injectable.aliasType === 'container') {
         break;
@@ -24,15 +41,7 @@ export const getNamespacedIdFor = injectableAndRegistrationContext => {
     }
 
     ids.reverse();
-    return ids;
-  };
-
-  return alias => {
-    const parentIds = getParentIds(alias);
-
-    const id = isInjectionToken(alias) ? `(${alias.id})` : alias.id;
-
-    parentIds.push(id);
-    return parentIds.join(':');
+    ids.push(id);
+    return ids.join(':');
   };
 };

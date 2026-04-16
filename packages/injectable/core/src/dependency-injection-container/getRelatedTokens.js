@@ -1,4 +1,17 @@
+// Token hierarchies (specificTokenOf chains) are immutable — cache per token.
+const tokenChainCache = new WeakMap();
+
 export const getRelatedTokens = token => {
+  if (token === undefined) {
+    return emptyArray;
+  }
+
+  let cached = tokenChainCache.get(token);
+
+  if (cached) {
+    return cached;
+  }
+
   const tokens = [];
   let current = token;
 
@@ -7,5 +20,9 @@ export const getRelatedTokens = token => {
     current = current.specificTokenOf;
   }
 
+  tokenChainCache.set(token, tokens);
+
   return tokens;
 };
+
+const emptyArray = [];
