@@ -25,6 +25,7 @@ import {
   lifecycleEnum,
   SpecificInject,
   SpecificInjectionToken,
+  InjectionInstanceWithMeta,
   TypedSpecifier,
   TypedSpecifierType,
   TypedSpecifierWithType,
@@ -1103,3 +1104,36 @@ expectType<boolean[]>(di.injectMany(specificToken2, 'hello'));
 
 // wrong arg type is a type error
 expectError(di.inject(specificToken2, 42));
+
+// --- WithMeta variants: work for non-generic, lose generics for generic tokens ---
+
+// Non-generic: injectWithMeta returns correctly typed meta wrapper
+expectType<InjectionInstanceWithMeta<number>>(di.injectWithMeta(nonParametricInjectable2));
+expectType<InjectionInstanceWithMeta<{ name: string; age: number }>>(
+  di.injectWithMeta(parametricInjectable2, 'Alice', 30),
+);
+
+// Non-generic token: injectManyWithMeta returns correctly typed meta wrapper array
+expectType<InjectionInstanceWithMeta<string>[]>(di.injectManyWithMeta(handlerToken2));
+
+// Non-generic token with params: injectManyWithMeta works
+expectType<InjectionInstanceWithMeta<{ id: string }>[]>(
+  di.injectManyWithMeta(userServiceToken2, 'user-123'),
+);
+
+// Inside new-style: injectWithMeta for non-generic returns factory for meta wrapper
+const innerWithMeta = getInjectable2({
+  id: 'inner-with-meta',
+  instantiate: (di: DiContainerForInjection2) => {
+    const getHandlerMeta = di.injectWithMeta(handlerToken2);
+    expectType<() => InjectionInstanceWithMeta<string>>(getHandlerMeta);
+
+    const getHandlersMeta = di.injectManyWithMeta(handlerToken2);
+    expectType<() => InjectionInstanceWithMeta<string>[]>(getHandlersMeta);
+
+    return () => {};
+  },
+});
+
+// Known limitation: generic tokens lose type info in WithMeta variants.
+// Use non-meta inject/injectMany for generic types instead.

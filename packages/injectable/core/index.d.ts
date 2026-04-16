@@ -635,21 +635,27 @@ interface InjectMany2 {
   <I, P>(key: InjectionToken<I, P>): (...params: P extends any[] ? P : [P]) => I[];
 }
 
+// Helper: transforms a factory's return type to InjectionInstanceWithMeta<R>
+// For non-generic factories this auto-derives correctly.
+// For generic factories, TypeScript loses the generic (returns unknown).
+// In that case, users should use inject/injectMany (non-meta) for generic types.
+type ToWithMetaFactory<F> = F extends (...args: infer P) => infer R
+  ? (...args: P) => InjectionInstanceWithMeta<R>
+  : never;
+
+type ToWithMetaManyFactory<F> = F extends (...args: infer P) => infer R
+  ? (...args: P) => InjectionInstanceWithMeta<R>[]
+  : never;
+
 interface InjectWithMeta2 {
-  <F extends (...args: any[]) => any>(key: Injectable2<F>): F extends (...args: infer P) => infer R
-    ? (...args: P) => InjectionInstanceWithMeta<R>
-    : never;
-  <F extends (...args: any[]) => any>(key: InjectionToken2<F, any, any>): F extends (...args: infer P) => infer R
-    ? (...args: P) => InjectionInstanceWithMeta<R>
-    : never;
+  <F extends (...args: any[]) => any>(key: Injectable2<F>): ToWithMetaFactory<F>;
+  <F extends (...args: any[]) => any>(key: InjectionToken2<F, any, any>): ToWithMetaFactory<F>;
   <I>(key: Injectable<I, any, void> | InjectionToken<I, void>): () => InjectionInstanceWithMeta<I>;
   <I, P>(key: Injectable<I, any, P> | InjectionToken<I, P>): (...params: P extends any[] ? P : [P]) => InjectionInstanceWithMeta<I>;
 }
 
 interface InjectManyWithMeta2 {
-  <F extends (...args: any[]) => any>(key: InjectionToken2<F, any, any>): F extends (...args: infer P) => infer R
-    ? (...args: P) => InjectionInstanceWithMeta<R>[]
-    : never;
+  <F extends (...args: any[]) => any>(key: InjectionToken2<F, any, any>): ToWithMetaManyFactory<F>;
   <I>(key: InjectionToken<I, void>): () => InjectionInstanceWithMeta<I>[];
   <I, P>(key: InjectionToken<I, P>): (...params: P extends any[] ? P : [P]) => InjectionInstanceWithMeta<I>[];
 }
