@@ -20,7 +20,11 @@ export default containerId => {
   const injectableSet = new Set();
 
   // Cache for decorator lists — invalidated on decorator registration/deregistration
-  const decoratorCache = { injection: null, instantiation: null };
+  const decoratorCache = {
+    injection: null,
+    injectionByAlias: new Map(),
+    instantiation: null,
+  };
   const overridingInjectables = new Map();
   let sideEffectsArePrevented = false;
   const alreadyInjected = new Set();
@@ -31,6 +35,7 @@ export default containerId => {
   const instancesByInjectableMap = new Map();
   const injectablesByInjectionToken = new Map();
   const namespacedIdByInjectableMap = new Map();
+  const childrenByParentMap = new Map();
 
   const getNamespacedId = getNamespacedIdFor(injectableAndRegistrationContext);
 
@@ -49,7 +54,7 @@ export default containerId => {
     nonDecoratedPrivateInjectManyFor({
       getRelatedInjectables,
       getInject: () => decoratedPrivateInject,
-      getNamespacedId,
+      namespacedIdByInjectableMap,
     });
 
   const nonDecoratedPrivateInjectMany =
@@ -85,7 +90,7 @@ export default containerId => {
     getDi: () => privateDi,
     checkForNoMatches,
     checkForSideEffects,
-    getNamespacedId,
+    namespacedIdByInjectableMap,
     decoratorCache,
   });
 
@@ -121,6 +126,7 @@ export default containerId => {
     injectablesByInjectionToken,
     injectableIdSet,
     injectableAndRegistrationContext,
+    childrenByParentMap,
   });
 
   const registerSingle = (injectable, context) => {
@@ -149,6 +155,7 @@ export default containerId => {
     purgeInstances,
     injectableIdSet,
     namespacedIdByInjectableMap,
+    childrenByParentMap,
     // Todo: get rid of function usage.
     getDi: () => privateDi,
     decoratorCache,
@@ -185,6 +192,7 @@ export default containerId => {
     instancesByInjectableMap.clear();
     injectablesByInjectionToken.clear();
     namespacedIdByInjectableMap.clear();
+    childrenByParentMap.clear();
     decoratorCache.injection = null;
     decoratorCache.instantiation = null;
   };

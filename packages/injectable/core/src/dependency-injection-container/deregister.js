@@ -22,6 +22,7 @@ export const deregisterFor =
     purgeInstances,
     injectableIdSet,
     namespacedIdByInjectableMap,
+    childrenByParentMap,
     // Todo: get rid of function usage.
     getDi,
     decoratorCache,
@@ -54,6 +55,7 @@ export const deregisterFor =
       purgeInstances,
       injectableIdSet,
       namespacedIdByInjectableMap,
+      childrenByParentMap,
       di,
     });
 
@@ -114,6 +116,7 @@ export const deregisterSingleFor =
     purgeInstances,
     injectableIdSet,
     namespacedIdByInjectableMap,
+    childrenByParentMap,
     di,
   }) =>
   injectable => {
@@ -129,20 +132,22 @@ export const deregisterSingleFor =
       );
     }
 
-    [...injectableAndRegistrationContext.entries()]
-      .filter(([, context]) =>
-        context.find(contextItem => contextItem.injectable === injectable),
-      )
-      .map(x => x[0])
-      .forEach(injectable => {
-        injectableAndRegistrationContext.delete(injectable);
+    // Cascade deregister children using the reverse index (O(1) lookup).
+    const children = childrenByParentMap.get(injectable);
 
-        if (injectableSet.has(injectable)) {
+    if (children) {
+      children.forEach(child => {
+        injectableAndRegistrationContext.delete(child);
+
+        if (injectableSet.has(child)) {
           di.deregister({
-            injectables: [injectable],
+            injectables: [child],
           });
         }
       });
+
+      childrenByParentMap.delete(injectable);
+    }
 
     purgeInstances(injectable);
     injectableAndRegistrationContext.delete(injectable);

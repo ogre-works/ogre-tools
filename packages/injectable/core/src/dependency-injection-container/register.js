@@ -20,17 +20,24 @@ export const registerFor =
   ({ injectables, context, source }) => {
     const flatInjectables = toFlatInjectables(injectables);
 
-    // Pass 1: register reg/dereg decorator injectables first (undecorated)
-    const decoratorInjectables = flatInjectables.filter(isDecoratorInjectable);
+    // Single-pass partition into decorators and non-decorators.
+    const decoratorInjectables = [];
+    const nonDecoratorInjectables = [];
 
+    for (let i = 0; i < flatInjectables.length; i++) {
+      const injectable = flatInjectables[i];
+
+      if (isDecoratorInjectable(injectable)) {
+        decoratorInjectables.push(injectable);
+      } else {
+        nonDecoratorInjectables.push(injectable);
+      }
+    }
+
+    // Pass 1: register reg/dereg decorator injectables first (undecorated)
     decoratorInjectables.forEach(injectable => {
       registerSingle(injectable, context);
     });
-
-    // Pass 2: register everything else through the decoration chain
-    const nonDecoratorInjectables = flatInjectables.filter(
-      injectable => !isDecoratorInjectable(injectable),
-    );
 
     // Collect all registration decorators once (not per-injectable)
     const allRegistrationDecorators = injectMany(
@@ -100,8 +107,6 @@ export const registerFor =
     batchInProgress = false;
 
     // Fire callbacks for all actually registered injectables (batch semantics)
-    const allRegistered = [...decoratorInjectables, ...registeredInjectables];
-
     const callbacks = injectMany(
       registrationCallbackToken,
       undefined,
@@ -109,11 +114,14 @@ export const registerFor =
       null,
     );
 
-    allRegistered.forEach(injectable => {
+    const fireCallbacks = injectable => {
       callbacks.forEach(callback => {
         callback(injectable);
       });
-    });
+    };
+
+    decoratorInjectables.forEach(fireCallbacks);
+    registeredInjectables.forEach(fireCallbacks);
   };
 
 export const registerSingleFor =
@@ -124,6 +132,7 @@ export const registerSingleFor =
     namespacedIdByInjectableMap,
     injectablesByInjectionToken,
     injectableAndRegistrationContext,
+    childrenByParentMap,
   }) => {
   const getNamespacedId = getNamespacedIdFor(injectableAndRegistrationContext);
 
@@ -135,6 +144,19 @@ export const registerSingleFor =
     }
 
     injectableAndRegistrationContext.set(injectable, injectionContext);
+
+    // Build reverse index: for each parent in the context, record this injectable as a child.
+    for (let i = 0; i < injectionContext.length; i++) {
+      const parent = injectionContext[i].injectable;
+      let children = childrenByParentMap.get(parent);
+
+      if (!children) {
+        children = new Set();
+        childrenByParentMap.set(parent, children);
+      }
+
+      children.add(injectable);
+    }
 
     const namespacedId = getNamespacedId(injectable);
 
