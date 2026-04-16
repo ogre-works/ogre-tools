@@ -144,5 +144,4 @@ describe('createContainer.injection-token', () => {
 
     expect(di.inject(injectionToken)).toBe('some-instance');
   });
-
 });

@@ -12,10 +12,12 @@ export const getNamespacedIdFor = injectableAndRegistrationContext => {
       return id;
     }
 
-    const immediateParent =
-      registrationContext[registrationContext.length - 1];
+    const immediateParent = registrationContext[registrationContext.length - 1];
 
-    if (!immediateParent || immediateParent.injectable.aliasType === 'container') {
+    if (
+      !immediateParent ||
+      immediateParent.injectable.aliasType === 'container'
+    ) {
       return id;
     }
 

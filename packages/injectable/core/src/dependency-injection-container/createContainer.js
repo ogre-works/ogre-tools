@@ -11,10 +11,7 @@ import { checkForNoMatches } from './checkForNoMatchesFor';
 import { checkForSideEffectsFor } from './checkForSideEffectsFor';
 import { getRelatedInjectablesFor } from './getRelatedInjectablesFor';
 import { earlyOverrideFor } from './early-override';
-import {
-  injectionDecoratorToken,
-  instantiationDecoratorToken,
-} from './tokens';
+import { injectionDecoratorToken, instantiationDecoratorToken } from './tokens';
 
 export default containerId => {
   const injectableSet = new Set();
@@ -242,7 +239,12 @@ export default containerId => {
     inject: publicInject,
 
     injectWithMeta: (alias, parameter) =>
-      privateDi.injectWithMeta(alias, parameter, rootInjectable, rootInjectable),
+      privateDi.injectWithMeta(
+        alias,
+        parameter,
+        rootInjectable,
+        rootInjectable,
+      ),
 
     injectMany: (alias, parameter) =>
       privateDi.injectMany(alias, parameter, rootInjectable, rootInjectable),
@@ -264,7 +266,12 @@ export default containerId => {
     },
 
     injectManyWithMeta: (alias, parameter) =>
-      privateDi.injectManyWithMeta(alias, parameter, rootInjectable, rootInjectable),
+      privateDi.injectManyWithMeta(
+        alias,
+        parameter,
+        rootInjectable,
+        rootInjectable,
+      ),
 
     getInstances: alias =>
       getRelatedInjectables(alias).flatMap(injectable => [

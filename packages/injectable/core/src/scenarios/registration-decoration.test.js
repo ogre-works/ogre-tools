@@ -22,11 +22,9 @@ describe('createContainer.registration-decoration', () => {
         decorable: false,
 
         instantiate: () => ({
-          decorate:
-            registerToBeDecorated =>
-            injectable => {
-              registerToBeDecorated(injectable);
-            },
+          decorate: registerToBeDecorated => injectable => {
+            registerToBeDecorated(injectable);
+          },
         }),
       });
 
@@ -180,12 +178,10 @@ describe('createContainer.registration-decoration', () => {
         decorable: false,
 
         instantiate: () => ({
-          decorate:
-            registerToBeDecorated =>
-            injectable => {
-              // Store for later
-              deferredRegister = () => registerToBeDecorated(injectable);
-            },
+          decorate: registerToBeDecorated => injectable => {
+            // Store for later
+            deferredRegister = () => registerToBeDecorated(injectable);
+          },
         }),
       });
 
@@ -274,11 +270,9 @@ describe('createContainer.registration-decoration', () => {
         decorable: false,
 
         instantiate: () => ({
-          decorate:
-            deregisterToBeDecorated =>
-            injectable => {
-              deregisterToBeDecorated(injectable);
-            },
+          decorate: deregisterToBeDecorated => injectable => {
+            deregisterToBeDecorated(injectable);
+          },
         }),
       });
 

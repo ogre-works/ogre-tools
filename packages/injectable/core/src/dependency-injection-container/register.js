@@ -124,16 +124,15 @@ export const registerFor =
     registeredInjectables.forEach(fireCallbacks);
   };
 
-export const registerSingleFor =
-  ({
-    injectableSet,
-    injectableIdSet,
-    instancesByInjectableMap,
-    namespacedIdByInjectableMap,
-    injectablesByInjectionToken,
-    injectableAndRegistrationContext,
-    childrenByParentMap,
-  }) => {
+export const registerSingleFor = ({
+  injectableSet,
+  injectableIdSet,
+  instancesByInjectableMap,
+  namespacedIdByInjectableMap,
+  injectablesByInjectionToken,
+  injectableAndRegistrationContext,
+  childrenByParentMap,
+}) => {
   const getNamespacedId = getNamespacedIdFor(injectableAndRegistrationContext);
 
   return (injectable, injectionContext) => {
@@ -192,4 +191,4 @@ export const registerSingleFor =
       invalidateRelatedInjectablesCache(injectablesSet);
     }
   };
-  };
+};

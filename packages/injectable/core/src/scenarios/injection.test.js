@@ -31,5 +31,4 @@ describe('createContainer.injection', () => {
 
     expect(actual).toBe('some-child-instance');
   });
-
 });

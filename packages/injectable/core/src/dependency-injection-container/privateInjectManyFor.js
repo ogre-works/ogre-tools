@@ -1,9 +1,5 @@
 export const privateInjectManyFor =
-  ({
-    getRelatedInjectables,
-    getInject,
-    namespacedIdByInjectableMap,
-  }) =>
+  ({ getRelatedInjectables, getInject, namespacedIdByInjectableMap }) =>
   ({ withMeta }) =>
   (injectionToken, instantiationParameter, injectingInjectable) => {
     const inject = getInject();

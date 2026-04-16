@@ -3,7 +3,9 @@ export const checkForSideEffectsFor =
   injectable => {
     if (getSideEffectsArePrevented(injectable)) {
       throw new Error(
-        `Tried to inject "${getNamespacedId(injectable)}" when side-effects are prevented.`,
+        `Tried to inject "${getNamespacedId(
+          injectable,
+        )}" when side-effects are prevented.`,
       );
     }
   };

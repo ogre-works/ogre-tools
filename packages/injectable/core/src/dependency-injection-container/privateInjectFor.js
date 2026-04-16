@@ -144,7 +144,10 @@ const instantiate = (
   if (canSkipDecorators) {
     return instantiationParameter === undefined
       ? injectableToBeInstantiated.instantiate(minimalDi)
-      : injectableToBeInstantiated.instantiate(minimalDi, instantiationParameter);
+      : injectableToBeInstantiated.instantiate(
+          minimalDi,
+          instantiationParameter,
+        );
   }
 
   const withInstantiationDecorators = withInstantiationDecoratorsFor({
@@ -188,11 +191,18 @@ const getInstance = (
     }
 
     const minimalDi = createMinimalDi(
-      di, injectableToBeInstantiated, injectingInjectable, namespacedIdByInjectableMap,
+      di,
+      injectableToBeInstantiated,
+      injectingInjectable,
+      namespacedIdByInjectableMap,
     );
 
     const newInstance = instantiate(
-      di, injectableToBeInstantiated, minimalDi, instantiationParameter, decoratorCache,
+      di,
+      injectableToBeInstantiated,
+      minimalDi,
+      instantiationParameter,
+      decoratorCache,
     );
 
     instanceMap.set(singletonCompositeKey, newInstance);
@@ -203,17 +213,27 @@ const getInstance = (
   // Transient: never cached — skip key resolution, cache check, and cache store.
   if (lifecycleId === 'transient') {
     const minimalDi = createMinimalDi(
-      di, injectableToBeInstantiated, injectingInjectable, namespacedIdByInjectableMap,
+      di,
+      injectableToBeInstantiated,
+      injectingInjectable,
+      namespacedIdByInjectableMap,
     );
 
     return instantiate(
-      di, injectableToBeInstantiated, minimalDi, instantiationParameter, decoratorCache,
+      di,
+      injectableToBeInstantiated,
+      minimalDi,
+      instantiationParameter,
+      decoratorCache,
     );
   }
 
   // keyedSingleton / custom lifecycle: full key resolution + cache check.
   const minimalDi = createMinimalDi(
-    di, injectableToBeInstantiated, injectingInjectable, namespacedIdByInjectableMap,
+    di,
+    injectableToBeInstantiated,
+    injectingInjectable,
+    namespacedIdByInjectableMap,
   );
 
   const instanceKey = injectableToBeInstantiated.lifecycle.getInstanceKey(
@@ -232,7 +252,11 @@ const getInstance = (
   }
 
   const newInstance = instantiate(
-    di, injectableToBeInstantiated, minimalDi, instantiationParameter, decoratorCache,
+    di,
+    injectableToBeInstantiated,
+    minimalDi,
+    instantiationParameter,
+    decoratorCache,
   );
 
   if (instanceCompositeKey[0] !== nonStoredInstanceKey) {
