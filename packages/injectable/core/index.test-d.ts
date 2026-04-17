@@ -1,4 +1,4 @@
-import {expectAssignable, expectError, expectNotType, expectType} from 'tsd';
+import { expectAssignable, expectError, expectNotType, expectType } from 'tsd';
 
 import {
   createContainer,
@@ -169,22 +169,27 @@ const decoratorForInjectionParameterInjectable = getInjectable({
   injectionToken: injectionDecoratorToken,
 });
 
-type SomeKey<T, P> = TypedSpecifier<string, { value: T, param: P }>;
+type SomeKey<T, P> = TypedSpecifier<string, { value: T; param: P }>;
 
-const somethingInjectionToken = getInjectionToken<unknown, unknown, <T, P>(id: SomeKey<T, P>) => SpecificInjectionToken<(item: T) => number, P>>({
-  id: "something",
-})
-
-const injectableFor = <T, P>(id: SomeKey<T, P>, lifecycle: Lifecycle<P>) => getInjectable({
-  id: `something-for(${id})`,
-  instantiate: (di, param) => {
-    expectType<P>(param);
-
-    return (item) => 10;
-  },
-  injectionToken: somethingInjectionToken.for(id),
-  lifecycle,
+const somethingInjectionToken = getInjectionToken<
+  unknown,
+  unknown,
+  <T, P>(id: SomeKey<T, P>) => SpecificInjectionToken<(item: T) => number, P>
+>({
+  id: 'something',
 });
+
+const injectableFor = <T, P>(id: SomeKey<T, P>, lifecycle: Lifecycle<P>) =>
+  getInjectable({
+    id: `something-for(${id})`,
+    instantiate: (di, param) => {
+      expectType<P>(param);
+
+      return item => 10;
+    },
+    injectionToken: somethingInjectionToken.for(id),
+    lifecycle,
+  });
 
 const decoratorForSpecificInjectionParameterInjectable = getInjectable({
   id: 'decorator-for-parameter-injectable',
@@ -486,12 +491,14 @@ getInjectable({
 });
 
 // given injectable that is singleton, when used to inject a factory, typing is ok
-expectType<() => string>(di.injectFactory(
-  getInjectable({
-    id: 'some-injectable',
-    instantiate: () => 'irrelevant',
-  }),
-))
+expectType<() => string>(
+  di.injectFactory(
+    getInjectable({
+      id: 'some-injectable',
+      instantiate: () => 'irrelevant',
+    }),
+  ),
+);
 
 // given token without instantiation parameter, when used to inject a factory, typing is ok
 expectType<() => number>(
@@ -501,7 +508,6 @@ expectType<() => number>(
     }),
   ),
 );
-
 
 // Overrides and unoverrides
 const someStringInjectionToken = getInjectionToken<string>({
@@ -850,20 +856,26 @@ const someInjectableForHasRegistrations = getInjectable({
   },
 });
 
-const typedSpecifier = getTypedSpecifier<{ someSpeciality: "some-type" }>()("irrelevant");
+const typedSpecifier =
+  getTypedSpecifier<{ someSpeciality: 'some-type' }>()('irrelevant');
 
 // given typed specifier, TypedSpecifier is compatible with "extends" and type inference
-expectAssignable<TypedSpecifier<string, { someSpeciality: "some-type" }>>(typedSpecifier)
+expectAssignable<TypedSpecifier<string, { someSpeciality: 'some-type' }>>(
+  typedSpecifier,
+);
 
 // given typed specifier, TypedSpecifierWithType is compatible with "extends" and type inference
-expectAssignable<TypedSpecifierWithType<"someSpeciality", "some-type">>(typedSpecifier)
+expectAssignable<TypedSpecifierWithType<'someSpeciality', 'some-type'>>(
+  typedSpecifier,
+);
 
 // given some factory that produces injectables with some generic lifecycle it works and typing is okay
-const someInjectableFactory = <P>(id: string, lifecycle: Lifecycle<P>) => getInjectable({
-  id,
-  instantiate: () => 10,
-  lifecycle,
-});
+const someInjectableFactory = <P>(id: string, lifecycle: Lifecycle<P>) =>
+  getInjectable({
+    id,
+    instantiate: () => 10,
+    lifecycle,
+  });
 
 // ======================================================================
 // Injectable2 / InjectionToken2 type tests
@@ -898,10 +910,14 @@ const parametricInjectable2 = getInjectable2({
   instantiate: () => (name: string, age: number) => ({ name, age }),
 });
 
-expectType<Injectable2<(name: string, age: number) => { name: string; age: number }>>(parametricInjectable2);
+expectType<
+  Injectable2<(name: string, age: number) => { name: string; age: number }>
+>(parametricInjectable2);
 
 // public di.inject with correct params returns instance
-expectType<{ name: string; age: number }>(di.inject(parametricInjectable2, 'Alice', 30));
+expectType<{ name: string; age: number }>(
+  di.inject(parametricInjectable2, 'Alice', 30),
+);
 
 // wrong number of args is a type error
 expectError(di.inject(parametricInjectable2, 'Alice'));
@@ -944,7 +960,9 @@ expectType<string[]>(di.injectMany(handlerToken2));
 
 // --- InjectionToken2: parametric ---
 
-const userServiceToken2 = getInjectionToken2<(userId: string) => { id: string }>({
+const userServiceToken2 = getInjectionToken2<
+  (userId: string) => { id: string }
+>({
   id: 'user-service',
 });
 
@@ -958,7 +976,9 @@ expectError(di.inject(userServiceToken2, 42));
 // --- InjectionToken2: ManyFactory auto-derived for non-generic ---
 
 // For non-generic, ManyFactory is auto-derived: (() => string) becomes (() => string[])
-const autoManyToken = getInjectionToken2<(x: number) => string>({ id: 'auto-many' });
+const autoManyToken = getInjectionToken2<(x: number) => string>({
+  id: 'auto-many',
+});
 
 // --- InjectionToken2: explicit ManyFactory for generic ---
 
@@ -974,7 +994,7 @@ const wrapperToken2 = getInjectionToken2<WrapperFactory, WrapperManyFactory>({
 expectError(
   getInjectionToken2<
     (x: string) => number,
-    (x: number) => number[]  // Error: number param doesn't match string param
+    (x: number) => number[] // Error: number param doesn't match string param
   >({ id: 'bad-many' }),
 );
 
@@ -993,7 +1013,9 @@ const innerInjectable2 = getInjectable2({
   instantiate: (di: DiContainerForInjection2) => {
     // new-style injectable2 → returns factory directly
     const getParametric = di.inject(parametricInjectable2);
-    expectType<(name: string, age: number) => { name: string; age: number }>(getParametric);
+    expectType<(name: string, age: number) => { name: string; age: number }>(
+      getParametric,
+    );
 
     // new-style token2 → returns factory directly
     const getHandler = di.inject(handlerToken2);
@@ -1089,13 +1111,17 @@ expectError(di.inject(specificToken2, 42));
 // --- WithMeta variants: work for non-generic, lose generics for generic tokens ---
 
 // Non-generic: injectWithMeta returns correctly typed meta wrapper
-expectType<InjectionInstanceWithMeta<number>>(di.injectWithMeta(nonParametricInjectable2));
+expectType<InjectionInstanceWithMeta<number>>(
+  di.injectWithMeta(nonParametricInjectable2),
+);
 expectType<InjectionInstanceWithMeta<{ name: string; age: number }>>(
   di.injectWithMeta(parametricInjectable2, 'Alice', 30),
 );
 
 // Non-generic token: injectManyWithMeta returns correctly typed meta wrapper array
-expectType<InjectionInstanceWithMeta<string>[]>(di.injectManyWithMeta(handlerToken2));
+expectType<InjectionInstanceWithMeta<string>[]>(
+  di.injectManyWithMeta(handlerToken2),
+);
 
 // Non-generic token with params: injectManyWithMeta works
 expectType<InjectionInstanceWithMeta<{ id: string }>[]>(
@@ -1174,21 +1200,19 @@ expectError(di.purge(someInjectableWithoutInstantiationParameter, 'extra'));
 
 // --- Override typing for injectable2 / token2 ---
 
-// non-parametric injectable2: matching flat stub is OK
-expectType<void>(
-  di.override(nonParametricInjectable2, () => 42),
-);
+// non-parametric injectable2: matching curried stub is OK
+expectType<void>(di.override(nonParametricInjectable2, () => () => 42));
 
 // non-parametric injectable2: wrong return type is a type error
-expectError(di.override(nonParametricInjectable2, () => 'not-a-number'));
+expectError(di.override(nonParametricInjectable2, () => () => 'not-a-number'));
 
-// parametric injectable2: matching flat stub is OK
+// parametric injectable2: matching curried stub is OK
 expectType<void>(
-  di.override(parametricInjectable2, (di, name, age) => ({ name, age })),
+  di.override(parametricInjectable2, () => (name, age) => ({ name, age })),
 );
 
 // parametric injectable2: stub params are typed from the factory signature
-di.override(parametricInjectable2, (di, name, age) => {
+di.override(parametricInjectable2, () => (name, age) => {
   expectType<string>(name);
   expectType<number>(age);
   return { name, age };
@@ -1196,7 +1220,7 @@ di.override(parametricInjectable2, (di, name, age) => {
 
 // parametric injectable2: wrong arg type is a type error
 expectError(
-  di.override(parametricInjectable2, (di, name: number, age) => ({
+  di.override(parametricInjectable2, () => (name: number, age) => ({
     name: String(name),
     age,
   })),
@@ -1204,50 +1228,70 @@ expectError(
 
 // parametric injectable2: wrong return type is a type error
 expectError(
-  di.override(parametricInjectable2, (di, name, age) => ({
+  di.override(parametricInjectable2, () => (name, age) => ({
     name,
     age: String(age),
   })),
 );
 
 // injectable2: stub receives DiContainerForInjection2 (inject returns factories)
-di.override(parametricInjectable2, (di, name, age) => {
+di.override(parametricInjectable2, di => {
   const getHandler = di.inject(handlerToken2);
   expectType<() => string>(getHandler);
-  return { name, age };
+  return (name, age) => ({ name, age });
 });
 
 // non-parametric token2: matching stub is OK
-expectType<void>(di.override(handlerToken2, () => 'hello'));
+expectType<void>(di.override(handlerToken2, () => () => 'hello'));
 
 // non-parametric token2: wrong return type is a type error
-expectError(di.override(handlerToken2, () => 42));
+expectError(di.override(handlerToken2, () => () => 42));
 
 // parametric token2: matching stub is OK
 expectType<void>(
-  di.override(userServiceToken2, (di, userId) => ({ id: userId })),
+  di.override(userServiceToken2, () => userId => ({ id: userId })),
 );
 
 // parametric token2: wrong arg type is a type error
 expectError(
-  di.override(userServiceToken2, (di, userId: number) => ({
+  di.override(userServiceToken2, () => (userId: number) => ({
     id: String(userId),
   })),
 );
 
 // parametric token2: wrong return shape is a type error
-expectError(
-  di.override(userServiceToken2, (di, userId) => ({ userId })),
-);
+expectError(di.override(userServiceToken2, () => userId => ({ userId })));
 
 // earlyOverride carries the same injectable2 typing
 expectType<void>(
-  di.earlyOverride(parametricInjectable2, (di, name, age) => ({ name, age })),
+  di.earlyOverride(parametricInjectable2, () => (name, age) => ({ name, age })),
 );
 expectError(
-  di.earlyOverride(parametricInjectable2, (di, name, age) => ({
+  di.earlyOverride(parametricInjectable2, () => (name, age) => ({
     name,
     age: String(age),
+  })),
+);
+
+// curried stub preserves generics: wrapperToken2's factory is <T>(value: T) => { wrapped: T },
+// and the override stub must itself return a function retaining that generic — something
+// the old flat shape could not express because Parameters<F> collapsed T to unknown.
+expectType<void>(
+  di.override(wrapperToken2, () => <T>(value: T) => ({ wrapped: value })),
+);
+
+// inside the generic inner arrow, `value` is a free T — so string-only operations fail.
+// this would not error under the old flat shape, where `value` had already been widened to unknown.
+expectError(
+  di.override(wrapperToken2, () => <T>(value: T) => ({
+    wrapped: value.toUpperCase(),
+  })),
+);
+
+// monomorphized inner arrow with a contradictory return shape fails the generic contract
+expectError(
+  di.override(wrapperToken2, () => (value: string) => ({
+    wrapped: 42,
   })),
 );
 

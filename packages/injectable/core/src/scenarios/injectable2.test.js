@@ -318,7 +318,7 @@ describe('getInjectable2', () => {
   });
 
   describe('override', () => {
-    it('override with flat stub works for injectable2', () => {
+    it('override with curried stub works for injectable2', () => {
       const fooInjectable = getInjectable2({
         id: 'overridable-foo',
         instantiate: () => () => 'original',
@@ -326,12 +326,12 @@ describe('getInjectable2', () => {
 
       di.register(fooInjectable);
 
-      di.override(fooInjectable, () => 'overridden');
+      di.override(fooInjectable, () => () => 'overridden');
 
       expect(di.inject(fooInjectable)).toBe('overridden');
     });
 
-    it('override with parametric stub works for injectable2', () => {
+    it('override with parametric curried stub works for injectable2', () => {
       const fooInjectable = getInjectable2({
         id: 'overridable-param',
         instantiate: () => name => `original-${name}`,
@@ -339,7 +339,7 @@ describe('getInjectable2', () => {
 
       di.register(fooInjectable);
 
-      di.override(fooInjectable, (di, name) => `overridden-${name}`);
+      di.override(fooInjectable, () => name => `overridden-${name}`);
 
       expect(di.inject(fooInjectable, 'test')).toBe('overridden-test');
     });

@@ -13,10 +13,7 @@ type OverrideOldStyle = <
 
 export type OverrideInjectable2 = <F extends (...args: any[]) => any>(
   alias: Injectable2<F> | InjectionToken2<F>,
-  instantiateStub: (
-    di: DiContainerForInjection2,
-    ...args: Parameters<F>
-  ) => ReturnType<F>,
+  instantiateStub: (di: DiContainerForInjection2) => F,
 ) => void;
 
 export type Override = OverrideInjectable2 & OverrideOldStyle;

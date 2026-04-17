@@ -1,5 +1,4 @@
 import isInjectionToken from '../getInjectionToken/isInjectionToken';
-import { injectableSymbol2 } from '../getInjectable2/getInjectable2';
 
 export const earlyOverrideFor =
   ({
@@ -37,20 +36,10 @@ export const earlyOverrideFor =
 
     const originalInjectable = relatedInjectables[0] || alias;
 
-    // For injectable2, wrap the stub to match the curried pattern.
-    // This allows users to override with flat (di, ...args) => result stubs
-    // even when the underlying injectable uses (di) => (...args) => result.
-    const wrappedInstantiate =
-      originalInjectable.aliasType === injectableSymbol2
-        ? di =>
-            (...args) =>
-              instantiateStub(di, ...args)
-        : instantiateStub;
-
     overridingInjectables.set(originalInjectable, {
       ...originalInjectable,
       overriddenInjectable: originalInjectable,
       causesSideEffects: false,
-      instantiate: wrappedInstantiate,
+      instantiate: instantiateStub,
     });
   };
