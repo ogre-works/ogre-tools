@@ -1,6 +1,6 @@
 /// <reference types="jest" />
 
-export type Override = <
+type OverrideOldStyle = <
   InjectionInstance extends InjectionTokenInstance,
   InjectionTokenInstance,
   InstantiationParam,
@@ -10,6 +10,16 @@ export type Override = <
     | Injectable<InjectionInstance, InjectionTokenInstance, InstantiationParam>,
   instantiateStub: Instantiate<InjectionInstance, InstantiationParam>,
 ) => void;
+
+export type OverrideInjectable2 = <F extends (...args: any[]) => any>(
+  alias: Injectable2<F> | InjectionToken2<F>,
+  instantiateStub: (
+    di: DiContainerForInjection2,
+    ...args: Parameters<F>
+  ) => ReturnType<F>,
+) => void;
+
+export type Override = OverrideInjectable2 & OverrideOldStyle;
 
 export interface DiContainer extends DiContainerForInjection {
   purge: Purge;
@@ -22,7 +32,8 @@ export interface DiContainer extends DiContainerForInjection {
 
   override: Override;
   earlyOverride: Override;
-  unoverride(alias: InjectionToken<any, any> | Injectable<any, any, any> | InjectionToken2<any> | Injectable2<any>): void;
+  unoverride<F extends (...args: any[]) => any>(alias: Injectable2<F> | InjectionToken2<F>): void;
+  unoverride(alias: InjectionToken<any, any> | Injectable<any, any, any>): void;
 
   register(
     ...injectables: (Injectable<any, any, any> | Injectable2<any> | InjectableBunch<any>)[]

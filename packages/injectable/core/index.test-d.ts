@@ -1171,3 +1171,88 @@ di.purge(someInjectableWithoutInstantiationParameter);
 
 // purge old-style injectable without instantiation parameter with key is a type error
 expectError(di.purge(someInjectableWithoutInstantiationParameter, 'extra'));
+
+// --- Override typing for injectable2 / token2 ---
+
+// non-parametric injectable2: matching flat stub is OK
+expectType<void>(
+  di.override(nonParametricInjectable2, () => 42),
+);
+
+// non-parametric injectable2: wrong return type is a type error
+expectError(di.override(nonParametricInjectable2, () => 'not-a-number'));
+
+// parametric injectable2: matching flat stub is OK
+expectType<void>(
+  di.override(parametricInjectable2, (di, name, age) => ({ name, age })),
+);
+
+// parametric injectable2: stub params are typed from the factory signature
+di.override(parametricInjectable2, (di, name, age) => {
+  expectType<string>(name);
+  expectType<number>(age);
+  return { name, age };
+});
+
+// parametric injectable2: wrong arg type is a type error
+expectError(
+  di.override(parametricInjectable2, (di, name: number, age) => ({
+    name: String(name),
+    age,
+  })),
+);
+
+// parametric injectable2: wrong return type is a type error
+expectError(
+  di.override(parametricInjectable2, (di, name, age) => ({
+    name,
+    age: String(age),
+  })),
+);
+
+// injectable2: stub receives DiContainerForInjection2 (inject returns factories)
+di.override(parametricInjectable2, (di, name, age) => {
+  const getHandler = di.inject(handlerToken2);
+  expectType<() => string>(getHandler);
+  return { name, age };
+});
+
+// non-parametric token2: matching stub is OK
+expectType<void>(di.override(handlerToken2, () => 'hello'));
+
+// non-parametric token2: wrong return type is a type error
+expectError(di.override(handlerToken2, () => 42));
+
+// parametric token2: matching stub is OK
+expectType<void>(
+  di.override(userServiceToken2, (di, userId) => ({ id: userId })),
+);
+
+// parametric token2: wrong arg type is a type error
+expectError(
+  di.override(userServiceToken2, (di, userId: number) => ({
+    id: String(userId),
+  })),
+);
+
+// parametric token2: wrong return shape is a type error
+expectError(
+  di.override(userServiceToken2, (di, userId) => ({ userId })),
+);
+
+// earlyOverride carries the same injectable2 typing
+expectType<void>(
+  di.earlyOverride(parametricInjectable2, (di, name, age) => ({ name, age })),
+);
+expectError(
+  di.earlyOverride(parametricInjectable2, (di, name, age) => ({
+    name,
+    age: String(age),
+  })),
+);
+
+// unoverride accepts injectable2 and token2
+di.unoverride(nonParametricInjectable2);
+di.unoverride(parametricInjectable2);
+di.unoverride(handlerToken2);
+di.unoverride(userServiceToken2);
