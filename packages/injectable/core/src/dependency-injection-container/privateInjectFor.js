@@ -25,8 +25,8 @@ export const privateInjectFor =
 
     const relatedInjectables = getRelatedInjectables(alias);
 
-    checkForTooManyMatches(relatedInjectables, alias);
-    checkForNoMatches(relatedInjectables, alias);
+    checkForTooManyMatches(relatedInjectables, alias, injectingInjectable);
+    checkForNoMatches(relatedInjectables, alias, injectingInjectable);
 
     const originalInjectable = relatedInjectables[0];
 
@@ -36,7 +36,7 @@ export const privateInjectFor =
 
     const injectable = overriddenInjectable || originalInjectable;
 
-    checkForSideEffects(injectable);
+    checkForSideEffects(injectable, injectingInjectable);
 
     // Fast path: singleton cache hit — avoid creating minimalDi entirely.
     if (instantiationParameter.length === 0) {
@@ -226,9 +226,11 @@ const getInstance = (
       const namespacedId =
         namespacedIdByInjectableMap.get(injectableToBeInstantiated) ||
         injectableToBeInstantiated.id;
+      const injectorId = namespacedIdByInjectableMap.get(injectingInjectable);
+      const fromClause = injectorId ? ` from "${injectorId}"` : '';
 
       throw new Error(
-        `Tried to inject singleton "${namespacedId}", but illegally to singletons, instantiationParameters were provided: "${instantiationParameter}".`,
+        `Tried to inject singleton "${namespacedId}"${fromClause}, but illegally to singletons, instantiationParameters were provided: "${instantiationParameter}".`,
       );
     }
 

@@ -7,7 +7,7 @@ import { deregisterFor } from './deregister';
 import { overrideFor, unoverrideFor } from './override';
 import { decorateFor, decorateFunctionFor } from './decorate';
 import { getNamespacedIdFor } from './getNamespacedIdFor';
-import { checkForNoMatches } from './checkForNoMatchesFor';
+import { checkForNoMatchesFor } from './checkForNoMatchesFor';
 import { checkForTooManyMatchesFor } from './checkForTooManyMatches';
 import { checkForSideEffectsFor } from './checkForSideEffectsFor';
 import { getRelatedInjectablesFor } from './getRelatedInjectablesFor';
@@ -78,10 +78,16 @@ export default containerId => {
   const checkForSideEffects = checkForSideEffectsFor({
     getSideEffectsArePrevented,
     getNamespacedId,
+    namespacedIdByInjectableMap,
+  });
+
+  const checkForNoMatches = checkForNoMatchesFor({
+    namespacedIdByInjectableMap,
   });
 
   const checkForTooManyMatches = checkForTooManyMatchesFor({
     getNamespacedId,
+    namespacedIdByInjectableMap,
   });
 
   const nonDecoratedPrivateInjectUnknownMeta = privateInjectFor({

@@ -168,7 +168,7 @@ describe('registration with namespaces', () => {
     expect(() => {
       someInjectableInScope.inject(someNonRegisteredInjectable);
     }).toThrow(
-      'Tried to inject non-registered injectable "some-non-registered-injectable".',
+      'Tried to inject non-registered injectable "some-non-registered-injectable" from "some-scope:some-injectable-in-scope".',
     );
   });
 

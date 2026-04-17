@@ -1,11 +1,14 @@
 export const checkForTooManyMatchesFor =
-  ({ getNamespacedId }) =>
-  (relatedInjectables, alias) => {
+  ({ getNamespacedId, namespacedIdByInjectableMap }) =>
+  (relatedInjectables, alias, injectingInjectable) => {
     if (relatedInjectables.length > 1) {
+      const injectorId = namespacedIdByInjectableMap.get(injectingInjectable);
+      const fromClause = injectorId ? ` from "${injectorId}"` : '';
+
       throw new Error(
         `Tried to inject single injectable for injection token "${
           alias.id
-        }" but found multiple injectables: "${relatedInjectables
+        }"${fromClause} but found multiple injectables: "${relatedInjectables
           .map(getNamespacedId)
           .join('", "')}"`,
       );
