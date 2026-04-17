@@ -17,6 +17,8 @@ export const privateInjectFor =
     checkForTooManyMatches,
     checkForSideEffects,
     namespacedIdByInjectableMap,
+    getNamespacedId,
+    getFromClause,
     decoratorCache,
   }) =>
   ({ withMeta }) =>
@@ -65,6 +67,8 @@ export const privateInjectFor =
       instancesByInjectableMap,
       injectingInjectable,
       namespacedIdByInjectableMap,
+      getNamespacedId,
+      getFromClause,
       decoratorCache,
     );
 
@@ -210,6 +214,8 @@ const getInstance = (
   instancesByInjectableMap,
   injectingInjectable,
   namespacedIdByInjectableMap,
+  getNamespacedId,
+  getFromClause,
   decoratorCache,
 ) => {
   const instanceMap = instancesByInjectableMap.get(
@@ -223,14 +229,12 @@ const getInstance = (
   // Skip redundant getInstanceKey + cache check — go straight to instantiation.
   if (lifecycleId === 'singleton') {
     if (instantiationParameter.length > 0) {
-      const namespacedId =
-        namespacedIdByInjectableMap.get(injectableToBeInstantiated) ||
-        injectableToBeInstantiated.id;
-      const injectorId = namespacedIdByInjectableMap.get(injectingInjectable);
-      const fromClause = injectorId ? ` from "${injectorId}"` : '';
-
       throw new Error(
-        `Tried to inject singleton "${namespacedId}"${fromClause}, but illegally to singletons, instantiationParameters were provided: "${instantiationParameter}".`,
+        `Tried to inject singleton "${getNamespacedId(
+          injectableToBeInstantiated,
+        )}"${getFromClause(
+          injectingInjectable,
+        )}, but illegally to singletons, instantiationParameters were provided: "${instantiationParameter}".`,
       );
     }
 

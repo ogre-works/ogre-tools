@@ -7,6 +7,7 @@ import { deregisterFor } from './deregister';
 import { overrideFor, unoverrideFor } from './override';
 import { decorateFor, decorateFunctionFor } from './decorate';
 import { getNamespacedIdFor } from './getNamespacedIdFor';
+import { getFromClauseFor } from './getFromClauseFor';
 import { checkForNoMatchesFor } from './checkForNoMatchesFor';
 import { checkForTooManyMatchesFor } from './checkForTooManyMatches';
 import { checkForSideEffectsFor } from './checkForSideEffectsFor';
@@ -36,6 +37,7 @@ export default containerId => {
   const childrenByParentMap = new Map();
 
   const getNamespacedId = getNamespacedIdFor(injectableAndRegistrationContext);
+  const getFromClause = getFromClauseFor(namespacedIdByInjectableMap);
 
   const getRelatedInjectables = getRelatedInjectablesFor({
     injectablesByInjectionToken,
@@ -78,16 +80,16 @@ export default containerId => {
   const checkForSideEffects = checkForSideEffectsFor({
     getSideEffectsArePrevented,
     getNamespacedId,
-    namespacedIdByInjectableMap,
+    getFromClause,
   });
 
   const checkForNoMatches = checkForNoMatchesFor({
-    namespacedIdByInjectableMap,
+    getFromClause,
   });
 
   const checkForTooManyMatches = checkForTooManyMatchesFor({
     getNamespacedId,
-    namespacedIdByInjectableMap,
+    getFromClause,
   });
 
   const nonDecoratedPrivateInjectUnknownMeta = privateInjectFor({
@@ -100,6 +102,8 @@ export default containerId => {
     checkForTooManyMatches,
     checkForSideEffects,
     namespacedIdByInjectableMap,
+    getNamespacedId,
+    getFromClause,
     decoratorCache,
   });
 

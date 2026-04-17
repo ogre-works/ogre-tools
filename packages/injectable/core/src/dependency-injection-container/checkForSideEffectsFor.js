@@ -1,18 +1,11 @@
 export const checkForSideEffectsFor =
-  ({
-    getSideEffectsArePrevented,
-    getNamespacedId,
-    namespacedIdByInjectableMap,
-  }) =>
+  ({ getSideEffectsArePrevented, getNamespacedId, getFromClause }) =>
   (injectable, injectingInjectable) => {
     if (getSideEffectsArePrevented(injectable)) {
-      const injectorId = namespacedIdByInjectableMap.get(injectingInjectable);
-      const fromClause = injectorId ? ` from "${injectorId}"` : '';
-
       throw new Error(
-        `Tried to inject "${getNamespacedId(
-          injectable,
-        )}"${fromClause} when side-effects are prevented.`,
+        `Tried to inject "${getNamespacedId(injectable)}"${getFromClause(
+          injectingInjectable,
+        )} when side-effects are prevented.`,
       );
     }
   };
