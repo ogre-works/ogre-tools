@@ -47,7 +47,7 @@ const decoratorForToken = getInjectable({
       target: someGetNumberInjectionToken,
 
       decorate: toBeDecorated => di => {
-        expectType<Instantiate<GetNumber, void>>(toBeDecorated);
+        expectType<Instantiate<GetNumber>>(toBeDecorated);
 
         const instance = toBeDecorated(di);
 
@@ -89,7 +89,7 @@ const decoratorForInjectable = getInjectable({
       target: someInjectableToBeDecorated,
 
       decorate: toBeDecorated => di => {
-        expectType<Instantiate<() => 42, void>>(toBeDecorated);
+        expectType<Instantiate<() => 42>>(toBeDecorated);
 
         const instance = toBeDecorated(di);
 
@@ -515,7 +515,7 @@ expectType<() => string>(di.injectFactory(
 // given token without instantiation parameter, when used to inject a factory, typing is ok
 expectType<() => number>(
   di.injectFactory(
-    getInjectionToken<number, void>({
+    getInjectionToken<number>({
       id: 'some-token',
     }),
   ),

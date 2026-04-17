@@ -33,7 +33,7 @@ export interface DiContainer extends DiContainerForInjection {
   ): void;
 }
 
-export type Instantiate<InjectionInstance, InstantiationParam> = (di: DiContainerForInjection, param: InstantiationParam) => InjectionInstance;
+export type Instantiate<InjectionInstance, InstantiationParam = void> = (di: DiContainerForInjection, param: InstantiationParam) => InjectionInstance;
 
 export interface InjectionToken<
   InjectionInstance,
@@ -86,9 +86,9 @@ export interface Injectable<
   readonly maxCacheSize?: number;
 }
 
-export type GetInjectableOptionsWithoutInstantiationParameter<I extends TI, TI> = Omit<Injectable<I, TI, void>, "lifecycle" | "instantiate"> & {
+export type GetInjectableOptionsWithoutInstantiationParameter<I extends TI, TI> = Omit<Injectable<I, TI>, "lifecycle" | "instantiate"> & {
   readonly instantiate: (di: DiContainerForInjection, param: void) => I;
-  readonly lifecycle?: Lifecycle<void>;
+  readonly lifecycle?: Lifecycle;
 }
 
 export type GetInjectableOptionsWithInstantiationParameter<I extends TI, TI, P> = Omit<Injectable<I, TI, P>, "instantiate"> & {
@@ -96,7 +96,7 @@ export type GetInjectableOptionsWithInstantiationParameter<I extends TI, TI, P> 
 };
 
 export interface GetInjectable{
-  <I extends TI, TI>(options: GetInjectableOptionsWithoutInstantiationParameter<I, TI>): Injectable<I, TI, void>;
+  <I extends TI, TI>(options: GetInjectableOptionsWithoutInstantiationParameter<I, TI>): Injectable<I, TI>;
   <I extends TI, TI, P>(options: GetInjectableOptionsWithInstantiationParameter<I, TI, P>): Injectable<I, TI, P>;
 }
 
@@ -176,7 +176,7 @@ type PurgeInjectable2 = <F extends (...args: any[]) => any>(
 ) => void;
 
 type PurgeWithoutParameter = <I>(
-  alias: Injectable<I, any, void> | InjectionToken<I, void>,
+  alias: Injectable<I, any> | InjectionToken<I>,
 ) => void;
 
 type PurgeWithParameter = <I, P>(
@@ -311,7 +311,7 @@ export interface DiContainerForInjection {
   ) => boolean;
 }
 
-export interface Lifecycle<InstantiationParam> {
+export interface Lifecycle<InstantiationParam = void> {
   getInstanceKey: (di: DiContainer, params: InstantiationParam) => any;
 }
 
@@ -657,14 +657,14 @@ interface HasRegistrations2 {
 interface Inject2 {
   <F extends (...args: any[]) => any>(key: Injectable2<F>): F;
   <F extends (...args: any[]) => any>(key: InjectionToken2<F>): F;
-  <I>(key: Injectable<I, any, void> | InjectionToken<I, void>): () => I;
+  <I>(key: Injectable<I, any> | InjectionToken<I>): () => I;
   <I, P>(key: Injectable<I, any, P> | InjectionToken<I, P>): (...params: P extends any[] ? P : [P]) => I;
 }
 
 // Inside new-style instantiate: injectMany returns ManyFactory
 interface InjectMany2 {
   <F extends (...args: any[]) => any, MF extends (...args: Parameters<F>) => ReturnType<F>[]>(key: InjectionToken2<F, MF>): MF;
-  <I>(key: InjectionToken<I, void>): () => I[];
+  <I>(key: InjectionToken<I>): () => I[];
   <I, P>(key: InjectionToken<I, P>): (...params: P extends any[] ? P : [P]) => I[];
 }
 
@@ -683,12 +683,12 @@ type ToWithMetaManyFactory<F> = F extends (...args: infer P) => infer R
 interface InjectWithMeta2 {
   <F extends (...args: any[]) => any>(key: Injectable2<F>): ToWithMetaFactory<F>;
   <F extends (...args: any[]) => any>(key: InjectionToken2<F>): ToWithMetaFactory<F>;
-  <I>(key: Injectable<I, any, void> | InjectionToken<I, void>): () => InjectionInstanceWithMeta<I>;
+  <I>(key: Injectable<I, any> | InjectionToken<I>): () => InjectionInstanceWithMeta<I>;
   <I, P>(key: Injectable<I, any, P> | InjectionToken<I, P>): (...params: P extends any[] ? P : [P]) => InjectionInstanceWithMeta<I>;
 }
 
 interface InjectManyWithMeta2 {
   <F extends (...args: any[]) => any>(key: InjectionToken2<F>): ToWithMetaManyFactory<F>;
-  <I>(key: InjectionToken<I, void>): () => InjectionInstanceWithMeta<I>[];
+  <I>(key: InjectionToken<I>): () => InjectionInstanceWithMeta<I>[];
   <I, P>(key: InjectionToken<I, P>): (...params: P extends any[] ? P : [P]) => InjectionInstanceWithMeta<I>[];
 }
