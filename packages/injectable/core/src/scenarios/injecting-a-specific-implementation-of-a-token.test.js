@@ -7,7 +7,7 @@ describe('injecting-a-specific-implementation-of-a-token', () => {
   let di;
 
   beforeEach(() => {
-    di = createContainer('irrelevant');
+    di = createContainer('some-container');
   });
 
   describe('given injection token, and multiple injectables implementing it, and one of them having a specific key', () => {
@@ -81,7 +81,7 @@ describe('injecting-a-specific-implementation-of-a-token', () => {
               }),
             );
           }).toThrow(
-            'Tried to inject non-registered injectable "some-injection-token/some-speciality" from "irrelevant".',
+            'Tried to inject non-registered injectable "some-injection-token/some-speciality" from "some-container".',
           );
         });
 
@@ -160,7 +160,7 @@ describe('injecting-a-specific-implementation-of-a-token', () => {
           }),
         );
       }).toThrow(
-        'Tried to inject single injectable for injection token "some-injection-token/some-speciality" from "irrelevant" but found multiple injectables: "some-injectable-with-colliding-speciality", "some-other injectable-with-colliding-speciality"',
+        'Tried to inject single injectable for injection token "some-injection-token/some-speciality" from "some-container" but found multiple injectables: "some-injectable-with-colliding-speciality", "some-other injectable-with-colliding-speciality"',
       );
     });
 
@@ -172,7 +172,7 @@ describe('injecting-a-specific-implementation-of-a-token', () => {
           }),
         );
       }).toThrow(
-        'Tried to inject non-registered injectable "some-injection-token/some-speciality" from "irrelevant".',
+        'Tried to inject non-registered injectable "some-injection-token/some-speciality" from "some-container".',
       );
     });
   });
@@ -452,7 +452,7 @@ describe('injecting-a-specific-implementation-of-a-token', () => {
               'irrelevant',
             );
           }).toThrow(
-            'Tried to inject non-registered injectable "some-injection-token/some-speciality" from "irrelevant".',
+            'Tried to inject non-registered injectable "some-injection-token/some-speciality" from "some-container".',
           );
         });
 
