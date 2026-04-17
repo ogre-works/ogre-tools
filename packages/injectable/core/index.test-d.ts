@@ -1295,6 +1295,85 @@ expectError(
   })),
 );
 
+// --- Combined: typed specifier of InjectionToken2 + generic injectable2 factory ---
+
+// A general token whose `.for(specifier)` monomorphizes a `brand` dimension from the
+// specifier's type while the factory itself stays generic in `T`.
+const generalBrandedWrapperToken2 = getInjectionToken2<
+  <T>(value: T) => { wrapped: T; brand: unknown },
+  <T>(value: T) => { wrapped: T; brand: unknown }[],
+  <S extends TypedSpecifierWithType<'brand'>>(
+    specifier: S,
+  ) => SpecificInjectionToken2<
+    <T>(value: T) => { wrapped: T; brand: TypedSpecifierType<'brand', S> },
+    <T>(value: T) => { wrapped: T; brand: TypedSpecifierType<'brand', S> }[]
+  >
+>({ id: 'general-branded-wrapper' });
+
+const primaryBrandSpecifier = getTypedSpecifier<{ brand: 'primary' }>()(
+  'primary-brand',
+);
+
+const primaryWrapperToken =
+  generalBrandedWrapperToken2.for(primaryBrandSpecifier);
+
+// `.for(specifier)` yields a token whose factory has `brand` pinned to 'primary'
+// while `T` remains free.
+expectAssignable<
+  SpecificInjectionToken2<<T>(value: T) => { wrapped: T; brand: 'primary' }>
+>(primaryWrapperToken);
+
+// An injectable2 implementing the specific token must honor both: the
+// specifier's `brand: 'primary'` AND the factory's free `T`.
+getInjectable2({
+  id: 'primary-wrapper-impl',
+  injectionToken: primaryWrapperToken,
+  instantiate:
+    () =>
+    <T>(value: T) => ({
+      wrapped: value,
+      brand: 'primary' as const,
+    }),
+});
+
+// Wrong brand violates the specifier-fixed type
+expectError(
+  getInjectable2({
+    id: 'bad-brand-wrapper-impl',
+    injectionToken: primaryWrapperToken,
+    instantiate:
+      () =>
+      <T>(value: T) => ({
+        wrapped: value,
+        brand: 'secondary' as const,
+      }),
+  }),
+);
+
+// Override of the specifier-produced token preserves both brand and `T`
+expectType<void>(
+  di.override(
+    primaryWrapperToken,
+    () =>
+      <T>(value: T) => ({
+        wrapped: value,
+        brand: 'primary' as const,
+      }),
+  ),
+);
+
+// Override with the wrong brand fails the specifier-fixed type
+expectError(
+  di.override(
+    primaryWrapperToken,
+    () =>
+      <T>(value: T) => ({
+        wrapped: value,
+        brand: 'secondary' as const,
+      }),
+  ),
+);
+
 // unoverride accepts injectable2 and token2
 di.unoverride(nonParametricInjectable2);
 di.unoverride(parametricInjectable2);
