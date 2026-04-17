@@ -116,7 +116,7 @@ describe('createContainer.singleton', () => {
     expect(() => {
       di.inject(singletonInjectable, 'some-instantiation-parameter');
     }).toThrow(
-      'Tried to inject a singleton, but illegally to singletons, instantiationParameters were provided: "some-instantiation-parameter".',
+      'Tried to inject singleton "some-injectable", but illegally to singletons, instantiationParameters were provided: "some-instantiation-parameter".',
     );
   });
 });

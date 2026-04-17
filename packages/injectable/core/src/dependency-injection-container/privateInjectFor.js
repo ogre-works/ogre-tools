@@ -224,7 +224,7 @@ const getInstance = (
   if (lifecycleId === 'singleton') {
     if (instantiationParameter.length > 0) {
       throw new Error(
-        `Tried to inject a singleton, but illegally to singletons, instantiationParameters were provided: "${instantiationParameter}".`,
+        `Tried to inject singleton "${injectableToBeInstantiated.id}", but illegally to singletons, instantiationParameters were provided: "${instantiationParameter}".`,
       );
     }
 
