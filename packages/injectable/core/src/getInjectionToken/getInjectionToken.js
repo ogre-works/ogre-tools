@@ -34,6 +34,7 @@ export const getInjectionToken = ({
       specificToken.id = `${generalToken.id}/${specificToken.id}`;
       specificToken.specificTokenOf = generalToken;
       specificToken.decorable = generalToken.decorable;
+      specificToken.maxCacheSize = generalToken.maxCacheSize;
 
       specificTokensBySpeciality.set(specificToken.speciality, specificToken);
 

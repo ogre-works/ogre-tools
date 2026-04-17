@@ -6,6 +6,7 @@ import {
 } from './tokens';
 import toFlatInjectables from './toFlatInjectables';
 import { CompositeMap } from '../composite-map/composite-map';
+import { LruCompositeMap } from '../composite-map/lru-composite-map';
 import { getRelatedTokens } from './getRelatedTokens';
 import { isRelevantDecoratorFor } from './isRelevantDecoratorFor';
 import flow from './fastFlow';
@@ -165,7 +166,13 @@ export const registerSingleFor = ({
     injectableIdSet.add(namespacedId);
     injectableSet.add(injectable);
     namespacedIdByInjectableMap.set(injectable, namespacedId);
-    instancesByInjectableMap.set(injectable, new CompositeMap());
+    const maxCacheSize =
+      injectable.maxCacheSize ?? injectable.injectionToken?.maxCacheSize;
+
+    const instanceMap =
+      maxCacheSize > 0 ? new LruCompositeMap(maxCacheSize) : new CompositeMap();
+
+    instancesByInjectableMap.set(injectable, instanceMap);
 
     const tokens = getRelatedTokens(injectable.injectionToken);
 

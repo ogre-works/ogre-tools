@@ -344,4 +344,144 @@ describe('getInjectable2', () => {
       expect(di.inject(fooInjectable, 'test')).toBe('overridden-test');
     });
   });
+
+  describe('maxCacheSize (LRU)', () => {
+    it('evicts LRU entry when parametric cache exceeds maxCacheSize', () => {
+      const objInjectable = getInjectable2({
+        id: 'lru-obj',
+        maxCacheSize: 2,
+        instantiate: () => key => ({ key }),
+      });
+
+      di.register(objInjectable);
+
+      const a = di.inject(objInjectable, 'a');
+      di.inject(objInjectable, 'b');
+      di.inject(objInjectable, 'c'); // should evict 'a'
+
+      const aAgain = di.inject(objInjectable, 'a');
+      expect(aAgain).not.toBe(a); // new instance
+      expect(aAgain).toEqual({ key: 'a' });
+    });
+
+    it('promotes entry on access so it is not evicted', () => {
+      const objInjectable = getInjectable2({
+        id: 'lru-promote',
+        maxCacheSize: 2,
+        instantiate: () => key => ({ key }),
+      });
+
+      di.register(objInjectable);
+
+      const a = di.inject(objInjectable, 'a');
+      di.inject(objInjectable, 'b');
+
+      // Re-access 'a' to promote it
+      di.inject(objInjectable, 'a');
+
+      // Now 'b' is LRU
+      di.inject(objInjectable, 'c');
+
+      expect(di.inject(objInjectable, 'a')).toBe(a); // still cached
+    });
+
+    it('token2 maxCacheSize propagates to implementing injectables', () => {
+      const token = getInjectionToken2({
+        id: 'lru-token2',
+        maxCacheSize: 2,
+      });
+
+      const impl = getInjectable2({
+        id: 'lru-token2-impl',
+        injectionToken: token,
+        instantiate: () => key => ({ key }),
+      });
+
+      di.register(impl);
+
+      const a = di.inject(impl, 'a');
+      di.inject(impl, 'b');
+      di.inject(impl, 'c'); // should evict 'a'
+
+      const aAgain = di.inject(impl, 'a');
+      expect(aAgain).not.toBe(a);
+    });
+
+    it('injectable2 maxCacheSize overrides token2 maxCacheSize', () => {
+      const token = getInjectionToken2({
+        id: 'lru-token2-override',
+        maxCacheSize: 10,
+      });
+
+      const impl = getInjectable2({
+        id: 'lru-override-impl',
+        injectionToken: token,
+        maxCacheSize: 2,
+        instantiate: () => key => ({ key }),
+      });
+
+      di.register(impl);
+
+      const a = di.inject(impl, 'a');
+      di.inject(impl, 'b');
+      di.inject(impl, 'c'); // should evict 'a' (maxCacheSize=2, not 10)
+
+      const aAgain = di.inject(impl, 'a');
+      expect(aAgain).not.toBe(a);
+    });
+
+    it('specific token2 inherits maxCacheSize from general token2', () => {
+      const generalToken = getInjectionToken2({
+        id: 'lru-general-token2',
+        maxCacheSize: 2,
+      });
+
+      const specificToken = generalToken.for('specific');
+
+      const impl = getInjectable2({
+        id: 'lru-specific-impl',
+        injectionToken: specificToken,
+        instantiate: () => key => ({ key }),
+      });
+
+      di.register(impl);
+
+      const a = di.inject(impl, 'a');
+      di.inject(impl, 'b');
+      di.inject(impl, 'c'); // should evict 'a'
+
+      const aAgain = di.inject(impl, 'a');
+      expect(aAgain).not.toBe(a);
+    });
+
+    it('non-parametric injectable2 with maxCacheSize works without issues', () => {
+      const single = getInjectable2({
+        id: 'lru-single',
+        maxCacheSize: 5,
+        instantiate: () => () => 42,
+      });
+
+      di.register(single);
+
+      const result1 = di.inject(single);
+      const result2 = di.inject(single);
+      expect(result1).toBe(42);
+      expect(result1).toBe(result2);
+    });
+
+    it('transient injectable2 with maxCacheSize is harmless', () => {
+      const trans = getInjectable2({
+        id: 'lru-transient',
+        transient: true,
+        maxCacheSize: 5,
+        instantiate: () => () => ({}),
+      });
+
+      di.register(trans);
+
+      const result1 = di.inject(trans);
+      const result2 = di.inject(trans);
+      expect(result1).not.toBe(result2);
+    });
+  });
 });

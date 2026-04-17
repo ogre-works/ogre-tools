@@ -49,6 +49,7 @@ export interface InjectionToken<
   key: Symbol;
   id: string;
   for: SpecificInjectionTokenFactory;
+  maxCacheSize?: number;
 }
 
 export interface SpecificInjectionToken<
@@ -82,6 +83,7 @@ export interface Injectable<
   readonly lifecycle: Lifecycle<InstantiationParam>;
   readonly decorable?: boolean;
   readonly tags?: any[];
+  readonly maxCacheSize?: number;
 }
 
 export type GetInjectableOptionsWithoutInstantiationParameter<I extends TI, TI> = Omit<Injectable<I, TI, void>, "lifecycle" | "instantiate"> & {
@@ -118,6 +120,7 @@ export function getInjectionToken<
   id: string;
   specificInjectionTokenFactory?: SpecificInjectionTokenFactory;
   target?: object;
+  maxCacheSize?: number;
 }): InjectionToken<
   InjectionInstance,
   InstantiationParam,
@@ -518,6 +521,7 @@ export interface Injectable2<Factory extends (...args: any[]) => any> {
   readonly causesSideEffects?: boolean;
   readonly decorable?: boolean;
   readonly tags?: any[];
+  readonly maxCacheSize?: number;
 }
 
 export function getInjectable2<Factory extends (...args: any[]) => any>(options: {
@@ -528,6 +532,7 @@ export function getInjectable2<Factory extends (...args: any[]) => any>(options:
   readonly causesSideEffects?: boolean;
   readonly decorable?: boolean;
   readonly tags?: any[];
+  readonly maxCacheSize?: number;
 }): Injectable2<Factory>;
 
 type AutoManyFactory<F> = F extends (...args: infer P) => infer R
@@ -548,6 +553,7 @@ export interface InjectionToken2<
   key: Symbol;
   id: string;
   for: SpecificFactory;
+  maxCacheSize?: number;
 }
 
 export interface SpecificInjectionToken2<
@@ -575,6 +581,7 @@ export function getInjectionToken2<
   specificInjectionTokenFactory?: SpecificFactory;
   target?: object;
   decorable?: boolean;
+  maxCacheSize?: number;
 }): InjectionToken2<Factory, ManyFactory, SpecificFactory>;
 
 export function getSpecificInjectionToken2<

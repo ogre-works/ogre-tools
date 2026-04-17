@@ -196,4 +196,159 @@ describe('createContainer.keyed-singleton', () => {
 
     expect(actual1).not.toBe(actual2);
   });
+
+  describe('given maxCacheSize on injectable', () => {
+    let di;
+    let injectable;
+
+    beforeEach(() => {
+      injectable = getInjectable({
+        id: 'lru-injectable',
+        instantiate: () => ({}),
+        maxCacheSize: 2,
+
+        lifecycle: lifecycleEnum.keyedSingleton({
+          getInstanceKey: (_, instantiationParameter) => instantiationParameter,
+        }),
+      });
+
+      di = createContainer('some-container');
+      di.register(injectable);
+    });
+
+    it('evicts LRU entry when cache exceeds maxCacheSize', () => {
+      const a = di.inject(injectable, 'key-a');
+      di.inject(injectable, 'key-b');
+      di.inject(injectable, 'key-c'); // should evict 'key-a'
+
+      const aAgain = di.inject(injectable, 'key-a');
+
+      expect(aAgain).not.toBe(a); // new instance, not cached
+    });
+
+    it('promotes entry on access so it is not evicted', () => {
+      const a = di.inject(injectable, 'key-a');
+      di.inject(injectable, 'key-b');
+
+      // Re-access 'key-a' to promote it
+      di.inject(injectable, 'key-a');
+
+      // Now 'key-b' is LRU, should be evicted
+      di.inject(injectable, 'key-c');
+
+      const aStill = di.inject(injectable, 'key-a');
+      expect(aStill).toBe(a); // same instance, was promoted
+    });
+
+    it('getInstances returns only surviving entries', () => {
+      di.inject(injectable, 'key-a');
+      di.inject(injectable, 'key-b');
+      di.inject(injectable, 'key-c'); // evicts 'key-a'
+
+      const instances = di.getInstances(injectable);
+      expect(instances).toHaveLength(2);
+    });
+
+    it('purge clears all entries including LRU state', () => {
+      di.inject(injectable, 'key-a');
+      di.inject(injectable, 'key-b');
+
+      di.purge(injectable);
+
+      const instances = di.getInstances(injectable);
+      expect(instances).toHaveLength(0);
+    });
+  });
+
+  describe('given maxCacheSize on injection token', () => {
+    it('applies token maxCacheSize as default for implementing injectable', () => {
+      const { getInjectionToken } = require('../getInjectionToken/getInjectionToken');
+
+      const token = getInjectionToken({
+        id: 'lru-token',
+        maxCacheSize: 2,
+      });
+
+      const injectable = getInjectable({
+        id: 'lru-token-injectable',
+        injectionToken: token,
+        instantiate: () => ({}),
+
+        lifecycle: lifecycleEnum.keyedSingleton({
+          getInstanceKey: (_, param) => param,
+        }),
+      });
+
+      const di = createContainer('some-container');
+      di.register(injectable);
+
+      const a = di.inject(injectable, 'key-a');
+      di.inject(injectable, 'key-b');
+      di.inject(injectable, 'key-c'); // should evict 'key-a'
+
+      const aAgain = di.inject(injectable, 'key-a');
+      expect(aAgain).not.toBe(a);
+    });
+
+    it('injectable maxCacheSize overrides token maxCacheSize', () => {
+      const { getInjectionToken } = require('../getInjectionToken/getInjectionToken');
+
+      const token = getInjectionToken({
+        id: 'lru-token-override',
+        maxCacheSize: 10,
+      });
+
+      const injectable = getInjectable({
+        id: 'lru-override-injectable',
+        injectionToken: token,
+        maxCacheSize: 2,
+        instantiate: () => ({}),
+
+        lifecycle: lifecycleEnum.keyedSingleton({
+          getInstanceKey: (_, param) => param,
+        }),
+      });
+
+      const di = createContainer('some-container');
+      di.register(injectable);
+
+      const a = di.inject(injectable, 'key-a');
+      di.inject(injectable, 'key-b');
+      di.inject(injectable, 'key-c'); // should evict 'key-a' (maxCacheSize=2, not 10)
+
+      const aAgain = di.inject(injectable, 'key-a');
+      expect(aAgain).not.toBe(a);
+    });
+
+    it('specific token inherits maxCacheSize from general token', () => {
+      const { getInjectionToken } = require('../getInjectionToken/getInjectionToken');
+
+      const generalToken = getInjectionToken({
+        id: 'lru-general-token',
+        maxCacheSize: 2,
+      });
+
+      const specificToken = generalToken.for('specific');
+
+      const injectable = getInjectable({
+        id: 'lru-specific-injectable',
+        injectionToken: specificToken,
+        instantiate: () => ({}),
+
+        lifecycle: lifecycleEnum.keyedSingleton({
+          getInstanceKey: (_, param) => param,
+        }),
+      });
+
+      const di = createContainer('some-container');
+      di.register(injectable);
+
+      const a = di.inject(injectable, 'key-a');
+      di.inject(injectable, 'key-b');
+      di.inject(injectable, 'key-c'); // should evict 'key-a'
+
+      const aAgain = di.inject(injectable, 'key-a');
+      expect(aAgain).not.toBe(a);
+    });
+  });
 });

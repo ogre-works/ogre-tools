@@ -177,4 +177,76 @@ describe('compositeMap', () => {
       });
     });
   });
+
+  describe('delete', () => {
+    let compositeMap;
+
+    beforeEach(() => {
+      compositeMap = new CompositeMap();
+    });
+
+    it('returns false for non-array key', () => {
+      expect(compositeMap.delete('not an array')).toBe(false);
+    });
+
+    it('returns false for empty array key', () => {
+      expect(compositeMap.delete([])).toBe(false);
+    });
+
+    it('returns false when key does not exist', () => {
+      expect(compositeMap.delete([1, 2, 3])).toBe(false);
+    });
+
+    it('deletes existing single-level key and returns true', () => {
+      compositeMap.set(['a'], 'value');
+
+      expect(compositeMap.delete(['a'])).toBe(true);
+      expect(compositeMap.get(['a'])).toBe(undefined);
+      expect(compositeMap.has(['a'])).toBe(false);
+    });
+
+    it('deletes existing multi-level key and returns true', () => {
+      compositeMap.set([1, 2, 3], 'value');
+
+      expect(compositeMap.delete([1, 2, 3])).toBe(true);
+      expect(compositeMap.get([1, 2, 3])).toBe(undefined);
+      expect(compositeMap.has([1, 2, 3])).toBe(false);
+    });
+
+    it('does not affect other keys', () => {
+      compositeMap.set([1, 2, 3], 'first');
+      compositeMap.set([1, 2, 4], 'second');
+
+      compositeMap.delete([1, 2, 3]);
+
+      expect(compositeMap.get([1, 2, 4])).toBe('second');
+    });
+
+    it('cleans up empty intermediate nodes', () => {
+      compositeMap.set([1, 2, 3], 'value');
+
+      compositeMap.delete([1, 2, 3]);
+
+      // After cleanup, setting a new key at the same prefix should work fine
+      compositeMap.set([1, 2, 3], 'new-value');
+      expect(compositeMap.get([1, 2, 3])).toBe('new-value');
+    });
+
+    it('preserves sibling branches when deleting', () => {
+      compositeMap.set([1, 2, 3], 'deep');
+      compositeMap.set([1, 'other'], 'sibling');
+
+      compositeMap.delete([1, 2, 3]);
+
+      expect(compositeMap.get([1, 'other'])).toBe('sibling');
+    });
+
+    it('works with object reference keys', () => {
+      const ref = {};
+      compositeMap.set([ref, 'a'], 'value');
+
+      expect(compositeMap.delete([ref, 'a'])).toBe(true);
+      expect(compositeMap.has([ref, 'a'])).toBe(false);
+    });
+  });
 });

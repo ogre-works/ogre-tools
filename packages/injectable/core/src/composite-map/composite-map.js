@@ -115,6 +115,39 @@ export class CompositeMap {
     yield* this.#entries(this.#internalMap, []);
   }
 
+  #delete(mapEntry, key) {
+    if (key.length === 1) {
+      return mapEntry.layer.delete(key[0]);
+    }
+
+    const [first, ...rest] = key;
+    const nextMapEntry = mapEntry.children.get(first);
+
+    if (!nextMapEntry) {
+      return false;
+    }
+
+    const deleted = this.#delete(nextMapEntry, rest);
+
+    if (
+      deleted &&
+      nextMapEntry.layer.size === 0 &&
+      nextMapEntry.children.size === 0
+    ) {
+      mapEntry.children.delete(first);
+    }
+
+    return deleted;
+  }
+
+  delete(key) {
+    if (!Array.isArray(key) || key.length === 0) {
+      return false;
+    }
+
+    return this.#delete(this.#internalMap, key);
+  }
+
   clear() {
     this.#internalMap = { layer: new Map(), children: new Map() };
   }
