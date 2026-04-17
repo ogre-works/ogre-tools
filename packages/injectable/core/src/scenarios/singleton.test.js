@@ -119,4 +119,29 @@ describe('createContainer.singleton', () => {
       'Tried to inject singleton "some-injectable" from "some-container", but illegally to singletons, instantiationParameters were provided: "some-instantiation-parameter".',
     );
   });
+
+  it('given a singleton and injected with only undefined args, tolerates it and returns cached instance', () => {
+    let instantiationCount = 0;
+
+    const singletonInjectable = getInjectable({
+      id: 'some-injectable',
+      instantiate: () => {
+        instantiationCount++;
+        return {};
+      },
+      lifecycle: lifecycleEnum.singleton,
+    });
+
+    const di = createContainer('some-container');
+
+    di.register(singletonInjectable);
+
+    const actual1 = di.inject(singletonInjectable, undefined);
+    const actual2 = di.inject(singletonInjectable, undefined);
+    const actual3 = di.inject(singletonInjectable);
+
+    expect(actual1).toBe(actual2);
+    expect(actual2).toBe(actual3);
+    expect(instantiationCount).toBe(1);
+  });
 });

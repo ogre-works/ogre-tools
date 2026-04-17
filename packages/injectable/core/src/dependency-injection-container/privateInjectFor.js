@@ -39,6 +39,18 @@ export const privateInjectFor =
 
     checkForSideEffects(injectable, injectingInjectable);
 
+    // Backward compat: old-style singletons tolerated `inject(alias, undefined)`.
+    // Normalize all-undefined args to [] so fast-path and singleton guard behave
+    // as if no parameter was supplied.
+    if (
+      injectable.aliasType !== injectableSymbol2 &&
+      injectable.lifecycle.id === 'singleton' &&
+      instantiationParameter.length > 0 &&
+      instantiationParameter.every(p => p === undefined)
+    ) {
+      instantiationParameter = [];
+    }
+
     // Fast path: singleton cache hit — avoid creating minimalDi entirely.
     if (instantiationParameter.length === 0) {
       const instanceMap = instancesByInjectableMap.get(

@@ -160,7 +160,7 @@ describe('getInjectableComponent', () => {
     });
 
     expect(onErrorWhileRenderingMock).toHaveBeenCalledWith(
-      'Tried to inject non-registered injectable "some-non-registered-injectable".',
+      'Tried to inject non-registered injectable "some-non-registered-injectable" from "some-container".',
     );
   });
 
@@ -221,11 +221,11 @@ describe('getInjectableComponent', () => {
     onErrorWhileRenderingMock.mockClear();
 
     expect(someError1).toBe(
-      'Tried to inject non-registered injectable "some-non-registered-injectable".',
+      'Tried to inject non-registered injectable "some-non-registered-injectable" from "some-container".',
     );
 
     expect(someError2).toBe(
-      'Tried to inject non-registered injectable "some-non-registered-injectable".',
+      'Tried to inject non-registered injectable "some-non-registered-injectable" from "some-container".',
     );
   });
 
@@ -268,7 +268,7 @@ describe('getInjectableComponent', () => {
     });
 
     expect(onErrorWhileRenderingMock).toHaveBeenCalledWith(
-      'Tried to inject non-registered injectable "some-non-registered-injectable".',
+      'Tried to inject non-registered injectable "some-non-registered-injectable" from "some-container".',
     );
   });
 
@@ -333,7 +333,7 @@ describe('getInjectableComponent', () => {
     });
 
     expect(onErrorWhileRenderingMock).toHaveBeenCalledWith(
-      'Tried to inject non-registered injectable "some-non-registered-injectable".',
+      'Tried to inject non-registered injectable "some-non-registered-injectable" from "some-container".',
     );
   });
 
@@ -451,7 +451,7 @@ describe('getInjectableComponent', () => {
     });
 
     expect(onErrorWhileRenderingMock).toHaveBeenCalledWith(
-      'Tried to inject "some-injectable-component" when side-effects are prevented.',
+      'Tried to inject "some-injectable-component" from "some-container" when side-effects are prevented.',
     );
   });
 
@@ -605,7 +605,7 @@ describe('getInjectableComponent', () => {
     });
 
     expect(onRenderingErrorMock).toHaveBeenCalledWith(
-      'Tried to inject non-registered injectable "some-non-registered-injectable-component".',
+      'Tried to inject non-registered injectable "some-non-registered-injectable-component" from "some-container-1".',
     );
   });
 
