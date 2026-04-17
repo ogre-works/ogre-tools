@@ -7,7 +7,6 @@ import { deregisterFor } from './deregister';
 import { overrideFor, unoverrideFor } from './override';
 import { decorateFor, decorateFunctionFor } from './decorate';
 import { getNamespacedIdFor } from './getNamespacedIdFor';
-import { getFromClauseFor } from './getFromClauseFor';
 import { checkForNoMatchesFor } from './checkForNoMatchesFor';
 import { checkForTooManyMatchesFor } from './checkForTooManyMatches';
 import { checkForSideEffectsFor } from './checkForSideEffectsFor';
@@ -37,7 +36,6 @@ export default containerId => {
   const childrenByParentMap = new Map();
 
   const getNamespacedId = getNamespacedIdFor(injectableAndRegistrationContext);
-  const getFromClause = getFromClauseFor(namespacedIdByInjectableMap);
 
   const getRelatedInjectables = getRelatedInjectablesFor({
     injectablesByInjectionToken,
@@ -80,16 +78,14 @@ export default containerId => {
   const checkForSideEffects = checkForSideEffectsFor({
     getSideEffectsArePrevented,
     getNamespacedId,
-    getFromClause,
   });
 
   const checkForNoMatches = checkForNoMatchesFor({
-    getFromClause,
+    getNamespacedId,
   });
 
   const checkForTooManyMatches = checkForTooManyMatchesFor({
     getNamespacedId,
-    getFromClause,
   });
 
   const nonDecoratedPrivateInjectUnknownMeta = privateInjectFor({
@@ -103,7 +99,6 @@ export default containerId => {
     checkForSideEffects,
     namespacedIdByInjectableMap,
     getNamespacedId,
-    getFromClause,
     decoratorCache,
   });
 
@@ -246,6 +241,31 @@ export default containerId => {
     },
 
     purge: purgeInstances,
+
+    scopedPurge: (scopeInjectable, alias, ...keyParts) => {
+      const injectables = getRelatedInjectables(alias);
+      const allowedChildren = childrenByParentMap.get(scopeInjectable);
+
+      for (let i = 0; i < injectables.length; i++) {
+        const injectable = injectables[i];
+
+        if (
+          injectable !== scopeInjectable &&
+          !allowedChildren?.has(injectable)
+        ) {
+          continue;
+        }
+
+        const instanceMap = instancesByInjectableMap.get(injectable);
+
+        if (keyParts.length === 0) {
+          instanceMap.clear();
+        } else {
+          instanceMap.deleteByPrefix(keyParts);
+        }
+      }
+    },
+
     purgeAllButOverrides,
     hasRegistrations: alias => !!getRelatedInjectables(alias).length,
   };

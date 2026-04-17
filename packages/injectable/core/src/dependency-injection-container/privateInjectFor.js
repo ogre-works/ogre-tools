@@ -18,7 +18,6 @@ export const privateInjectFor =
     checkForSideEffects,
     namespacedIdByInjectableMap,
     getNamespacedId,
-    getFromClause,
     decoratorCache,
   }) =>
   ({ withMeta }) =>
@@ -68,7 +67,6 @@ export const privateInjectFor =
       injectingInjectable,
       namespacedIdByInjectableMap,
       getNamespacedId,
-      getFromClause,
       decoratorCache,
     );
 
@@ -113,6 +111,9 @@ const createMinimalDi = (
     },
 
     hasRegistrations: di.hasRegistrations,
+
+    purge: (alias, ...keyParts) =>
+      di.scopedPurge(injectableToBeInstantiated, alias, ...keyParts),
   };
 
   // New-style injectable2: inject/injectMany always return factories
@@ -215,7 +216,6 @@ const getInstance = (
   injectingInjectable,
   namespacedIdByInjectableMap,
   getNamespacedId,
-  getFromClause,
   decoratorCache,
 ) => {
   const instanceMap = instancesByInjectableMap.get(
@@ -232,9 +232,9 @@ const getInstance = (
       throw new Error(
         `Tried to inject singleton "${getNamespacedId(
           injectableToBeInstantiated,
-        )}"${getFromClause(
+        )}" from "${getNamespacedId(
           injectingInjectable,
-        )}, but illegally to singletons, instantiationParameters were provided: "${instantiationParameter}".`,
+        )}", but illegally to singletons, instantiationParameters were provided: "${instantiationParameter}".`,
       );
     }
 

@@ -17,7 +17,9 @@ describe('createContainer.deregistration', () => {
 
     expect(() => {
       di.inject(someInjectable);
-    }).toThrow('Tried to inject non-registered injectable "some-injectable".');
+    }).toThrow(
+      'Tried to inject non-registered injectable "some-injectable" from "some-container".',
+    );
   });
 
   it('given registered injectable with injection token and deregistered, when injecting using injection token, throws', () => {
@@ -40,7 +42,7 @@ describe('createContainer.deregistration', () => {
     expect(() => {
       di.inject(someInjectionToken);
     }).toThrow(
-      'Tried to inject non-registered injectable "some-injection-token".',
+      'Tried to inject non-registered injectable "some-injection-token" from "some-container".',
     );
   });
 
@@ -64,7 +66,7 @@ describe('createContainer.deregistration', () => {
     expect(() => {
       di.inject(someOtherInjectable);
     }).toThrow(
-      'Tried to inject non-registered injectable "some-other-injectable".',
+      'Tried to inject non-registered injectable "some-other-injectable" from "some-container".',
     );
   });
 
@@ -125,7 +127,9 @@ describe('createContainer.deregistration', () => {
 
     expect(() => {
       di.inject(someInjectable);
-    }).toThrow('Tried to inject non-registered injectable "some-injectable".');
+    }).toThrow(
+      'Tried to inject non-registered injectable "some-injectable" from "some-container".',
+    );
   });
 
   it('given injectable which can register, when the injectable is deregistered, does not deregister unrelated injectable', () => {
@@ -188,7 +192,9 @@ describe('createContainer.deregistration', () => {
 
     expect(() => {
       di.inject(someInjectable);
-    }).toThrow('Tried to inject non-registered injectable "some-injectable".');
+    }).toThrow(
+      'Tried to inject non-registered injectable "some-injectable" from "some-container".',
+    );
   });
 
   it('given injectable registered by another injectable (not the root), when root is deregistered, the registered injectable is NOT cascade-deregistered', () => {

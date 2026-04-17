@@ -199,7 +199,7 @@ describe('registration with namespaces', () => {
     expect(() => {
       di.inject(someInjectableCausingSideEffects);
     }).toThrow(
-      'Tried to inject "some-scope:some-injectable-in-scope-causing-side-effects" when side-effects are prevented.',
+      'Tried to inject "some-scope:some-injectable-in-scope-causing-side-effects" from "some-container" when side-effects are prevented.',
     );
   });
 
@@ -233,7 +233,7 @@ describe('registration with namespaces', () => {
     expect(() => {
       di.injectMany(someInjectionToken);
     }).toThrow(
-      'Tried to inject "some-scope:some-injectable-in-scope-causing-side-effects" when side-effects are prevented.',
+      'Tried to inject "some-scope:some-injectable-in-scope-causing-side-effects" from "(some-token)" when side-effects are prevented.',
     );
   });
 });

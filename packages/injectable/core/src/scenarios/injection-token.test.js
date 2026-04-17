@@ -28,7 +28,7 @@ describe('createContainer.injection-token', () => {
     expect(() => {
       di.inject(someSharedInjectionToken);
     }).toThrow(
-      `Tried to inject single injectable for injection token "some-injection-token" but found multiple injectables: "some-injectable", "some-other-injectable"`,
+      `Tried to inject single injectable for injection token "some-injection-token" from "some-container" but found multiple injectables: "some-injectable", "some-other-injectable"`,
     );
   });
 

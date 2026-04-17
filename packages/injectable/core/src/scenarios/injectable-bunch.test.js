@@ -48,7 +48,7 @@ describe('injectable-bunch', () => {
       expect(() => {
         di.inject(bunch.someInjectable);
       }).toThrow(
-        'Tried to inject non-registered injectable "some-injectable".',
+        'Tried to inject non-registered injectable "some-injectable" from "some-container".',
       );
     });
   });
@@ -112,7 +112,7 @@ describe('injectable-bunch', () => {
       expect(() => {
         di.inject(bunch.someInjectableLike);
       }).toThrow(
-        'Tried to inject non-registered injectable "some-injectable-imitator".',
+        'Tried to inject non-registered injectable "some-injectable-imitator" from "some-container".',
       );
     });
   });
@@ -145,7 +145,7 @@ describe('injectable-bunch', () => {
       expect(() => {
         di.inject(rootBunch.nestedBunch.someInjectable);
       }).toThrow(
-        'Tried to inject non-registered injectable "some-injectable".',
+        'Tried to inject non-registered injectable "some-injectable" from "some-container".',
       );
     });
 
@@ -155,7 +155,7 @@ describe('injectable-bunch', () => {
       expect(() => {
         di.inject(rootBunch.nestedBunch.someInjectable);
       }).toThrow(
-        'Tried to inject non-registered injectable "some-injectable".',
+        'Tried to inject non-registered injectable "some-injectable" from "some-container".',
       );
     });
 
