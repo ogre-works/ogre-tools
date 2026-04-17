@@ -1,6 +1,5 @@
 import { nonStoredInstanceKey, storedInstanceKey } from './lifecycleEnum';
 import { withInstantiationDecoratorsFor } from './withInstantiationDecoratorsFor';
-import { checkForTooManyMatches } from './checkForTooManyMatches';
 import { isCompositeKey } from '../getCompositeKey/getCompositeKey';
 import { injectableSymbol2 } from '../getInjectable2/getInjectable2';
 
@@ -15,6 +14,7 @@ export const privateInjectFor =
     instancesByInjectableMap,
     getDi,
     checkForNoMatches,
+    checkForTooManyMatches,
     checkForSideEffects,
     namespacedIdByInjectableMap,
     decoratorCache,
@@ -223,8 +223,12 @@ const getInstance = (
   // Skip redundant getInstanceKey + cache check — go straight to instantiation.
   if (lifecycleId === 'singleton') {
     if (instantiationParameter.length > 0) {
+      const namespacedId =
+        namespacedIdByInjectableMap.get(injectableToBeInstantiated) ||
+        injectableToBeInstantiated.id;
+
       throw new Error(
-        `Tried to inject singleton "${injectableToBeInstantiated.id}", but illegally to singletons, instantiationParameters were provided: "${instantiationParameter}".`,
+        `Tried to inject singleton "${namespacedId}", but illegally to singletons, instantiationParameters were provided: "${instantiationParameter}".`,
       );
     }
 

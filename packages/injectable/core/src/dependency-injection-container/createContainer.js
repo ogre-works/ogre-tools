@@ -8,6 +8,7 @@ import { overrideFor, unoverrideFor } from './override';
 import { decorateFor, decorateFunctionFor } from './decorate';
 import { getNamespacedIdFor } from './getNamespacedIdFor';
 import { checkForNoMatches } from './checkForNoMatchesFor';
+import { checkForTooManyMatchesFor } from './checkForTooManyMatches';
 import { checkForSideEffectsFor } from './checkForSideEffectsFor';
 import { getRelatedInjectablesFor } from './getRelatedInjectablesFor';
 import { earlyOverrideFor } from './early-override';
@@ -79,6 +80,10 @@ export default containerId => {
     getNamespacedId,
   });
 
+  const checkForTooManyMatches = checkForTooManyMatchesFor({
+    getNamespacedId,
+  });
+
   const nonDecoratedPrivateInjectUnknownMeta = privateInjectFor({
     getRelatedInjectables,
     alreadyInjected,
@@ -86,6 +91,7 @@ export default containerId => {
     instancesByInjectableMap,
     getDi: () => privateDi,
     checkForNoMatches,
+    checkForTooManyMatches,
     checkForSideEffects,
     namespacedIdByInjectableMap,
     decoratorCache,
@@ -167,6 +173,7 @@ export default containerId => {
     getRelatedInjectables,
     alreadyInjected,
     overridingInjectables,
+    getNamespacedId,
   });
 
   const override = overrideFor({
@@ -177,6 +184,7 @@ export default containerId => {
   const unoverride = unoverrideFor({
     overridingInjectables,
     getRelatedInjectables,
+    getNamespacedId,
   });
 
   const decorateFunction = decorateFunctionFor({ decorate });

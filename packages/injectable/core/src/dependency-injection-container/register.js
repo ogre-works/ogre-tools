@@ -150,7 +150,9 @@ export const registerSingleFor = ({
 
     if (namespacedIdByInjectableMap.has(injectable)) {
       throw new Error(
-        `Tried to register same injectable multiple times: "${injectable.id}"`,
+        `Tried to register same injectable multiple times: "${namespacedIdByInjectableMap.get(
+          injectable,
+        )}"`,
       );
     }
 

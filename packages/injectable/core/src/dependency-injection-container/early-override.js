@@ -2,7 +2,12 @@ import isInjectionToken from '../getInjectionToken/isInjectionToken';
 import { injectableSymbol2 } from '../getInjectable2/getInjectable2';
 
 export const earlyOverrideFor =
-  ({ getRelatedInjectables, alreadyInjected, overridingInjectables }) =>
+  ({
+    getRelatedInjectables,
+    alreadyInjected,
+    overridingInjectables,
+    getNamespacedId,
+  }) =>
   (alias, instantiateStub) => {
     const relatedInjectables = getRelatedInjectables(alias);
 
@@ -11,7 +16,7 @@ export const earlyOverrideFor =
         `Tried to override single implementation of injection token "${
           alias.id
         }", but found multiple registered implementations: "${relatedInjectables
-          .map(x => x.id)
+          .map(getNamespacedId)
           .join('", "')}".`,
       );
     }
@@ -24,7 +29,9 @@ export const earlyOverrideFor =
 
     if (alreadyInjected.has(alias)) {
       throw new Error(
-        `Tried to override injectable "${alias.id}", but it was already injected.`,
+        `Tried to override injectable "${getNamespacedId(
+          alias,
+        )}", but it was already injected.`,
       );
     }
 
