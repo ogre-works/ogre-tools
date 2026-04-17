@@ -12,7 +12,7 @@ export type Override = <
 ) => void;
 
 export interface DiContainer extends DiContainerForInjection {
-  purge: (injectableKey: Injectable<any, any, any> | Injectable2<any>) => void;
+  purge: Purge;
   purgeAllButOverrides: () => void;
 
   preventSideEffects: () => void;
@@ -164,6 +164,28 @@ export type InjectInjectable2 = <F extends (...args: any[]) => any>(
 
 export type Inject = InjectInjectable2 & InjectWithoutParameter & InjectWithParameter;
 
+type TuplePrefix<T extends any[]> = T extends [infer First, ...infer Rest]
+  ? [] | [First, ...TuplePrefix<Rest>]
+  : [];
+
+type PurgeAll = () => void;
+
+type PurgeInjectable2 = <F extends (...args: any[]) => any>(
+  alias: Injectable2<F> | InjectionToken2<F>,
+  ...keyParts: TuplePrefix<Parameters<F>>
+) => void;
+
+type PurgeWithoutParameter = <I>(
+  alias: Injectable<I, any, void> | InjectionToken<I, void>,
+) => void;
+
+type PurgeWithParameter = <I, P>(
+  alias: Injectable<I, any, P> | InjectionToken<I, P>,
+  ...keyParts: [] | [P]
+) => void;
+
+export type Purge = PurgeAll & PurgeInjectable2 & PurgeWithoutParameter & PurgeWithParameter;
+
 export type InjectFactory = <InjectionInstance, InstantiationParam>(
   alias:
     | Injectable<InjectionInstance, unknown, InstantiationParam>
@@ -281,6 +303,8 @@ export interface DiContainerForInjection {
 
   getInstances: GetInstances;
   sourceNamespace: string | undefined;
+
+  purge: Purge;
 
   hasRegistrations: (
     alias: InjectionToken<any, any, any> | Injectable<any, any, any> | InjectionToken2<any> | Injectable2<any>,
@@ -614,6 +638,8 @@ export interface DiContainerForInjection2 {
   ): void;
 
   sourceNamespace: string | undefined;
+
+  purge: Purge;
 
   hasRegistrations: HasRegistrations2;
 }

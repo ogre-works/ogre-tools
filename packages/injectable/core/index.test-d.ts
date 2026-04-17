@@ -1137,3 +1137,56 @@ const innerWithMeta = getInjectable2({
 
 // Known limitation: generic tokens lose type info in WithMeta variants.
 // Use non-meta inject/injectMany for generic types instead.
+
+// --- Purge typing ---
+
+// purge with no args (purge entire branch)
+di.purge();
+
+// purge non-parametric injectable2 (no key parts)
+di.purge(nonParametricInjectable2);
+
+// purge non-parametric injectable2 with key parts is a type error
+expectError(di.purge(nonParametricInjectable2, 'extra'));
+
+// purge parametric injectable2 with correct key parts
+di.purge(parametricInjectable2, 'Alice', 30);
+
+// purge parametric injectable2 with partial key (prefix purge)
+di.purge(parametricInjectable2, 'Alice');
+
+// purge parametric injectable2 with no key (purge all instances)
+di.purge(parametricInjectable2);
+
+// purge parametric injectable2 with wrong key type is a type error
+expectError(di.purge(parametricInjectable2, 42, 30));
+
+// purge parametric injectable2 with too many key parts is a type error
+expectError(di.purge(parametricInjectable2, 'Alice', 30, 'extra'));
+
+// purge parametric token2 with correct key parts
+di.purge(userServiceToken2, 'user-123');
+
+// purge parametric token2 with no key (purge all)
+di.purge(userServiceToken2);
+
+// purge parametric token2 with wrong key type is a type error
+expectError(di.purge(userServiceToken2, 42));
+
+// purge non-parametric token2 (no key parts)
+di.purge(handlerToken2);
+
+// purge non-parametric token2 with key parts is a type error
+expectError(di.purge(handlerToken2, 'extra'));
+
+// purge old-style injectable with matching param
+di.purge(someInjectableWithMatchingInstantiationParameters, 'some-key');
+
+// purge old-style injectable with no key (purge all)
+di.purge(someInjectableWithMatchingInstantiationParameters);
+
+// purge old-style injectable without instantiation parameter (no key parts)
+di.purge(someInjectableWithoutInstantiationParameter);
+
+// purge old-style injectable without instantiation parameter with key is a type error
+expectError(di.purge(someInjectableWithoutInstantiationParameter, 'extra'));

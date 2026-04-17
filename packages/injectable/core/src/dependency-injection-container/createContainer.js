@@ -243,6 +243,20 @@ export default containerId => {
     purge: purgeInstances,
 
     scopedPurge: (scopeInjectable, alias, ...keyParts) => {
+      if (alias === undefined) {
+        const selfMap = instancesByInjectableMap.get(scopeInjectable);
+        if (selfMap) selfMap.clear();
+
+        const children = childrenByParentMap.get(scopeInjectable);
+        if (children) {
+          for (const child of children) {
+            instancesByInjectableMap.get(child)?.clear();
+          }
+        }
+
+        return;
+      }
+
       const injectables = getRelatedInjectables(alias);
       const allowedChildren = childrenByParentMap.get(scopeInjectable);
 
@@ -253,10 +267,14 @@ export default containerId => {
           injectable !== scopeInjectable &&
           !allowedChildren?.has(injectable)
         ) {
-          continue;
+          throw new Error(
+            `Tried to purge "${namespacedIdByInjectableMap.get(injectable)}" from "${namespacedIdByInjectableMap.get(scopeInjectable)}", but it is not within its registration context tree.`,
+          );
         }
+      }
 
-        const instanceMap = instancesByInjectableMap.get(injectable);
+      for (let i = 0; i < injectables.length; i++) {
+        const instanceMap = instancesByInjectableMap.get(injectables[i]);
 
         if (keyParts.length === 0) {
           instanceMap.clear();

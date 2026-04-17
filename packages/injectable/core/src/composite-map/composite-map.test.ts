@@ -249,4 +249,99 @@ describe('compositeMap', () => {
       expect(compositeMap.has([ref, 'a'])).toBe(false);
     });
   });
+
+  describe('deleteByPrefix', () => {
+    let compositeMap;
+
+    beforeEach(() => {
+      compositeMap = new CompositeMap();
+    });
+
+    it('returns false for non-array prefix', () => {
+      expect(compositeMap.deleteByPrefix('not an array')).toBe(false);
+    });
+
+    it('returns false for empty array prefix', () => {
+      expect(compositeMap.deleteByPrefix([])).toBe(false);
+    });
+
+    it('returns false when prefix does not match any entries', () => {
+      compositeMap.set([1, 2], 'value');
+      expect(compositeMap.deleteByPrefix([3])).toBe(false);
+    });
+
+    it('deletes exact single-level match', () => {
+      compositeMap.set(['a'], 'value-a');
+
+      expect(compositeMap.deleteByPrefix(['a'])).toBe(true);
+      expect(compositeMap.has(['a'])).toBe(false);
+    });
+
+    it('deletes all entries matching prefix', () => {
+      compositeMap.set(['a', 'b'], 'ab');
+      compositeMap.set(['a', 'c'], 'ac');
+      compositeMap.set(['a', 'b', 'd'], 'abd');
+      compositeMap.set(['x'], 'x');
+
+      expect(compositeMap.deleteByPrefix(['a'])).toBe(true);
+
+      expect(compositeMap.has(['a', 'b'])).toBe(false);
+      expect(compositeMap.has(['a', 'c'])).toBe(false);
+      expect(compositeMap.has(['a', 'b', 'd'])).toBe(false);
+      expect(compositeMap.get(['x'])).toBe('x');
+    });
+
+    it('deletes exact entry and deeper entries at prefix', () => {
+      compositeMap.set(['a'], 'exact');
+      compositeMap.set(['a', 'b'], 'deeper');
+
+      expect(compositeMap.deleteByPrefix(['a'])).toBe(true);
+
+      expect(compositeMap.has(['a'])).toBe(false);
+      expect(compositeMap.has(['a', 'b'])).toBe(false);
+    });
+
+    it('deletes with multi-level prefix', () => {
+      compositeMap.set(['a', 'b', 'c'], 'abc');
+      compositeMap.set(['a', 'b', 'd'], 'abd');
+      compositeMap.set(['a', 'x'], 'ax');
+
+      expect(compositeMap.deleteByPrefix(['a', 'b'])).toBe(true);
+
+      expect(compositeMap.has(['a', 'b', 'c'])).toBe(false);
+      expect(compositeMap.has(['a', 'b', 'd'])).toBe(false);
+      expect(compositeMap.get(['a', 'x'])).toBe('ax');
+    });
+
+    it('calls onValue callback for each deleted value', () => {
+      compositeMap.set(['a', 'b'], 'ab');
+      compositeMap.set(['a', 'c'], 'ac');
+
+      const deleted = [];
+      compositeMap.deleteByPrefix(['a'], value => deleted.push(value));
+
+      expect(deleted).toEqual(expect.arrayContaining(['ab', 'ac']));
+      expect(deleted).toHaveLength(2);
+    });
+
+    it('cleans up empty intermediate nodes', () => {
+      compositeMap.set(['a', 'b', 'c'], 'value');
+
+      compositeMap.deleteByPrefix(['a', 'b']);
+
+      // Re-adding should work fine
+      compositeMap.set(['a', 'b', 'c'], 'new-value');
+      expect(compositeMap.get(['a', 'b', 'c'])).toBe('new-value');
+    });
+
+    it('works with object reference keys', () => {
+      const ref = {};
+      compositeMap.set([ref, 'a'], 'ra');
+      compositeMap.set([ref, 'b'], 'rb');
+
+      expect(compositeMap.deleteByPrefix([ref])).toBe(true);
+      expect(compositeMap.has([ref, 'a'])).toBe(false);
+      expect(compositeMap.has([ref, 'b'])).toBe(false);
+    });
+  });
 });

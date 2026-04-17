@@ -249,4 +249,60 @@ describe('LruCompositeMap', () => {
       expect(lru.get(['d'])).toBe(4);
     });
   });
+
+  describe('deleteByPrefix', () => {
+    it('deletes entries matching prefix and updates size', () => {
+      const lru = new LruCompositeMap(5);
+      lru.set(['a', 'b'], 'ab');
+      lru.set(['a', 'c'], 'ac');
+      lru.set(['x'], 'x');
+
+      lru.deleteByPrefix(['a']);
+
+      expect(lru.has(['a', 'b'])).toBe(false);
+      expect(lru.has(['a', 'c'])).toBe(false);
+      expect(lru.get(['x'])).toBe('x');
+    });
+
+    it('updates LRU size correctly so new entries can be added', () => {
+      const lru = new LruCompositeMap(3);
+      lru.set(['a'], 1);
+      lru.set(['b'], 2);
+      lru.set(['c'], 3);
+
+      // Delete one by prefix, freeing a slot
+      lru.deleteByPrefix(['a']);
+
+      // Adding a new entry should not evict anything
+      lru.set(['d'], 4);
+      expect(lru.get(['b'])).toBe(2);
+      expect(lru.get(['c'])).toBe(3);
+      expect(lru.get(['d'])).toBe(4);
+    });
+
+    it('cleans up linked list so eviction still works correctly after prefix delete', () => {
+      const lru = new LruCompositeMap(2);
+      lru.set(['a'], 1);
+      lru.set(['b'], 2);
+
+      // Delete 'a', leaving only 'b'
+      lru.deleteByPrefix(['a']);
+
+      // Add two more — 'b' should survive, then 'c' fills the slot
+      lru.set(['c'], 3);
+      lru.set(['d'], 4); // should evict 'b' (LRU)
+
+      expect(lru.get(['b'])).toBe(undefined);
+      expect(lru.get(['c'])).toBe(3);
+      expect(lru.get(['d'])).toBe(4);
+    });
+
+    it('returns false when prefix matches nothing', () => {
+      const lru = new LruCompositeMap(5);
+      lru.set(['a'], 1);
+
+      expect(lru.deleteByPrefix(['z'])).toBe(false);
+      expect(lru.get(['a'])).toBe(1);
+    });
+  });
 });

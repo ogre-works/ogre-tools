@@ -1,7 +1,23 @@
 export const purgeInstancesFor =
   ({ getRelatedInjectables, instancesByInjectableMap }) =>
-  alias => {
-    const injectable = getRelatedInjectables(alias)[0];
+  (alias, ...keyParts) => {
+    if (alias === undefined) {
+      for (const instanceMap of instancesByInjectableMap.values()) {
+        instanceMap.clear();
+      }
 
-    instancesByInjectableMap.get(injectable).clear();
+      return;
+    }
+
+    const injectables = getRelatedInjectables(alias);
+
+    for (let i = 0; i < injectables.length; i++) {
+      const instanceMap = instancesByInjectableMap.get(injectables[i]);
+
+      if (keyParts.length === 0) {
+        instanceMap.clear();
+      } else {
+        instanceMap.deleteByPrefix(keyParts);
+      }
+    }
   };

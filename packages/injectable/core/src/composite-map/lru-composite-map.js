@@ -107,6 +107,13 @@ export class LruCompositeMap {
     }
   }
 
+  deleteByPrefix(keyPrefix) {
+    return this.#inner.deleteByPrefix(keyPrefix, wrapper => {
+      this.#removeNode(wrapper.lruNode);
+      this.#size--;
+    });
+  }
+
   clear() {
     this.#inner.clear();
     this.#head = null;

@@ -148,6 +148,66 @@ export class CompositeMap {
     return this.#delete(this.#internalMap, key);
   }
 
+  #forEachInSubtree(mapEntry, onValue) {
+    for (const value of mapEntry.layer.values()) {
+      onValue(value);
+    }
+
+    for (const childEntry of mapEntry.children.values()) {
+      this.#forEachInSubtree(childEntry, onValue);
+    }
+  }
+
+  #deleteByPrefix(mapEntry, keyPrefix, onValue) {
+    if (keyPrefix.length === 1) {
+      const key = keyPrefix[0];
+      let deleted = false;
+
+      if (mapEntry.layer.has(key)) {
+        if (onValue) onValue(mapEntry.layer.get(key));
+        mapEntry.layer.delete(key);
+        deleted = true;
+      }
+
+      const childEntry = mapEntry.children.get(key);
+
+      if (childEntry) {
+        if (onValue) this.#forEachInSubtree(childEntry, onValue);
+        mapEntry.children.delete(key);
+        deleted = true;
+      }
+
+      return deleted;
+    }
+
+    const [first, ...rest] = keyPrefix;
+    const nextMapEntry = mapEntry.children.get(first);
+
+    if (!nextMapEntry) {
+      return false;
+    }
+
+    const deleted = this.#deleteByPrefix(nextMapEntry, rest, onValue);
+
+    if (
+      deleted &&
+      nextMapEntry.layer.size === 0 &&
+      nextMapEntry.children.size === 0
+    ) {
+      mapEntry.children.delete(first);
+    }
+
+    return deleted;
+  }
+
+  deleteByPrefix(keyPrefix, onValue) {
+    if (!Array.isArray(keyPrefix) || keyPrefix.length === 0) {
+      return false;
+    }
+
+    return this.#deleteByPrefix(this.#internalMap, keyPrefix, onValue);
+  }
+
   clear() {
     this.#internalMap = { layer: new Map(), children: new Map() };
   }

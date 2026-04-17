@@ -484,4 +484,151 @@ describe('getInjectable2', () => {
       expect(result1).not.toBe(result2);
     });
   });
+
+  describe('purge by key', () => {
+    it('purges specific parametric entry by key', () => {
+      const obj = getInjectable2({
+        id: 'purge-key-obj',
+        instantiate: () => key => ({ key }),
+      });
+
+      di.register(obj);
+
+      const a = di.inject(obj, 'a');
+      const b = di.inject(obj, 'b');
+
+      di.purge(obj, 'a');
+
+      expect(di.inject(obj, 'a')).not.toBe(a);
+      expect(di.inject(obj, 'b')).toBe(b);
+    });
+
+    it('purges by prefix for multi-param injectable2', () => {
+      const obj = getInjectable2({
+        id: 'purge-prefix-obj',
+        instantiate: () => (cat, id) => ({ cat, id }),
+      });
+
+      di.register(obj);
+
+      const ab = di.inject(obj, 'a', 'b');
+      const ac = di.inject(obj, 'a', 'c');
+      const xz = di.inject(obj, 'x', 'z');
+
+      di.purge(obj, 'a');
+
+      expect(di.inject(obj, 'a', 'b')).not.toBe(ab);
+      expect(di.inject(obj, 'a', 'c')).not.toBe(ac);
+      expect(di.inject(obj, 'x', 'z')).toBe(xz);
+    });
+
+    it('purges by token2 across all implementing injectables', () => {
+      const token = getInjectionToken2({ id: 'purge-token2' });
+
+      const impl1 = getInjectable2({
+        id: 'purge-token2-impl-1',
+        injectionToken: token,
+        instantiate: () => key => ({ key, src: 1 }),
+      });
+
+      const impl2 = getInjectable2({
+        id: 'purge-token2-impl-2',
+        injectionToken: token,
+        instantiate: () => key => ({ key, src: 2 }),
+      });
+
+      di.register(impl1, impl2);
+
+      const i1 = di.inject(impl1, 'k');
+      const i2 = di.inject(impl2, 'k');
+
+      di.purge(token);
+
+      expect(di.inject(impl1, 'k')).not.toBe(i1);
+      expect(di.inject(impl2, 'k')).not.toBe(i2);
+    });
+
+    it('purges by token2 with key across all implementing injectables', () => {
+      const token = getInjectionToken2({ id: 'purge-token2-key' });
+
+      const impl1 = getInjectable2({
+        id: 'purge-token2-key-impl-1',
+        injectionToken: token,
+        instantiate: () => key => ({ key, src: 1 }),
+      });
+
+      const impl2 = getInjectable2({
+        id: 'purge-token2-key-impl-2',
+        injectionToken: token,
+        instantiate: () => key => ({ key, src: 2 }),
+      });
+
+      di.register(impl1, impl2);
+
+      const i1a = di.inject(impl1, 'a');
+      const i1b = di.inject(impl1, 'b');
+      const i2a = di.inject(impl2, 'a');
+      const i2b = di.inject(impl2, 'b');
+
+      di.purge(token, 'a');
+
+      expect(di.inject(impl1, 'a')).not.toBe(i1a);
+      expect(di.inject(impl1, 'b')).toBe(i1b);
+      expect(di.inject(impl2, 'a')).not.toBe(i2a);
+      expect(di.inject(impl2, 'b')).toBe(i2b);
+    });
+  });
+
+  describe('scoped purge from within instantiate', () => {
+    it('can purge a child injectable registered in its own context', () => {
+      const childInjectable = getInjectable2({
+        id: 'child2',
+        instantiate: () => key => ({ key }),
+      });
+
+      const parentInjectable = getInjectable2({
+        id: 'parent2',
+        instantiate: minimalDi => {
+          minimalDi.register(childInjectable);
+          const getChild = minimalDi.inject(childInjectable);
+
+          return () => ({
+            getChild,
+            purgeChild: key => minimalDi.purge(childInjectable, key),
+          });
+        },
+      });
+
+      di.register(parentInjectable);
+
+      const parent = di.inject(parentInjectable);
+      const child1 = parent.getChild('k');
+
+      parent.purgeChild('k');
+
+      const child2 = parent.getChild('k');
+      expect(child2).not.toBe(child1);
+    });
+
+    it('throws when trying to purge an unrelated injectable outside its context tree', () => {
+      const unrelatedInjectable = getInjectable2({
+        id: 'unrelated2',
+        instantiate: () => key => ({ key }),
+      });
+
+      const parentInjectable = getInjectable2({
+        id: 'parent-scoped2',
+        instantiate: minimalDi => {
+          minimalDi.purge(unrelatedInjectable);
+          return () => 'done';
+        },
+      });
+
+      di.register(unrelatedInjectable, parentInjectable);
+
+      expect(() => di.inject(parentInjectable)).toThrow(
+        'not within its registration context tree',
+      );
+    });
+  });
 });
