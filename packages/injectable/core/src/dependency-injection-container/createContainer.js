@@ -268,7 +268,11 @@ export default containerId => {
           !allowedChildren?.has(injectable)
         ) {
           throw new Error(
-            `Tried to purge "${namespacedIdByInjectableMap.get(injectable)}" from "${namespacedIdByInjectableMap.get(scopeInjectable)}", but it is not within its registration context tree.`,
+            `Tried to purge "${namespacedIdByInjectableMap.get(
+              injectable,
+            )}" from "${namespacedIdByInjectableMap.get(
+              scopeInjectable,
+            )}", but it is not within its registration context tree.`,
           );
         }
       }
@@ -286,6 +290,18 @@ export default containerId => {
 
     purgeAllButOverrides,
     hasRegistrations: alias => !!getRelatedInjectables(alias).length,
+
+    getNumberOfInstances: () => {
+      const result = {};
+      for (const [injectable, instanceMap] of instancesByInjectableMap) {
+        const namespacedId = namespacedIdByInjectableMap.get(injectable);
+        if (!namespacedId) continue;
+        let count = 0;
+        for (const _ of instanceMap.values()) count++;
+        if (count > 0) result[namespacedId] = count;
+      }
+      return result;
+    },
   };
 
   const publicInject = (alias, ...args) =>

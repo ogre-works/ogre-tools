@@ -111,6 +111,7 @@ const createMinimalDi = (
     },
 
     hasRegistrations: di.hasRegistrations,
+    getNumberOfInstances: di.getNumberOfInstances,
 
     purge: (alias, ...keyParts) =>
       di.scopedPurge(injectableToBeInstantiated, alias, ...keyParts),

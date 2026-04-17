@@ -31,6 +31,8 @@ export interface DiContainer extends DiContainerForInjection {
   deregister(
     ...injectables: (Injectable<any, any, any> | Injectable2<any> | InjectableBunch<any>)[]
   ): void;
+
+  getNumberOfInstances: () => Record<string, number>;
 }
 
 export type Instantiate<InjectionInstance, InstantiationParam = void> = (di: DiContainerForInjection, param: InstantiationParam) => InjectionInstance;
@@ -309,6 +311,8 @@ export interface DiContainerForInjection {
   hasRegistrations: (
     alias: InjectionToken<any, any, any> | Injectable<any, any, any> | InjectionToken2<any> | Injectable2<any>,
   ) => boolean;
+
+  getNumberOfInstances: () => Record<string, number>;
 }
 
 export interface Lifecycle<InstantiationParam = void> {
@@ -642,6 +646,8 @@ export interface DiContainerForInjection2 {
   purge: Purge;
 
   hasRegistrations: HasRegistrations2;
+
+  getNumberOfInstances: () => Record<string, number>;
 }
 
 interface HasRegistrations2 {
