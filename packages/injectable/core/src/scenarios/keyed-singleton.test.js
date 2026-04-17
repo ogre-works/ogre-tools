@@ -262,7 +262,9 @@ describe('createContainer.keyed-singleton', () => {
 
   describe('given maxCacheSize on injection token', () => {
     it('applies token maxCacheSize as default for implementing injectable', () => {
-      const { getInjectionToken } = require('../getInjectionToken/getInjectionToken');
+      const {
+        getInjectionToken,
+      } = require('../getInjectionToken/getInjectionToken');
 
       const token = getInjectionToken({
         id: 'lru-token',
@@ -291,7 +293,9 @@ describe('createContainer.keyed-singleton', () => {
     });
 
     it('injectable maxCacheSize overrides token maxCacheSize', () => {
-      const { getInjectionToken } = require('../getInjectionToken/getInjectionToken');
+      const {
+        getInjectionToken,
+      } = require('../getInjectionToken/getInjectionToken');
 
       const token = getInjectionToken({
         id: 'lru-token-override',
@@ -321,7 +325,9 @@ describe('createContainer.keyed-singleton', () => {
     });
 
     it('specific token inherits maxCacheSize from general token', () => {
-      const { getInjectionToken } = require('../getInjectionToken/getInjectionToken');
+      const {
+        getInjectionToken,
+      } = require('../getInjectionToken/getInjectionToken');
 
       const generalToken = getInjectionToken({
         id: 'lru-general-token',
@@ -445,7 +451,9 @@ describe('createContainer.keyed-singleton', () => {
 
   describe('purge by injection token', () => {
     it('purges all injectables implementing the token', () => {
-      const { getInjectionToken } = require('../getInjectionToken/getInjectionToken');
+      const {
+        getInjectionToken,
+      } = require('../getInjectionToken/getInjectionToken');
 
       const token = getInjectionToken({ id: 'purge-token' });
 
@@ -482,7 +490,9 @@ describe('createContainer.keyed-singleton', () => {
     });
 
     it('purges by key across all injectables implementing the token', () => {
-      const { getInjectionToken } = require('../getInjectionToken/getInjectionToken');
+      const {
+        getInjectionToken,
+      } = require('../getInjectionToken/getInjectionToken');
 
       const token = getInjectionToken({ id: 'purge-token-key' });
 
