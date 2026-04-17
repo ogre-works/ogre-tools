@@ -194,12 +194,6 @@ export type InjectFactory = <InjectionInstance, InstantiationParam>(
     | InjectionToken<InjectionInstance, InstantiationParam>,
 ) => InstantiationParam extends void ? (() => InjectionInstance) : ((param: InstantiationParam) => InjectionInstance);
 
-export type GetInstances = <InjectionInstance>(
-  alias:
-    | Injectable<InjectionInstance, unknown>
-    | InjectionToken<InjectionInstance>,
-) => InjectionInstance[];
-
 export type SpecificInjectWithoutParameter<InjectionInstance> = (
   key:
     | Injectable<InjectionInstance, unknown>
@@ -303,7 +297,6 @@ export interface DiContainerForInjection {
     ...injectables: (Injectable<any, any, any> | Injectable2<any> | InjectableBunch<any>)[]
   ): void;
 
-  getInstances: GetInstances;
   sourceNamespace: string | undefined;
 
   purge: Purge;

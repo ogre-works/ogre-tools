@@ -240,13 +240,14 @@ describe('createContainer.keyed-singleton', () => {
       expect(aStill).toBe(a); // same instance, was promoted
     });
 
-    it('getInstances returns only surviving entries', () => {
+    it('getNumberOfInstances returns only surviving entries', () => {
       di.inject(injectable, 'key-a');
       di.inject(injectable, 'key-b');
       di.inject(injectable, 'key-c'); // evicts 'key-a'
 
-      const instances = di.getInstances(injectable);
-      expect(instances).toHaveLength(2);
+      expect(di.getNumberOfInstances()).toEqual({
+        'lru-injectable': 2,
+      });
     });
 
     it('purge clears all entries including LRU state', () => {
@@ -255,8 +256,7 @@ describe('createContainer.keyed-singleton', () => {
 
       di.purge(injectable);
 
-      const instances = di.getInstances(injectable);
-      expect(instances).toHaveLength(0);
+      expect(di.getNumberOfInstances()).toEqual({});
     });
   });
 

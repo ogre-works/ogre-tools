@@ -336,11 +336,6 @@ export default containerId => {
 
     injectManyWithMeta: (alias, ...args) =>
       privateDi.injectManyWithMeta(alias, args, rootInjectable, rootInjectable),
-
-    getInstances: alias =>
-      getRelatedInjectables(alias).flatMap(injectable => [
-        ...instancesByInjectableMap.get(injectable).values(),
-      ]),
   };
 
   return publicDi;

@@ -436,25 +436,6 @@ expectError(
   })),
 );
 
-// given injectable, when getting instances using injectable, typing is OK
-expectType<string[]>(
-  di.getInstances(
-    getInjectable({
-      id: 'some-injectable',
-      instantiate: () => 'irrelevant',
-    }),
-  ),
-);
-
-// given token, when getting instances using token, typing is OK
-expectType<number[]>(
-  di.getInstances(
-    getInjectionToken<number>({
-      id: 'some-token',
-    }),
-  ),
-);
-
 // given token with instantiation parameter, when used to inject a factory, typing is ok
 expectType<(instantiationParameter: string) => number>(
   di.injectFactory(
