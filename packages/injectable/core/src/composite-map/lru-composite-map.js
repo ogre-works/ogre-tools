@@ -6,9 +6,11 @@ export class LruCompositeMap {
   #size = 0;
   #head = null;
   #tail = null;
+  #onEvict;
 
-  constructor(maxSize) {
+  constructor(maxSize, { onEvict } = {}) {
     this.#maxSize = maxSize;
+    this.#onEvict = onEvict;
   }
 
   #addToHead(node) {
@@ -51,9 +53,13 @@ export class LruCompositeMap {
 
   #evictLru() {
     const lruNode = this.#tail;
+    const key = lruNode.key;
+    const wrapper = this.#inner.get(key);
     this.#removeNode(lruNode);
-    this.#inner.delete(lruNode.key);
+    this.#inner.delete(key);
     this.#size--;
+
+    if (this.#onEvict) this.#onEvict(wrapper.value, key);
   }
 
   get(key) {

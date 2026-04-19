@@ -29,3 +29,10 @@ export const deregistrationDecoratorToken = getInjectionToken({
   id: 'deregistration-decorator-token',
   decorable: false,
 });
+
+export const instancePurgeCallbackToken = getInjectionToken({
+  id: 'instance-purge-callback-token',
+  decorable: false,
+});
+
+export { createInstancePurgeTargetCallback } from './createInstancePurgeTargetCallback';

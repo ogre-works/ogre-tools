@@ -122,6 +122,7 @@ export const registerSingleFor = ({
   injectablesByInjectionToken,
   injectableAndRegistrationContext,
   childrenByParentMap,
+  firePurgeCallbacks,
 }) => {
   const getNamespacedId = getNamespacedIdFor(injectableAndRegistrationContext);
 
@@ -170,7 +171,12 @@ export const registerSingleFor = ({
       injectable.maxCacheSize ?? injectable.injectionToken?.maxCacheSize;
 
     const instanceMap =
-      maxCacheSize > 0 ? new LruCompositeMap(maxCacheSize) : new CompositeMap();
+      maxCacheSize > 0
+        ? new LruCompositeMap(maxCacheSize, {
+            onEvict: (instance, keyArray) =>
+              firePurgeCallbacks(injectable, instance, keyArray),
+          })
+        : new CompositeMap();
 
     instancesByInjectableMap.set(injectable, instanceMap);
 

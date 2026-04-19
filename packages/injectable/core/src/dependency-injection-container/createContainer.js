@@ -13,6 +13,7 @@ import { checkForSideEffectsFor } from './checkForSideEffectsFor';
 import { getRelatedInjectablesFor } from './getRelatedInjectablesFor';
 import { earlyOverrideFor } from './early-override';
 import { injectionDecoratorToken, instantiationDecoratorToken } from './tokens';
+import { firePurgeCallbacksFor } from './firePurgeCallbacksFor';
 
 export default containerId => {
   const injectableSet = new Set();
@@ -127,6 +128,10 @@ export default containerId => {
     nonDecoratedPrivateInjectManyWithMeta,
   );
 
+  const firePurgeCallbacks = firePurgeCallbacksFor({
+    injectMany: nonDecoratedPrivateInjectMany,
+  });
+
   const rawRegisterSingle = registerSingleFor({
     injectableSet,
     namespacedIdByInjectableMap,
@@ -135,6 +140,7 @@ export default containerId => {
     injectableIdSet,
     injectableAndRegistrationContext,
     childrenByParentMap,
+    firePurgeCallbacks,
   });
 
   const registerSingle = (injectable, context) => {
@@ -150,6 +156,7 @@ export default containerId => {
   const purgeInstances = purgeInstancesFor({
     getRelatedInjectables,
     instancesByInjectableMap,
+    firePurgeCallbacks,
   });
 
   const decorate = decorateFor({ registerSingle });
