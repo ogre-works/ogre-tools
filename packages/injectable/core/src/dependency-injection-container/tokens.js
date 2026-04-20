@@ -1,4 +1,6 @@
 import { getInjectionToken } from '../getInjectionToken/getInjectionToken';
+import { getSpecificInjectionToken2 } from '../getInjectionToken2/getInjectionToken2';
+import { getAbstractInjectionToken2 } from '../getInjectionToken2/getAbstractInjectionToken2';
 
 export const registrationCallbackToken = getInjectionToken({
   id: 'registration-callback-token',
@@ -30,9 +32,9 @@ export const deregistrationDecoratorToken = getInjectionToken({
   decorable: false,
 });
 
-export const instancePurgeCallbackToken = getInjectionToken({
+export const instancePurgeCallbackToken = getAbstractInjectionToken2({
   id: 'instance-purge-callback-token',
   decorable: false,
+  specificInjectionTokenFactory: target =>
+    getSpecificInjectionToken2({ id: target.id, speciality: target.id }),
 });
-
-export { createInstancePurgeTargetCallback } from './createInstancePurgeTargetCallback';

@@ -3,7 +3,6 @@ import { expectAssignable, expectError, expectNotType, expectType } from 'tsd';
 import {
   createContainer,
   createInjectionTargetDecorator,
-  createInstancePurgeTargetCallback,
   createInstantiationTargetDecorator,
   DiContainer,
   DiContainerForInjection,
@@ -14,7 +13,6 @@ import {
   getSpecificInjectionToken,
   getTypedSpecifier,
   instancePurgeCallbackToken,
-  InstancePurgeTargetCallback,
   Lifecycle,
   Injectable,
   InjectableBunch,
@@ -1389,59 +1387,27 @@ di.unoverride(userServiceToken2);
 // instancePurgeCallbackToken type tests
 // ======================================================================
 
-// --- old-style target: instance and param infer from Injectable<I, _, P> ---
+// --- old-style targets are rejected at type level ---
 
 const someOldStyleInjectableForPurge = getInjectable({
   id: 'some-old-style-for-purge',
-  instantiate: (di, param: string): { value: string } => ({ value: param }),
-  lifecycle: lifecycleEnum.keyedSingleton({
-    getInstanceKey: (_, param: string) => param,
-  }),
+  instantiate: () => 'irrelevant',
 });
 
-createInstancePurgeTargetCallback({
-  target: someOldStyleInjectableForPurge,
-  callback: (instance, instantiationParameter) => {
-    expectType<{ value: string }>(instance);
-    expectType<string>(instantiationParameter);
-  },
-});
-
-// Wrong instance type → type error
-expectError(
-  createInstancePurgeTargetCallback({
-    target: someOldStyleInjectableForPurge,
-    callback: (instance: number, param: string) => {},
-  }),
-);
-
-// Wrong param type → type error
-expectError(
-  createInstancePurgeTargetCallback({
-    target: someOldStyleInjectableForPurge,
-    callback: (instance: { value: string }, param: number) => {},
-  }),
-);
-
-// --- old-style target: injection token ---
+expectError(instancePurgeCallbackToken.for(someOldStyleInjectableForPurge));
 
 const someOldStyleTokenForPurge = getInjectionToken<boolean, number>({
   id: 'some-old-style-token-for-purge',
 });
 
-createInstancePurgeTargetCallback({
-  target: someOldStyleTokenForPurge,
-  callback: (instance, instantiationParameter) => {
-    expectType<boolean>(instance);
-    expectType<number>(instantiationParameter);
-  },
-});
+expectError(instancePurgeCallbackToken.for(someOldStyleTokenForPurge));
 
 // --- injectable2 target: curried callback, instance from ReturnType<F> ---
 
-createInstancePurgeTargetCallback({
-  target: parametricInjectable2,
-  callback: instance => (name, age) => {
+getInjectable2({
+  id: 'purge-callback-for-parametric-2',
+  injectionToken: instancePurgeCallbackToken.for(parametricInjectable2),
+  instantiate: () => () => ({ instance }) => (name, age) => {
     expectType<{ name: string; age: number }>(instance);
     expectType<string>(name);
     expectType<number>(age);
@@ -1451,27 +1417,36 @@ createInstancePurgeTargetCallback({
 
 // Wrong inner arrow arg type → type error
 expectError(
-  createInstancePurgeTargetCallback({
-    target: parametricInjectable2,
-    callback: instance => (name: number, age) => ({
-      name: String(name),
-      age,
-    }),
+  getInjectable2({
+    id: 'purge-callback-wrong-arg',
+    injectionToken: instancePurgeCallbackToken.for(parametricInjectable2),
+    instantiate:
+      () => () =>
+      ({ instance }) =>
+      (name: number, age) => ({
+        name: String(name),
+        age,
+      }),
   }),
 );
 
 // Wrong inner arrow return shape → type error
 expectError(
-  createInstancePurgeTargetCallback({
-    target: parametricInjectable2,
-    callback: instance => (name, age) => ({ name, age: String(age) }),
+  getInjectable2({
+    id: 'purge-callback-wrong-return',
+    injectionToken: instancePurgeCallbackToken.for(parametricInjectable2),
+    instantiate: () => () => ({ instance }) => (name, age) => ({
+      name,
+      age: String(age),
+    }),
   }),
 );
 
 // Non-parametric injectable2: inner arrow takes no args
-createInstancePurgeTargetCallback({
-  target: nonParametricInjectable2,
-  callback: instance => () => {
+getInjectable2({
+  id: 'purge-callback-for-nonparametric-2',
+  injectionToken: instancePurgeCallbackToken.for(nonParametricInjectable2),
+  instantiate: () => () => ({ instance }) => () => {
     expectType<number>(instance);
     return 0;
   },
@@ -1479,9 +1454,10 @@ createInstancePurgeTargetCallback({
 
 // --- injectable2 target: injection token2 ---
 
-createInstancePurgeTargetCallback({
-  target: userServiceToken2,
-  callback: instance => userId => {
+getInjectable2({
+  id: 'purge-callback-for-user-service-token-2',
+  injectionToken: instancePurgeCallbackToken.for(userServiceToken2),
+  instantiate: () => () => ({ instance }) => userId => {
     expectType<{ id: string }>(instance);
     expectType<string>(userId);
     return { id: userId };
@@ -1490,34 +1466,39 @@ createInstancePurgeTargetCallback({
 
 // --- generic factory target preserves T on the inner arrow ---
 
-createInstancePurgeTargetCallback({
-  target: wrapperToken2,
-  callback: instance =>
+getInjectable2({
+  id: 'purge-callback-for-wrapper-token',
+  injectionToken: instancePurgeCallbackToken.for(wrapperToken2),
+  instantiate:
+    () => () =>
+    ({ instance }) =>
     <T>(value: T) => ({ wrapped: value }),
 });
 
 // Inside the generic inner arrow, value stays T — string-only ops fail
 expectError(
-  createInstancePurgeTargetCallback({
-    target: wrapperToken2,
-    callback: instance =>
+  getInjectable2({
+    id: 'purge-callback-wrapper-bad-t',
+    injectionToken: instancePurgeCallbackToken.for(wrapperToken2),
+    instantiate:
+      () => () =>
+      ({ instance }) =>
       <T>(value: T) => ({ wrapped: value.toUpperCase() }),
   }),
 );
 
-// --- untargeted variant ---
+// --- abstract base is not directly injectable/registrable ---
 
-createInstancePurgeTargetCallback({
-  callback: (instance, ...instantiationParameters) => {
-    expectType<unknown>(instance);
-    expectType<unknown[]>(instantiationParameters);
-  },
-});
+// direct inject of the abstract base is a type error
+expectError(di.inject(instancePurgeCallbackToken));
 
-// --- token is an InjectionToken carrying the payload type ---
-
-expectAssignable<InjectionToken<InstancePurgeTargetCallback<any, any, any, any>>>(
-  instancePurgeCallbackToken,
+// registering a callback against the abstract base (not .for(target)) is a type error
+expectError(
+  getInjectable2({
+    id: 'bad-direct-registration',
+    injectionToken: instancePurgeCallbackToken,
+    instantiate: () => () => undefined,
+  }),
 );
 
 // ---- AbstractInjectionToken2 ----

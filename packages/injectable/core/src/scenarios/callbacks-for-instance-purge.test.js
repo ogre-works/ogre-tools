@@ -1,270 +1,39 @@
 import getInjectable from '../getInjectable/getInjectable';
 import getInjectable2 from '../getInjectable2/getInjectable2';
-import { getInjectionToken } from '../getInjectionToken/getInjectionToken';
 import { getInjectionToken2 } from '../getInjectionToken2/getInjectionToken2';
 import { createContainer } from '../../index';
-import {
-  instancePurgeCallbackToken,
-  createInstancePurgeTargetCallback,
-} from '../dependency-injection-container/tokens';
-import lifecycleEnum from '../dependency-injection-container/lifecycleEnum';
+import { instancePurgeCallbackToken } from '../dependency-injection-container/tokens';
 
-const asPurgeCallbackInjectable = (id, desc) =>
-  getInjectable({
+const asPurgeCallbackInjectable = (id, target, callback) =>
+  getInjectable2({
     id,
-    instantiate: () => desc,
-    injectionToken: instancePurgeCallbackToken,
+    injectionToken: instancePurgeCallbackToken.for(target),
+    instantiate: () => () => callback,
   });
 
 describe('callbacks-for-instance-purge', () => {
-  describe('old-style injectables', () => {
-    it('targeted callback fires with (instance, undefined) on plain singleton purge', () => {
-      const di = createContainer('some-container');
-      const callbackMock = jest.fn();
-
-      const someInjectable = getInjectable({
-        id: 'some-injectable',
-        instantiate: () => ({ id: 'singleton' }),
-      });
-
-      const callbackInjectable = asPurgeCallbackInjectable(
-        'purge-callback',
-        createInstancePurgeTargetCallback({
-          target: someInjectable,
-          callback: callbackMock,
-        }),
-      );
-
-      di.register(callbackInjectable, someInjectable);
-
-      const instance = di.inject(someInjectable);
-      di.purge(someInjectable);
-
-      expect(callbackMock).toHaveBeenCalledTimes(1);
-      expect(callbackMock).toHaveBeenCalledWith(instance, undefined);
-    });
-
-    it('targeted callback fires with (instance, param) on keyed singleton purge', () => {
-      const di = createContainer('some-container');
-      const callbackMock = jest.fn();
-
-      const someInjectable = getInjectable({
-        id: 'keyed',
-        instantiate: (_, param) => ({ param }),
-        lifecycle: lifecycleEnum.keyedSingleton({
-          getInstanceKey: (_, param) => param,
-        }),
-      });
-
-      di.register(
-        asPurgeCallbackInjectable(
-          'purge-callback',
-          createInstancePurgeTargetCallback({
-            target: someInjectable,
-            callback: callbackMock,
-          }),
-        ),
-        someInjectable,
-      );
-
-      const a = di.inject(someInjectable, 'a');
-      const b = di.inject(someInjectable, 'b');
-
-      di.purge(someInjectable);
-
-      expect(callbackMock).toHaveBeenCalledTimes(2);
-      expect(callbackMock).toHaveBeenCalledWith(a, 'a');
-      expect(callbackMock).toHaveBeenCalledWith(b, 'b');
-    });
-
-    it('targeted callback keyed to an injection token fires for every implementation', () => {
-      const di = createContainer('some-container');
-      const callbackMock = jest.fn();
-
-      const someToken = getInjectionToken({ id: 'some-token' });
-
-      const implA = getInjectable({
-        id: 'impl-a',
-        instantiate: () => 'a-instance',
-        injectionToken: someToken,
-      });
-
-      const implB = getInjectable({
-        id: 'impl-b',
-        instantiate: () => 'b-instance',
-        injectionToken: someToken,
-      });
-
-      di.register(
-        asPurgeCallbackInjectable(
-          'purge-callback',
-          createInstancePurgeTargetCallback({
-            target: someToken,
-            callback: callbackMock,
-          }),
-        ),
-        implA,
-        implB,
-      );
-
-      di.inject(implA);
-      di.inject(implB);
-
-      di.purge();
-
-      expect(callbackMock).toHaveBeenCalledTimes(2);
-      expect(callbackMock).toHaveBeenCalledWith('a-instance', undefined);
-      expect(callbackMock).toHaveBeenCalledWith('b-instance', undefined);
-    });
-
-    it('targeted callback does NOT fire for evictions of a different injectable', () => {
-      const di = createContainer('some-container');
-      const callbackMock = jest.fn();
-
-      const targetInjectable = getInjectable({
-        id: 'target',
-        instantiate: () => 'target-instance',
-      });
-
-      const otherInjectable = getInjectable({
-        id: 'other',
-        instantiate: () => 'other-instance',
-      });
-
-      di.register(
-        asPurgeCallbackInjectable(
-          'purge-callback',
-          createInstancePurgeTargetCallback({
-            target: targetInjectable,
-            callback: callbackMock,
-          }),
-        ),
-        targetInjectable,
-        otherInjectable,
-      );
-
-      di.inject(otherInjectable);
-      di.purge(otherInjectable);
-
-      expect(callbackMock).not.toHaveBeenCalled();
-    });
-
-    it('untargeted callback fires for every evicted instance', () => {
-      const di = createContainer('some-container');
-      const callbackMock = jest.fn();
-
-      const firstInjectable = getInjectable({
-        id: 'first',
-        instantiate: () => 'first-instance',
-      });
-
-      const secondInjectable = getInjectable({
-        id: 'second',
-        instantiate: () => 'second-instance',
-      });
-
-      di.register(
-        asPurgeCallbackInjectable(
-          'purge-callback',
-          createInstancePurgeTargetCallback({
-            callback: callbackMock,
-          }),
-        ),
-        firstInjectable,
-        secondInjectable,
-      );
-
-      di.inject(firstInjectable);
-      di.inject(secondInjectable);
-      di.purge();
-
-      expect(callbackMock).toHaveBeenCalledTimes(2);
-    });
-
-    it('di.purge(injectable, key) fires only for the matched keyed entry', () => {
-      const di = createContainer('some-container');
-      const callbackMock = jest.fn();
-
-      const someInjectable = getInjectable({
-        id: 'keyed-partial',
-        instantiate: (_, param) => ({ param }),
-        lifecycle: lifecycleEnum.keyedSingleton({
-          getInstanceKey: (_, param) => param,
-        }),
-      });
-
-      di.register(
-        asPurgeCallbackInjectable(
-          'purge-callback',
-          createInstancePurgeTargetCallback({
-            target: someInjectable,
-            callback: callbackMock,
-          }),
-        ),
-        someInjectable,
-      );
-
-      const a = di.inject(someInjectable, 'a');
-      di.inject(someInjectable, 'b');
-
-      di.purge(someInjectable, 'a');
-
-      expect(callbackMock).toHaveBeenCalledTimes(1);
-      expect(callbackMock).toHaveBeenCalledWith(a, 'a');
-    });
-
-    it('di.deregister(injectable) fires the purge callback', () => {
-      const di = createContainer('some-container');
-      const callbackMock = jest.fn();
-
-      const someInjectable = getInjectable({
-        id: 'deregistered',
-        instantiate: () => 'instance',
-      });
-
-      di.register(
-        asPurgeCallbackInjectable(
-          'purge-callback',
-          createInstancePurgeTargetCallback({
-            target: someInjectable,
-            callback: callbackMock,
-          }),
-        ),
-        someInjectable,
-      );
-
-      di.inject(someInjectable);
-      di.deregister(someInjectable);
-
-      expect(callbackMock).toHaveBeenCalledTimes(1);
-      expect(callbackMock).toHaveBeenCalledWith('instance', undefined);
-    });
-  });
-
   describe('injectable2 targets', () => {
-    it('curried callback fires as callback(instance)(...args) for non-parametric factory', () => {
+    it('callback fires with { instance } on non-parametric singleton purge', () => {
       const di = createContainer('some-container');
       const outer = jest.fn();
       const inner = jest.fn();
 
       const someInjectable2 = getInjectable2({
-        id: 'nonparametric-2',
+        id: 'nonparametric',
         instantiate: () => () => ({ value: 'singleton' }),
       });
 
       di.register(
         asPurgeCallbackInjectable(
           'purge-callback',
-          createInstancePurgeTargetCallback({
-            target: someInjectable2,
-            callback: instance => {
-              outer(instance);
-              return () => {
-                inner();
-                return instance;
-              };
-            },
-          }),
+          someInjectable2,
+          ({ instance }) => {
+            outer(instance);
+            return () => {
+              inner();
+              return instance;
+            };
+          },
         ),
         someInjectable2,
       );
@@ -281,20 +50,18 @@ describe('callbacks-for-instance-purge', () => {
       const innerArgs = jest.fn();
 
       const greetInjectable2 = getInjectable2({
-        id: 'parametric-2',
+        id: 'parametric',
         instantiate: () => (name, greeting) => `${greeting}, ${name}`,
       });
 
       di.register(
         asPurgeCallbackInjectable(
           'purge-callback',
-          createInstancePurgeTargetCallback({
-            target: greetInjectable2,
-            callback: instance => (name, greeting) => {
-              innerArgs(instance, name, greeting);
-              return instance;
-            },
-          }),
+          greetInjectable2,
+          ({ instance }) => (name, greeting) => {
+            innerArgs(instance, name, greeting);
+            return instance;
+          },
         ),
         greetInjectable2,
       );
@@ -309,36 +76,134 @@ describe('callbacks-for-instance-purge', () => {
       expect(innerArgs).toHaveBeenCalledWith('Hi, Bob', 'Bob', 'Hi');
     });
 
-    it('callback targeted at injection token2 fires for implementations', () => {
+    it('callback targeted at injection token2 fires for every implementation', () => {
       const di = createContainer('some-container');
       const innerArgs = jest.fn();
 
       const handlerToken2 = getInjectionToken2({ id: 'handler-token-2' });
 
-      const impl = getInjectable2({
-        id: 'handler-impl',
+      const implA = getInjectable2({
+        id: 'impl-a',
         injectionToken: handlerToken2,
-        instantiate: () => name => `hello-${name}`,
+        instantiate: () => name => `a-${name}`,
+      });
+
+      const implB = getInjectable2({
+        id: 'impl-b',
+        injectionToken: handlerToken2,
+        instantiate: () => name => `b-${name}`,
       });
 
       di.register(
         asPurgeCallbackInjectable(
           'purge-callback',
-          createInstancePurgeTargetCallback({
-            target: handlerToken2,
-            callback: instance => name => {
-              innerArgs(instance, name);
-              return instance;
-            },
-          }),
+          handlerToken2,
+          ({ instance }) => name => {
+            innerArgs(instance, name);
+            return instance;
+          },
         ),
-        impl,
+        implA,
+        implB,
       );
 
-      di.inject(impl, 'world');
-      di.purge(impl);
+      di.inject(implA, 'x');
+      di.inject(implB, 'y');
 
-      expect(innerArgs).toHaveBeenCalledWith('hello-world', 'world');
+      di.purge();
+
+      expect(innerArgs).toHaveBeenCalledTimes(2);
+      expect(innerArgs).toHaveBeenCalledWith('a-x', 'x');
+      expect(innerArgs).toHaveBeenCalledWith('b-y', 'y');
+    });
+
+    it('callback does NOT fire for evictions of a different injectable2', () => {
+      const di = createContainer('some-container');
+      const callbackMock = jest.fn();
+
+      const targetInjectable = getInjectable2({
+        id: 'target',
+        instantiate: () => () => 'target-instance',
+      });
+
+      const otherInjectable = getInjectable2({
+        id: 'other',
+        instantiate: () => () => 'other-instance',
+      });
+
+      di.register(
+        asPurgeCallbackInjectable(
+          'purge-callback',
+          targetInjectable,
+          () => () => callbackMock(),
+        ),
+        targetInjectable,
+        otherInjectable,
+      );
+
+      di.inject(otherInjectable);
+      di.purge(otherInjectable);
+
+      expect(callbackMock).not.toHaveBeenCalled();
+    });
+
+    it('di.purge(injectable, key) fires only for the matched keyed entry', () => {
+      const di = createContainer('some-container');
+      const innerArgs = jest.fn();
+
+      const keyedInjectable = getInjectable2({
+        id: 'keyed-partial',
+        instantiate: () => key => ({ key }),
+      });
+
+      di.register(
+        asPurgeCallbackInjectable(
+          'purge-callback',
+          keyedInjectable,
+          ({ instance }) => key => {
+            innerArgs(instance, key);
+            return instance;
+          },
+        ),
+        keyedInjectable,
+      );
+
+      const a = di.inject(keyedInjectable, 'a');
+      di.inject(keyedInjectable, 'b');
+
+      di.purge(keyedInjectable, 'a');
+
+      expect(innerArgs).toHaveBeenCalledTimes(1);
+      expect(innerArgs).toHaveBeenCalledWith(a, 'a');
+    });
+
+    it('di.deregister(injectable2) fires the purge callback', () => {
+      const di = createContainer('some-container');
+      const innerFire = jest.fn();
+
+      const someInjectable2 = getInjectable2({
+        id: 'deregistered',
+        instantiate: () => () => ({ v: 1 }),
+      });
+
+      di.register(
+        asPurgeCallbackInjectable(
+          'purge-callback',
+          someInjectable2,
+          ({ instance }) =>
+            () => {
+              innerFire(instance);
+              return instance;
+            },
+        ),
+        someInjectable2,
+      );
+
+      const instance = di.inject(someInjectable2);
+      di.deregister(someInjectable2);
+
+      expect(innerFire).toHaveBeenCalledTimes(1);
+      expect(innerFire).toHaveBeenCalledWith(instance);
     });
   });
 
@@ -356,13 +221,12 @@ describe('callbacks-for-instance-purge', () => {
       di.register(
         asPurgeCallbackInjectable(
           'purge-callback',
-          createInstancePurgeTargetCallback({
-            target: lruInjectable,
-            callback: instance => key => {
+          lruInjectable,
+          ({ instance }) =>
+            key => {
               callbackMock(instance, key);
               return instance;
             },
-          }),
         ),
         lruInjectable,
       );
@@ -374,52 +238,20 @@ describe('callbacks-for-instance-purge', () => {
       expect(callbackMock).toHaveBeenCalledTimes(1);
       expect(callbackMock).toHaveBeenCalledWith(a, 'a');
     });
-
-    it('untargeted callback also fires on LRU eviction', () => {
-      const di = createContainer('some-container');
-      const callbackMock = jest.fn();
-
-      const lruInjectable = getInjectable2({
-        id: 'lru-untargeted',
-        maxCacheSize: 1,
-        instantiate: () => key => ({ key }),
-      });
-
-      di.register(
-        asPurgeCallbackInjectable(
-          'purge-callback',
-          createInstancePurgeTargetCallback({
-            callback: () => () => undefined,
-          }),
-        ),
-        lruInjectable,
-      );
-
-      di.inject(lruInjectable, 'a');
-      di.inject(lruInjectable, 'b'); // evicts 'a'
-
-      // callback was injected as (instance, ...args) =>... but our curried shape
-      // fires as callback(instance)(...args); general variant catches everything.
-      // Here we just assert the side effect (no throw) and correct arity via sibling test above.
-      expect(true).toBe(true);
-      // sanity: the other test already validates the targeted invocation;
-      // this test passes if LRU fires at all (no descriptor filtering mismatch).
-      expect(callbackMock).not.toHaveBeenCalled();
-    });
   });
 
   describe('three-phase timing (gather → fire → evict)', () => {
     it('during phase 2, peers about to be purged are still injectable', () => {
       const di = createContainer('some-container');
 
-      const peerA = getInjectable({
+      const peerA = getInjectable2({
         id: 'peer-a',
-        instantiate: () => ({ name: 'a' }),
+        instantiate: () => () => ({ name: 'a' }),
       });
 
-      const peerB = getInjectable({
+      const peerB = getInjectable2({
         id: 'peer-b',
-        instantiate: () => ({ name: 'b' }),
+        instantiate: () => () => ({ name: 'b' }),
       });
 
       let observedBFromACallback;
@@ -428,21 +260,17 @@ describe('callbacks-for-instance-purge', () => {
       di.register(
         asPurgeCallbackInjectable(
           'purge-callback-for-a',
-          createInstancePurgeTargetCallback({
-            target: peerA,
-            callback: () => {
-              observedBFromACallback = di.inject(peerB);
-            },
-          }),
+          peerA,
+          () => () => {
+            observedBFromACallback = di.inject(peerB);
+          },
         ),
         asPurgeCallbackInjectable(
           'purge-callback-for-b',
-          createInstancePurgeTargetCallback({
-            target: peerB,
-            callback: () => {
-              observedAFromBCallback = di.inject(peerA);
-            },
-          }),
+          peerB,
+          () => () => {
+            observedAFromBCallback = di.inject(peerA);
+          },
         ),
         peerA,
         peerB,
@@ -461,64 +289,110 @@ describe('callbacks-for-instance-purge', () => {
       const di = createContainer('some-container');
       const callbackMock = jest.fn();
 
-      const someInjectable = getInjectable({
+      const someInjectable2 = getInjectable2({
         id: 're-injected',
-        instantiate: () => ({ t: Date.now() + Math.random() }),
+        instantiate: () => () => ({ t: Date.now() + Math.random() }),
       });
 
       di.register(
         asPurgeCallbackInjectable(
           'purge-callback',
-          createInstancePurgeTargetCallback({
-            target: someInjectable,
-            callback: () => {
-              // re-inject during phase 2 — returns the (still cached) original
-              di.inject(someInjectable);
-              callbackMock();
-            },
-          }),
+          someInjectable2,
+          () => () => {
+            di.inject(someInjectable2);
+            callbackMock();
+          },
         ),
-        someInjectable,
+        someInjectable2,
       );
 
-      const original = di.inject(someInjectable);
+      const original = di.inject(someInjectable2);
       di.purge();
 
-      // Phase 3 clears the cache even though phase 2 re-injected.
-      const afterPurge = di.inject(someInjectable);
+      const afterPurge = di.inject(someInjectable2);
       expect(afterPurge).not.toBe(original);
 
-      // Callback fired exactly once — phase 3 does NOT re-trigger callbacks for
-      // re-populated entries.
       expect(callbackMock).toHaveBeenCalledTimes(1);
     });
 
     it('throwing callback aborts the purge before phase 3', () => {
       const di = createContainer('some-container');
-      const someInjectable = getInjectable({
+      const someInjectable2 = getInjectable2({
         id: 'will-throw',
-        instantiate: () => ({ id: 1 }),
+        instantiate: () => () => ({ id: 1 }),
       });
 
       di.register(
         asPurgeCallbackInjectable(
           'purge-callback',
-          createInstancePurgeTargetCallback({
-            target: someInjectable,
-            callback: () => {
-              throw new Error('nope');
-            },
-          }),
+          someInjectable2,
+          () => () => {
+            throw new Error('nope');
+          },
         ),
-        someInjectable,
+        someInjectable2,
       );
 
-      const original = di.inject(someInjectable);
+      const original = di.inject(someInjectable2);
 
       expect(() => di.purge()).toThrow('nope');
 
-      // Phase 3 never ran — cache still holds the original instance.
-      expect(di.inject(someInjectable)).toBe(original);
+      expect(di.inject(someInjectable2)).toBe(original);
+    });
+  });
+
+  describe('callback cache does not accumulate per-instance', () => {
+    it('firing many purges across distinct keyed-singleton instances keeps the callback entry count at 1', () => {
+      const di = createContainer('some-container');
+
+      const keyedInjectable = getInjectable2({
+        id: 'keyed',
+        instantiate: () => key => ({ key }),
+      });
+
+      const callbackInjectable = asPurgeCallbackInjectable(
+        'purge-callback',
+        keyedInjectable,
+        () => () => {},
+      );
+
+      di.register(callbackInjectable, keyedInjectable);
+
+      for (let i = 0; i < 50; i++) {
+        di.inject(keyedInjectable, `key-${i}`);
+        di.purge(keyedInjectable);
+      }
+
+      // The callback is parameterless at the token level, so it caches ONCE
+      // under the singleton key — not once per (instance, param) pair.
+      const counts = di.getNumberOfInstances();
+      expect(counts['purge-callback']).toBe(1);
+    });
+  });
+
+  describe('abstract base token', () => {
+    it('direct inject of the base token throws', () => {
+      const di = createContainer('some-container');
+      expect(() => di.inject(instancePurgeCallbackToken)).toThrow(
+        /abstract/,
+      );
+    });
+
+    it('direct injectMany of the base token throws', () => {
+      const di = createContainer('some-container');
+      expect(() => di.injectMany(instancePurgeCallbackToken)).toThrow(
+        /abstract/,
+      );
+    });
+
+    it('registering against the base token throws', () => {
+      const di = createContainer('some-container');
+      const bad = getInjectable({
+        id: 'bad',
+        instantiate: () => () => {},
+        injectionToken: instancePurgeCallbackToken,
+      });
+      expect(() => di.register(bad)).toThrow(/abstract/);
     });
   });
 });

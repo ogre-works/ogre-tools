@@ -30,7 +30,6 @@ export const getKeyedSingletonCompositeKey = getCompositeKey;
 
 export { createInstantiationTargetDecorator } from './src/dependency-injection-container/createInstantiationTargetDecorator';
 export { createInjectionTargetDecorator } from './src/dependency-injection-container/createInjectionTargetDecorator';
-export { createInstancePurgeTargetCallback } from './src/dependency-injection-container/createInstancePurgeTargetCallback';
 
 export {
   deregistrationCallbackToken,

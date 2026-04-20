@@ -508,83 +508,36 @@ export const deregistrationCallbackToken: RegistrationCallback;
 
 // --- instancePurgeCallbackToken ---
 //
-// Fires when a cached instance is evicted, either via an explicit
-// `di.purge(...)` / `di.deregister(...)` call, or via LRU eviction when a
-// keyed-singleton cache exceeds its `maxCacheSize`. Three target flavours are
-// supported; target-matching is inherited from the decorator-token pattern
-// via `isRelevantDecoratorFor` (by `id` equivalence of injectable or token).
+// Abstract base token. Callbacks must be registered against a specifier-
+// scoped token produced by `.for(target)` — there is no untargeted variant.
+// Targets are `Injectable2<F>` or `InjectionToken2<F>`; old-style targets
+// are not supported. Firing happens when a cached instance of an injectable2
+// is evicted by `di.purge(...)`, `di.deregister(...)`, or LRU eviction.
 //
-// For injectable2 / token2 targets the callback shape is CURRIED
-// `(instance) => Factory` — mirroring the Override `(di) => F` trick — so
-// free generics in `Factory` survive to the inner arrow. The inner Factory's
-// return value is discarded at runtime; it is required only to keep Factory
-// intact as a covariant return position.
+// The scoped token's Factory is `() => Callback` — parameterless so it
+// resolves as a singleton per callback injectable (one cached entry under
+// the singleton key, not one per evicted instance). The returned Callback
+// is CURRIED `(payload) => Factory` — mirroring the Override `(di) => F`
+// trick — so free generics in `Factory` survive to the inner arrow. The
+// inner Factory's return value is discarded at runtime; it is required
+// only to keep Factory intact as a covariant return position.
+//
+// Payload is an object for readability.
 
-export type SpecificInstancePurgeTargetCallback<
-  InjectionInstance extends InjectionTokenInstance,
-  InjectionTokenInstance = InjectionInstance,
-  InstantiationParam = void,
-> = {
-  callback: (
-    instance: InjectionInstance,
-    instantiationParameter: InstantiationParam,
-  ) => void;
-  target:
-    | InjectionToken<InjectionInstance, InstantiationParam, any>
-    | Injectable<InjectionInstance, InjectionTokenInstance, InstantiationParam>;
-};
-
-export type SpecificInstancePurgeTargetCallback2<
+export type InstancePurgeCallbackForInjectable2<
   Factory extends (...args: any[]) => any,
-> = {
-  callback: (instance: ReturnType<Factory>) => Factory;
-  target: Injectable2<Factory> | InjectionToken2<Factory>;
-};
+> = () => (payload: { instance: ReturnType<Factory> }) => Factory;
 
-export type GeneralInstancePurgeTargetCallback = {
-  callback: (instance: unknown, ...instantiationParameters: unknown[]) => void;
-};
-
-export type InstancePurgeTargetCallback<
-  InjectionInstance extends InjectionTokenInstance,
-  InjectionTokenInstance = InjectionInstance,
-  InstantiationParam = void,
-  Factory extends (...args: any[]) => any = (...args: any[]) => any,
-> =
-  | GeneralInstancePurgeTargetCallback
-  | SpecificInstancePurgeTargetCallback<
-      InjectionInstance,
-      InjectionTokenInstance,
-      InstantiationParam
-    >
-  | SpecificInstancePurgeTargetCallback2<Factory>;
-
-export interface CreateInstancePurgeTargetCallback {
+export interface InstancePurgeCallbackSpecificFactory {
   <Factory extends (...args: any[]) => any>(
-    desc: SpecificInstancePurgeTargetCallback2<Factory>,
-  ): SpecificInstancePurgeTargetCallback2<Factory>;
-  <
-    InjectionInstance extends InjectionTokenInstance,
-    InjectionTokenInstance = InjectionInstance,
-    InstantiationParam = void,
-  >(
-    desc: SpecificInstancePurgeTargetCallback<
-      InjectionInstance,
-      InjectionTokenInstance,
-      InstantiationParam
-    >,
-  ): SpecificInstancePurgeTargetCallback<
-    InjectionInstance,
-    InjectionTokenInstance,
-    InstantiationParam
-  >;
-  (desc: GeneralInstancePurgeTargetCallback): GeneralInstancePurgeTargetCallback;
+    target: Injectable2<Factory> | InjectionToken2<Factory>,
+  ): SpecificInjectionToken2<InstancePurgeCallbackForInjectable2<Factory>>;
 }
 
-export const createInstancePurgeTargetCallback: CreateInstancePurgeTargetCallback;
-
-export const instancePurgeCallbackToken: InjectionToken<
-  InstancePurgeTargetCallback<any, any, any, any>
+export const instancePurgeCallbackToken: AbstractInjectionToken2<
+  (...args: any[]) => any,
+  (...args: any[]) => any[],
+  InstancePurgeCallbackSpecificFactory
 >;
 
 export const isInjectable: (

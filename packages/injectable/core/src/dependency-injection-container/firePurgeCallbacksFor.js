@@ -1,20 +1,25 @@
-import { isRelevantDecoratorFor } from './isRelevantDecoratorFor';
-import { injectableSymbol2 } from '../getInjectable2/getInjectable2';
-import { storedInstanceKey } from './lifecycleEnum';
 import { instancePurgeCallbackToken } from './tokens';
 
 export const firePurgeCallbacksFor =
   ({ injectMany }) =>
   (injectable, instance, keyArray) => {
-    const descriptors = injectMany(instancePurgeCallbackToken, [], []);
-    const relevant = descriptors.filter(isRelevantDecoratorFor(injectable));
+    const payload = { instance };
 
-    if (relevant.length === 0) return;
+    for (const cb of injectMany(
+      instancePurgeCallbackToken.for(injectable),
+      [],
+      [],
+    )) {
+      cb(payload)(...keyArray);
+    }
 
-    if (injectable.aliasType === injectableSymbol2) {
-      for (const { callback } of relevant) callback(instance)(...keyArray);
-    } else {
-      const param = keyArray[0] === storedInstanceKey ? undefined : keyArray[0];
-      for (const { callback } of relevant) callback(instance, param);
+    if (injectable.injectionToken) {
+      for (const cb of injectMany(
+        instancePurgeCallbackToken.for(injectable.injectionToken),
+        [],
+        [],
+      )) {
+        cb(payload)(...keyArray);
+      }
     }
   };
