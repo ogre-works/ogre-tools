@@ -15,6 +15,7 @@ import {
 } from '@ogre-tools/injectable';
 
 import {
+  atomsByTokenInjectable,
   computedInjectManyInjectable,
   computedInjectManyInjectionToken,
   isInternalOfComputedInjectMany,
@@ -88,6 +89,97 @@ describe('registerMobx', () => {
       expect(() => {
         registerMobX(di);
       }).not.toThrow();
+    });
+
+    it('when injecting the computedInjectMany injection token twice, returns the same wrapper function instance', () => {
+      const first = di.inject(computedInjectManyInjectionToken);
+      const second = di.inject(computedInjectManyInjectionToken);
+
+      expect(first).toBe(second);
+    });
+
+    describe('given reactivity atoms are tracked lazily per token', () => {
+      let atomsByToken;
+
+      beforeEach(() => {
+        atomsByToken = di.inject(atomsByTokenInjectable);
+      });
+
+      it('given no token has been requested as reactive, the atom map is empty', () => {
+        expect(atomsByToken.size).toBe(0);
+      });
+
+      describe('when an implementation is registered against a token that nothing has requested as reactive', () => {
+        beforeEach(() => {
+          runInAction(() => {
+            di.register(someInjectable);
+          });
+        });
+
+        it('no atom is created for the token', () => {
+          expect(atomsByToken.has(someFirstInjectionToken)).toBe(false);
+        });
+      });
+
+      describe('when computedInjectMany is called for a token', () => {
+        beforeEach(() => {
+          const computedInjectMany = di.inject(
+            computedInjectManyInjectionToken,
+          );
+          computedInjectMany(someFirstInjectionToken);
+        });
+
+        it('an atom is registered for the token', () => {
+          expect(atomsByToken.has(someFirstInjectionToken)).toBe(true);
+        });
+
+        describe('when computedInjectMany is also called with additional instantiation parameters for the same token', () => {
+          beforeEach(() => {
+            const computedInjectMany = di.inject(
+              computedInjectManyInjectionToken,
+            );
+            computedInjectMany(someFirstInjectionToken, 'some-arg');
+          });
+
+          it('the same single atom is reused across the parameter variations', () => {
+            expect(atomsByToken.size).toBe(1);
+          });
+        });
+      });
+    });
+
+    describe('given a second MobX-enabled container', () => {
+      let atomsByToken;
+      let otherAtomsByToken;
+
+      beforeEach(() => {
+        const otherDi = createContainer('some-other-container');
+        registerMobX(otherDi);
+
+        atomsByToken = di.inject(atomsByTokenInjectable);
+        otherAtomsByToken = otherDi.inject(atomsByTokenInjectable);
+      });
+
+      it('the two containers own independent atom maps', () => {
+        expect(atomsByToken).not.toBe(otherAtomsByToken);
+      });
+
+      describe('when a token is requested as reactive in the original container', () => {
+        beforeEach(() => {
+          const computedInjectMany = di.inject(
+            computedInjectManyInjectionToken,
+          );
+          computedInjectMany(someFirstInjectionToken);
+        });
+
+        it('the atom exists in the original container', () => {
+          expect(atomsByToken.has(someFirstInjectionToken)).toBe(true);
+        });
+
+        it('the other container is unaffected', () => {
+          expect(otherAtomsByToken.has(someFirstInjectionToken)).toBe(false);
+        });
+      });
     });
 
     describe('given in reactive context and observed as computedInjectMany, when multiple injectables that implement the injection token are registered', () => {

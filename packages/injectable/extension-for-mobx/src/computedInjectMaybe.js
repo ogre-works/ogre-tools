@@ -21,20 +21,19 @@ export const _computedInjectMaybeInjectable = getInjectable({
     const computedMany = computedInjectManyWithMeta(token, ...args);
 
     return computed(() => {
-      const [value, ...collidingValues] = computedMany.get();
+      const values = computedMany.get();
 
-      if (collidingValues.length) {
+      if (values.length > 1) {
         throw new Error(
           `Tried to computedInjectMaybe "${
             token.id
-          }", but more than one contribution was encountered: "${[
-            value.meta.id,
-            ...collidingValues.map(x => x.meta.id),
-          ].join('", "')}"`,
+          }", but more than one contribution was encountered: "${values
+            .map(x => x.meta.id)
+            .join('", "')}"`,
         );
       }
 
-      return value?.instance;
+      return values.length === 0 ? undefined : values[0].instance;
     });
   },
 

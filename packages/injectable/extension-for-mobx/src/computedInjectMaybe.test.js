@@ -75,6 +75,13 @@ describe('computedInjectMaybe', () => {
       registerMobX(di);
     });
 
+    it('when injecting the computedInjectMaybe injection token twice, returns the same wrapper function instance', () => {
+      const first = di.inject(computedInjectMaybeInjectionToken);
+      const second = di.inject(computedInjectMaybeInjectionToken);
+
+      expect(first).toBe(second);
+    });
+
     describe('given in reactive context and observed as computedInjectMaybe, when no injectables that implement the injection token are registered', () => {
       beforeEach(() => {
         const computedInjectMaybe = di.inject(
@@ -161,6 +168,28 @@ describe('computedInjectMaybe', () => {
             expect(actualError).toBe(
               'Tried to computedInjectMaybe "some-injection-token", but more than one contribution was encountered: "some-injectable", "some-colliding-injectable"',
             );
+          });
+
+          describe('when yet another colliding implementation for the token gets registered', () => {
+            beforeEach(() => {
+              const someThirdCollidingInjectable = getInjectable({
+                id: 'some-third-colliding-injectable',
+                instantiate: () => 'irrelevant',
+                injectionToken: someInjectionToken,
+              });
+
+              withSuppressedConsoleError(() => {
+                runInAction(() => {
+                  di.register(someThirdCollidingInjectable);
+                });
+              });
+            });
+
+            it('the error message lists every colliding id in registration order', () => {
+              expect(actualError).toBe(
+                'Tried to computedInjectMaybe "some-injection-token", but more than one contribution was encountered: "some-injectable", "some-colliding-injectable", "some-third-colliding-injectable"',
+              );
+            });
           });
         });
       });

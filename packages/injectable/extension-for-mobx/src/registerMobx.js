@@ -1,8 +1,8 @@
 import { runInAction } from 'mobx';
 import {
+  atomsByTokenInjectable,
   computedInjectManyInjectable,
   computedInjectManyWithMetaInjectable,
-  invalidabilityForReactiveInstances,
   invalidateReactiveInstancesOnDeregisterCallback,
   invalidateReactiveInstancesOnRegisterCallback,
   reactiveInstancesInjectable,
@@ -14,13 +14,13 @@ import {
 } from './computedInjectMaybe';
 
 export const registerMobX = di => {
-  if (di.hasRegistrations(invalidabilityForReactiveInstances)) {
+  if (di.hasRegistrations(atomsByTokenInjectable)) {
     return;
   }
 
   runInAction(() => {
     di.register(
-      invalidabilityForReactiveInstances,
+      atomsByTokenInjectable,
       reactiveInstancesInjectable,
       reactiveInstancesWithMetaInjectable,
       computedInjectManyInjectable,

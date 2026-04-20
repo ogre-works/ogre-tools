@@ -7,7 +7,7 @@ import {
   registrationCallbackToken,
 } from '@ogre-tools/injectable';
 
-import { computed, createAtom, runInAction } from 'mobx';
+import { computed, createAtom } from 'mobx';
 
 export const computedInjectManyInjectionToken = getInjectionToken({
   id: 'computed-inject-many',
@@ -21,31 +21,28 @@ export const isInternalOfComputedInjectMany = Symbol(
   'isInternalOfComputedInjectMany',
 );
 
-export const invalidabilityForReactiveInstances = getInjectable({
-  id: 'invalidability-for-reactive-instances',
+export const atomsByTokenInjectable = getInjectable({
+  id: 'atoms-by-token-for-reactive-instances',
 
-  instantiate: (_, injectionToken) =>
-    createAtom(`reactivity-for-${injectionToken.id}`),
-
-  lifecycle: lifecycleEnum.keyedSingleton({
-    getInstanceKey: (_, injectionToken) => injectionToken,
-  }),
+  instantiate: () => new Map(),
 
   [isInternalOfComputedInjectMany]: true,
 
   decorable: false,
 });
 
-const getInvalidatorInstance = di => injectable => {
-  if (!injectable.injectionToken) {
-    return;
-  }
+const getInvalidatorInstance = di => {
+  const atomsByToken = di.inject(atomsByTokenInjectable);
 
-  getRelatedTokens(injectable.injectionToken)
-    .map(token => di.inject(invalidabilityForReactiveInstances, token))
-    .forEach(atom => {
-      atom.reportChanged();
-    });
+  return injectable => {
+    let token = injectable.injectionToken;
+
+    while (token !== undefined) {
+      const atom = atomsByToken.get(token);
+      if (atom !== undefined) atom.reportChanged();
+      token = token.specificTokenOf;
+    }
+  };
 };
 
 export const invalidateReactiveInstancesOnRegisterCallback = getInjectable({
@@ -69,10 +66,13 @@ const reactiveInstancesFor = ({ id, methodInDiToInjectMany }) =>
     id,
 
     instantiate: (di, { injectionToken, args }) => {
-      const mobxAtomForToken = di.inject(
-        invalidabilityForReactiveInstances,
-        injectionToken,
-      );
+      const atomsByToken = di.inject(atomsByTokenInjectable);
+      let mobxAtomForToken = atomsByToken.get(injectionToken);
+
+      if (mobxAtomForToken === undefined) {
+        mobxAtomForToken = createAtom(`reactivity-for-${injectionToken.id}`);
+        atomsByToken.set(injectionToken, mobxAtomForToken);
+      }
 
       return computed(() => {
         mobxAtomForToken.reportObserved();
@@ -113,7 +113,6 @@ const computedInjectManyInjectableFor = ({
           args,
         }),
 
-    lifecycle: lifecycleEnum.transient,
     injectionToken,
   });
 
@@ -129,8 +128,3 @@ export const computedInjectManyWithMetaInjectable =
     reactiveInstances: reactiveInstancesWithMetaInjectable,
     injectionToken: computedInjectManyWithMetaInjectionToken,
   });
-
-const getRelatedTokens = token =>
-  token === undefined
-    ? []
-    : [token, ...getRelatedTokens(token.specificTokenOf)];
