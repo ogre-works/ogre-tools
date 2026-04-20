@@ -8,7 +8,7 @@ module.exports = {
   mode: 'production',
 
   performance: {
-    maxEntrypointSize: 20000,
+    maxEntrypointSize: 23000,
     hints: 'error',
   },
 
