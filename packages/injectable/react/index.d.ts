@@ -1,5 +1,6 @@
 /// <reference types="react" />
 import {
+  AbstractInjectionToken2,
   DiContainer,
   DiContainerForInjection,
   Injectable,
@@ -44,7 +45,7 @@ export declare function getInjectableComponent<
     id: string;
     Component: Component;
     PlaceholderComponent?: React.ComponentType<React.ComponentProps<Component>>;
-    injectionToken?: InjectionToken2<() => Component>;
+    injectionToken?: InjectionToken2<() => Component> & { readonly __abstract?: never };
   },
 ): InjectableComponent<Component>;
 
@@ -74,6 +75,29 @@ export declare function getInjectionTokenComponent<
   decorable?: boolean;
   specificInjectionTokenFactory?: SpecificFactory;
 }): InjectionTokenComponent<Component, SpecificFactory>;
+
+export type AbstractInjectionTokenComponent<
+  Component extends React.ComponentType<any>,
+  SpecificFactory extends (
+    ...args: any[]
+  ) => SpecificInjectionTokenComponent<Component> = (
+    id: string,
+  ) => SpecificInjectionTokenComponent<Component>,
+> = AbstractInjectionToken2<() => Component, () => Component[], SpecificFactory>;
+
+export declare function getAbstractInjectionTokenComponent<
+  Component extends React.ComponentType<any>,
+  SpecificFactory extends (
+    ...args: any[]
+  ) => SpecificInjectionTokenComponent<Component> = (
+    id: string,
+  ) => SpecificInjectionTokenComponent<Component>,
+>(options: {
+  id: string;
+  PlaceholderComponent?: React.ComponentType<React.ComponentProps<Component>>;
+  decorable?: boolean;
+  specificInjectionTokenFactory?: SpecificFactory;
+}): AbstractInjectionTokenComponent<Component, SpecificFactory>;
 
 export const DiContextProvider: React.Provider<DiContainer | DiContainerForInjection>;
 

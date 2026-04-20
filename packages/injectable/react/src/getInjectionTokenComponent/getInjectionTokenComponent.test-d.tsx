@@ -171,6 +171,51 @@ const SomeTypedSpecificToken = SomeTokenComponentWithTypedSpecifier.for(someType
 // typed specifier specific token errors when prop has wrong type
 expectError(<SomeTypedSpecificToken someProp={42} />);
 
+// ---- Abstract InjectionTokenComponent ----
+
+import { getAbstractInjectionTokenComponent } from '../../index';
+
+const SomeAbstractTokenComponent = getAbstractInjectionTokenComponent<
+  React.ComponentType<{ someProp: string }>
+>({ id: 'irrelevant' });
+
+// abstract token component is not assignable to React.ComponentType (cannot be rendered)
+expectError<React.ComponentType<{ someProp: string }>>(SomeAbstractTokenComponent);
+
+// .for() returns a renderable specific token component
+const SomeConcreteFromAbstract = SomeAbstractTokenComponent.for('some-specific');
+
+// concrete specific token from .for() CAN be rendered as JSX
+<SomeConcreteFromAbstract someProp="value" />;
+
+// concrete specific token errors on missing required prop
+expectError(<SomeConcreteFromAbstract />);
+
+// concrete specific token errors on wrong prop type
+expectError(<SomeConcreteFromAbstract someProp={42} />);
+
+// abstract token component cannot be injected
+expectError(di.inject(SomeAbstractTokenComponent));
+
+// concrete specific token can be injected
+di.inject(SomeConcreteFromAbstract);
+
+// abstract token component cannot be used as injectionToken in getInjectableComponent
+expectError(
+  getInjectableComponent({
+    id: 'irrelevant',
+    Component: SomeComponentWithProps,
+    injectionToken: SomeAbstractTokenComponent,
+  }),
+);
+
+// concrete specific token can be used as injectionToken
+getInjectableComponent({
+  id: 'irrelevant',
+  Component: SomeComponentWithProps,
+  injectionToken: SomeConcreteFromAbstract,
+});
+
 // given non-sensical type (not a component), typing is not ok
 expectError(
   getInjectionTokenComponent<'some-non-component'>({
