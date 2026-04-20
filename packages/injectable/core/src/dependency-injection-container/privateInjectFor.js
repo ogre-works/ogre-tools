@@ -16,12 +16,15 @@ export const privateInjectFor =
     checkForNoMatches,
     checkForTooManyMatches,
     checkForSideEffects,
+    checkForAbstractToken,
     namespacedIdByInjectableMap,
     getNamespacedId,
     decoratorCache,
   }) =>
   ({ withMeta }) =>
   (alias, instantiationParameter, injectingInjectable) => {
+    checkForAbstractToken(alias, injectingInjectable);
+
     const di = getDi();
 
     const relatedInjectables = getRelatedInjectables(alias);

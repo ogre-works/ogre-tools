@@ -10,6 +10,7 @@ import { getNamespacedIdFor } from './getNamespacedIdFor';
 import { checkForNoMatchesFor } from './checkForNoMatchesFor';
 import { checkForTooManyMatchesFor } from './checkForTooManyMatches';
 import { checkForSideEffectsFor } from './checkForSideEffectsFor';
+import { checkForAbstractTokenFor } from './checkForAbstractTokenFor';
 import { getRelatedInjectablesFor } from './getRelatedInjectablesFor';
 import { earlyOverrideFor } from './early-override';
 import { injectionDecoratorToken, instantiationDecoratorToken } from './tokens';
@@ -49,10 +50,13 @@ export default containerId => {
 
   const rootInjectable = containerRootContextItem.injectable;
 
+  const checkForAbstractToken = checkForAbstractTokenFor({ getNamespacedId });
+
   const nonDecoratedPrivateInjectManyForUnknownMeta =
     nonDecoratedPrivateInjectManyFor({
       getRelatedInjectables,
       getInject: () => decoratedPrivateInject,
+      checkForAbstractToken,
       namespacedIdByInjectableMap,
     });
 
@@ -98,6 +102,7 @@ export default containerId => {
     checkForNoMatches,
     checkForTooManyMatches,
     checkForSideEffects,
+    checkForAbstractToken,
     namespacedIdByInjectableMap,
     getNamespacedId,
     decoratorCache,

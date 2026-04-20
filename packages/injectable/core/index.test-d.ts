@@ -32,6 +32,8 @@ import {
   TypedSpecifier,
   TypedSpecifierType,
   TypedSpecifierWithType,
+  getAbstractInjectionToken2,
+  AbstractInjectionToken2,
 } from '.';
 
 const di = createContainer('some-container');
@@ -1517,3 +1519,44 @@ createInstancePurgeTargetCallback({
 expectAssignable<InjectionToken<InstancePurgeTargetCallback<any, any, any, any>>>(
   instancePurgeCallbackToken,
 );
+
+// ---- AbstractInjectionToken2 ----
+
+const abstractHandlerToken = getAbstractInjectionToken2<(name: string) => void>({
+  id: 'abstract-handler',
+});
+
+// abstract token has correct type
+expectType<AbstractInjectionToken2<(name: string) => void>>(abstractHandlerToken);
+
+// .for() returns a non-abstract SpecificInjectionToken2
+const specificFromAbstract = abstractHandlerToken.for('click');
+
+// injecting specific token derived from abstract is OK
+di.inject(specificFromAbstract, 'test');
+
+// injecting abstract token directly is a TYPE ERROR
+expectError(di.inject(abstractHandlerToken, 'test'));
+
+// injectMany on abstract token is a TYPE ERROR
+expectError(di.injectMany(abstractHandlerToken, 'test'));
+
+// injectWithMeta on abstract token is a TYPE ERROR
+expectError(di.injectWithMeta(abstractHandlerToken, 'test'));
+
+// injectManyWithMeta on abstract token is a TYPE ERROR
+expectError(di.injectManyWithMeta(abstractHandlerToken, 'test'));
+
+// implementing abstract token directly is a TYPE ERROR
+expectError(getInjectable2({
+  id: 'bad-impl',
+  injectionToken: abstractHandlerToken,
+  instantiate: () => (name: string) => {},
+}));
+
+// implementing specific token from abstract is OK
+getInjectable2({
+  id: 'good-impl',
+  injectionToken: specificFromAbstract,
+  instantiate: () => (name: string) => {},
+});

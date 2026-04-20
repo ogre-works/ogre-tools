@@ -168,7 +168,7 @@ export type InjectWithParameter = <InjectionInstance, InstantiationParam>(
 ) => InjectionInstance;
 
 export type InjectInjectable2 = <F extends (...args: any[]) => any>(
-  key: Injectable2<F> | InjectionToken2<F>,
+  key: Injectable2<F> | (InjectionToken2<F> & { readonly __abstract?: never }),
   ...params: Parameters<F>
 ) => ReturnType<F>;
 
@@ -223,7 +223,7 @@ export type SpecificInject<InjectionInstance, InstantiationParam> =
 
 interface InjectMany {
   <F extends (...args: any[]) => any>(
-    key: InjectionToken2<F>,
+    key: InjectionToken2<F> & { readonly __abstract?: never },
     ...params: Parameters<F>
   ): ReturnType<F>[];
 
@@ -252,7 +252,7 @@ export type InjectionInstanceWithMeta<InjectionInstance> = {
 
 interface InjectManyWithMeta {
   <F extends (...args: any[]) => any>(
-    key: InjectionToken2<F>,
+    key: InjectionToken2<F> & { readonly __abstract?: never },
     ...params: Parameters<F>
   ): InjectionInstanceWithMeta<ReturnType<F>>[];
 
@@ -272,7 +272,7 @@ interface InjectManyWithMeta {
 
 interface InjectWithMeta {
   <F extends (...args: any[]) => any>(
-    key: Injectable2<F> | InjectionToken2<F>,
+    key: Injectable2<F> | (InjectionToken2<F> & { readonly __abstract?: never }),
     ...params: Parameters<F>
   ): InjectionInstanceWithMeta<ReturnType<F>>;
 
@@ -627,7 +627,7 @@ export interface Injectable2<Factory extends (...args: any[]) => any> {
   readonly aliasType: 'injectable2';
   readonly id: string;
   readonly instantiate: (di: DiContainerForInjection2) => Factory;
-  readonly injectionToken?: InjectionToken2<Factory>;
+  readonly injectionToken?: InjectionToken2<Factory> & { readonly __abstract?: never };
   readonly transient?: boolean;
   readonly causesSideEffects?: boolean;
   readonly decorable?: boolean;
@@ -638,7 +638,7 @@ export interface Injectable2<Factory extends (...args: any[]) => any> {
 export function getInjectable2<Factory extends (...args: any[]) => any>(options: {
   readonly id: string;
   readonly instantiate: (di: DiContainerForInjection2) => Factory;
-  readonly injectionToken?: InjectionToken2<Factory>;
+  readonly injectionToken?: InjectionToken2<Factory> & { readonly __abstract?: never };
   readonly transient?: boolean;
   readonly causesSideEffects?: boolean;
   readonly decorable?: boolean;
@@ -708,6 +708,40 @@ export function getSpecificInjectionToken2<
   speciality: any;
 }): SpecificInjectionToken2<Factory, ManyFactory, SpecificFactory>;
 
+export interface AbstractInjectionToken2<
+  Factory extends (...args: any[]) => any,
+  ManyFactory extends (...args: Parameters<Factory>) => ReturnType<Factory>[] = AutoManyFactory<Factory>,
+  SpecificFactory extends (
+    ...args: any[]
+  ) => SpecificInjectionToken2<Factory, ManyFactory> | AbstractInjectionToken2<Factory, ManyFactory> = (
+    id: string,
+  ) => SpecificInjectionToken2<Factory, ManyFactory>,
+> {
+  readonly __abstract: true;
+  template: Factory;
+  manyTemplate: ManyFactory;
+  key: Symbol;
+  id: string;
+  for: SpecificFactory;
+  maxCacheSize?: number;
+}
+
+export function getAbstractInjectionToken2<
+  Factory extends (...args: any[]) => any,
+  ManyFactory extends (...args: Parameters<Factory>) => ReturnType<Factory>[] = AutoManyFactory<Factory>,
+  SpecificFactory extends (
+    ...args: any[]
+  ) => SpecificInjectionToken2<Factory, ManyFactory> | AbstractInjectionToken2<Factory, ManyFactory> = (
+    id: string,
+  ) => SpecificInjectionToken2<Factory, ManyFactory>,
+>(options: {
+  id: string;
+  specificInjectionTokenFactory?: SpecificFactory;
+  target?: object;
+  decorable?: boolean;
+  maxCacheSize?: number;
+}): AbstractInjectionToken2<Factory, ManyFactory, SpecificFactory>;
+
 // ---- DiContainerForInjection2 (new-style minimalDi) ----
 
 export interface DiContainerForInjection2 {
@@ -735,7 +769,7 @@ export interface DiContainerForInjection2 {
 
 interface HasRegistrations2 {
   <F extends (...args: any[]) => any, MF extends (...args: Parameters<F>) => ReturnType<F>[]>(
-    alias: Injectable2<F> | InjectionToken2<F, MF>,
+    alias: Injectable2<F> | InjectionToken2<F, MF> | AbstractInjectionToken2<F, MF>,
   ): boolean;
   <I extends TI, TI, P>(
     alias: Injectable<I, TI, P> | InjectionToken<TI, P>,
@@ -745,14 +779,14 @@ interface HasRegistrations2 {
 // Inside new-style instantiate: inject always returns factory
 interface Inject2 {
   <F extends (...args: any[]) => any>(key: Injectable2<F>): F;
-  <F extends (...args: any[]) => any>(key: InjectionToken2<F>): F;
+  <F extends (...args: any[]) => any>(key: InjectionToken2<F> & { readonly __abstract?: never }): F;
   <I>(key: Injectable<I, any> | InjectionToken<I>): () => I;
   <I, P>(key: Injectable<I, any, P> | InjectionToken<I, P>): (...params: P extends any[] ? P : [P]) => I;
 }
 
 // Inside new-style instantiate: injectMany returns ManyFactory
 interface InjectMany2 {
-  <F extends (...args: any[]) => any, MF extends (...args: Parameters<F>) => ReturnType<F>[]>(key: InjectionToken2<F, MF>): MF;
+  <F extends (...args: any[]) => any, MF extends (...args: Parameters<F>) => ReturnType<F>[]>(key: InjectionToken2<F, MF> & { readonly __abstract?: never }): MF;
   <I>(key: InjectionToken<I>): () => I[];
   <I, P>(key: InjectionToken<I, P>): (...params: P extends any[] ? P : [P]) => I[];
 }
@@ -771,13 +805,13 @@ type ToWithMetaManyFactory<F> = F extends (...args: infer P) => infer R
 
 interface InjectWithMeta2 {
   <F extends (...args: any[]) => any>(key: Injectable2<F>): ToWithMetaFactory<F>;
-  <F extends (...args: any[]) => any>(key: InjectionToken2<F>): ToWithMetaFactory<F>;
+  <F extends (...args: any[]) => any>(key: InjectionToken2<F> & { readonly __abstract?: never }): ToWithMetaFactory<F>;
   <I>(key: Injectable<I, any> | InjectionToken<I>): () => InjectionInstanceWithMeta<I>;
   <I, P>(key: Injectable<I, any, P> | InjectionToken<I, P>): (...params: P extends any[] ? P : [P]) => InjectionInstanceWithMeta<I>;
 }
 
 interface InjectManyWithMeta2 {
-  <F extends (...args: any[]) => any>(key: InjectionToken2<F>): ToWithMetaManyFactory<F>;
+  <F extends (...args: any[]) => any>(key: InjectionToken2<F> & { readonly __abstract?: never }): ToWithMetaManyFactory<F>;
   <I>(key: InjectionToken<I>): () => InjectionInstanceWithMeta<I>[];
   <I, P>(key: InjectionToken<I, P>): (...params: P extends any[] ? P : [P]) => InjectionInstanceWithMeta<I>[];
 }

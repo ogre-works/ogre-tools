@@ -167,6 +167,12 @@ export const registerSingleFor = ({
     injectableIdSet.add(namespacedId);
     injectableSet.add(injectable);
     namespacedIdByInjectableMap.set(injectable, namespacedId);
+    if (injectable.injectionToken?.abstract) {
+      throw new Error(
+        `Tried to register injectable "${namespacedId}" with injection token "${injectable.injectionToken.id}", but it is abstract. Use ".for(specifier)" for a concrete token.`,
+      );
+    }
+
     const maxCacheSize =
       injectable.maxCacheSize ?? injectable.injectionToken?.maxCacheSize;
 
