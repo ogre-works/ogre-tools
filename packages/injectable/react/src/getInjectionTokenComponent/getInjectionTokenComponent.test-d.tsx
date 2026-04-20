@@ -4,6 +4,7 @@ import { expectAssignable, expectError, expectType } from 'tsd';
 import {
   getInjectionTokenComponent,
   getInjectableComponent,
+  SpecificInjectionTokenComponent,
 } from '../../index';
 import {
   createContainer,
@@ -94,7 +95,7 @@ expectError(
 const SomeSpecificToken = SomeTokenComponentWithProps.for('some-specific');
 
 expectAssignable<
-  SpecificInjectionToken2<() => React.ComponentType<{ someProp: string }>>
+  SpecificInjectionTokenComponent<React.ComponentType<{ someProp: string }>>
 >(SomeSpecificToken);
 
 // specific token is injectable
@@ -114,8 +115,8 @@ const SomeTokenComponentWithTypedSpecifier = getInjectionTokenComponent<
   React.ComponentType<unknown>,
   <T extends TypedSpecifierWithType<'someSpecifier'>>(
     specifier: T,
-  ) => SpecificInjectionToken2<
-    () => React.ComponentType<TypedSpecifierType<'someSpecifier', T>>
+  ) => SpecificInjectionTokenComponent<
+    React.ComponentType<TypedSpecifierType<'someSpecifier', T>>
   >
 >({ id: 'irrelevant' });
 
@@ -142,6 +143,33 @@ expectAssignable<React.ComponentType<{ someProp: 'some-type' }>>(
 expectType<React.ComponentType<{ someProp: 'some-type' }>>(
   di.inject(SomeTokenComponentWithTypedSpecifier.for(someTypedSpecifier)),
 );
+
+// ---- Direct JSX rendering (without injecting first) ----
+
+// token component without props renders in JSX
+<SomeTokenComponent />;
+
+// token component with props renders in JSX with correct props
+<SomeTokenComponentWithProps someProp="some-value" />;
+
+// token component with props errors when required prop is missing
+expectError(<SomeTokenComponentWithProps />);
+
+// token component with props errors when prop has wrong type
+expectError(<SomeTokenComponentWithProps someProp={42} />);
+
+// specific token from .for() renders in JSX with correct props
+<SomeSpecificToken someProp="some-value" />;
+
+// specific token from .for() errors when required prop is missing
+expectError(<SomeSpecificToken />);
+
+// typed specifier specific token renders in JSX with typed props
+const SomeTypedSpecificToken = SomeTokenComponentWithTypedSpecifier.for(someTypedSpecifier);
+<SomeTypedSpecificToken someProp="some-type" />;
+
+// typed specifier specific token errors when prop has wrong type
+expectError(<SomeTypedSpecificToken someProp={42} />);
 
 // given non-sensical type (not a component), typing is not ok
 expectError(

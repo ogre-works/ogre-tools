@@ -48,22 +48,26 @@ export declare function getInjectableComponent<
   },
 ): InjectableComponent<Component>;
 
+export type SpecificInjectionTokenComponent<
+  Component extends React.ComponentType<any>,
+> = Component & SpecificInjectionToken2<() => Component>;
+
 export type InjectionTokenComponent<
   Component extends React.ComponentType<any>,
   SpecificFactory extends (
     ...args: any[]
-  ) => SpecificInjectionToken2<() => Component> = (
+  ) => SpecificInjectionTokenComponent<Component> = (
     id: string,
-  ) => SpecificInjectionToken2<() => Component>,
+  ) => SpecificInjectionTokenComponent<Component>,
 > = Component & InjectionToken2<() => Component, () => Component[], SpecificFactory>;
 
 export declare function getInjectionTokenComponent<
   Component extends React.ComponentType<any>,
   SpecificFactory extends (
     ...args: any[]
-  ) => SpecificInjectionToken2<() => Component> = (
+  ) => SpecificInjectionTokenComponent<Component> = (
     id: string,
-  ) => SpecificInjectionToken2<() => Component>,
+  ) => SpecificInjectionTokenComponent<Component>,
 >(options: {
   id: string;
   PlaceholderComponent?: React.ComponentType<React.ComponentProps<Component>>;
