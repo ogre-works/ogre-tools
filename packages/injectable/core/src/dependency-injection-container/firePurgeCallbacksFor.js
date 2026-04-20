@@ -5,20 +5,20 @@ export const firePurgeCallbacksFor =
   (injectable, instance, keyArray) => {
     const payload = { instance };
 
-    for (const cb of injectMany(
-      instancePurgeCallbackToken.for(injectable),
-      [],
-      [],
-    )) {
+    for (const cb of injectMany({
+      alias: instancePurgeCallbackToken.for(injectable),
+      instantiationParameters: [],
+      injectingInjectable: injectable,
+    })) {
       cb(payload)(...keyArray);
     }
 
     if (injectable.injectionToken) {
-      for (const cb of injectMany(
-        instancePurgeCallbackToken.for(injectable.injectionToken),
-        [],
-        [],
-      )) {
+      for (const cb of injectMany({
+        alias: instancePurgeCallbackToken.for(injectable.injectionToken),
+        instantiationParameters: [],
+        injectingInjectable: injectable,
+      })) {
         cb(payload)(...keyArray);
       }
     }

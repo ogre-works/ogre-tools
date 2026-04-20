@@ -41,11 +41,11 @@ export const registerFor =
     });
 
     // Collect all registration decorators once (not per-injectable)
-    const allRegistrationDecorators = injectMany(
-      registrationDecoratorToken,
-      [],
-      source,
-    );
+    const allRegistrationDecorators = injectMany({
+      alias: registrationDecoratorToken,
+      instantiationParameters: [],
+      injectingInjectable: source,
+    });
 
     const registeredInjectables = [];
     let batchInProgress = true;
@@ -80,7 +80,11 @@ export const registerFor =
 
         // When called deferred (after batch completes), trigger callbacks
         if (!batchInProgress) {
-          const callbacks = injectMany(registrationCallbackToken, [], context);
+          const callbacks = injectMany({
+            alias: registrationCallbackToken,
+            instantiationParameters: [],
+            injectingInjectable: context,
+          });
 
           callbacks.forEach(callback => {
             callback(inj);
@@ -102,7 +106,11 @@ export const registerFor =
     batchInProgress = false;
 
     // Fire callbacks for all actually registered injectables (batch semantics)
-    const callbacks = injectMany(registrationCallbackToken, [], source);
+    const callbacks = injectMany({
+      alias: registrationCallbackToken,
+      instantiationParameters: [],
+      injectingInjectable: source,
+    });
 
     const fireCallbacks = injectable => {
       callbacks.forEach(callback => {

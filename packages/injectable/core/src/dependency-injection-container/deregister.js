@@ -29,7 +29,11 @@ export const deregisterFor =
   }) =>
   ({ injectables, context, source }) => {
     // Collect callbacks first (while all injectables are still registered)
-    const callbacks = injectMany(deregistrationCallbackToken, [], source);
+    const callbacks = injectMany({
+      alias: deregistrationCallbackToken,
+      instantiationParameters: [],
+      injectingInjectable: source,
+    });
 
     const flatInjectables = toFlatInjectables(injectables);
 
@@ -55,11 +59,11 @@ export const deregisterFor =
     });
 
     // Collect all deregistration decorators once
-    const allDeregistrationDecorators = injectMany(
-      deregistrationDecoratorToken,
-      [],
-      source,
-    );
+    const allDeregistrationDecorators = injectMany({
+      alias: deregistrationDecoratorToken,
+      instantiationParameters: [],
+      injectingInjectable: source,
+    });
 
     // Deregister through decoration chain
     flatInjectables.forEach(injectable => {

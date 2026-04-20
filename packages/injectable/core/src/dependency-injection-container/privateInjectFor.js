@@ -22,7 +22,7 @@ export const privateInjectFor =
     decoratorCache,
   }) =>
   ({ withMeta }) =>
-  (alias, instantiationParameter, injectingInjectable) => {
+  ({ alias, instantiationParameters, injectingInjectable }) => {
     checkForAbstractToken(alias, injectingInjectable);
 
     const di = getDi();
@@ -48,14 +48,14 @@ export const privateInjectFor =
     if (
       injectable.aliasType !== injectableSymbol2 &&
       injectable.lifecycle.id === 'singleton' &&
-      instantiationParameter.length > 0 &&
-      instantiationParameter.every(p => p === undefined)
+      instantiationParameters.length > 0 &&
+      instantiationParameters.every(p => p === undefined)
     ) {
-      instantiationParameter = [];
+      instantiationParameters = [];
     }
 
     // Fast path: singleton cache hit — avoid creating minimalDi entirely.
-    if (instantiationParameter.length === 0) {
+    if (instantiationParameters.length === 0) {
       const instanceMap = instancesByInjectableMap.get(
         injectable.overriddenInjectable || injectable,
       );
@@ -77,7 +77,7 @@ export const privateInjectFor =
     const instance = getInstance(
       di,
       injectable,
-      instantiationParameter,
+      instantiationParameters,
       instancesByInjectableMap,
       injectingInjectable,
       namespacedIdByInjectableMap,
@@ -140,28 +140,48 @@ const createMinimalDi = (
       inject:
         alias =>
         (...args) =>
-          di.inject(alias, args, injectableToBeInstantiated),
+          di.inject({
+            alias,
+            instantiationParameters: args,
+            injectingInjectable: injectableToBeInstantiated,
+          }),
 
       injectMany:
         alias =>
         (...args) =>
-          di.injectMany(alias, args, injectableToBeInstantiated),
+          di.injectMany({
+            alias,
+            instantiationParameters: args,
+            injectingInjectable: injectableToBeInstantiated,
+          }),
 
       injectWithMeta:
         alias =>
         (...args) =>
-          di.injectWithMeta(alias, args, injectableToBeInstantiated),
+          di.injectWithMeta({
+            alias,
+            instantiationParameters: args,
+            injectingInjectable: injectableToBeInstantiated,
+          }),
 
       injectManyWithMeta:
         alias =>
         (...args) =>
-          di.injectManyWithMeta(alias, args, injectableToBeInstantiated),
+          di.injectManyWithMeta({
+            alias,
+            instantiationParameters: args,
+            injectingInjectable: injectableToBeInstantiated,
+          }),
     };
   }
 
   // Old-style: variadic inject that passes args array through
   const minimalInject = (alias, ...args) =>
-    di.inject(alias, args, injectableToBeInstantiated);
+    di.inject({
+      alias,
+      instantiationParameters: args,
+      injectingInjectable: injectableToBeInstantiated,
+    });
 
   return {
     ...shared,
@@ -169,13 +189,25 @@ const createMinimalDi = (
     inject: minimalInject,
 
     injectWithMeta: (alias, ...args) =>
-      di.injectWithMeta(alias, args, injectableToBeInstantiated),
+      di.injectWithMeta({
+        alias,
+        instantiationParameters: args,
+        injectingInjectable: injectableToBeInstantiated,
+      }),
 
     injectMany: (alias, ...args) =>
-      di.injectMany(alias, args, injectableToBeInstantiated),
+      di.injectMany({
+        alias,
+        instantiationParameters: args,
+        injectingInjectable: injectableToBeInstantiated,
+      }),
 
     injectManyWithMeta: (alias, ...args) =>
-      di.injectManyWithMeta(alias, args, injectableToBeInstantiated),
+      di.injectManyWithMeta({
+        alias,
+        instantiationParameters: args,
+        injectingInjectable: injectableToBeInstantiated,
+      }),
 
     injectFactory:
       alias =>
@@ -188,7 +220,7 @@ const instantiate = (
   di,
   injectableToBeInstantiated,
   minimalDi,
-  instantiationParameter,
+  instantiationParameters,
   decoratorCache,
 ) => {
   // Skip decorator machinery when no decorators are registered (common case).
@@ -200,14 +232,14 @@ const instantiate = (
   // New-style injectable2: two-step curried instantiate
   if (injectableToBeInstantiated.aliasType === injectableSymbol2) {
     const factory = injectableToBeInstantiated.instantiate(minimalDi);
-    return factory(...instantiationParameter);
+    return factory(...instantiationParameters);
   }
 
   // Old-style: spread args
   if (canSkipDecorators) {
     return injectableToBeInstantiated.instantiate(
       minimalDi,
-      ...instantiationParameter,
+      ...instantiationParameters,
     );
   }
 
@@ -221,13 +253,13 @@ const instantiate = (
     injectableToBeInstantiated.instantiate,
   );
 
-  return instantiateWithDecorators(minimalDi, ...instantiationParameter);
+  return instantiateWithDecorators(minimalDi, ...instantiationParameters);
 };
 
 const getInstance = (
   di,
   injectableToBeInstantiated,
-  instantiationParameter,
+  instantiationParameters,
   instancesByInjectableMap,
   injectingInjectable,
   namespacedIdByInjectableMap,
@@ -244,13 +276,13 @@ const getInstance = (
   // Singleton: fast path in privateInjectFor already checked cache and missed.
   // Skip redundant getInstanceKey + cache check — go straight to instantiation.
   if (lifecycleId === 'singleton') {
-    if (instantiationParameter.length > 0) {
+    if (instantiationParameters.length > 0) {
       throw new Error(
         `Tried to inject singleton "${getNamespacedId(
           injectableToBeInstantiated,
         )}" from "${getNamespacedId(
           injectingInjectable,
-        )}", but illegally to singletons, instantiationParameters were provided: "${instantiationParameter}".`,
+        )}", but illegally to singletons, instantiationParameters were provided: "${instantiationParameters}".`,
       );
     }
 
@@ -265,7 +297,7 @@ const getInstance = (
       di,
       injectableToBeInstantiated,
       minimalDi,
-      instantiationParameter,
+      instantiationParameters,
       decoratorCache,
     );
 
@@ -287,7 +319,7 @@ const getInstance = (
       di,
       injectableToBeInstantiated,
       minimalDi,
-      instantiationParameter,
+      instantiationParameters,
       decoratorCache,
     );
   }
@@ -302,7 +334,7 @@ const getInstance = (
 
   const instanceKey = injectableToBeInstantiated.lifecycle.getInstanceKey(
     minimalDi,
-    ...instantiationParameter,
+    ...instantiationParameters,
   );
 
   const instanceCompositeKey = isCompositeKey(instanceKey)
@@ -319,7 +351,7 @@ const getInstance = (
     di,
     injectableToBeInstantiated,
     minimalDi,
-    instantiationParameter,
+    instantiationParameters,
     decoratorCache,
   );
 

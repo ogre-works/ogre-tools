@@ -1,19 +1,24 @@
 export const privateInjectManyFor =
-  ({ getRelatedInjectables, getInject, checkForAbstractToken, namespacedIdByInjectableMap }) =>
+  ({
+    getRelatedInjectables,
+    getInject,
+    checkForAbstractToken,
+    namespacedIdByInjectableMap,
+  }) =>
   ({ withMeta }) =>
-  (injectionToken, instantiationParameter, injectingInjectable) => {
-    checkForAbstractToken(injectionToken, injectingInjectable);
+  ({ alias, instantiationParameters, injectingInjectable }) => {
+    checkForAbstractToken(alias, injectingInjectable);
 
     const inject = getInject();
 
-    const relatedInjectables = getRelatedInjectables(injectionToken);
+    const relatedInjectables = getRelatedInjectables(alias);
 
     return relatedInjectables.map(injectable => {
-      const instance = inject(
-        injectable,
-        instantiationParameter,
-        injectionToken,
-      );
+      const instance = inject({
+        alias: injectable,
+        instantiationParameters,
+        injectingInjectable: alias,
+      });
 
       if (!withMeta) {
         return instance;

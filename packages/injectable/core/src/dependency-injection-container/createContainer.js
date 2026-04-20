@@ -317,7 +317,11 @@ export default containerId => {
   };
 
   const publicInject = (alias, ...args) =>
-    privateDi.inject(alias, args, rootInjectable, rootInjectable);
+    privateDi.inject({
+      alias,
+      instantiationParameters: args,
+      injectingInjectable: rootInjectable,
+    });
 
   const publicDi = {
     ...privateDi,
@@ -325,10 +329,18 @@ export default containerId => {
     inject: publicInject,
 
     injectWithMeta: (alias, ...args) =>
-      privateDi.injectWithMeta(alias, args, rootInjectable, rootInjectable),
+      privateDi.injectWithMeta({
+        alias,
+        instantiationParameters: args,
+        injectingInjectable: rootInjectable,
+      }),
 
     injectMany: (alias, ...args) =>
-      privateDi.injectMany(alias, args, rootInjectable, rootInjectable),
+      privateDi.injectMany({
+        alias,
+        instantiationParameters: args,
+        injectingInjectable: rootInjectable,
+      }),
 
     register: (...injectables) => {
       privateDi.register({
@@ -347,7 +359,11 @@ export default containerId => {
     },
 
     injectManyWithMeta: (alias, ...args) =>
-      privateDi.injectManyWithMeta(alias, args, rootInjectable, rootInjectable),
+      privateDi.injectManyWithMeta({
+        alias,
+        instantiationParameters: args,
+        injectingInjectable: rootInjectable,
+      }),
   };
 
   return publicDi;

@@ -17,11 +17,11 @@ export const withInstantiationDecoratorsFor = ({
 
       // Populate cache if invalidated
       if (decoratorCache.instantiation === null) {
-        decoratorCache.instantiation = injectMany(
-          instantiationDecoratorToken,
-          [],
-          injectable,
-        );
+        decoratorCache.instantiation = injectMany({
+          alias: instantiationDecoratorToken,
+          instantiationParameters: [],
+          injectingInjectable: injectable,
+        });
       }
 
       // Fast path: no instantiation decorators registered
