@@ -391,6 +391,38 @@ describe('getInjectionTokenComponent', () => {
       `);
     });
 
+    it('returns a renderable component that passes props to implementation', () => {
+      const SomeTokenComponent = getInjectionTokenComponent({
+        id: 'some-token-component',
+      });
+
+      const SpecificTokenComponent = SomeTokenComponent.for('some-specific');
+
+      const someImplementation = getInjectable({
+        id: 'some-implementation',
+        injectionToken: SpecificTokenComponent,
+        instantiate:
+          () =>
+          ({ someProp }) =>
+            <div>specific-content: {someProp}</div>,
+      });
+
+      di.register(someImplementation);
+
+      rendered = mount(<SpecificTokenComponent someProp="some-prop-value" />);
+
+      expect(rendered.baseElement).toMatchInlineSnapshot(`
+        <body>
+          <div>
+            <div>
+              specific-content: 
+              some-prop-value
+            </div>
+          </div>
+        </body>
+      `);
+    });
+
     it('has specificTokenOf pointing to the general token component', () => {
       const SomeTokenComponent = getInjectionTokenComponent({
         id: 'some-token-component',
