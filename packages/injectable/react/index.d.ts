@@ -35,7 +35,7 @@ export function useInjectDeferred<TReturnValue, TInstantiationParameter>(
 export type InjectableComponent<Component extends React.ComponentType<any>> =
   Component & Injectable<Component>;
 
-type ExcludedKeys = 'instantiate' | 'lifecycle' | 'scope' | 'decorable';
+type ExcludedKeys = 'instantiate' | 'lifecycle' | 'scope' | 'decorable' | 'injectionToken';
 
 export declare function getInjectableComponent<
   Component extends React.ComponentType<any>

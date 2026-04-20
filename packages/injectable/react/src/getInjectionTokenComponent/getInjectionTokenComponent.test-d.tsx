@@ -8,21 +8,21 @@ import {
 import {
   createContainer,
   getTypedSpecifier,
-  InjectionToken,
-  SpecificInjectionToken,
+  InjectionToken2,
+  SpecificInjectionToken2,
   TypedSpecifierType,
   TypedSpecifierWithType,
 } from '@lensapp/injectable';
 
-// given no type parameter, result is assignable to React.ComponentType and InjectionToken
+// given no type parameter, result is assignable to React.ComponentType and InjectionToken2
 const SomeTokenComponent = getInjectionTokenComponent({
   id: 'irrelevant',
 });
 
 expectAssignable<React.ComponentType>(SomeTokenComponent);
-expectAssignable<InjectionToken<React.ComponentType>>(SomeTokenComponent);
+expectAssignable<InjectionToken2<() => React.ComponentType>>(SomeTokenComponent);
 
-// given typed as component with props, result is assignable to React.ComponentType<Props> and InjectionToken<Component>
+// given typed as component with props, result is assignable to React.ComponentType<Props> and InjectionToken2<() => Component>
 const SomeTokenComponentWithProps = getInjectionTokenComponent<
   React.ComponentType<{ someProp: string }>
 >({
@@ -33,7 +33,7 @@ expectAssignable<React.ComponentType<{ someProp: string }>>(
   SomeTokenComponentWithProps,
 );
 
-expectAssignable<InjectionToken<React.ComponentType<{ someProp: string }>>>(
+expectAssignable<InjectionToken2<() => React.ComponentType<{ someProp: string }>>>(
   SomeTokenComponentWithProps,
 );
 
@@ -45,9 +45,11 @@ expectType<React.ComponentType<{ someProp: string }>>(
 );
 
 // can be used as injectionToken in getInjectableComponent
+const SomeComponentWithProps: React.ComponentType<{ someProp: string }> = ({ someProp }) => <div>{someProp}</div>;
+
 const SomeInjectableComponent = getInjectableComponent({
   id: 'irrelevant',
-  Component: ({ someProp }: { someProp: string }) => <div>{someProp}</div>,
+  Component: SomeComponentWithProps,
   injectionToken: SomeTokenComponentWithProps,
 });
 
@@ -56,10 +58,12 @@ expectAssignable<React.ComponentType<{ someProp: string }>>(
 );
 
 // given contradictory component, typing is not ok
+const SomeComponentWithWrongProps: React.ComponentType<{ someProp: number }> = ({ someProp }) => <div>{someProp}</div>;
+
 expectError(
   getInjectableComponent({
     id: 'irrelevant',
-    Component: ({ someProp }: { someProp: number }) => <div>{someProp}</div>,
+    Component: SomeComponentWithWrongProps,
     injectionToken: SomeTokenComponentWithProps,
   }),
 );
@@ -86,20 +90,32 @@ expectError(
   }),
 );
 
-// .for() returns a SpecificInjectionToken
+// .for() returns a SpecificInjectionToken2
 const SomeSpecificToken = SomeTokenComponentWithProps.for('some-specific');
 
 expectAssignable<
-  SpecificInjectionToken<React.ComponentType<{ someProp: string }>>
+  SpecificInjectionToken2<() => React.ComponentType<{ someProp: string }>>
 >(SomeSpecificToken);
+
+// specific token is injectable
+expectType<React.ComponentType<{ someProp: string }>>(
+  di.inject(SomeSpecificToken),
+);
+
+// specific token works as injectionToken in getInjectableComponent
+getInjectableComponent({
+  id: 'irrelevant',
+  Component: SomeComponentWithProps,
+  injectionToken: SomeSpecificToken,
+});
 
 // given typed specifier, .for() returns a specific token with typed props, and InjectableComponent using it has correct props
 const SomeTokenComponentWithTypedSpecifier = getInjectionTokenComponent<
   React.ComponentType<unknown>,
   <T extends TypedSpecifierWithType<'someSpecifier'>>(
     specifier: T,
-  ) => SpecificInjectionToken<
-    React.ComponentType<TypedSpecifierType<'someSpecifier', T>>
+  ) => SpecificInjectionToken2<
+    () => React.ComponentType<TypedSpecifierType<'someSpecifier', T>>
   >
 >({ id: 'irrelevant' });
 

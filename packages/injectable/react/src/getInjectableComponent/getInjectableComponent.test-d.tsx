@@ -4,27 +4,33 @@ import { expectAssignable, expectError, expectType } from 'tsd';
 import { getInjectableComponent } from '../../index';
 import {
   createContainer,
-  getInjectionToken,
+  getInjectionToken2,
   getTypedSpecifier,
   Injectable,
   lifecycleEnum,
-  SpecificInjectionToken,
+  SpecificInjectionToken2,
   TypedSpecifierType,
   TypedSpecifierWithType,
 } from '@ogre-tools/injectable';
 
-const someInjectionTokenUsingProps = getInjectionToken<
-  React.ComponentType<{ someProp: string }>
+const someInjectionTokenUsingProps = getInjectionToken2<
+  () => React.ComponentType<{ someProp: string }>
 >({
   id: 'irrelevant',
 });
 
 const SomeFunctionalComponentNotUsingProps = () => <div>irrelevant</div>;
 
+const SomeFunctionalComponentNotUsingPropsAsComponentType: React.ComponentType = () => <div>irrelevant</div>;
+
 const SomeFunctionalComponentUsingProps = ({
   someProp,
 }: {
   someProp: string;
+}) => <div>irrelevant</div>;
+
+const SomeFunctionalComponentUsingPropsAsComponentType: React.ComponentType<{ someProp: string }> = ({
+  someProp,
 }) => <div>irrelevant</div>;
 
 class SomeClassComponentNotUsingProps extends React.Component {
@@ -53,13 +59,13 @@ expectAssignable<Injectable<React.ComponentType>>(
 );
 
 // given injection token, and functional component not using props, typing is ok
-const someInjectionTokenNotUsingProps = getInjectionToken<React.ComponentType>({
+const someInjectionTokenNotUsingProps = getInjectionToken2<() => React.ComponentType>({
   id: 'irrelevant',
 });
 
 const InjectableComponentUsingInjectionToken = getInjectableComponent({
   id: 'irrelevant',
-  Component: SomeFunctionalComponentNotUsingProps,
+  Component: SomeFunctionalComponentNotUsingPropsAsComponentType,
   injectionToken: someInjectionTokenNotUsingProps,
 });
 
@@ -126,7 +132,7 @@ expectAssignable<Injectable<React.ComponentType>>(
 // given injection token, and functional component using props, typing is ok
 const SomeInjectableComponentUsingInjectionToken = getInjectableComponent({
   id: 'irrelevant',
-  Component: SomeFunctionalComponentUsingProps,
+  Component: SomeFunctionalComponentUsingPropsAsComponentType,
   injectionToken: someInjectionTokenUsingProps,
 });
 
@@ -143,25 +149,22 @@ expectType<React.ComponentType<{ someProp: string }>>(
   di.inject(SomeInjectableComponentUsingInjectionToken),
 );
 
-// given injection token, and component using less props than token, typing is not ok
-const SomeInjectableComponentUsingLessPropsThanInjectionToken =
+// given injection token, and component with contradictory props, typing is not ok
+const SomeFunctionalComponentUsingContradictoryPropsAsComponentType: React.ComponentType<{ someProp: number }> = ({
+  someProp,
+}) => <div>{someProp}</div>;
+
+expectError(
   getInjectableComponent({
     id: 'irrelevant',
-    Component: SomeFunctionalComponentNotUsingProps,
+    Component: SomeFunctionalComponentUsingContradictoryPropsAsComponentType,
     injectionToken: someInjectionTokenUsingProps,
-  });
-
-expectError<React.ComponentType>(
-  SomeInjectableComponentUsingLessPropsThanInjectionToken,
-);
-
-expectError<Injectable<React.ComponentType>>(
-  SomeInjectableComponentUsingLessPropsThanInjectionToken,
+  }),
 );
 
 // given injection token, and contradictory functional component using props, typing is not ok
-const someInjectionTokenUsingContradictoryProps = getInjectionToken<
-  React.ComponentType<{ someProp: number }>
+const someInjectionTokenUsingContradictoryProps = getInjectionToken2<
+  () => React.ComponentType<{ someProp: number }>
 >({
   id: 'irrelevant',
 });
@@ -175,7 +178,7 @@ expectError(
 );
 
 // given non-sensical injection token, and functional component, typing is not ok
-const someNonSensicalInjectionToken = getInjectionToken<'some-non-component'>({
+const someNonSensicalInjectionToken = getInjectionToken2<() => 'some-non-component'>({
   id: 'irrelevant',
 });
 
@@ -266,13 +269,13 @@ expectError(
 );
 
 // given injection token with typed specifier, and functional component using props, typing is ok
-const someInjectionTokenWithTypedSpecifier = getInjectionToken<
-  React.ComponentType<unknown>,
-  void,
+const someInjectionTokenWithTypedSpecifier = getInjectionToken2<
+  () => React.ComponentType<unknown>,
+  () => React.ComponentType<unknown>[],
   <T extends TypedSpecifierWithType<'someSpecifier'>>(
     specifier: T,
-  ) => SpecificInjectionToken<
-    React.ComponentType<TypedSpecifierType<'someSpecifier', T>>
+  ) => SpecificInjectionToken2<
+    () => React.ComponentType<TypedSpecifierType<'someSpecifier', T>>
   >
 >({ id: 'irrelevant' });
 
