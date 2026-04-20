@@ -4,7 +4,9 @@ import {
   DiContainerForInjection,
   Injectable,
   InjectionToken,
+  InjectionToken2,
   SpecificInjectionToken,
+  SpecificInjectionToken2,
 } from '@ogre-tools/injectable';
 
 export function useInject<TReturnValue>(
@@ -42,32 +44,32 @@ export declare function getInjectableComponent<
     id: string;
     Component: Component;
     PlaceholderComponent?: React.ComponentType<React.ComponentProps<Component>>;
-    injectionToken?: InjectionToken<Component>;
+    injectionToken?: InjectionToken2<() => Component>;
   },
 ): InjectableComponent<Component>;
 
 export type InjectionTokenComponent<
   Component extends React.ComponentType<any>,
-  SpecificInjectionTokenFactory extends (
+  SpecificFactory extends (
     ...args: any[]
-  ) => SpecificInjectionToken<Component> = (
+  ) => SpecificInjectionToken2<() => Component> = (
     id: string,
-  ) => SpecificInjectionToken<Component>,
-> = Component & InjectionToken<Component, void, SpecificInjectionTokenFactory>;
+  ) => SpecificInjectionToken2<() => Component>,
+> = Component & InjectionToken2<() => Component, () => Component[], SpecificFactory>;
 
 export declare function getInjectionTokenComponent<
   Component extends React.ComponentType<any>,
-  SpecificInjectionTokenFactory extends (
+  SpecificFactory extends (
     ...args: any[]
-  ) => SpecificInjectionToken<Component> = (
+  ) => SpecificInjectionToken2<() => Component> = (
     id: string,
-  ) => SpecificInjectionToken<Component>,
+  ) => SpecificInjectionToken2<() => Component>,
 >(options: {
   id: string;
   PlaceholderComponent?: React.ComponentType<React.ComponentProps<Component>>;
   decorable?: boolean;
-  specificInjectionTokenFactory?: SpecificInjectionTokenFactory;
-}): InjectionTokenComponent<Component, SpecificInjectionTokenFactory>;
+  specificInjectionTokenFactory?: SpecificFactory;
+}): InjectionTokenComponent<Component, SpecificFactory>;
 
 export const DiContextProvider: React.Provider<DiContainer | DiContainerForInjection>;
 
