@@ -33,7 +33,6 @@ export { createInjectionTargetDecorator } from './src/dependency-injection-conta
 
 export {
   deregistrationCallbackToken,
-  deregistrationDecoratorToken,
   injectionDecoratorToken,
   instancePurgeCallbackToken,
   instantiationDecoratorToken,

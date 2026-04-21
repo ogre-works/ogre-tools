@@ -22,11 +22,6 @@ export const injectionDecoratorToken = getInjectionToken({
   decorable: false,
 });
 
-export const deregistrationDecoratorToken = getInjectionToken({
-  id: 'deregistration-decorator-token',
-  decorable: false,
-});
-
 export const instancePurgeCallbackToken = getAbstractInjectionToken2({
   id: 'instance-purge-callback-token',
   decorable: false,

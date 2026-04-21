@@ -469,41 +469,6 @@ export const instantiationDecoratorToken: InjectionToken<
   InstantiationTargetDecorator<any, any, any>
 >;
 
-export type SpecificRegistrationTargetDecorator<
-  InjectionInstance extends InjectionTokenInstance,
-  InjectionTokenInstance = InjectionInstance,
-  InstantiationParam = void,
-> = {
-  decorate: (
-    register: (injectable: Injectable<InjectionInstance, InjectionTokenInstance, InstantiationParam>) => void,
-  ) => (injectable: Injectable<InjectionInstance, InjectionTokenInstance, InstantiationParam>) => void;
-  target:
-    | InjectionToken<InjectionInstance, InstantiationParam, any>
-    | Injectable<InjectionInstance, InjectionTokenInstance, InstantiationParam>;
-};
-
-export type GeneralRegistrationTargetDecorator = {
-  decorate: (
-    register: (injectable: Injectable<any, any, any>) => void,
-  ) => (injectable: Injectable<any, any, any>) => void;
-};
-
-export type RegistrationTargetDecorator<
-  InjectionInstance extends InjectionTokenInstance,
-  InjectionTokenInstance = InjectionInstance,
-  InstantiationParam = void,
-> =
-  | GeneralRegistrationTargetDecorator
-  | SpecificRegistrationTargetDecorator<
-      InjectionInstance,
-      InjectionTokenInstance,
-      InstantiationParam
-    >;
-
-export const deregistrationDecoratorToken: InjectionToken<
-  RegistrationTargetDecorator<any, any, any>
->;
-
 export const registrationCallbackToken: RegistrationCallback;
 export const deregistrationCallbackToken: RegistrationCallback;
 

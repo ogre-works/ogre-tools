@@ -1,14 +1,11 @@
 import {
   deregistrationCallbackToken,
-  deregistrationDecoratorToken,
   injectionDecoratorToken,
   instantiationDecoratorToken,
 } from './tokens';
 import toFlatInjectables from './toFlatInjectables';
 import isInjectionToken from '../getInjectionToken/isInjectionToken';
 import { getRelatedTokens } from './getRelatedTokens';
-import { isRelevantDecoratorFor } from './isRelevantDecoratorFor';
-import flow from './fastFlow';
 import { invalidateRelatedInjectablesCache } from './getRelatedInjectablesFor';
 
 export const deregisterFor =
@@ -57,14 +54,6 @@ export const deregisterFor =
       di,
     });
 
-    // Collect all deregistration decorators once
-    const allDeregistrationDecorators = injectMany({
-      alias: deregistrationDecoratorToken,
-      instantiationParameters: [],
-      injectingInjectable: source,
-    });
-
-    // Deregister through decoration chain
     flatInjectables.forEach(injectable => {
       // Invalidate decorator caches when decorator injectables are deregistered
       if (injectable.injectionToken === injectionDecoratorToken) {
@@ -73,33 +62,7 @@ export const deregisterFor =
         decoratorCache.instantiation = null;
       }
 
-      const isDecorator =
-        injectable.injectionToken === deregistrationDecoratorToken;
-
-      // Fast path: no decorators, or injectable is a decorator itself, or not decorable
-      if (
-        isDecorator ||
-        allDeregistrationDecorators.length === 0 ||
-        injectable.decorable === false
-      ) {
-        deregisterSingle(injectable);
-        return;
-      }
-
-      const relevantDecorators = allDeregistrationDecorators
-        .filter(isRelevantDecoratorFor(injectable))
-        .map(x => x.decorate);
-
-      if (relevantDecorators.length === 0) {
-        deregisterSingle(injectable);
-        return;
-      }
-
-      const decoratedDeregister = flow(...relevantDecorators)(inj => {
-        deregisterSingle(inj);
-      });
-
-      decoratedDeregister(injectable);
+      deregisterSingle(injectable);
     });
   };
 
