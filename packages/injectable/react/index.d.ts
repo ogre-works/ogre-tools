@@ -4,11 +4,19 @@ import {
   DiContainer,
   DiContainerForInjection,
   Injectable,
+  Injectable2,
   InjectionToken,
   InjectionToken2,
   SpecificInjectionToken,
   SpecificInjectionToken2,
 } from '@ogre-tools/injectable';
+
+export function useInject<F extends (...args: any[]) => any>(
+  injectable:
+    | Injectable2<F>
+    | (InjectionToken2<F> & { readonly __abstract?: never }),
+  ...params: Parameters<F>
+): Awaited<ReturnType<F>>;
 
 export function useInject<TReturnValue>(
   injectable: Injectable<TReturnValue, any> | InjectionToken<TReturnValue>,
@@ -20,6 +28,13 @@ export function useInject<TReturnValue, TInstantiationParameter>(
     | InjectionToken<TReturnValue, TInstantiationParameter>,
   instantiationParameter: TInstantiationParameter,
 ): Awaited<TReturnValue>;
+
+export function useInjectDeferred<F extends (...args: any[]) => any>(
+  injectable:
+    | Injectable2<F>
+    | (InjectionToken2<F> & { readonly __abstract?: never }),
+  ...params: Parameters<F>
+): Awaited<ReturnType<F>>;
 
 export function useInjectDeferred<TReturnValue>(
   injectable: Injectable<TReturnValue, any> | InjectionToken<TReturnValue>,

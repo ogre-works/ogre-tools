@@ -7,6 +7,8 @@ import { act, render } from '@testing-library/react';
 import {
   createContainer,
   getInjectable,
+  getInjectable2,
+  getInjectionToken2,
   getKeyedSingletonCompositeKey,
   lifecycleEnum,
 } from '@ogre-tools/injectable';
@@ -1645,6 +1647,93 @@ describe('useInject', () => {
       expect(onErrorWhileRenderingMock).toHaveBeenCalledWith(
         'Tried to useInject, but the injectable "some-async-transient" was an async transient, which is not supported until React 19 and use-hook',
       );
+    });
+  });
+
+  describe('given an injectable2 with variadic params, when rendered', () => {
+    let rendered;
+    let someInjectable2;
+    let somePropState;
+
+    beforeEach(() => {
+      someInjectable2 = getInjectable2({
+        id: 'some-injectable2',
+        instantiate: () => (greeting, name) => `${greeting}, ${name}`,
+      });
+
+      di.register(someInjectable2);
+
+      const SomeComponentUsingInjectable2 = ({
+        'some-greeting': greeting,
+        'some-name': name,
+      }) => {
+        const someInstance = useInject(someInjectable2, greeting, name);
+
+        return <div data-some-instance-test={someInstance} />;
+      };
+
+      somePropState = observable.box({ greeting: 'hello', name: 'world' });
+
+      rendered = mount(
+        <Observer>
+          {() => (
+            <SomeComponentUsingInjectable2
+              some-greeting={somePropState.get().greeting}
+              some-name={somePropState.get().name}
+            />
+          )}
+        </Observer>,
+      );
+    });
+
+    it('renders the value produced by the factory invoked with all variadic params', () => {
+      expect(rendered.baseElement).toMatchInlineSnapshot(`
+        <body>
+          <div>
+            <div
+              data-some-instance-test="hello, world"
+            />
+          </div>
+        </body>
+      `);
+    });
+  });
+
+  describe('given a non-abstract injectionToken2 with variadic params, when rendered', () => {
+    let rendered;
+
+    beforeEach(() => {
+      const someInjectionToken2 = getInjectionToken2({
+        id: 'some-injection-token2',
+      });
+
+      const someInjectable2 = getInjectable2({
+        id: 'some-implementation-of-injection-token2',
+        injectionToken: someInjectionToken2,
+        instantiate: () => (name, times) => `${name}!`.repeat(times),
+      });
+
+      di.register(someInjectable2);
+
+      const SomeComponentUsingInjectionToken2 = () => {
+        const someInstance = useInject(someInjectionToken2, 'hey', 3);
+
+        return <div data-some-instance-test={someInstance} />;
+      };
+
+      rendered = mount(<SomeComponentUsingInjectionToken2 />);
+    });
+
+    it('renders the value produced by the factory resolved through the token', () => {
+      expect(rendered.baseElement).toMatchInlineSnapshot(`
+        <body>
+          <div>
+            <div
+              data-some-instance-test="hey!hey!hey!"
+            />
+          </div>
+        </body>
+      `);
     });
   });
 
