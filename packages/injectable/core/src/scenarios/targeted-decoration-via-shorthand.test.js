@@ -1,22 +1,19 @@
 import getInjectable from '../getInjectable/getInjectable';
 import createContainer from '../dependency-injection-container/createContainer';
 import { getInjectionToken } from '../getInjectionToken/getInjectionToken';
-import { injectionDecoratorToken } from '../dependency-injection-container/tokens';
 import lifecycleEnum from '../dependency-injection-container/lifecycleEnum';
 
 describe('createContainer.targeted-decoration-via-shorthand', () => {
   it('given decorator targeting child, when parent is injected, decorates instance and instantiation parameter of only child', () => {
     const decorator =
       toBeDecorated =>
-      (alias, instantiationParameter, ...args) => {
+      (...instantiationParameter) => {
         const decoratedInstantiationParameter = instantiationParameter.map(
           p => `decorated-parameter(${p})`,
         );
 
         return `decorated-instance(${toBeDecorated(
-          alias,
-          decoratedInstantiationParameter,
-          ...args,
+          ...decoratedInstantiationParameter,
         )})`;
       };
 
@@ -59,16 +56,17 @@ describe('createContainer.targeted-decoration-via-shorthand', () => {
       id: 'some-injection-token-for-targeted-decoration',
     });
 
-    let decorator = injectToBeDecorated => (alias, instantiationParameter) => {
-      const decoratedParameter = instantiationParameter.map(
-        p => `decorated-parameter(${p})`,
-      );
+    const decorator =
+      injectToBeDecorated =>
+      (...instantiationParameter) => {
+        const decoratedParameter = instantiationParameter.map(
+          p => `decorated-parameter(${p})`,
+        );
 
-      return `decorated-instance(${injectToBeDecorated(
-        alias,
-        decoratedParameter,
-      )})`;
-    };
+        return `decorated-instance(${injectToBeDecorated(
+          ...decoratedParameter,
+        )})`;
+      };
 
     const childInjectable = getInjectable({
       id: 'some-child-injectable',
@@ -106,32 +104,28 @@ describe('createContainer.targeted-decoration-via-shorthand', () => {
     );
   });
 
-  it('given decorating multiple times, when injected, decorates instance and instantiation parameter on order', () => {
+  it('given decorating multiple times, when injected, decorates instance and instantiation parameter in order', () => {
     const someDecorator =
       toBeDecorated =>
-      (alias, instantiationParameter, ...args) => {
+      (...instantiationParameter) => {
         const decoratedInstantiationParameter = instantiationParameter.map(
           p => `some-decorated-parameter(${p})`,
         );
 
         return `some-decorated-instance(${toBeDecorated(
-          alias,
-          decoratedInstantiationParameter,
-          ...args,
+          ...decoratedInstantiationParameter,
         )})`;
       };
 
     const someOtherDecorator =
       toBeDecorated =>
-      (alias, instantiationParameter, ...args) => {
+      (...instantiationParameter) => {
         const decoratedInstantiationParameter = instantiationParameter.map(
           p => `some-other-decorated-parameter(${p})`,
         );
 
         return `some-other-decorated-instance(${toBeDecorated(
-          alias,
-          decoratedInstantiationParameter,
-          ...args,
+          ...decoratedInstantiationParameter,
         )})`;
       };
 

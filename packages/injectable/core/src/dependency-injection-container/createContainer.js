@@ -14,6 +14,7 @@ import { checkForAbstractTokenFor } from './checkForAbstractTokenFor';
 import { getRelatedInjectablesFor } from './getRelatedInjectablesFor';
 import { earlyOverrideFor } from './early-override';
 import { injectionDecoratorToken, instantiationDecoratorToken } from './tokens';
+import { isRelatedToToken } from './getRelatedTokens';
 import { firePurgeCallbacksFor } from './firePurgeCallbacksFor';
 
 export default containerId => {
@@ -151,9 +152,9 @@ export default containerId => {
   const registerSingle = (injectable, context) => {
     rawRegisterSingle(injectable, context);
 
-    if (injectable.injectionToken === injectionDecoratorToken) {
+    if (isRelatedToToken(injectable.injectionToken, injectionDecoratorToken)) {
       decoratorCache.injection = null;
-    } else if (injectable.injectionToken === instantiationDecoratorToken) {
+    } else if (isRelatedToToken(injectable.injectionToken, instantiationDecoratorToken)) {
       decoratorCache.instantiation = null;
     }
   };

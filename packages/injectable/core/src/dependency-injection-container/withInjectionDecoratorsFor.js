@@ -1,4 +1,3 @@
-import { isRelevantDecoratorFor } from './isRelevantDecoratorFor';
 import flow from './fastFlow';
 import { injectionDecoratorToken } from './tokens';
 
@@ -10,45 +9,40 @@ export const withInjectionDecoratorsFor =
       return toBeDecorated({ alias, instantiationParameters, injectingInjectable });
     }
 
-    // Populate cache if invalidated
+    // When decoratorCache.injection is null, a decorator was registered or
+    // deregistered — invalidate all per-alias cached compositions.
     if (decoratorCache.injection === null) {
-      decoratorCache.injection = injectMany({
-        alias: injectionDecoratorToken,
-        instantiationParameters: [],
-        injectingInjectable,
-      });
-
-      // Invalidate per-alias cache when the decorator list changes.
+      decoratorCache.injection = true;
       decoratorCache.injectionByAlias = new Map();
     }
 
-    // Fast path: no injection decorators registered
-    if (decoratorCache.injection.length === 0) {
-      return toBeDecorated({ alias, instantiationParameters, injectingInjectable });
-    }
-
-    // Per-alias cache: avoid filter/map/flow on every inject for the same alias.
     let decorated = decoratorCache.injectionByAlias.get(alias);
 
     if (decorated === undefined) {
-      const isRelevantDecorator = isRelevantDecoratorFor(alias);
-
-      const decorators = decoratorCache.injection
-        .filter(isRelevantDecorator)
-        .map(x => x.decorate);
+      const decorators = [
+        ...injectMany({
+          alias: injectionDecoratorToken.for(alias),
+          instantiationParameters: [],
+          injectingInjectable,
+        }),
+        ...(alias.injectionToken
+          ? injectMany({
+              alias: injectionDecoratorToken.for(alias.injectionToken),
+              instantiationParameters: [],
+              injectingInjectable,
+            })
+          : []),
+      ];
 
       if (decorators.length > 0) {
-        // User decorators consume the positional shape `(alias, param, injectingInjectable)`.
-        // Adapt once: positional view forwards to the object-form inner; the composed
-        // decorator is called positionally below.
-        const toBeDecoratedPositional = (a, p, ii) =>
+        const boundInject = (...params) =>
           toBeDecorated({
-            alias: a,
-            instantiationParameters: p,
-            injectingInjectable: ii,
+            alias,
+            instantiationParameters: params,
+            injectingInjectable,
           });
 
-        decorated = flow(...decorators)(toBeDecoratedPositional);
+        decorated = flow(...decorators)(boundInject);
       } else {
         decorated = null;
       }
@@ -60,5 +54,5 @@ export const withInjectionDecoratorsFor =
       return toBeDecorated({ alias, instantiationParameters, injectingInjectable });
     }
 
-    return decorated(alias, instantiationParameters, injectingInjectable);
+    return decorated(...instantiationParameters);
   };

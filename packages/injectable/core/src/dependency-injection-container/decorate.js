@@ -1,18 +1,15 @@
-import getInjectable from '../getInjectable/getInjectable';
+import getInjectable2 from '../getInjectable2/getInjectable2';
 import { injectionDecoratorToken } from './tokens';
 
 export const decorateFor =
   ({ registerSingle }) =>
   (alias, decorator) => {
-    const decoratorInjectable = getInjectable({
+    const decoratorInjectable = getInjectable2({
       id: `${alias.id}-decorator-${Math.random()}`,
-      injectionToken: injectionDecoratorToken,
+      injectionToken: injectionDecoratorToken.for(alias),
       decorable: false,
 
-      instantiate: () => ({
-        decorate: decorator,
-        target: alias,
-      }),
+      instantiate: () => () => decorator,
     });
 
     registerSingle(decoratorInjectable, []);

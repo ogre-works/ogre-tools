@@ -10,6 +10,7 @@ import {
 import {
   createContainer,
   getInjectable,
+  getInjectable2,
   getInjectionToken,
   injectionDecoratorToken,
 } from '@ogre-tools/injectable';
@@ -54,22 +55,17 @@ describe('registerMobx', () => {
         injectionToken: someFirstInjectionToken,
       });
 
-      const contextSpyDecorator = getInjectable({
+      const contextSpyDecorator = getInjectable2({
         id: 'context-spy-decorator',
 
-        instantiate: () => ({
-          target: someInjectable,
-
-          decorate:
-            toBeDecorated =>
-            (...args) => {
-              return toBeDecorated(...args);
-            },
-        }),
+        instantiate: () => () =>
+          toBeDecorated =>
+          (...params) =>
+            toBeDecorated(...params),
 
         decorable: false,
 
-        injectionToken: injectionDecoratorToken,
+        injectionToken: injectionDecoratorToken.for(someInjectable),
       });
 
       someOtherInjectable = getInjectable({
@@ -326,37 +322,6 @@ describe('registerMobx', () => {
         it('does not cause reaction in reactive instances of unrelated injection token', () => {
           expect(reactionCountForFirstToken).toBe(0);
         });
-      });
-    });
-
-    it('given an injection decorator, when an injectable is registered and deregistered, does not decorate internals of computedInjectMany because injects between registrations can happen too early', () => {
-      const someDecorator = getInjectable({
-        id: 'some-decorator',
-
-        instantiate: () => ({
-          decorate:
-            toBeDecorated =>
-            (injectable, ...args) => {
-              if (injectable[isInternalOfComputedInjectMany] === true) {
-                throw new Error(
-                  `Tried to decorate an internal of computedInjectMany: "${injectable.id}"`,
-                );
-              }
-
-              return toBeDecorated(injectable, ...args);
-            },
-        }),
-
-        decorable: false,
-
-        injectionToken: injectionDecoratorToken,
-      });
-
-      runInAction(() => {
-        di.register(someDecorator);
-
-        di.register(someInjectable);
-        di.deregister(someInjectable);
       });
     });
 

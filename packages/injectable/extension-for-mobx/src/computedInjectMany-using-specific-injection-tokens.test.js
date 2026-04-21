@@ -10,6 +10,7 @@ import {
 import {
   createContainer,
   getInjectable,
+  getInjectable2,
   getInjectionToken,
   injectionDecoratorToken,
 } from '@ogre-tools/injectable';
@@ -61,21 +62,17 @@ describe('registerMobx', () => {
         injectionToken: someFirstInjectionToken,
       });
 
-      const contextSpyDecorator = getInjectable({
+      const contextSpyDecorator = getInjectable2({
         id: 'context-spy-decorator',
 
-        instantiate: () => ({
-          target: someInjectable,
-
-          decorate:
-            toBeDecorated =>
-            (...args) =>
-              toBeDecorated(...args),
-        }),
+        instantiate: () => () =>
+          toBeDecorated =>
+          (...params) =>
+            toBeDecorated(...params),
 
         decorable: false,
 
-        injectionToken: injectionDecoratorToken,
+        injectionToken: injectionDecoratorToken.for(someInjectable),
       });
 
       someOtherInjectable = getInjectable({

@@ -5,7 +5,7 @@ import {
 } from './tokens';
 import toFlatInjectables from './toFlatInjectables';
 import isInjectionToken from '../getInjectionToken/isInjectionToken';
-import { getRelatedTokens } from './getRelatedTokens';
+import { getRelatedTokens, isRelatedToToken } from './getRelatedTokens';
 import { invalidateRelatedInjectablesCache } from './getRelatedInjectablesFor';
 
 export const deregisterFor =
@@ -56,9 +56,9 @@ export const deregisterFor =
 
     flatInjectables.forEach(injectable => {
       // Invalidate decorator caches when decorator injectables are deregistered
-      if (injectable.injectionToken === injectionDecoratorToken) {
+      if (isRelatedToToken(injectable.injectionToken, injectionDecoratorToken)) {
         decoratorCache.injection = null;
-      } else if (injectable.injectionToken === instantiationDecoratorToken) {
+      } else if (isRelatedToToken(injectable.injectionToken, instantiationDecoratorToken)) {
         decoratorCache.instantiation = null;
       }
 

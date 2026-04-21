@@ -344,65 +344,37 @@ export const lifecycleEnum: {
 
 type RegistrationCallback = (injectable: Injectable<any, any, any>) => void;
 
-export type SpecificInjectionTargetDecorator<
-  InjectionInstance extends InjectionTokenInstance,
-  InjectionTokenInstance = InjectionInstance,
-  InstantiationParam = void,
-> = {
-  decorate: (
-    inject: SpecificInject<InjectionInstance, InstantiationParam>,
-  ) => SpecificInject<InjectionInstance, InstantiationParam>;
-  target:
-    | InjectionToken<InjectionInstance, InstantiationParam, any>
-    | Injectable<InjectionInstance, InjectionTokenInstance, InstantiationParam>;
-};
+// --- injectionDecoratorToken ---
+//
+// Abstract token for decorating injection. Decorators must be registered
+// against a target via `.for(target)` where target is an Injectable, Injectable2,
+// InjectionToken, or InjectionToken2.
+//
+// The decorator function receives the bound inject for that alias:
+//   inject => (...params) => decoratedInstance
+// where inject: (...params) => instance.
+//
+// This decorator does not respect lifecycle — it is called on every `di.inject`.
 
-export type GeneralInjectionTargetDecorator = {
-  decorate: (
-    inject: SpecificInject<unknown, unknown>,
-  ) => SpecificInject<unknown, unknown>;
-};
+export type InjectionDecoratorForInjectable2<
+  Factory extends (...args: any[]) => any,
+> = () => (inject: (...params: Parameters<Factory>) => ReturnType<Factory>)
+       => (...params: Parameters<Factory>) => ReturnType<Factory>;
 
-export type InjectionTargetDecorator<
-  InjectionInstance extends InjectionTokenInstance,
-  InjectionTokenInstance = InjectionInstance,
-  InstantiationParam = void,
-> =
-  | GeneralInjectionTargetDecorator
-  | SpecificInjectionTargetDecorator<
-      InjectionInstance,
-      InjectionTokenInstance,
-      InstantiationParam
-    >;
+export interface InjectionDecoratorSpecificFactory {
+  <Factory extends (...args: any[]) => any>(
+    target: Injectable2<Factory> | InjectionToken2<Factory>,
+  ): SpecificInjectionToken2<InjectionDecoratorForInjectable2<Factory>>;
 
-export interface CreateInjectionTargetDecorator {
-  <
-    InjectionInstance extends InjectionTokenInstance,
-    InjectionTokenInstance = InjectionInstance,
-    InstantiationParam = void,
-  >(
-    desc: SpecificInjectionTargetDecorator<
-      InjectionInstance,
-      InjectionTokenInstance,
-      InstantiationParam
-    >,
-  ): SpecificInjectionTargetDecorator<
-    InjectionInstance,
-    InjectionTokenInstance,
-    InstantiationParam
-  >;
-  (desc: GeneralInjectionTargetDecorator): GeneralInjectionTargetDecorator;
+  <InjectionInstance, InstantiationParam = void>(
+    target: Injectable<InjectionInstance, any, InstantiationParam> | InjectionToken<InjectionInstance, InstantiationParam>,
+  ): SpecificInjectionToken2<() => (inject: (...params: any[]) => any) => (...params: any[]) => any>;
 }
 
-export const createInjectionTargetDecorator: CreateInjectionTargetDecorator;
-
-/**
- * This is used for decorating the injection of injectables.
- * If a target is used then only the injections related to that alias (either injectable or injectionToken) will be decorated by an implementation of this token.
- * This kind of decorator does not respect the lifecycle of the injectables but instead is called on every call to `di.inject`
- */
-export const injectionDecoratorToken: InjectionToken<
-  InjectionTargetDecorator<any, any, any>
+export const injectionDecoratorToken: AbstractInjectionToken2<
+  (...args: any[]) => any,
+  (...args: any[]) => any[],
+  InjectionDecoratorSpecificFactory
 >;
 
 export type SpecificInstantiationTargetDecorator<

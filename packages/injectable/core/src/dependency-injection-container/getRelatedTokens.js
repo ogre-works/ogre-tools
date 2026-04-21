@@ -25,4 +25,15 @@ export const getRelatedTokens = token => {
   return tokens;
 };
 
+export const isRelatedToToken = (token, ancestor) => {
+  let current = token;
+
+  while (current) {
+    if (current === ancestor) return true;
+    current = current.specificTokenOf;
+  }
+
+  return false;
+};
+
 const emptyArray = [];

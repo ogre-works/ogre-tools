@@ -17,9 +17,11 @@ export const instantiationDecoratorToken = getInjectionToken({
   decorable: false,
 });
 
-export const injectionDecoratorToken = getInjectionToken({
+export const injectionDecoratorToken = getAbstractInjectionToken2({
   id: 'injection-decorator-token',
   decorable: false,
+  specificInjectionTokenFactory: target =>
+    getSpecificInjectionToken2({ id: target.id, speciality: target.id }),
 });
 
 export const instancePurgeCallbackToken = getAbstractInjectionToken2({
