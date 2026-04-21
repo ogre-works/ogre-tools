@@ -500,10 +500,6 @@ export type RegistrationTargetDecorator<
       InstantiationParam
     >;
 
-export const registrationDecoratorToken: InjectionToken<
-  RegistrationTargetDecorator<any, any, any>
->;
-
 export const deregistrationDecoratorToken: InjectionToken<
   RegistrationTargetDecorator<any, any, any>
 >;

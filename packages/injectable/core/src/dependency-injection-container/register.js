@@ -1,125 +1,33 @@
 import { getNamespacedIdFor } from './getNamespacedIdFor';
-import {
-  registrationCallbackToken,
-  registrationDecoratorToken,
-  deregistrationDecoratorToken,
-} from './tokens';
+import { registrationCallbackToken } from './tokens';
 import toFlatInjectables from './toFlatInjectables';
 import { CompositeMap } from '../composite-map/composite-map';
 import { LruCompositeMap } from '../composite-map/lru-composite-map';
 import { getRelatedTokens } from './getRelatedTokens';
-import { isRelevantDecoratorFor } from './isRelevantDecoratorFor';
-import flow from './fastFlow';
 import { invalidateRelatedInjectablesCache } from './getRelatedInjectablesFor';
-
-const isDecoratorInjectable = injectable =>
-  injectable.injectionToken === registrationDecoratorToken ||
-  injectable.injectionToken === deregistrationDecoratorToken;
 
 export const registerFor =
   ({ registerSingle, injectMany }) =>
   ({ injectables, context, source }) => {
     const flatInjectables = toFlatInjectables(injectables);
 
-    // Single-pass partition into decorators and non-decorators.
-    const decoratorInjectables = [];
-    const nonDecoratorInjectables = [];
-
     for (let i = 0; i < flatInjectables.length; i++) {
-      const injectable = flatInjectables[i];
-
-      if (isDecoratorInjectable(injectable)) {
-        decoratorInjectables.push(injectable);
-      } else {
-        nonDecoratorInjectables.push(injectable);
-      }
+      registerSingle(flatInjectables[i], context);
     }
 
-    // Pass 1: register reg/dereg decorator injectables first (undecorated)
-    decoratorInjectables.forEach(injectable => {
-      registerSingle(injectable, context);
-    });
-
-    // Collect all registration decorators once (not per-injectable)
-    const allRegistrationDecorators = injectMany({
-      alias: registrationDecoratorToken,
-      instantiationParameters: [],
-      injectingInjectable: source,
-    });
-
-    const registeredInjectables = [];
-    let batchInProgress = true;
-
-    nonDecoratorInjectables.forEach(injectable => {
-      // Fast path: no decorators or injectable is not decorable
-      if (
-        allRegistrationDecorators.length === 0 ||
-        injectable.decorable === false
-      ) {
-        registerSingle(injectable, context);
-        registeredInjectables.push(injectable);
-        return;
-      }
-
-      // Slow path: apply relevant decorators
-      const relevantDecorators = allRegistrationDecorators
-        .filter(isRelevantDecoratorFor(injectable))
-        .map(x => x.decorate);
-
-      if (relevantDecorators.length === 0) {
-        registerSingle(injectable, context);
-        registeredInjectables.push(injectable);
-        return;
-      }
-
-      let wasRegistered = false;
-
-      const boundRegisterSingle = inj => {
-        registerSingle(inj, context);
-        wasRegistered = true;
-
-        // When called deferred (after batch completes), trigger callbacks
-        if (!batchInProgress) {
-          const callbacks = injectMany({
-            alias: registrationCallbackToken,
-            instantiationParameters: [],
-            injectingInjectable: context,
-          });
-
-          callbacks.forEach(callback => {
-            callback(inj);
-          });
-        }
-      };
-
-      const decoratedRegister = flow(...relevantDecorators)(
-        boundRegisterSingle,
-      );
-
-      decoratedRegister(injectable);
-
-      if (wasRegistered) {
-        registeredInjectables.push(injectable);
-      }
-    });
-
-    batchInProgress = false;
-
-    // Fire callbacks for all actually registered injectables (batch semantics)
     const callbacks = injectMany({
       alias: registrationCallbackToken,
       instantiationParameters: [],
       injectingInjectable: source,
     });
 
-    const fireCallbacks = injectable => {
-      callbacks.forEach(callback => {
-        callback(injectable);
-      });
-    };
+    for (let i = 0; i < flatInjectables.length; i++) {
+      const injectable = flatInjectables[i];
 
-    decoratorInjectables.forEach(fireCallbacks);
-    registeredInjectables.forEach(fireCallbacks);
+      for (let j = 0; j < callbacks.length; j++) {
+        callbacks[j](injectable);
+      }
+    }
   };
 
 export const registerSingleFor = ({

@@ -3,7 +3,6 @@ import {
   deregistrationDecoratorToken,
   injectionDecoratorToken,
   instantiationDecoratorToken,
-  registrationDecoratorToken,
 } from './tokens';
 import toFlatInjectables from './toFlatInjectables';
 import isInjectionToken from '../getInjectionToken/isInjectionToken';
@@ -75,7 +74,6 @@ export const deregisterFor =
       }
 
       const isDecorator =
-        injectable.injectionToken === registrationDecoratorToken ||
         injectable.injectionToken === deregistrationDecoratorToken;
 
       // Fast path: no decorators, or injectable is a decorator itself, or not decorable
