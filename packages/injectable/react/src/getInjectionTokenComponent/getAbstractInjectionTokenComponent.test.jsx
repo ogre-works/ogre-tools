@@ -70,9 +70,7 @@ describe('getAbstractInjectionTokenComponent', () => {
       <SpecificTokenComponent someProp="some-prop-value" />,
     );
 
-    expect(rendered.getByTestId('content').textContent).toBe(
-      'some-prop-value',
-    );
+    expect(rendered.getByTestId('content').textContent).toBe('some-prop-value');
   });
 
   it('given same specifier, .for() returns the same component', () => {

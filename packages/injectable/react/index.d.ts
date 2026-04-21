@@ -47,6 +47,25 @@ export function useInjectDeferred<TReturnValue, TInstantiationParameter>(
   instantiationParameter: TInstantiationParameter,
 ): Awaited<TReturnValue>;
 
+export function useInject2<F extends (...args: any[]) => any>(
+  alias: Injectable2<F>,
+): F;
+export function useInject2<F extends (...args: any[]) => any>(
+  alias: InjectionToken2<F> & { readonly __abstract?: never },
+): F;
+export function useInject2<TReturnValue>(
+  alias: Injectable<TReturnValue, any> | InjectionToken<TReturnValue>,
+): () => TReturnValue;
+export function useInject2<TReturnValue, TInstantiationParameter>(
+  alias:
+    | Injectable<TReturnValue, any, TInstantiationParameter>
+    | InjectionToken<TReturnValue, TInstantiationParameter>,
+): (
+  ...params: TInstantiationParameter extends any[]
+    ? TInstantiationParameter
+    : [TInstantiationParameter]
+) => TReturnValue;
+
 
 export type InjectableComponent<Component extends React.ComponentType<any>> =
   Component & Injectable<Component>;
