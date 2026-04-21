@@ -323,24 +323,54 @@ export default containerId => {
       injectingInjectable: rootInjectable,
     });
 
+  const publicInjectMany = (alias, ...args) =>
+    privateDi.injectMany({
+      alias,
+      instantiationParameters: args,
+      injectingInjectable: rootInjectable,
+    });
+
+  const publicInjectWithMeta = (alias, ...args) =>
+    privateDi.injectWithMeta({
+      alias,
+      instantiationParameters: args,
+      injectingInjectable: rootInjectable,
+    });
+
+  const publicInjectManyWithMeta = (alias, ...args) =>
+    privateDi.injectManyWithMeta({
+      alias,
+      instantiationParameters: args,
+      injectingInjectable: rootInjectable,
+    });
+
   const publicDi = {
     ...privateDi,
 
     inject: publicInject,
+    injectWithMeta: publicInjectWithMeta,
+    injectMany: publicInjectMany,
+    injectManyWithMeta: publicInjectManyWithMeta,
 
-    injectWithMeta: (alias, ...args) =>
-      privateDi.injectWithMeta({
-        alias,
-        instantiationParameters: args,
-        injectingInjectable: rootInjectable,
-      }),
+    inject2:
+      alias =>
+      (...params) =>
+        publicInject(alias, ...params),
 
-    injectMany: (alias, ...args) =>
-      privateDi.injectMany({
-        alias,
-        instantiationParameters: args,
-        injectingInjectable: rootInjectable,
-      }),
+    injectMany2:
+      alias =>
+      (...params) =>
+        publicInjectMany(alias, ...params),
+
+    injectWithMeta2:
+      alias =>
+      (...params) =>
+        publicInjectWithMeta(alias, ...params),
+
+    injectManyWithMeta2:
+      alias =>
+      (...params) =>
+        publicInjectManyWithMeta(alias, ...params),
 
     register: (...injectables) => {
       privateDi.register({
@@ -357,13 +387,6 @@ export default containerId => {
         source: rootInjectable,
       });
     },
-
-    injectManyWithMeta: (alias, ...args) =>
-      privateDi.injectManyWithMeta({
-        alias,
-        instantiationParameters: args,
-        injectingInjectable: rootInjectable,
-      }),
   };
 
   return publicDi;

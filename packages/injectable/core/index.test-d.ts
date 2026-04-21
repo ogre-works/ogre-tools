@@ -1009,52 +1009,52 @@ const handlerImpl = getInjectable2({
   instantiate: () => () => 'hello',
 });
 
-// --- DiContainerForInjection2: inject returns factories inside new-style instantiate ---
+// --- DiContainerForInjection2: inject2 returns factories inside new-style instantiate ---
 
 const innerInjectable2 = getInjectable2({
   id: 'inner',
   instantiate: (di: DiContainerForInjection2) => {
     // new-style injectable2 → returns factory directly
-    const getParametric = di.inject(parametricInjectable2);
+    const getParametric = di.inject2(parametricInjectable2);
     expectType<(name: string, age: number) => { name: string; age: number }>(
       getParametric,
     );
 
     // new-style token2 → returns factory directly
-    const getHandler = di.inject(handlerToken2);
+    const getHandler = di.inject2(handlerToken2);
     expectType<() => string>(getHandler);
 
     // old-style injectable without param → wrapped in () => I factory
-    const getOldSingleton = di.inject(someInjectableToBeDecorated);
+    const getOldSingleton = di.inject2(someInjectableToBeDecorated);
     expectType<() => () => 42>(getOldSingleton);
 
     // old-style injectable with param → wrapped in (param: P) => I factory
-    const getOldParam = di.inject(someParameterInjectableToBeDecorated);
+    const getOldParam = di.inject2(someParameterInjectableToBeDecorated);
     expectType<(param: number) => string>(getOldParam);
 
     // old-style token without param → wrapped in () => I factory
-    const getOldTokenValue = di.inject(someGetNumberInjectionToken);
+    const getOldTokenValue = di.inject2(someGetNumberInjectionToken);
     expectType<() => GetNumber>(getOldTokenValue);
 
     return () => 'result';
   },
 });
 
-// --- DiContainerForInjection2: injectMany returns ManyFactory inside new-style ---
+// --- DiContainerForInjection2: injectMany2 returns ManyFactory inside new-style ---
 
 const innerWithInjectMany = getInjectable2({
   id: 'inner-many',
   instantiate: (di: DiContainerForInjection2) => {
     // token2 → returns ManyFactory
-    const getHandlers = di.injectMany(handlerToken2);
+    const getHandlers = di.injectMany2(handlerToken2);
     expectType<() => string[]>(getHandlers);
 
     // token2 with explicit ManyFactory → returns the explicit ManyFactory
-    const getWrappers = di.injectMany(wrapperToken2);
+    const getWrappers = di.injectMany2(wrapperToken2);
     expectType<WrapperManyFactory>(getWrappers);
 
     // old-style token without param → returns () => I[]
-    const getOldMany = di.injectMany(someGetNumberInjectionToken);
+    const getOldMany = di.injectMany2(someGetNumberInjectionToken);
     expectType<() => GetNumber[]>(getOldMany);
 
     return () => 'result';
@@ -1131,14 +1131,14 @@ expectType<InjectionInstanceWithMeta<{ id: string }>[]>(
   di.injectManyWithMeta(userServiceToken2, 'user-123'),
 );
 
-// Inside new-style: injectWithMeta for non-generic returns factory for meta wrapper
+// Inside new-style: injectWithMeta2 for non-generic returns factory for meta wrapper
 const innerWithMeta = getInjectable2({
   id: 'inner-with-meta',
   instantiate: (di: DiContainerForInjection2) => {
-    const getHandlerMeta = di.injectWithMeta(handlerToken2);
+    const getHandlerMeta = di.injectWithMeta2(handlerToken2);
     expectType<() => InjectionInstanceWithMeta<string>>(getHandlerMeta);
 
-    const getHandlersMeta = di.injectManyWithMeta(handlerToken2);
+    const getHandlersMeta = di.injectManyWithMeta2(handlerToken2);
     expectType<() => InjectionInstanceWithMeta<string>[]>(getHandlersMeta);
 
     return () => {};
@@ -1237,9 +1237,9 @@ expectError(
   })),
 );
 
-// injectable2: stub receives DiContainerForInjection2 (inject returns factories)
+// injectable2: stub receives DiContainerForInjection2 (inject2 returns factories)
 di.override(parametricInjectable2, di => {
-  const getHandler = di.inject(handlerToken2);
+  const getHandler = di.inject2(handlerToken2);
   expectType<() => string>(getHandler);
   return (name, age) => ({ name, age });
 });

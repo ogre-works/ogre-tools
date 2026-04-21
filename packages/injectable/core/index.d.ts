@@ -297,6 +297,11 @@ export interface DiContainerForInjection {
   injectMany: InjectMany;
   injectManyWithMeta: InjectManyWithMeta;
 
+  inject2: Inject2;
+  injectMany2: InjectMany2;
+  injectWithMeta2: InjectWithMeta2;
+  injectManyWithMeta2: InjectManyWithMeta2;
+
   register(
     ...injectables: (Injectable<any, any, any> | Injectable2<any> | InjectableBunch<any>)[]
   ): void;
@@ -698,10 +703,15 @@ export function getAbstractInjectionToken2<
 // ---- DiContainerForInjection2 (new-style minimalDi) ----
 
 export interface DiContainerForInjection2 {
-  inject: Inject2;
-  injectMany: InjectMany2;
-  injectWithMeta: InjectWithMeta2;
-  injectManyWithMeta: InjectManyWithMeta2;
+  inject: Inject;
+  injectMany: InjectMany;
+  injectWithMeta: InjectWithMeta;
+  injectManyWithMeta: InjectManyWithMeta;
+
+  inject2: Inject2;
+  injectMany2: InjectMany2;
+  injectWithMeta2: InjectWithMeta2;
+  injectManyWithMeta2: InjectManyWithMeta2;
 
   register(
     ...injectables: (Injectable2<any> | Injectable<any, any, any> | InjectableBunch<any>)[]
@@ -729,19 +739,19 @@ interface HasRegistrations2 {
   ): boolean;
 }
 
-// Inside new-style instantiate: inject always returns factory
+// Factory-returning inject — works for v1 (synthesized factory) and v2 (native factory with generics preserved)
 interface Inject2 {
-  <F extends (...args: any[]) => any>(key: Injectable2<F>): F;
-  <F extends (...args: any[]) => any>(key: InjectionToken2<F> & { readonly __abstract?: never }): F;
-  <I>(key: Injectable<I, any> | InjectionToken<I>): () => I;
-  <I, P>(key: Injectable<I, any, P> | InjectionToken<I, P>): (...params: P extends any[] ? P : [P]) => I;
+  <F extends (...args: any[]) => any>(alias: Injectable2<F>): F;
+  <F extends (...args: any[]) => any>(alias: InjectionToken2<F> & { readonly __abstract?: never }): F;
+  <I>(alias: Injectable<I, any> | InjectionToken<I>): () => I;
+  <I, P>(alias: Injectable<I, any, P> | InjectionToken<I, P>): (...params: P extends any[] ? P : [P]) => I;
 }
 
-// Inside new-style instantiate: injectMany returns ManyFactory
+// Factory-returning injectMany — v2 returns ManyFactory (generics preserved), v1 returns synthesized many-factory
 interface InjectMany2 {
-  <F extends (...args: any[]) => any, MF extends (...args: Parameters<F>) => ReturnType<F>[]>(key: InjectionToken2<F, MF> & { readonly __abstract?: never }): MF;
-  <I>(key: InjectionToken<I>): () => I[];
-  <I, P>(key: InjectionToken<I, P>): (...params: P extends any[] ? P : [P]) => I[];
+  <F extends (...args: any[]) => any, MF extends (...args: Parameters<F>) => ReturnType<F>[]>(alias: InjectionToken2<F, MF> & { readonly __abstract?: never }): MF;
+  <I>(alias: InjectionToken<I>): () => I[];
+  <I, P>(alias: InjectionToken<I, P>): (...params: P extends any[] ? P : [P]) => I[];
 }
 
 // Helper: transforms a factory's return type to InjectionInstanceWithMeta<R>
@@ -757,14 +767,14 @@ type ToWithMetaManyFactory<F> = F extends (...args: infer P) => infer R
   : never;
 
 interface InjectWithMeta2 {
-  <F extends (...args: any[]) => any>(key: Injectable2<F>): ToWithMetaFactory<F>;
-  <F extends (...args: any[]) => any>(key: InjectionToken2<F> & { readonly __abstract?: never }): ToWithMetaFactory<F>;
-  <I>(key: Injectable<I, any> | InjectionToken<I>): () => InjectionInstanceWithMeta<I>;
-  <I, P>(key: Injectable<I, any, P> | InjectionToken<I, P>): (...params: P extends any[] ? P : [P]) => InjectionInstanceWithMeta<I>;
+  <F extends (...args: any[]) => any>(alias: Injectable2<F>): ToWithMetaFactory<F>;
+  <F extends (...args: any[]) => any>(alias: InjectionToken2<F> & { readonly __abstract?: never }): ToWithMetaFactory<F>;
+  <I>(alias: Injectable<I, any> | InjectionToken<I>): () => InjectionInstanceWithMeta<I>;
+  <I, P>(alias: Injectable<I, any, P> | InjectionToken<I, P>): (...params: P extends any[] ? P : [P]) => InjectionInstanceWithMeta<I>;
 }
 
 interface InjectManyWithMeta2 {
-  <F extends (...args: any[]) => any>(key: InjectionToken2<F> & { readonly __abstract?: never }): ToWithMetaManyFactory<F>;
-  <I>(key: InjectionToken<I>): () => InjectionInstanceWithMeta<I>[];
-  <I, P>(key: InjectionToken<I, P>): (...params: P extends any[] ? P : [P]) => InjectionInstanceWithMeta<I>[];
+  <F extends (...args: any[]) => any>(alias: InjectionToken2<F> & { readonly __abstract?: never }): ToWithMetaManyFactory<F>;
+  <I>(alias: InjectionToken<I>): () => InjectionInstanceWithMeta<I>[];
+  <I, P>(alias: InjectionToken<I, P>): (...params: P extends any[] ? P : [P]) => InjectionInstanceWithMeta<I>[];
 }

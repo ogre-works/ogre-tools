@@ -91,8 +91,8 @@ describe('getInjectable2', () => {
     });
   });
 
-  describe('factory-returning inject inside new-style instantiate', () => {
-    it('di.inject returns factory for old-style deps', () => {
+  describe('factory-returning inject2 inside new-style instantiate', () => {
+    it('di.inject2 returns factory for old-style deps', () => {
       const oldDep = getInjectable({
         id: 'old-dep',
         instantiate: () => 'old-value',
@@ -101,7 +101,7 @@ describe('getInjectable2', () => {
       const newService = getInjectable2({
         id: 'new-service',
         instantiate: di => {
-          const getOld = di.inject(oldDep);
+          const getOld = di.inject2(oldDep);
 
           return () => `using-${getOld()}`;
         },
@@ -114,7 +114,7 @@ describe('getInjectable2', () => {
       expect(result).toBe('using-old-value');
     });
 
-    it('di.inject returns factory for new-style deps', () => {
+    it('di.inject2 returns factory for new-style deps', () => {
       const dep = getInjectable2({
         id: 'dep',
         instantiate: () => name => `hello-${name}`,
@@ -123,7 +123,7 @@ describe('getInjectable2', () => {
       const service = getInjectable2({
         id: 'service',
         instantiate: di => {
-          const getDep = di.inject(dep);
+          const getDep = di.inject2(dep);
 
           return () => getDep('world');
         },
@@ -136,7 +136,7 @@ describe('getInjectable2', () => {
       expect(result).toBe('hello-world');
     });
 
-    it('di.injectMany returns factory for instance array', () => {
+    it('di.injectMany2 returns factory for instance array', () => {
       const token = getInjectionToken({ id: 'handler' });
 
       const handler1 = getInjectable({
@@ -154,7 +154,7 @@ describe('getInjectable2', () => {
       const service = getInjectable2({
         id: 'service',
         instantiate: di => {
-          const getHandlers = di.injectMany(token);
+          const getHandlers = di.injectMany2(token);
 
           return () => getHandlers().join(',');
         },
@@ -212,7 +212,7 @@ describe('getInjectable2', () => {
       const newInjectable = getInjectable2({
         id: 'new',
         instantiate: di => {
-          const getOld = di.inject(oldDep);
+          const getOld = di.inject2(oldDep);
           return () => `new-with-${getOld()}`;
         },
       });
@@ -590,7 +590,7 @@ describe('getInjectable2', () => {
         id: 'parent2',
         instantiate: minimalDi => {
           minimalDi.register(childInjectable);
-          const getChild = minimalDi.inject(childInjectable);
+          const getChild = minimalDi.inject2(childInjectable);
 
           return () => ({
             getChild,

@@ -132,52 +132,33 @@ const createMinimalDi = (
       di.scopedPurge(injectableToBeInstantiated, alias, ...keyParts),
   };
 
-  // New-style injectable2: inject/injectMany always return factories
-  if (injectableToBeInstantiated.aliasType === injectableSymbol2) {
-    return {
-      ...shared,
-
-      inject:
-        alias =>
-        (...args) =>
-          di.inject({
-            alias,
-            instantiationParameters: args,
-            injectingInjectable: injectableToBeInstantiated,
-          }),
-
-      injectMany:
-        alias =>
-        (...args) =>
-          di.injectMany({
-            alias,
-            instantiationParameters: args,
-            injectingInjectable: injectableToBeInstantiated,
-          }),
-
-      injectWithMeta:
-        alias =>
-        (...args) =>
-          di.injectWithMeta({
-            alias,
-            instantiationParameters: args,
-            injectingInjectable: injectableToBeInstantiated,
-          }),
-
-      injectManyWithMeta:
-        alias =>
-        (...args) =>
-          di.injectManyWithMeta({
-            alias,
-            instantiationParameters: args,
-            injectingInjectable: injectableToBeInstantiated,
-          }),
-    };
-  }
-
-  // Old-style: variadic inject that passes args array through
+  // Unified shape for both v1 and v2:
+  //   inject/injectMany return instances (variadic params passed inline).
+  //   inject2/injectMany2 return factories (for v2 aliases the native factory, generics preserved;
+  //   for v1 aliases a synthesized (...p) => instance wrapper).
   const minimalInject = (alias, ...args) =>
     di.inject({
+      alias,
+      instantiationParameters: args,
+      injectingInjectable: injectableToBeInstantiated,
+    });
+
+  const minimalInjectMany = (alias, ...args) =>
+    di.injectMany({
+      alias,
+      instantiationParameters: args,
+      injectingInjectable: injectableToBeInstantiated,
+    });
+
+  const minimalInjectWithMeta = (alias, ...args) =>
+    di.injectWithMeta({
+      alias,
+      instantiationParameters: args,
+      injectingInjectable: injectableToBeInstantiated,
+    });
+
+  const minimalInjectManyWithMeta = (alias, ...args) =>
+    di.injectManyWithMeta({
       alias,
       instantiationParameters: args,
       injectingInjectable: injectableToBeInstantiated,
@@ -187,27 +168,29 @@ const createMinimalDi = (
     ...shared,
 
     inject: minimalInject,
+    injectMany: minimalInjectMany,
+    injectWithMeta: minimalInjectWithMeta,
+    injectManyWithMeta: minimalInjectManyWithMeta,
 
-    injectWithMeta: (alias, ...args) =>
-      di.injectWithMeta({
-        alias,
-        instantiationParameters: args,
-        injectingInjectable: injectableToBeInstantiated,
-      }),
+    inject2:
+      alias =>
+      (...params) =>
+        minimalInject(alias, ...params),
 
-    injectMany: (alias, ...args) =>
-      di.injectMany({
-        alias,
-        instantiationParameters: args,
-        injectingInjectable: injectableToBeInstantiated,
-      }),
+    injectMany2:
+      alias =>
+      (...params) =>
+        minimalInjectMany(alias, ...params),
 
-    injectManyWithMeta: (alias, ...args) =>
-      di.injectManyWithMeta({
-        alias,
-        instantiationParameters: args,
-        injectingInjectable: injectableToBeInstantiated,
-      }),
+    injectWithMeta2:
+      alias =>
+      (...params) =>
+        minimalInjectWithMeta(alias, ...params),
+
+    injectManyWithMeta2:
+      alias =>
+      (...params) =>
+        minimalInjectManyWithMeta(alias, ...params),
 
     injectFactory:
       alias =>
