@@ -5,8 +5,11 @@ import { createContainer, getInjectionToken, getInjectionToken2, type InjectionI
 import type { IComputedValue } from "mobx";
 
 import {
+  computedInjectMany2InjectionToken,
   computedInjectManyInjectionToken,
+  computedInjectManyWithMeta2InjectionToken,
   computedInjectManyWithMetaInjectionToken,
+  computedInjectMaybe2InjectionToken,
   computedInjectMaybeInjectionToken,
 } from ".";
 
@@ -118,3 +121,56 @@ expectError(computedInjectMaybe(someParamToken2, 42));
 expectError(computedInjectMany(someParamToken2));
 expectError(computedInjectManyWithMeta(someParamToken2));
 expectError(computedInjectMaybe(someParamToken2));
+
+// ======================================================================
+// Factory-shape 2 variants
+// ======================================================================
+
+const computedInjectMany2 = di.inject(computedInjectMany2InjectionToken);
+const computedInjectManyWithMeta2 = di.inject(computedInjectManyWithMeta2InjectionToken);
+const computedInjectMaybe2 = di.inject(computedInjectMaybe2InjectionToken);
+
+// v1 token without parameter → factory (void-arg; invokable with no args)
+expectType<(param_0: void) => IComputedValue<string[]>>(
+  computedInjectMany2(someInjectionToken),
+);
+expectType<(param_0: void) => IComputedValue<InjectionInstanceWithMeta<string>[]>>(
+  computedInjectManyWithMeta2(someInjectionToken),
+);
+expectType<(param_0: void) => IComputedValue<string | undefined>>(
+  computedInjectMaybe2(someInjectionToken),
+);
+
+// v1 token with parameter → one-arg factory
+expectType<(param: number) => IComputedValue<string[]>>(
+  computedInjectMany2(someInjectionTokenWithParameter),
+);
+expectType<(param: number) => IComputedValue<InjectionInstanceWithMeta<string>[]>>(
+  computedInjectManyWithMeta2(someInjectionTokenWithParameter),
+);
+expectType<(param: number) => IComputedValue<string | undefined>>(
+  computedInjectMaybe2(someInjectionTokenWithParameter),
+);
+
+// v2 token without parameters → zero-arg factory
+expectType<() => IComputedValue<string[]>>(computedInjectMany2(someToken2));
+expectType<() => IComputedValue<InjectionInstanceWithMeta<string>[]>>(
+  computedInjectManyWithMeta2(someToken2),
+);
+expectType<() => IComputedValue<string | undefined>>(computedInjectMaybe2(someToken2));
+
+// v2 token with parameters → param-accepting factory
+expectType<(key: string) => IComputedValue<number[]>>(
+  computedInjectMany2(someParamToken2),
+);
+expectType<(key: string) => IComputedValue<InjectionInstanceWithMeta<number>[]>>(
+  computedInjectManyWithMeta2(someParamToken2),
+);
+expectType<(key: string) => IComputedValue<number | undefined>>(
+  computedInjectMaybe2(someParamToken2),
+);
+
+// wrong arg type at factory invocation is a type error
+expectError(computedInjectMany2(someParamToken2)(42));
+expectError(computedInjectManyWithMeta2(someParamToken2)(42));
+expectError(computedInjectMaybe2(someParamToken2)(42));

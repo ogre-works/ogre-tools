@@ -17,6 +17,14 @@ export const computedInjectManyWithMetaInjectionToken = getInjectionToken({
   id: 'computed-inject-many-with-meta',
 });
 
+export const computedInjectMany2InjectionToken = getInjectionToken({
+  id: 'computed-inject-many-2',
+});
+
+export const computedInjectManyWithMeta2InjectionToken = getInjectionToken({
+  id: 'computed-inject-many-with-meta-2',
+});
+
 export const isInternalOfComputedInjectMany = Symbol(
   'isInternalOfComputedInjectMany',
 );
@@ -127,4 +135,39 @@ export const computedInjectManyWithMetaInjectable =
     id: 'computed-inject-many-with-meta',
     reactiveInstances: reactiveInstancesWithMetaInjectable,
     injectionToken: computedInjectManyWithMetaInjectionToken,
+  });
+
+// Factory-shape variants: `fn(token)` returns `(...args) => IComputedValue<...>`
+// — mirrors the relationship between di.injectMany and di.injectMany2.
+const computedInjectMany2InjectableFor = ({
+  id,
+  reactiveInstances,
+  injectionToken,
+}) =>
+  getInjectable({
+    id,
+
+    instantiate:
+      di =>
+      injectionToken =>
+      (...args) =>
+        di.inject(reactiveInstances, {
+          injectionToken,
+          args,
+        }),
+
+    injectionToken,
+  });
+
+export const computedInjectMany2Injectable = computedInjectMany2InjectableFor({
+  id: 'computed-inject-many-2',
+  reactiveInstances: reactiveInstancesInjectable,
+  injectionToken: computedInjectMany2InjectionToken,
+});
+
+export const computedInjectManyWithMeta2Injectable =
+  computedInjectMany2InjectableFor({
+    id: 'computed-inject-many-with-meta-2',
+    reactiveInstances: reactiveInstancesWithMetaInjectable,
+    injectionToken: computedInjectManyWithMeta2InjectionToken,
   });

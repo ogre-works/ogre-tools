@@ -11,6 +11,10 @@ export const computedInjectMaybeInjectionToken = getInjectionToken({
   id: 'computed-inject-maybe',
 });
 
+export const computedInjectMaybe2InjectionToken = getInjectionToken({
+  id: 'computed-inject-maybe-2',
+});
+
 export const _computedInjectMaybeInjectable = getInjectable({
   id: 'computed-inject-maybe-internal',
 
@@ -50,4 +54,14 @@ export const computedInjectMaybeInjectable = getInjectable({
     (token, ...args) =>
       di.inject(_computedInjectMaybeInjectable, { token, args }),
   injectionToken: computedInjectMaybeInjectionToken,
+});
+
+export const computedInjectMaybe2Injectable = getInjectable({
+  id: 'computed-inject-maybe-2',
+  instantiate:
+    di =>
+    token =>
+    (...args) =>
+      di.inject(_computedInjectMaybeInjectable, { token, args }),
+  injectionToken: computedInjectMaybe2InjectionToken,
 });
