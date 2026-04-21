@@ -280,7 +280,7 @@ describe('getInjectableComponent', () => {
 
     di.register(SomeInjectableComponent);
 
-    di.override(SomeInjectableComponent, () => () => (
+    di.override(SomeInjectableComponent, () => () => () => (
       <div>some-overridden-content</div>
     ));
 
@@ -701,7 +701,7 @@ describe('getInjectableComponent', () => {
     });
 
     it('given component is overridden, and injecting the component > when rendered > shows only the override, and no placeholder', async () => {
-      di.override(someComponentInjectionToken, () => () => (
+      di.override(someComponentInjectionToken, () => () => () => (
         <div data-some-override-without-a-placeholder-test />
       ));
 
