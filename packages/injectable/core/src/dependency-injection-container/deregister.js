@@ -1,7 +1,6 @@
 import {
   deregistrationCallbackToken,
   injectionDecoratorToken,
-  instantiationDecoratorToken,
 } from './tokens';
 import toFlatInjectables from './toFlatInjectables';
 import isInjectionToken from '../getInjectionToken/isInjectionToken';
@@ -55,11 +54,8 @@ export const deregisterFor =
     });
 
     flatInjectables.forEach(injectable => {
-      // Invalidate decorator caches when decorator injectables are deregistered
       if (isRelatedToToken(injectable.injectionToken, injectionDecoratorToken)) {
         decoratorCache.injection = null;
-      } else if (isRelatedToToken(injectable.injectionToken, instantiationDecoratorToken)) {
-        decoratorCache.instantiation = null;
       }
 
       deregisterSingle(injectable);

@@ -19,7 +19,6 @@ export const privateInjectFor =
     checkForAbstractToken,
     namespacedIdByInjectableMap,
     getNamespacedId,
-    decoratorCache,
   }) =>
   ({ withMeta }) =>
   ({ alias, instantiationParameters, injectingInjectable }) => {
@@ -82,7 +81,6 @@ export const privateInjectFor =
       injectingInjectable,
       namespacedIdByInjectableMap,
       getNamespacedId,
-      decoratorCache,
     );
 
     if (!withMeta) {
@@ -204,39 +202,23 @@ const instantiate = (
   injectableToBeInstantiated,
   minimalDi,
   instantiationParameters,
-  decoratorCache,
 ) => {
-  // Skip decorator machinery when no decorators are registered (common case).
-  const canSkipDecorators =
-    injectableToBeInstantiated.decorable === false ||
-    (decoratorCache.instantiation !== null &&
-      decoratorCache.instantiation.length === 0);
-
-  // New-style injectable2: two-step curried instantiate
-  if (injectableToBeInstantiated.aliasType === injectableSymbol2) {
-    const factory = injectableToBeInstantiated.instantiate(minimalDi);
-    return factory(...instantiationParameters);
-  }
-
-  // Old-style: spread args
-  if (canSkipDecorators) {
-    return injectableToBeInstantiated.instantiate(
-      minimalDi,
-      ...instantiationParameters,
-    );
-  }
-
   const withInstantiationDecorators = withInstantiationDecoratorsFor({
     injectMany: di.injectMany,
     injectable: injectableToBeInstantiated,
-    decoratorCache,
   });
 
-  const instantiateWithDecorators = withInstantiationDecorators(
+  const decorated = withInstantiationDecorators(
     injectableToBeInstantiated.instantiate,
   );
 
-  return instantiateWithDecorators(minimalDi, ...instantiationParameters);
+  // New-style injectable2: curried (di) => (...params) => instance
+  if (injectableToBeInstantiated.aliasType === injectableSymbol2) {
+    return decorated(minimalDi)(...instantiationParameters);
+  }
+
+  // Old-style: (di, ...params) => instance
+  return decorated(minimalDi, ...instantiationParameters);
 };
 
 const getInstance = (
@@ -247,7 +229,6 @@ const getInstance = (
   injectingInjectable,
   namespacedIdByInjectableMap,
   getNamespacedId,
-  decoratorCache,
 ) => {
   const instanceMap = instancesByInjectableMap.get(
     injectableToBeInstantiated.overriddenInjectable ||
@@ -281,7 +262,6 @@ const getInstance = (
       injectableToBeInstantiated,
       minimalDi,
       instantiationParameters,
-      decoratorCache,
     );
 
     instanceMap.set(singletonCompositeKey, newInstance);
@@ -303,7 +283,6 @@ const getInstance = (
       injectableToBeInstantiated,
       minimalDi,
       instantiationParameters,
-      decoratorCache,
     );
   }
 
@@ -335,7 +314,6 @@ const getInstance = (
     injectableToBeInstantiated,
     minimalDi,
     instantiationParameters,
-    decoratorCache,
   );
 
   if (instanceCompositeKey[0] !== nonStoredInstanceKey) {

@@ -12,9 +12,11 @@ export const deregistrationCallbackToken = getInjectionToken({
   decorable: false,
 });
 
-export const instantiationDecoratorToken = getInjectionToken({
+export const instantiationDecoratorToken = getAbstractInjectionToken2({
   id: 'instantiate-decorator-token',
   decorable: false,
+  specificInjectionTokenFactory: target =>
+    getSpecificInjectionToken2({ id: target.id, speciality: target.id }),
 });
 
 export const injectionDecoratorToken = getAbstractInjectionToken2({

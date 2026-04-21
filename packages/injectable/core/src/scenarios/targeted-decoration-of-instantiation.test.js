@@ -1,4 +1,5 @@
 import getInjectable from '../getInjectable/getInjectable';
+import getInjectable2 from '../getInjectable2/getInjectable2';
 import createContainer from '../dependency-injection-container/createContainer';
 import { getInjectionToken } from '../getInjectionToken/getInjectionToken';
 import { instantiationDecoratorToken } from '../dependency-injection-container/tokens';
@@ -6,26 +7,6 @@ import lifecycleEnum from '../dependency-injection-container/lifecycleEnum';
 
 describe('createContainer.targeted-decoration-of-instantiation', () => {
   it('given decorator targeting child, when parent is injected, decorates instance and instantiation parameter of only child', () => {
-    const decoratorInjectable = getInjectable({
-      id: 'some-child-decorator',
-      injectionToken: instantiationDecoratorToken,
-      decorable: false,
-
-      instantiate: () => ({
-        decorate:
-          instantiationToBeDecorated => (di, instantiationParameter) => {
-            const decoratedInstantiationParameter = `decorated-parameter(${instantiationParameter})`;
-
-            return `decorated-instance(${instantiationToBeDecorated(
-              di,
-              decoratedInstantiationParameter,
-            )})`;
-          },
-
-        target: childInjectable,
-      }),
-    });
-
     const childInjectable = getInjectable({
       id: 'some-child-injectable',
 
@@ -33,6 +14,22 @@ describe('createContainer.targeted-decoration-of-instantiation', () => {
         `child(${instantiationParameter})`,
 
       lifecycle: lifecycleEnum.transient,
+    });
+
+    const decoratorInjectable = getInjectable2({
+      id: 'some-child-decorator',
+      injectionToken: instantiationDecoratorToken.for(childInjectable),
+      decorable: false,
+
+      instantiate: () => () =>
+        instantiationToBeDecorated => (di, instantiationParameter) => {
+          const decoratedInstantiationParameter = `decorated-parameter(${instantiationParameter})`;
+
+          return `decorated-instance(${instantiationToBeDecorated(
+            di,
+            decoratedInstantiationParameter,
+          )})`;
+        },
     });
 
     const parentInjectable = getInjectable({
@@ -63,24 +60,20 @@ describe('createContainer.targeted-decoration-of-instantiation', () => {
       id: 'some-injection-token-for-targeted-decoration',
     });
 
-    const decoratorInjectable = getInjectable({
+    const decoratorInjectable = getInjectable2({
       id: 'some-injection-token-decorator',
-      injectionToken: instantiationDecoratorToken,
+      injectionToken: instantiationDecoratorToken.for(someInjectionTokenForTargetedDecoration),
       decorable: false,
 
-      instantiate: () => ({
-        decorate:
-          instantiationToBeDecorated => (di, instantiationParameter) => {
-            const decoratedParameter = `decorated-parameter(${instantiationParameter})`;
+      instantiate: () => () =>
+        instantiationToBeDecorated => (di, instantiationParameter) => {
+          const decoratedParameter = `decorated-parameter(${instantiationParameter})`;
 
-            return `decorated-instance(${instantiationToBeDecorated(
-              di,
-              decoratedParameter,
-            )})`;
-          },
-
-        target: someInjectionTokenForTargetedDecoration,
-      }),
+          return `decorated-instance(${instantiationToBeDecorated(
+            di,
+            decoratedParameter,
+          )})`;
+        },
     });
 
     const childInjectable = getInjectable({

@@ -28,7 +28,7 @@ export { getTypedSpecifier } from './src/getInjectionToken/getTypedSpecifier';
 
 export const getKeyedSingletonCompositeKey = getCompositeKey;
 
-export { createInstantiationTargetDecorator } from './src/dependency-injection-container/createInstantiationTargetDecorator';
+
 
 export {
   deregistrationCallbackToken,

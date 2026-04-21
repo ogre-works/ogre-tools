@@ -13,7 +13,7 @@ import { checkForSideEffectsFor } from './checkForSideEffectsFor';
 import { checkForAbstractTokenFor } from './checkForAbstractTokenFor';
 import { getRelatedInjectablesFor } from './getRelatedInjectablesFor';
 import { earlyOverrideFor } from './early-override';
-import { injectionDecoratorToken, instantiationDecoratorToken } from './tokens';
+import { injectionDecoratorToken } from './tokens';
 import { isRelatedToToken } from './getRelatedTokens';
 import { firePurgeCallbacksFor } from './firePurgeCallbacksFor';
 
@@ -24,7 +24,6 @@ export default containerId => {
   const decoratorCache = {
     injection: null,
     injectionByAlias: new Map(),
-    instantiation: null,
   };
   const overridingInjectables = new Map();
   let sideEffectsArePrevented = false;
@@ -106,7 +105,6 @@ export default containerId => {
     checkForAbstractToken,
     namespacedIdByInjectableMap,
     getNamespacedId,
-    decoratorCache,
   });
 
   const nonDecoratedPrivateInject = nonDecoratedPrivateInjectUnknownMeta({
@@ -154,8 +152,6 @@ export default containerId => {
 
     if (isRelatedToToken(injectable.injectionToken, injectionDecoratorToken)) {
       decoratorCache.injection = null;
-    } else if (isRelatedToToken(injectable.injectionToken, instantiationDecoratorToken)) {
-      decoratorCache.instantiation = null;
     }
   };
 
@@ -217,7 +213,6 @@ export default containerId => {
     namespacedIdByInjectableMap.clear();
     childrenByParentMap.clear();
     decoratorCache.injection = null;
-    decoratorCache.instantiation = null;
   };
 
   const privateDi = {
