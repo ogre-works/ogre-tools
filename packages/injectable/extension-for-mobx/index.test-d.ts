@@ -126,9 +126,9 @@ expectError(computedInjectMaybe(someParamToken2));
 // Factory-shape 2 variants
 // ======================================================================
 
-const computedInjectMany2 = di.inject(computedInjectMany2InjectionToken);
-const computedInjectManyWithMeta2 = di.inject(computedInjectManyWithMeta2InjectionToken);
-const computedInjectMaybe2 = di.inject(computedInjectMaybe2InjectionToken);
+const computedInjectMany2 = di.inject2(computedInjectMany2InjectionToken);
+const computedInjectManyWithMeta2 = di.inject2(computedInjectManyWithMeta2InjectionToken);
+const computedInjectMaybe2 = di.inject2(computedInjectMaybe2InjectionToken);
 
 // v1 token without parameter → factory (void-arg; invokable with no args)
 expectType<(param_0: void) => IComputedValue<string[]>>(

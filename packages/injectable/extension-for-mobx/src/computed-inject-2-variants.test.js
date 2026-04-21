@@ -42,7 +42,7 @@ describe('factory-shape computed-inject-2 variants', () => {
 
       di.register(firstImpl);
 
-      const computedInjectMany2 = di.inject(computedInjectMany2InjectionToken);
+      const computedInjectMany2 = di.inject2(computedInjectMany2InjectionToken);
       const factoryForToken = computedInjectMany2(someToken);
       const reactiveInstances = factoryForToken();
 
@@ -77,7 +77,7 @@ describe('factory-shape computed-inject-2 variants', () => {
 
       di.register(impl);
 
-      const computedInjectMany2 = di.inject(computedInjectMany2InjectionToken);
+      const computedInjectMany2 = di.inject2(computedInjectMany2InjectionToken);
       const factoryForToken = computedInjectMany2(someToken2);
 
       const observed = [];
@@ -101,7 +101,7 @@ describe('factory-shape computed-inject-2 variants', () => {
 
       di.register(impl);
 
-      const computedInjectMany2 = di.inject(computedInjectMany2InjectionToken);
+      const computedInjectMany2 = di.inject2(computedInjectMany2InjectionToken);
       const factoryForToken = computedInjectMany2(someToken);
 
       const first = factoryForToken();
@@ -123,7 +123,7 @@ describe('factory-shape computed-inject-2 variants', () => {
 
       di.register(impl);
 
-      const computedInjectManyWithMeta2 = di.inject(
+      const computedInjectManyWithMeta2 = di.inject2(
         computedInjectManyWithMeta2InjectionToken,
       );
       const factoryForToken = computedInjectManyWithMeta2(someToken);
@@ -153,7 +153,7 @@ describe('factory-shape computed-inject-2 variants', () => {
 
       di.register(impl);
 
-      const computedInjectMaybe2 = di.inject(
+      const computedInjectMaybe2 = di.inject2(
         computedInjectMaybe2InjectionToken,
       );
       const factoryForToken = computedInjectMaybe2(someToken);
@@ -171,7 +171,7 @@ describe('factory-shape computed-inject-2 variants', () => {
     it('given token with zero impls, fn(token)() returns IComputedValue of undefined', () => {
       const someToken = getInjectionToken({ id: 'maybe-2-empty-token' });
 
-      const computedInjectMaybe2 = di.inject(
+      const computedInjectMaybe2 = di.inject2(
         computedInjectMaybe2InjectionToken,
       );
       const factoryForToken = computedInjectMaybe2(someToken);
@@ -197,7 +197,7 @@ describe('factory-shape computed-inject-2 variants', () => {
 
       di.register(impl);
 
-      const computedInjectMaybe2 = di.inject(
+      const computedInjectMaybe2 = di.inject2(
         computedInjectMaybe2InjectionToken,
       );
       const factoryForToken = computedInjectMaybe2(someToken2);

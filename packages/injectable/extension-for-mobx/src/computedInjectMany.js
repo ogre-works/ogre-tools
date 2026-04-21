@@ -1,7 +1,9 @@
 import {
   deregistrationCallbackToken,
   getInjectable,
+  getInjectable2,
   getInjectionToken,
+  getInjectionToken2,
   getKeyedSingletonCompositeKey,
   lifecycleEnum,
   registrationCallbackToken,
@@ -17,11 +19,11 @@ export const computedInjectManyWithMetaInjectionToken = getInjectionToken({
   id: 'computed-inject-many-with-meta',
 });
 
-export const computedInjectMany2InjectionToken = getInjectionToken({
+export const computedInjectMany2InjectionToken = getInjectionToken2({
   id: 'computed-inject-many-2',
 });
 
-export const computedInjectManyWithMeta2InjectionToken = getInjectionToken({
+export const computedInjectManyWithMeta2InjectionToken = getInjectionToken2({
   id: 'computed-inject-many-with-meta-2',
 });
 
@@ -139,12 +141,14 @@ export const computedInjectManyWithMetaInjectable =
 
 // Factory-shape variants: `fn(token)` returns `(...args) => IComputedValue<...>`
 // — mirrors the relationship between di.injectMany and di.injectMany2.
+// These are injectable2 / injectionToken2 so that `di.inject2` preserves the
+// overloaded (and possibly generic) function type intact.
 const computedInjectMany2InjectableFor = ({
   id,
   reactiveInstances,
   injectionToken,
 }) =>
-  getInjectable({
+  getInjectable2({
     id,
 
     instantiate:

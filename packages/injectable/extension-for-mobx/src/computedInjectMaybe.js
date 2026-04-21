@@ -1,7 +1,9 @@
 import { computed } from 'mobx';
 import {
   getInjectable,
+  getInjectable2,
   getInjectionToken,
+  getInjectionToken2,
   getKeyedSingletonCompositeKey,
   lifecycleEnum,
 } from '@ogre-tools/injectable';
@@ -11,7 +13,7 @@ export const computedInjectMaybeInjectionToken = getInjectionToken({
   id: 'computed-inject-maybe',
 });
 
-export const computedInjectMaybe2InjectionToken = getInjectionToken({
+export const computedInjectMaybe2InjectionToken = getInjectionToken2({
   id: 'computed-inject-maybe-2',
 });
 
@@ -56,7 +58,7 @@ export const computedInjectMaybeInjectable = getInjectable({
   injectionToken: computedInjectMaybeInjectionToken,
 });
 
-export const computedInjectMaybe2Injectable = getInjectable({
+export const computedInjectMaybe2Injectable = getInjectable2({
   id: 'computed-inject-maybe-2',
   instantiate:
     di =>
