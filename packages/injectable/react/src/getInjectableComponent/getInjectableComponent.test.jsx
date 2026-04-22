@@ -52,6 +52,29 @@ describe('getInjectableComponent', () => {
     `);
   });
 
+  it('when rendered with children, renders them', () => {
+    const SomeInjectableComponent = getInjectableComponent({
+      id: 'some-injectable-component',
+      Component: ({ children }) => <div>{children}</div>,
+    });
+
+    di.register(SomeInjectableComponent);
+
+    rendered = mount(
+      <SomeInjectableComponent>some-children</SomeInjectableComponent>,
+    );
+
+    expect(rendered.baseElement).toMatchInlineSnapshot(`
+      <body>
+        <div>
+          <div>
+            some-children
+          </div>
+        </div>
+      </body>
+    `);
+  });
+
   it('when rendered with ref, forwards the ref', () => {
     const someRef = React.createRef();
 
@@ -280,7 +303,7 @@ describe('getInjectableComponent', () => {
 
     di.register(SomeInjectableComponent);
 
-    di.override(SomeInjectableComponent, () => () => () => (
+    di.override2(SomeInjectableComponent, () => () => () => (
       <div>some-overridden-content</div>
     ));
 
@@ -291,6 +314,35 @@ describe('getInjectableComponent', () => {
         <div>
           <div>
             some-overridden-content
+          </div>
+        </div>
+      </body>
+    `);
+  });
+
+  it('given overridden via v1-shape override with children, when rendered, renders the override with children', () => {
+    const SomeInjectableComponent = getInjectableComponent({
+      id: 'some-injectable-component',
+      Component: () => <div>some-content</div>,
+    });
+
+    di.register(SomeInjectableComponent);
+
+    di.override(SomeInjectableComponent, () => ({ children }) => (
+      <div data-testid="some-override">{children}</div>
+    ));
+
+    rendered = mount(
+      <SomeInjectableComponent>some-children</SomeInjectableComponent>,
+    );
+
+    expect(rendered.baseElement).toMatchInlineSnapshot(`
+      <body>
+        <div>
+          <div
+            data-testid="some-override"
+          >
+            some-children
           </div>
         </div>
       </body>
@@ -320,7 +372,7 @@ describe('getInjectableComponent', () => {
       // someNonRegisteredInjectable
     );
 
-    di.override(SomeInjectableComponent, () => () => {
+    di.override2(SomeInjectableComponent, () => () => {
       useInjectDeferred(someNonRegisteredInjectable);
     });
 
@@ -701,7 +753,7 @@ describe('getInjectableComponent', () => {
     });
 
     it('given component is overridden, and injecting the component > when rendered > shows only the override, and no placeholder', async () => {
-      di.override(someComponentInjectionToken, () => () => () => (
+      di.override2(someComponentInjectionToken, () => () => () => (
         <div data-some-override-without-a-placeholder-test />
       ));
 

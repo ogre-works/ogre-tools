@@ -12,7 +12,7 @@ import { checkForTooManyMatchesFor } from './checkForTooManyMatches';
 import { checkForSideEffectsFor } from './checkForSideEffectsFor';
 import { checkForAbstractTokenFor } from './checkForAbstractTokenFor';
 import { getRelatedInjectablesFor } from './getRelatedInjectablesFor';
-import { earlyOverrideFor } from './early-override';
+import { earlyOverrideFor, earlyOverride2For } from './early-override';
 import { injectionDecoratorToken } from './tokens';
 import { isRelatedToToken } from './getRelatedTokens';
 import { firePurgeCallbacksFor } from './firePurgeCallbacksFor';
@@ -190,9 +190,21 @@ export default containerId => {
     getNamespacedId,
   });
 
+  const earlyOverride2 = earlyOverride2For({
+    getRelatedInjectables,
+    alreadyInjected,
+    overridingInjectables,
+    getNamespacedId,
+  });
+
   const override = overrideFor({
     getRelatedInjectables,
     earlyOverride,
+  });
+
+  const override2 = overrideFor({
+    getRelatedInjectables,
+    earlyOverride: earlyOverride2,
   });
 
   const unoverride = unoverrideFor({
@@ -231,7 +243,9 @@ export default containerId => {
     decorate,
     decorateFunction,
     override,
+    override2,
     earlyOverride,
+    earlyOverride2,
     unoverride,
 
     reset: () => {

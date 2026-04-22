@@ -318,7 +318,7 @@ describe('getInjectable2', () => {
   });
 
   describe('override', () => {
-    it('override with curried stub works for injectable2', () => {
+    it('override2 with curried stub works for injectable2', () => {
       const fooInjectable = getInjectable2({
         id: 'overridable-foo',
         instantiate: () => () => 'original',
@@ -326,12 +326,12 @@ describe('getInjectable2', () => {
 
       di.register(fooInjectable);
 
-      di.override(fooInjectable, () => () => 'overridden');
+      di.override2(fooInjectable, () => () => 'overridden');
 
       expect(di.inject(fooInjectable)).toBe('overridden');
     });
 
-    it('override with parametric curried stub works for injectable2', () => {
+    it('override2 with parametric curried stub works for injectable2', () => {
       const fooInjectable = getInjectable2({
         id: 'overridable-param',
         instantiate: () => name => `original-${name}`,
@@ -339,7 +339,33 @@ describe('getInjectable2', () => {
 
       di.register(fooInjectable);
 
-      di.override(fooInjectable, () => name => `overridden-${name}`);
+      di.override2(fooInjectable, () => name => `overridden-${name}`);
+
+      expect(di.inject(fooInjectable, 'test')).toBe('overridden-test');
+    });
+
+    it('override with v1-shape stub works for injectable2 (cross-compat)', () => {
+      const fooInjectable = getInjectable2({
+        id: 'overridable-foo-v1-shape',
+        instantiate: () => () => 'original',
+      });
+
+      di.register(fooInjectable);
+
+      di.override(fooInjectable, () => 'overridden');
+
+      expect(di.inject(fooInjectable)).toBe('overridden');
+    });
+
+    it('override with parametric v1-shape stub works for injectable2 (cross-compat)', () => {
+      const fooInjectable = getInjectable2({
+        id: 'overridable-param-v1-shape',
+        instantiate: () => name => `original-${name}`,
+      });
+
+      di.register(fooInjectable);
+
+      di.override(fooInjectable, (di, name) => `overridden-${name}`);
 
       expect(di.inject(fooInjectable, 'test')).toBe('overridden-test');
     });

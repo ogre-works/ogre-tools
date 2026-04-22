@@ -1,5 +1,3 @@
-import { earlyOverrideFor } from './early-override';
-
 export const overrideFor =
   ({ getRelatedInjectables, earlyOverride }) =>
   (alias, instantiateStub) => {

@@ -1,6 +1,7 @@
 /// <reference types="jest" />
 
-type OverrideOldStyle = <
+// v1-shape stub for v1 targets: (di, param) => instance
+type OverrideV1ShapeOldStyle = <
   InjectionInstance extends InjectionTokenInstance,
   InjectionTokenInstance,
   InstantiationParam,
@@ -11,12 +12,40 @@ type OverrideOldStyle = <
   instantiateStub: Instantiate<InjectionInstance, InstantiationParam>,
 ) => void;
 
+// v1-shape stub for v2 targets (cross-compat): (di, ...params) => instance
+type OverrideV1ShapeForInjectable2 = <F extends (...args: any[]) => any>(
+  alias: Injectable2<F> | InjectionToken2<F>,
+  instantiateStub: (
+    di: DiContainerForInjection2,
+    ...params: Parameters<F>
+  ) => ReturnType<F>,
+) => void;
+
+// v2-shape stub for v2 targets: (di) => (...params) => instance
 export type OverrideInjectable2 = <F extends (...args: any[]) => any>(
   alias: Injectable2<F> | InjectionToken2<F>,
   instantiateStub: (di: DiContainerForInjection2) => F,
 ) => void;
 
-export type Override = OverrideInjectable2 & OverrideOldStyle;
+// v2-shape stub for v1 targets (cross-compat): (di) => (param) => instance
+type Override2V2ShapeForOldStyle = <
+  InjectionInstance extends InjectionTokenInstance,
+  InjectionTokenInstance,
+  InstantiationParam,
+>(
+  injectable:
+    | InjectionToken<InjectionInstance, InstantiationParam>
+    | Injectable<InjectionInstance, InjectionTokenInstance, InstantiationParam>,
+  instantiateStub: (
+    di: DiContainerForInjection,
+  ) => (param: InstantiationParam) => InjectionInstance,
+) => void;
+
+// Cross-compat override: v1-shape stub works on any target.
+export type Override = OverrideV1ShapeOldStyle & OverrideV1ShapeForInjectable2;
+
+// Cross-compat override2: v2-shape stub works on any target.
+export type Override2 = OverrideInjectable2 & Override2V2ShapeForOldStyle;
 
 export interface DiContainer extends DiContainerForInjection {
   purge: Purge;
@@ -28,7 +57,9 @@ export interface DiContainer extends DiContainerForInjection {
   ) => void;
 
   override: Override;
+  override2: Override2;
   earlyOverride: Override;
+  earlyOverride2: Override2;
   unoverride<F extends (...args: any[]) => any>(alias: Injectable2<F> | InjectionToken2<F>): void;
   unoverride(alias: InjectionToken<any, any> | Injectable<any, any, any>): void;
 

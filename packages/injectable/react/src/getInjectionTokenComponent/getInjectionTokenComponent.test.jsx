@@ -59,6 +59,37 @@ describe('getInjectionTokenComponent', () => {
     `);
   });
 
+  it('given implementation registered, when rendered with children, renders them', () => {
+    const SomeTokenComponent = getInjectionTokenComponent({
+      id: 'some-token-component',
+    });
+
+    const someImplementation = getInjectable({
+      id: 'some-implementation',
+      injectionToken: SomeTokenComponent,
+      instantiate:
+        () =>
+        ({ children }) =>
+          <div>{children}</div>,
+    });
+
+    di.register(someImplementation);
+
+    rendered = mount(
+      <SomeTokenComponent>some-children</SomeTokenComponent>,
+    );
+
+    expect(rendered.baseElement).toMatchInlineSnapshot(`
+      <body>
+        <div>
+          <div>
+            some-children
+          </div>
+        </div>
+      </body>
+    `);
+  });
+
   it('when rendered with ref, forwards the ref', () => {
     const someRef = React.createRef();
 

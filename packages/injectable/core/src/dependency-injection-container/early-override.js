@@ -1,6 +1,26 @@
 import isInjectionToken from '../getInjectionToken/isInjectionToken';
+import { injectableSymbol2 } from '../getInjectable2/getInjectable2';
+import { injectionTokenSymbol2 } from '../getInjectionToken2/getInjectionToken2';
 
-export const earlyOverrideFor =
+const targetIsV2 = injectable =>
+  injectable.aliasType === injectableSymbol2 ||
+  injectable.aliasType === injectionTokenSymbol2;
+
+// v1-shape stub: (di, ...params) => instance. Wraps for v2 targets.
+const asV1Shape = (stub, isV2Target) =>
+  isV2Target
+    ? di =>
+        (...params) =>
+          stub(di, ...params)
+    : stub;
+
+// v2-shape stub: (di) => (...params) => instance. Unwraps for v1 targets.
+const asV2Shape = (stub, isV2Target) =>
+  isV2Target
+    ? stub
+    : (di, ...params) => stub(di)(...params);
+
+const earlyOverrideImplFor = normalize =>
   ({
     getRelatedInjectables,
     alreadyInjected,
@@ -40,6 +60,9 @@ export const earlyOverrideFor =
       ...originalInjectable,
       overriddenInjectable: originalInjectable,
       causesSideEffects: false,
-      instantiate: instantiateStub,
+      instantiate: normalize(instantiateStub, targetIsV2(originalInjectable)),
     });
   };
+
+export const earlyOverrideFor = earlyOverrideImplFor(asV1Shape);
+export const earlyOverride2For = earlyOverrideImplFor(asV2Shape);

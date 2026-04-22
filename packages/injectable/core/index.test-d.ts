@@ -1201,21 +1201,21 @@ di.purge(someInjectableWithoutInstantiationParameter);
 // purge old-style injectable without instantiation parameter with key is a type error
 expectError(di.purge(someInjectableWithoutInstantiationParameter, 'extra'));
 
-// --- Override typing for injectable2 / token2 ---
+// --- Override2 typing for injectable2 / token2 (v2-shape stub) ---
 
 // non-parametric injectable2: matching curried stub is OK
-expectType<void>(di.override(nonParametricInjectable2, () => () => 42));
+expectType<void>(di.override2(nonParametricInjectable2, () => () => 42));
 
 // non-parametric injectable2: wrong return type is a type error
-expectError(di.override(nonParametricInjectable2, () => () => 'not-a-number'));
+expectError(di.override2(nonParametricInjectable2, () => () => 'not-a-number'));
 
 // parametric injectable2: matching curried stub is OK
 expectType<void>(
-  di.override(parametricInjectable2, () => (name, age) => ({ name, age })),
+  di.override2(parametricInjectable2, () => (name, age) => ({ name, age })),
 );
 
 // parametric injectable2: stub params are typed from the factory signature
-di.override(parametricInjectable2, () => (name, age) => {
+di.override2(parametricInjectable2, () => (name, age) => {
   expectType<string>(name);
   expectType<number>(age);
   return { name, age };
@@ -1223,7 +1223,7 @@ di.override(parametricInjectable2, () => (name, age) => {
 
 // parametric injectable2: wrong arg type is a type error
 expectError(
-  di.override(parametricInjectable2, () => (name: number, age) => ({
+  di.override2(parametricInjectable2, () => (name: number, age) => ({
     name: String(name),
     age,
   })),
@@ -1231,46 +1231,46 @@ expectError(
 
 // parametric injectable2: wrong return type is a type error
 expectError(
-  di.override(parametricInjectable2, () => (name, age) => ({
+  di.override2(parametricInjectable2, () => (name, age) => ({
     name,
     age: String(age),
   })),
 );
 
 // injectable2: stub receives DiContainerForInjection2 (inject2 returns factories)
-di.override(parametricInjectable2, di => {
+di.override2(parametricInjectable2, di => {
   const getHandler = di.inject2(handlerToken2);
   expectType<() => string>(getHandler);
   return (name, age) => ({ name, age });
 });
 
 // non-parametric token2: matching stub is OK
-expectType<void>(di.override(handlerToken2, () => () => 'hello'));
+expectType<void>(di.override2(handlerToken2, () => () => 'hello'));
 
 // non-parametric token2: wrong return type is a type error
-expectError(di.override(handlerToken2, () => () => 42));
+expectError(di.override2(handlerToken2, () => () => 42));
 
 // parametric token2: matching stub is OK
 expectType<void>(
-  di.override(userServiceToken2, () => userId => ({ id: userId })),
+  di.override2(userServiceToken2, () => userId => ({ id: userId })),
 );
 
 // parametric token2: wrong arg type is a type error
 expectError(
-  di.override(userServiceToken2, () => (userId: number) => ({
+  di.override2(userServiceToken2, () => (userId: number) => ({
     id: String(userId),
   })),
 );
 
 // parametric token2: wrong return shape is a type error
-expectError(di.override(userServiceToken2, () => userId => ({ userId })));
+expectError(di.override2(userServiceToken2, () => userId => ({ userId })));
 
-// earlyOverride carries the same injectable2 typing
+// earlyOverride2 carries the same injectable2 typing
 expectType<void>(
-  di.earlyOverride(parametricInjectable2, () => (name, age) => ({ name, age })),
+  di.earlyOverride2(parametricInjectable2, () => (name, age) => ({ name, age })),
 );
 expectError(
-  di.earlyOverride(parametricInjectable2, () => (name, age) => ({
+  di.earlyOverride2(parametricInjectable2, () => (name, age) => ({
     name,
     age: String(age),
   })),
@@ -1280,23 +1280,43 @@ expectError(
 // and the override stub must itself return a function retaining that generic — something
 // the old flat shape could not express because Parameters<F> collapsed T to unknown.
 expectType<void>(
-  di.override(wrapperToken2, () => <T>(value: T) => ({ wrapped: value })),
+  di.override2(wrapperToken2, () => <T>(value: T) => ({ wrapped: value })),
 );
 
 // inside the generic inner arrow, `value` is a free T — so string-only operations fail.
 // this would not error under the old flat shape, where `value` had already been widened to unknown.
 expectError(
-  di.override(wrapperToken2, () => <T>(value: T) => ({
+  di.override2(wrapperToken2, () => <T>(value: T) => ({
     wrapped: value.toUpperCase(),
   })),
 );
 
 // monomorphized inner arrow with a contradictory return shape fails the generic contract
 expectError(
-  di.override(wrapperToken2, () => (value: string) => ({
+  di.override2(wrapperToken2, () => (value: string) => ({
     wrapped: 42,
   })),
 );
+
+// --- Override (v1-shape) cross-compat with injectable2 / token2 ---
+
+// non-parametric injectable2 with v1-shape stub: (di, ...params) => instance
+expectType<void>(di.override(nonParametricInjectable2, () => 42));
+
+// non-parametric injectable2 with v1-shape: wrong return type is a type error
+expectError(di.override(nonParametricInjectable2, () => 'not-a-number'));
+
+// parametric injectable2 with v1-shape stub
+expectType<void>(
+  di.override(parametricInjectable2, (di, name, age) => ({ name, age })),
+);
+
+// parametric injectable2 with v1-shape: params typed from factory signature
+di.override(parametricInjectable2, (di, name, age) => {
+  expectType<string>(name);
+  expectType<number>(age);
+  return { name, age };
+});
 
 // --- Combined: typed specifier of InjectionToken2 + generic injectable2 factory ---
 
@@ -1355,7 +1375,7 @@ expectError(
 
 // Override of the specifier-produced token preserves both brand and `T`
 expectType<void>(
-  di.override(
+  di.override2(
     primaryWrapperToken,
     () =>
       <T>(value: T) => ({
@@ -1367,7 +1387,7 @@ expectType<void>(
 
 // Override with the wrong brand fails the specifier-fixed type
 expectError(
-  di.override(
+  di.override2(
     primaryWrapperToken,
     () =>
       <T>(value: T) => ({

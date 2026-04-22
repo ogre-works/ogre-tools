@@ -137,7 +137,7 @@ describe('getAbstractInjectionToken2', () => {
 
     di.register(someInjectable);
 
-    di.override(specificToken, () => () => 'overridden');
+    di.override2(specificToken, () => () => 'overridden');
 
     expect(di.inject(specificToken)).toBe('overridden');
   });
