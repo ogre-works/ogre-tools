@@ -5,7 +5,6 @@ import { registerFor, registerSingleFor } from './register';
 import { purgeInstancesFor } from './purgeInstances';
 import { deregisterFor } from './deregister';
 import { overrideFor, unoverrideFor } from './override';
-import { decorateFor, decorateFunctionFor } from './decorate';
 import { getNamespacedIdFor } from './getNamespacedIdFor';
 import { checkForNoMatchesFor } from './checkForNoMatchesFor';
 import { checkForTooManyMatchesFor } from './checkForTooManyMatches';
@@ -162,14 +161,6 @@ export default (containerId, { injectionDecorators = false } = {}) => {
     firePurgeCallbacks,
   });
 
-  const decorate = injectionDecorators
-    ? decorateFor({ registerSingle })
-    : () => {
-        throw new Error(
-          `Tried to call di.decorate on container "${containerId}", but injection decorators are disabled. Pass { injectionDecorators: true } to createContainer to enable.`,
-        );
-      };
-
   const deregister = deregisterFor({
     injectMany: nonDecoratedPrivateInjectMany,
     injectableSet,
@@ -220,14 +211,6 @@ export default (containerId, { injectionDecorators = false } = {}) => {
     getNamespacedId,
   });
 
-  const decorateFunction = injectionDecorators
-    ? decorateFunctionFor({ decorate })
-    : () => {
-        throw new Error(
-          `Tried to call di.decorateFunction on container "${containerId}", but injection decorators are disabled. Pass { injectionDecorators: true } to createContainer to enable.`,
-        );
-      };
-
   const purgeAllButOverrides = () => {
     injectableSet.clear();
     alreadyInjected.clear();
@@ -255,8 +238,6 @@ export default (containerId, { injectionDecorators = false } = {}) => {
 
     register: privateRegister,
     deregister,
-    decorate,
-    decorateFunction,
     override,
     override2,
     earlyOverride,

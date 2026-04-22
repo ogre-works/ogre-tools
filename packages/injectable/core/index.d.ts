@@ -492,8 +492,8 @@ export function createContainer(
   containerId: string,
   options?: {
     /**
-     * Enable per-inject injection decorators (`di.decorate`, `di.decorateFunction`,
-     * and injectables registered against `injectionDecoratorToken.for(...)`).
+     * Enable per-inject injection decorators (injectables registered against
+     * `injectionDecoratorToken.for(...)`).
      *
      * Disabled by default because the decorator wrapper adds overhead to every
      * `inject` call, even when no decorators are registered. Enable only when
