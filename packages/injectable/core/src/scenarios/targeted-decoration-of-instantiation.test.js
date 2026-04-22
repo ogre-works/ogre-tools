@@ -109,4 +109,31 @@ describe('createContainer.targeted-decoration-of-instantiation', () => {
       'parent(parent-parameter) -> decorated-instance(child(decorated-parameter(child-parameter)))',
     );
   });
+
+  it('given decorator targeting an injectable that is overridden, the decorator still applies to the override', () => {
+    const someInjectable = getInjectable({
+      id: 'some-injectable',
+      instantiate: () => 'original',
+    });
+
+    const decorateSpy = jest.fn(
+      instantiate => (di, ...params) =>
+        `decorated(${instantiate(di, ...params)})`,
+    );
+
+    const decoratorInjectable = getInjectable2({
+      id: 'some-decorator',
+      injectionToken: instantiationDecoratorToken.for(someInjectable),
+      decorable: false,
+      instantiate: () => () => decorateSpy,
+    });
+
+    const di = createContainer('some-container');
+    di.register(someInjectable, decoratorInjectable);
+
+    di.override(someInjectable, () => 'overridden');
+
+    expect(di.inject(someInjectable)).toBe('decorated(overridden)');
+    expect(decorateSpy).toHaveBeenCalledTimes(1);
+  });
 });
