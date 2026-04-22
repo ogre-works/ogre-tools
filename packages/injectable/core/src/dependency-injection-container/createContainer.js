@@ -124,13 +124,9 @@ export default containerId => {
     nonDecoratedPrivateInjectWithMeta,
   );
 
-  const decoratedPrivateInjectMany = withInjectionDecorators(
-    nonDecoratedPrivateInjectMany,
-  );
+  const decoratedPrivateInjectMany = nonDecoratedPrivateInjectMany;
 
-  const decoratedPrivateInjectManyWithMeta = withInjectionDecorators(
-    nonDecoratedPrivateInjectManyWithMeta,
-  );
+  const decoratedPrivateInjectManyWithMeta = nonDecoratedPrivateInjectManyWithMeta;
 
   const firePurgeCallbacks = firePurgeCallbacksFor({
     injectMany: nonDecoratedPrivateInjectMany,
