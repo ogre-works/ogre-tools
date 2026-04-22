@@ -1,6 +1,6 @@
 import { privateInjectFor } from './privateInjectFor';
 import { withInjectionDecoratorsFor } from './withInjectionDecoratorsFor';
-import { privateInjectManyFor as nonDecoratedPrivateInjectManyFor } from './privateInjectManyFor';
+import { privateInjectManyFor } from './privateInjectManyFor';
 import { registerFor, registerSingleFor } from './register';
 import { purgeInstancesFor } from './purgeInstances';
 import { deregisterFor } from './deregister';
@@ -52,26 +52,26 @@ export default containerId => {
 
   const checkForAbstractToken = checkForAbstractTokenFor({ getNamespacedId });
 
-  const nonDecoratedPrivateInjectManyForUnknownMeta =
-    nonDecoratedPrivateInjectManyFor({
+  const privateInjectManyForUnknownMeta =
+    privateInjectManyFor({
       getRelatedInjectables,
       getInject: () => decoratedPrivateInject,
       checkForAbstractToken,
       namespacedIdByInjectableMap,
     });
 
-  const nonDecoratedPrivateInjectMany =
-    nonDecoratedPrivateInjectManyForUnknownMeta({
+  const privateInjectMany =
+    privateInjectManyForUnknownMeta({
       withMeta: false,
     });
 
-  const nonDecoratedPrivateInjectManyWithMeta =
-    nonDecoratedPrivateInjectManyForUnknownMeta({
+  const privateInjectManyWithMeta =
+    privateInjectManyForUnknownMeta({
       withMeta: true,
     });
 
   const withInjectionDecorators = withInjectionDecoratorsFor({
-    injectMany: nonDecoratedPrivateInjectMany,
+    injectMany: privateInjectMany,
     decoratorCache,
   });
 
@@ -124,12 +124,8 @@ export default containerId => {
     nonDecoratedPrivateInjectWithMeta,
   );
 
-  const decoratedPrivateInjectMany = nonDecoratedPrivateInjectMany;
-
-  const decoratedPrivateInjectManyWithMeta = nonDecoratedPrivateInjectManyWithMeta;
-
   const firePurgeCallbacks = firePurgeCallbacksFor({
-    injectMany: nonDecoratedPrivateInjectMany,
+    injectMany: privateInjectMany,
   });
 
   const rawRegisterSingle = registerSingleFor({
@@ -160,7 +156,7 @@ export default containerId => {
   const decorate = decorateFor({ registerSingle });
 
   const deregister = deregisterFor({
-    injectMany: nonDecoratedPrivateInjectMany,
+    injectMany: privateInjectMany,
     injectableSet,
     injectableAndRegistrationContext,
     injectablesByInjectionToken,
@@ -176,7 +172,7 @@ export default containerId => {
 
   const privateRegister = registerFor({
     registerSingle,
-    injectMany: nonDecoratedPrivateInjectMany,
+    injectMany: privateInjectMany,
   });
 
   const earlyOverride = earlyOverrideFor({
@@ -226,8 +222,8 @@ export default containerId => {
   const privateDi = {
     inject: decoratedPrivateInject,
     injectWithMeta: decoratedPrivateInjectWithMeta,
-    injectMany: decoratedPrivateInjectMany,
-    injectManyWithMeta: decoratedPrivateInjectManyWithMeta,
+    injectMany: privateInjectMany,
+    injectManyWithMeta: privateInjectManyWithMeta,
 
     injectFactory:
       alias =>
