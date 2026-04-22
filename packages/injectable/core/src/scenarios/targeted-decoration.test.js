@@ -57,6 +57,63 @@ describe('createContainer.targeted-decoration', () => {
     );
   });
 
+  it('given decorator targeting a token, when injectMany is called for that token, the decorator fires exactly once per injectable', () => {
+    const someToken = getInjectionToken({ id: 'some-token' });
+
+    const decorateSpy = jest.fn(inject => (...params) => inject(...params));
+
+    const decoratorInjectable = getInjectable2({
+      id: 'spy-decorator',
+      injectionToken: injectionDecoratorToken.for(someToken),
+      decorable: false,
+      instantiate: () => () => decorateSpy,
+    });
+
+    const implA = getInjectable({
+      id: 'impl-a',
+      instantiate: () => 'a',
+      injectionToken: someToken,
+    });
+
+    const implB = getInjectable({
+      id: 'impl-b',
+      instantiate: () => 'b',
+      injectionToken: someToken,
+    });
+
+    const di = createContainer('some-container');
+    di.register(decoratorInjectable, implA, implB);
+
+    const results = di.injectMany(someToken);
+
+    expect(results).toEqual(['a', 'b']);
+    expect(decorateSpy).toHaveBeenCalledTimes(2);
+  });
+
+  it('given decorator targeting an injectable, when inject is called, the decorator fires exactly once', () => {
+    const decorateSpy = jest.fn(inject => (...params) => inject(...params));
+
+    const someInjectable = getInjectable({
+      id: 'some-injectable',
+      instantiate: () => 'some-value',
+    });
+
+    const decoratorInjectable = getInjectable2({
+      id: 'spy-decorator',
+      injectionToken: injectionDecoratorToken.for(someInjectable),
+      decorable: false,
+      instantiate: () => () => decorateSpy,
+    });
+
+    const di = createContainer('some-container');
+    di.register(decoratorInjectable, someInjectable);
+
+    const result = di.inject(someInjectable);
+
+    expect(result).toBe('some-value');
+    expect(decorateSpy).toHaveBeenCalledTimes(1);
+  });
+
   it('given decorator targeting an injection token and child implementing the token, when parent is injected, decorates instance and instantiation parameter of only the child', () => {
     const someInjectionTokenForTargetedDecoration = getInjectionToken({
       id: 'some-injection-token-for-targeted-decoration',
