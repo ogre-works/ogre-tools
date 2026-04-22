@@ -19,20 +19,15 @@ export const withInjectionDecoratorsFor =
     let decorated = decoratorCache.injectionByAlias.get(alias);
 
     if (decorated === undefined) {
-      const aliasToken = injectionDecoratorToken.for(alias);
-      const parentToken = alias.injectionToken
-        ? injectionDecoratorToken.for(alias.injectionToken)
-        : null;
-
       const decorators = [
         ...injectMany({
-          alias: aliasToken,
+          alias: injectionDecoratorToken.for(alias),
           instantiationParameters: [],
           injectingInjectable,
         }),
-        ...(parentToken && parentToken !== aliasToken
+        ...(alias.injectionToken
           ? injectMany({
-              alias: parentToken,
+              alias: injectionDecoratorToken.for(alias.injectionToken),
               instantiationParameters: [],
               injectingInjectable,
             })

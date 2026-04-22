@@ -10,20 +10,15 @@ export const withInstantiationDecoratorsFor = ({
       return toBeDecorated;
     }
 
-    const aliasToken = instantiationDecoratorToken.for(injectable);
-    const parentToken = injectable.injectionToken
-      ? instantiationDecoratorToken.for(injectable.injectionToken)
-      : null;
-
     const decorators = [
       ...injectMany({
-        alias: aliasToken,
+        alias: instantiationDecoratorToken.for(injectable),
         instantiationParameters: [],
         injectingInjectable: injectable,
       }),
-      ...(parentToken && parentToken !== aliasToken
+      ...(injectable.injectionToken
         ? injectMany({
-            alias: parentToken,
+            alias: instantiationDecoratorToken.for(injectable.injectionToken),
             instantiationParameters: [],
             injectingInjectable: injectable,
           })
