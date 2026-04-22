@@ -35,9 +35,10 @@ export const privateInjectFor =
 
     alreadyInjected.add(originalInjectable);
 
-    const overriddenInjectable = overridingInjectables.get(originalInjectable);
-
-    const injectable = overriddenInjectable || originalInjectable;
+    const injectable =
+      overridingInjectables.size > 0
+        ? overridingInjectables.get(originalInjectable) || originalInjectable
+        : originalInjectable;
 
     checkForSideEffects(injectable, injectingInjectable);
 

@@ -4,6 +4,8 @@ import isInjectable from '../getInjectable/isInjectable';
 // Invalidated by setting to null when the Set is mutated (register/deregister).
 const arrayCache = new WeakMap();
 
+const EMPTY = Object.freeze([]);
+
 const getCachedArray = set => {
   let arr = arrayCache.get(set);
 
@@ -23,13 +25,13 @@ export const getRelatedInjectablesFor =
   ({ injectablesByInjectionToken, injectableSet }) =>
   alias => {
     if (isInjectable(alias)) {
-      return injectableSet.has(alias) ? [alias] : [];
+      return injectableSet.has(alias) ? [alias] : EMPTY;
     }
 
     const set = injectablesByInjectionToken.get(alias);
 
     if (!set || set.size === 0) {
-      return [];
+      return EMPTY;
     }
 
     return getCachedArray(set);
