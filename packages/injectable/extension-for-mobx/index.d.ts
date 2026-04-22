@@ -1,7 +1,5 @@
 import {
   DiContainer,
-  Injectable,
-  Injectable2,
   InjectionInstanceWithMeta,
   InjectionToken,
   InjectionToken2,
@@ -46,17 +44,7 @@ type ComputedInjectManyWithMeta = {
   ): IComputedValue<TInstanceWithMeta[]>;
 };
 
-export const computedInjectManyInjectable: Injectable<
-  ComputedInjectMany,
-  unknown
->;
-
 export const computedInjectManyInjectionToken: InjectionToken<ComputedInjectMany>;
-
-export const computedInjectManyWithMetaInjectable: Injectable<
-  ComputedInjectManyWithMeta,
-  unknown
->;
 
 export const computedInjectManyWithMetaInjectionToken: InjectionToken<ComputedInjectManyWithMeta>;
 
@@ -99,8 +87,6 @@ type ComputedInjectMany2 = {
   ) => IComputedValue<TInstance[]>;
 };
 
-export const computedInjectMany2Injectable: Injectable2<ComputedInjectMany2>;
-
 export const computedInjectMany2InjectionToken: InjectionToken2<ComputedInjectMany2>;
 
 type ComputedInjectManyWithMeta2 = {
@@ -119,8 +105,6 @@ type ComputedInjectManyWithMeta2 = {
   ) => IComputedValue<TInstanceWithMeta[]>;
 };
 
-export const computedInjectManyWithMeta2Injectable: Injectable2<ComputedInjectManyWithMeta2>;
-
 export const computedInjectManyWithMeta2InjectionToken: InjectionToken2<ComputedInjectManyWithMeta2>;
 
 type ComputedInjectMaybe2 = {
@@ -138,7 +122,5 @@ type ComputedInjectMaybe2 = {
     ...param: TInjectionToken extends InjectionToken<any, infer T> ? [T] : []
   ) => IComputedValue<TInstance | undefined>;
 };
-
-export const computedInjectMaybe2Injectable: Injectable2<ComputedInjectMaybe2>;
 
 export const computedInjectMaybe2InjectionToken: InjectionToken2<ComputedInjectMaybe2>;
