@@ -46,15 +46,15 @@ const earlyOverrideImplFor = normalize =>
       );
     }
 
-    if (alreadyInjected.has(alias)) {
+    const originalInjectable = relatedInjectables[0] || alias;
+
+    if (alreadyInjected.has(alias) || alreadyInjected.has(originalInjectable)) {
       throw new Error(
         `Tried to override injectable "${getNamespacedId(
-          alias,
+          originalInjectable,
         )}", but it was already injected.`,
       );
     }
-
-    const originalInjectable = relatedInjectables[0] || alias;
 
     overridingInjectables.set(originalInjectable, {
       ...originalInjectable,

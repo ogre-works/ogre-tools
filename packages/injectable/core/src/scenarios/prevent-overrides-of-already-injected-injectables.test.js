@@ -60,6 +60,42 @@ describe('createContainer.prevent-overrides-of-already-injected-injectables', ()
     }).toThrow(expectedError);
   });
 
+  it('given injectable already injected, when overridden by injection token, throws', () => {
+    const someInjectionToken = getInjectionToken({ id: 'irrelevant' });
+
+    const someInjectable = getInjectable({
+      id: 'some-injectable',
+      instantiate: () => 'irrelevant',
+      injectionToken: someInjectionToken,
+    });
+
+    di.register(someInjectable);
+
+    di.inject(someInjectionToken);
+
+    expect(() => {
+      di.override(someInjectionToken, () => 'irrelevant');
+    }).toThrow(expectedError);
+  });
+
+  it('given injectable and token share the same id, when overridden by token after injection, throws', () => {
+    const someInjectionToken = getInjectionToken({ id: 'some-injectable' });
+
+    const someInjectable = getInjectable({
+      id: 'some-injectable',
+      instantiate: () => 'irrelevant',
+      injectionToken: someInjectionToken,
+    });
+
+    di.register(someInjectable);
+
+    di.inject(someInjectionToken);
+
+    expect(() => {
+      di.override(someInjectionToken, () => 'irrelevant');
+    }).toThrow(expectedError);
+  });
+
   it('given injectable and already injected, but purged, when overridden, still throws', () => {
     const someInjectionToken = getInjectionToken({ id: 'irrelevant' });
 
