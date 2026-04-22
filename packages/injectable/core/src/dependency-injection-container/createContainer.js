@@ -1,6 +1,6 @@
 import { privateInjectFor } from './privateInjectFor';
 import { withInjectionDecoratorsFor } from './withInjectionDecoratorsFor';
-import { privateInjectManyFor } from './privateInjectManyFor';
+import { privateInjectManyFor as nonDecoratedPrivateInjectManyFor } from './privateInjectManyFor';
 import { registerFor, registerSingleFor } from './register';
 import { purgeInstancesFor } from './purgeInstances';
 import { deregisterFor } from './deregister';
@@ -17,14 +17,13 @@ import { injectionDecoratorToken } from './tokens';
 import { isRelatedToToken } from './getRelatedTokens';
 import { firePurgeCallbacksFor } from './firePurgeCallbacksFor';
 
-export default containerId => {
+export default (containerId, { injectionDecorators = false } = {}) => {
   const injectableSet = new Set();
 
-  // Cache for decorator lists — invalidated on decorator registration/deregistration
-  const decoratorCache = {
-    injection: null,
-    injectionByAlias: new Map(),
-  };
+  // Cache for decorator lists — only used when injectionDecorators is enabled.
+  const decoratorCache = injectionDecorators
+    ? { injection: null, injectionByAlias: new Map() }
+    : null;
   const overridingInjectables = new Map();
   let sideEffectsArePrevented = false;
   const alreadyInjected = new Set();
@@ -52,28 +51,23 @@ export default containerId => {
 
   const checkForAbstractToken = checkForAbstractTokenFor({ getNamespacedId });
 
-  const privateInjectManyForUnknownMeta =
-    privateInjectManyFor({
+  const nonDecoratedPrivateInjectManyForUnknownMeta =
+    nonDecoratedPrivateInjectManyFor({
       getRelatedInjectables,
       getInject: () => decoratedPrivateInject,
       checkForAbstractToken,
       namespacedIdByInjectableMap,
     });
 
-  const privateInjectMany =
-    privateInjectManyForUnknownMeta({
+  const nonDecoratedPrivateInjectMany =
+    nonDecoratedPrivateInjectManyForUnknownMeta({
       withMeta: false,
     });
 
-  const privateInjectManyWithMeta =
-    privateInjectManyForUnknownMeta({
+  const nonDecoratedPrivateInjectManyWithMeta =
+    nonDecoratedPrivateInjectManyForUnknownMeta({
       withMeta: true,
     });
-
-  const withInjectionDecorators = withInjectionDecoratorsFor({
-    injectMany: privateInjectMany,
-    decoratorCache,
-  });
 
   const getSideEffectsArePrevented = injectable =>
     sideEffectsArePrevented &&
@@ -116,16 +110,27 @@ export default containerId => {
       withMeta: true,
     });
 
-  const decoratedPrivateInject = withInjectionDecorators(
-    nonDecoratedPrivateInject,
-  );
+  const withInjectionDecorators = injectionDecorators
+    ? withInjectionDecoratorsFor({
+        injectMany: nonDecoratedPrivateInjectMany,
+        decoratorCache,
+      })
+    : null;
 
-  const decoratedPrivateInjectWithMeta = withInjectionDecorators(
-    nonDecoratedPrivateInjectWithMeta,
-  );
+  // Injection decorators apply only on the per-injectable inject path.
+  // injectMany resolves related injectables and calls the (decorated) inject
+  // on each, so decorators still fire per element — but the token-level
+  // injectMany is never wrapped.
+  const decoratedPrivateInject = injectionDecorators
+    ? withInjectionDecorators(nonDecoratedPrivateInject)
+    : nonDecoratedPrivateInject;
+
+  const decoratedPrivateInjectWithMeta = injectionDecorators
+    ? withInjectionDecorators(nonDecoratedPrivateInjectWithMeta)
+    : nonDecoratedPrivateInjectWithMeta;
 
   const firePurgeCallbacks = firePurgeCallbacksFor({
-    injectMany: privateInjectMany,
+    injectMany: nonDecoratedPrivateInjectMany,
   });
 
   const rawRegisterSingle = registerSingleFor({
@@ -139,13 +144,17 @@ export default containerId => {
     firePurgeCallbacks,
   });
 
-  const registerSingle = (injectable, context) => {
-    rawRegisterSingle(injectable, context);
+  const registerSingle = injectionDecorators
+    ? (injectable, context) => {
+        rawRegisterSingle(injectable, context);
 
-    if (isRelatedToToken(injectable.injectionToken, injectionDecoratorToken)) {
-      decoratorCache.injection = null;
-    }
-  };
+        if (
+          isRelatedToToken(injectable.injectionToken, injectionDecoratorToken)
+        ) {
+          decoratorCache.injection = null;
+        }
+      }
+    : rawRegisterSingle;
 
   const purgeInstances = purgeInstancesFor({
     getRelatedInjectables,
@@ -153,10 +162,16 @@ export default containerId => {
     firePurgeCallbacks,
   });
 
-  const decorate = decorateFor({ registerSingle });
+  const decorate = injectionDecorators
+    ? decorateFor({ registerSingle })
+    : () => {
+        throw new Error(
+          `Tried to call di.decorate on container "${containerId}", but injection decorators are disabled. Pass { injectionDecorators: true } to createContainer to enable.`,
+        );
+      };
 
   const deregister = deregisterFor({
-    injectMany: privateInjectMany,
+    injectMany: nonDecoratedPrivateInjectMany,
     injectableSet,
     injectableAndRegistrationContext,
     injectablesByInjectionToken,
@@ -172,7 +187,7 @@ export default containerId => {
 
   const privateRegister = registerFor({
     registerSingle,
-    injectMany: privateInjectMany,
+    injectMany: nonDecoratedPrivateInjectMany,
   });
 
   const earlyOverride = earlyOverrideFor({
@@ -205,7 +220,13 @@ export default containerId => {
     getNamespacedId,
   });
 
-  const decorateFunction = decorateFunctionFor({ decorate });
+  const decorateFunction = injectionDecorators
+    ? decorateFunctionFor({ decorate })
+    : () => {
+        throw new Error(
+          `Tried to call di.decorateFunction on container "${containerId}", but injection decorators are disabled. Pass { injectionDecorators: true } to createContainer to enable.`,
+        );
+      };
 
   const purgeAllButOverrides = () => {
     injectableSet.clear();
@@ -216,14 +237,16 @@ export default containerId => {
     injectablesByInjectionToken.clear();
     namespacedIdByInjectableMap.clear();
     childrenByParentMap.clear();
-    decoratorCache.injection = null;
+    if (injectionDecorators) {
+      decoratorCache.injection = null;
+    }
   };
 
   const privateDi = {
     inject: decoratedPrivateInject,
     injectWithMeta: decoratedPrivateInjectWithMeta,
-    injectMany: privateInjectMany,
-    injectManyWithMeta: privateInjectManyWithMeta,
+    injectMany: nonDecoratedPrivateInjectMany,
+    injectManyWithMeta: nonDecoratedPrivateInjectManyWithMeta,
 
     injectFactory:
       alias =>

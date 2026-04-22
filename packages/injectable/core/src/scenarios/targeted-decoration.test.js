@@ -46,7 +46,7 @@ describe('createContainer.targeted-decoration', () => {
       lifecycle: lifecycleEnum.transient,
     });
 
-    const di = createContainer('some-container');
+    const di = createContainer('some-container', { injectionDecorators: true });
 
     di.register(parentInjectable, childInjectable, decoratorInjectable);
 
@@ -74,7 +74,7 @@ describe('createContainer.targeted-decoration', () => {
           instantiate: () => () => decorateSpy,
         });
 
-        const di = createContainer('some-container');
+        const di = createContainer('some-container', { injectionDecorators: true });
         di.register(decoratorInjectable, someInjectable);
 
         expect(di.inject(someInjectable)).toBe('some-value');
@@ -101,7 +101,7 @@ describe('createContainer.targeted-decoration', () => {
           instantiate: () => () => decorateSpy,
         });
 
-        const di = createContainer('some-container');
+        const di = createContainer('some-container', { injectionDecorators: true });
         di.register(decoratorInjectable, someInjectable);
 
         expect(di.inject(someInjectable)).toBe('some-value');
@@ -128,7 +128,7 @@ describe('createContainer.targeted-decoration', () => {
           instantiate: () => () => decorateSpy,
         });
 
-        const di = createContainer('some-container');
+        const di = createContainer('some-container', { injectionDecorators: true });
         di.register(decoratorInjectable, someInjectable);
 
         expect(di.inject(someInjectable)).toBe('some-value');
@@ -159,7 +159,7 @@ describe('createContainer.targeted-decoration', () => {
           injectionToken: someToken,
         });
 
-        const di = createContainer('some-container');
+        const di = createContainer('some-container', { injectionDecorators: true });
         di.register(decoratorInjectable, implA, implB);
 
         expect(di.injectMany(someToken)).toEqual(['a', 'b']);
@@ -186,7 +186,7 @@ describe('createContainer.targeted-decoration', () => {
           instantiate: () => () => decorateSpy,
         });
 
-        const di = createContainer('some-container');
+        const di = createContainer('some-container', { injectionDecorators: true });
         di.register(decoratorInjectable, someInjectable);
 
         expect(di.inject(someInjectable)).toBe('some-value');
@@ -241,7 +241,7 @@ describe('createContainer.targeted-decoration', () => {
       lifecycle: lifecycleEnum.transient,
     });
 
-    const di = createContainer('some-container');
+    const di = createContainer('some-container', { injectionDecorators: true });
 
     di.register(parentInjectable, childInjectable, decoratorInjectable);
 

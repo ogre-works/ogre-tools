@@ -38,7 +38,7 @@ describe('createContainer.targeted-decoration-via-shorthand', () => {
       lifecycle: lifecycleEnum.transient,
     });
 
-    const di = createContainer('some-container');
+    const di = createContainer('some-container', { injectionDecorators: true });
 
     di.register(parentInjectable, childInjectable);
 
@@ -91,7 +91,7 @@ describe('createContainer.targeted-decoration-via-shorthand', () => {
       lifecycle: lifecycleEnum.transient,
     });
 
-    const di = createContainer('some-container');
+    const di = createContainer('some-container', { injectionDecorators: true });
 
     di.register(parentInjectable, childInjectable);
 
@@ -138,7 +138,7 @@ describe('createContainer.targeted-decoration-via-shorthand', () => {
       lifecycle: lifecycleEnum.transient,
     });
 
-    const di = createContainer('some-container');
+    const di = createContainer('some-container', { injectionDecorators: true });
 
     di.register(someInjectable);
 

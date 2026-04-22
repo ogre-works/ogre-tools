@@ -13,7 +13,7 @@ describe('createContainer.targeted-decoration-for-function-via-shorthand', () =>
       lifecycle: lifecycleEnum.transient,
     });
 
-    const di = createContainer('some-container');
+    const di = createContainer('some-container', { injectionDecorators: true });
 
     di.register(someInjectable);
 
