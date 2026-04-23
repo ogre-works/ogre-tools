@@ -163,6 +163,34 @@ const createMinimalDi = (
       injectingInjectable: injectableToBeInstantiated,
     });
 
+  if (injectableToBeInstantiated.aliasType === injectableSymbol2) {
+    // V2 minimalDi: inject/injectMany/etc are factory-returning
+    return {
+      ...shared,
+
+      inject:
+        alias =>
+        (...params) =>
+          minimalInject(alias, ...params),
+
+      injectMany:
+        alias =>
+        (...params) =>
+          minimalInjectMany(alias, ...params),
+
+      injectWithMeta:
+        alias =>
+        (...params) =>
+          minimalInjectWithMeta(alias, ...params),
+
+      injectManyWithMeta:
+        alias =>
+        (...params) =>
+          minimalInjectManyWithMeta(alias, ...params),
+    };
+  }
+
+  // V1 minimalDi: inject/injectMany/etc are instance-returning
   return {
     ...shared,
 
@@ -170,26 +198,6 @@ const createMinimalDi = (
     injectMany: minimalInjectMany,
     injectWithMeta: minimalInjectWithMeta,
     injectManyWithMeta: minimalInjectManyWithMeta,
-
-    inject2:
-      alias =>
-      (...params) =>
-        minimalInject(alias, ...params),
-
-    injectMany2:
-      alias =>
-      (...params) =>
-        minimalInjectMany(alias, ...params),
-
-    injectWithMeta2:
-      alias =>
-      (...params) =>
-        minimalInjectWithMeta(alias, ...params),
-
-    injectManyWithMeta2:
-      alias =>
-      (...params) =>
-        minimalInjectManyWithMeta(alias, ...params),
 
     injectFactory:
       alias =>

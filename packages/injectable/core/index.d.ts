@@ -48,6 +48,11 @@ export type Override = OverrideV1ShapeOldStyle & OverrideV1ShapeForInjectable2;
 export type Override2 = OverrideInjectable2 & Override2V2ShapeForOldStyle;
 
 export interface DiContainer extends DiContainerForInjection {
+  inject2: Inject2;
+  injectMany2: InjectMany2;
+  injectWithMeta2: InjectWithMeta2;
+  injectManyWithMeta2: InjectManyWithMeta2;
+
   purge: Purge;
   purgeAllButOverrides: () => void;
 
@@ -203,7 +208,16 @@ export type InjectInjectable2 = <F extends (...args: any[]) => any>(
   ...params: Parameters<F>
 ) => ReturnType<F>;
 
-export type Inject = InjectInjectable2 & InjectWithoutParameter & InjectWithParameter;
+export type Inject = InjectWithoutParameter & InjectWithParameter & InjectInjectable2;
+
+// Factory-returning inject — handles all aliases (v1 and v2).
+// v2 aliases return the native factory F; v1 aliases return a synthesized factory.
+export interface Inject2 {
+  <F extends (...args: any[]) => any>(alias: Injectable2<F>): F;
+  <F extends (...args: any[]) => any>(alias: InjectionToken2<F> & { readonly __abstract?: never }): F;
+  <I>(alias: Injectable<I, any> | InjectionToken<I>): () => I;
+  <I, P>(alias: Injectable<I, any, P> | InjectionToken<I, P>): (...params: P extends any[] ? P : [P]) => I;
+}
 
 type TuplePrefix<T extends any[]> = T extends [infer First, ...infer Rest]
   ? [] | [First, ...TuplePrefix<Rest>]
@@ -226,12 +240,6 @@ type PurgeWithParameter = <I, P>(
 ) => void;
 
 export type Purge = PurgeAll & PurgeInjectable2 & PurgeWithoutParameter & PurgeWithParameter;
-
-export type InjectFactory = <InjectionInstance, InstantiationParam>(
-  alias:
-    | Injectable<InjectionInstance, unknown, InstantiationParam>
-    | InjectionToken<InjectionInstance, InstantiationParam>,
-) => InstantiationParam extends void ? (() => InjectionInstance) : ((param: InstantiationParam) => InjectionInstance);
 
 export type SpecificInjectWithoutParameter<InjectionInstance> = (
   key:
@@ -323,15 +331,10 @@ interface InjectWithMeta {
 
 export interface DiContainerForInjection {
   inject: Inject;
-  injectWithMeta: InjectWithMeta;
-  injectFactory: InjectFactory;
   injectMany: InjectMany;
+  injectWithMeta: InjectWithMeta;
   injectManyWithMeta: InjectManyWithMeta;
-
-  inject2: Inject2;
-  injectMany2: InjectMany2;
-  injectWithMeta2: InjectWithMeta2;
-  injectManyWithMeta2: InjectManyWithMeta2;
+  injectFactory: Inject2;
 
   register(
     ...injectables: (Injectable<any, any, any> | Injectable2<any> | InjectableBunch<any>)[]
@@ -687,15 +690,10 @@ export function getAbstractInjectionToken2<
 // ---- DiContainerForInjection2 (new-style minimalDi) ----
 
 export interface DiContainerForInjection2 {
-  inject: Inject;
-  injectMany: InjectMany;
-  injectWithMeta: InjectWithMeta;
-  injectManyWithMeta: InjectManyWithMeta;
-
-  inject2: Inject2;
-  injectMany2: InjectMany2;
-  injectWithMeta2: InjectWithMeta2;
-  injectManyWithMeta2: InjectManyWithMeta2;
+  inject: Inject2;
+  injectMany: InjectMany2;
+  injectWithMeta: InjectWithMeta2;
+  injectManyWithMeta: InjectManyWithMeta2;
 
   register(
     ...injectables: (Injectable2<any> | Injectable<any, any, any> | InjectableBunch<any>)[]
@@ -721,14 +719,6 @@ interface HasRegistrations2 {
   <I extends TI, TI, P>(
     alias: Injectable<I, TI, P> | InjectionToken<TI, P>,
   ): boolean;
-}
-
-// Factory-returning inject — works for v1 (synthesized factory) and v2 (native factory with generics preserved)
-interface Inject2 {
-  <F extends (...args: any[]) => any>(alias: Injectable2<F>): F;
-  <F extends (...args: any[]) => any>(alias: InjectionToken2<F> & { readonly __abstract?: never }): F;
-  <I>(alias: Injectable<I, any> | InjectionToken<I>): () => I;
-  <I, P>(alias: Injectable<I, any, P> | InjectionToken<I, P>): (...params: P extends any[] ? P : [P]) => I;
 }
 
 // Factory-returning injectMany — v2 returns ManyFactory (generics preserved), v1 returns synthesized many-factory
