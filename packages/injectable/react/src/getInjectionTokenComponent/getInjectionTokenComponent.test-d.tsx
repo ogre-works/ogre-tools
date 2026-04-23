@@ -179,9 +179,9 @@ expectError(<SomeTypedSpecificToken someProp={42} />);
 
 // ---- Abstract InjectionTokenComponent ----
 
-import { getAbstractInjectionTokenComponent } from '../../index';
+import { getAbstractInjectionTokenComponent2 } from '../../index';
 
-const SomeAbstractTokenComponent = getAbstractInjectionTokenComponent<
+const SomeAbstractTokenComponent = getAbstractInjectionTokenComponent2<
   React.ComponentType<{ someProp: string }>
 >({ id: 'irrelevant' });
 

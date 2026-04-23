@@ -4,8 +4,8 @@ import { expectAssignable, expectError, expectType } from 'tsd';
 import {
   getInjectionTokenComponent2,
   getInjectableComponent2,
-  getAbstractInjectionTokenComponent,
-  SpecificInjectionTokenComponent,
+  getAbstractInjectionTokenComponent2,
+  SpecificInjectionTokenComponent2,
 } from '../../index';
 import {
   createContainer,
@@ -100,7 +100,7 @@ expectError(
 const SomeSpecificToken = SomeTokenComponentWithProps.for('some-specific');
 
 expectAssignable<
-  SpecificInjectionTokenComponent<React.ComponentType<{ someProp: string }>>
+  SpecificInjectionTokenComponent2<React.ComponentType<{ someProp: string }>>
 >(SomeSpecificToken);
 
 // specific token is injectable
@@ -120,7 +120,7 @@ const SomeTokenComponentWithTypedSpecifier = getInjectionTokenComponent2<
   React.ComponentType<unknown>,
   <T extends TypedSpecifierWithType<'someSpecifier'>>(
     specifier: T,
-  ) => SpecificInjectionTokenComponent<
+  ) => SpecificInjectionTokenComponent2<
     React.ComponentType<TypedSpecifierType<'someSpecifier', T>>
   >
 >({ id: 'irrelevant' });
@@ -179,7 +179,7 @@ expectError(<SomeTypedSpecificToken someProp={42} />);
 
 // ---- Abstract InjectionTokenComponent2 ----
 
-const SomeAbstractTokenComponent = getAbstractInjectionTokenComponent<
+const SomeAbstractTokenComponent = getAbstractInjectionTokenComponent2<
   React.ComponentType<{ someProp: string }>
 >({ id: 'irrelevant' });
 

@@ -153,28 +153,28 @@ export declare function getInjectionTokenComponent2<
   specificInjectionTokenFactory?: SpecificFactory;
 }): InjectionTokenComponent2<Component, SpecificFactory>;
 
-export type AbstractInjectionTokenComponent<
+export type AbstractInjectionTokenComponent2<
   Component extends React.ComponentType<any>,
   SpecificFactory extends (
     ...args: any[]
-  ) => SpecificInjectionTokenComponent<Component> = (
+  ) => SpecificInjectionTokenComponent2<Component> = (
     id: string,
-  ) => SpecificInjectionTokenComponent<Component>,
+  ) => SpecificInjectionTokenComponent2<Component>,
 > = AbstractInjectionToken2<() => Component, () => Component[], SpecificFactory>;
 
-export declare function getAbstractInjectionTokenComponent<
+export declare function getAbstractInjectionTokenComponent2<
   Component extends React.ComponentType<any>,
   SpecificFactory extends (
     ...args: any[]
-  ) => SpecificInjectionTokenComponent<Component> = (
+  ) => SpecificInjectionTokenComponent2<Component> = (
     id: string,
-  ) => SpecificInjectionTokenComponent<Component>,
+  ) => SpecificInjectionTokenComponent2<Component>,
 >(options: {
   id: string;
   PlaceholderComponent?: React.ComponentType<React.ComponentProps<Component>>;
   decorable?: boolean;
   specificInjectionTokenFactory?: SpecificFactory;
-}): AbstractInjectionTokenComponent<Component, SpecificFactory>;
+}): AbstractInjectionTokenComponent2<Component, SpecificFactory>;
 
 export const DiContextProvider: React.Provider<DiContainer | DiContainerForInjection>;
 

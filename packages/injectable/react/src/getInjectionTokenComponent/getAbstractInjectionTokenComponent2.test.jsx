@@ -3,11 +3,11 @@ import React, { Suspense } from 'react';
 import { render } from '@testing-library/react';
 import { createContainer, getInjectable } from '@lensapp/injectable';
 import { DiContextProvider } from '../withInjectables/withInjectables';
-import { getAbstractInjectionTokenComponent } from './getAbstractInjectionTokenComponent';
-import { getInjectionTokenComponent } from './getInjectionTokenComponent';
+import { getAbstractInjectionTokenComponent2 } from './getAbstractInjectionTokenComponent2';
+import { getInjectionTokenComponent2 } from './getInjectionTokenComponent2';
 import { useInjectDeferred } from '../useInject/useInject';
 
-describe('getAbstractInjectionTokenComponent', () => {
+describe('getAbstractInjectionTokenComponent2', () => {
   let di;
   let mount;
 
@@ -19,7 +19,7 @@ describe('getAbstractInjectionTokenComponent', () => {
   });
 
   it('given a token component is created, it is an abstract injection token', () => {
-    const SomeAbstractTokenComponent = getAbstractInjectionTokenComponent({
+    const SomeAbstractTokenComponent = getAbstractInjectionTokenComponent2({
       id: 'some-abstract-token-component',
     });
 
@@ -27,7 +27,7 @@ describe('getAbstractInjectionTokenComponent', () => {
   });
 
   it('given specifier, .for() produces a renderable component that injects from DI', () => {
-    const SomeAbstractTokenComponent = getAbstractInjectionTokenComponent({
+    const SomeAbstractTokenComponent = getAbstractInjectionTokenComponent2({
       id: 'some-abstract-token-component',
     });
 
@@ -48,7 +48,7 @@ describe('getAbstractInjectionTokenComponent', () => {
   });
 
   it('given specifier, .for() passes props to the implementation', () => {
-    const SomeAbstractTokenComponent = getAbstractInjectionTokenComponent({
+    const SomeAbstractTokenComponent = getAbstractInjectionTokenComponent2({
       id: 'some-abstract-token-component',
     });
 
@@ -74,7 +74,7 @@ describe('getAbstractInjectionTokenComponent', () => {
   });
 
   it('given same specifier, .for() returns the same component', () => {
-    const SomeAbstractTokenComponent = getAbstractInjectionTokenComponent({
+    const SomeAbstractTokenComponent = getAbstractInjectionTokenComponent2({
       id: 'some-abstract-token-component',
     });
 
@@ -92,7 +92,7 @@ describe('getAbstractInjectionTokenComponent', () => {
       instantiate: someAsyncInstantiate,
     });
 
-    const SomeAbstractTokenComponent = getAbstractInjectionTokenComponent({
+    const SomeAbstractTokenComponent = getAbstractInjectionTokenComponent2({
       id: 'some-abstract-token-component',
       PlaceholderComponent: () => <div data-testid="some-placeholder" />,
     });
@@ -122,13 +122,13 @@ describe('getAbstractInjectionTokenComponent', () => {
 
     beforeEach(() => {
       customFactory = jest.fn(specId =>
-        getInjectionTokenComponent({
+        getInjectionTokenComponent2({
           id: `custom-${specId}`,
           speciality: specId,
         }),
       );
 
-      const SomeAbstractTokenComponent = getAbstractInjectionTokenComponent({
+      const SomeAbstractTokenComponent = getAbstractInjectionTokenComponent2({
         id: 'some-abstract-token-component',
         specificInjectionTokenFactory: customFactory,
       });
@@ -147,7 +147,7 @@ describe('getAbstractInjectionTokenComponent', () => {
   });
 
   it('given a specific token with an implementation, when rendered without Suspense wrapper, renders the content', () => {
-    const SomeAbstractTokenComponent = getAbstractInjectionTokenComponent({
+    const SomeAbstractTokenComponent = getAbstractInjectionTokenComponent2({
       id: 'some-abstract-token-component',
     });
 

@@ -1,7 +1,7 @@
 import { getAbstractInjectionToken2 } from '@lensapp/injectable';
-import { getInjectionTokenComponent } from './getInjectionTokenComponent';
+import { getInjectionTokenComponent2 } from './getInjectionTokenComponent2';
 
-export const getAbstractInjectionTokenComponent = ({
+export const getAbstractInjectionTokenComponent2 = ({
   PlaceholderComponent,
   id,
   decorable,
@@ -14,7 +14,7 @@ export const getAbstractInjectionTokenComponent = ({
     specificInjectionTokenFactory:
       specificInjectionTokenFactory ??
       (specId =>
-        getInjectionTokenComponent({
+        getInjectionTokenComponent2({
           id: specId,
           PlaceholderComponent,
           speciality: specId,
