@@ -21,7 +21,8 @@ const someInjectionTokenUsingProps = getInjectionToken2<
 
 const SomeFunctionalComponentNotUsingProps = () => <div>irrelevant</div>;
 
-const SomeFunctionalComponentNotUsingPropsAsComponentType: React.ComponentType = () => <div>irrelevant</div>;
+const SomeFunctionalComponentNotUsingPropsAsComponentType: React.ComponentType =
+  () => <div>irrelevant</div>;
 
 const SomeFunctionalComponentUsingProps = ({
   someProp,
@@ -29,9 +30,9 @@ const SomeFunctionalComponentUsingProps = ({
   someProp: string;
 }) => <div>irrelevant</div>;
 
-const SomeFunctionalComponentUsingPropsAsComponentType: React.ComponentType<{ someProp: string }> = ({
-  someProp,
-}) => <div>irrelevant</div>;
+const SomeFunctionalComponentUsingPropsAsComponentType: React.ComponentType<{
+  someProp: string;
+}> = ({ someProp }) => <div>irrelevant</div>;
 
 class SomeClassComponentNotUsingProps extends React.Component {
   render() {
@@ -59,7 +60,9 @@ expectAssignable<Injectable2<() => React.ComponentType>>(
 );
 
 // given injection token, and functional component not using props, typing is ok
-const someInjectionTokenNotUsingProps = getInjectionToken2<() => React.ComponentType>({
+const someInjectionTokenNotUsingProps = getInjectionToken2<
+  () => React.ComponentType
+>({
   id: 'irrelevant',
 });
 
@@ -96,13 +99,12 @@ expectAssignable<Injectable2<() => React.ComponentType>>(
 );
 
 // given a placeholder that uses props, typing is ok
-const InjectableComponentUsingPlaceholderThatUsesProps = getInjectableComponent2(
-  {
+const InjectableComponentUsingPlaceholderThatUsesProps =
+  getInjectableComponent2({
     id: 'irrelevant',
     Component: SomeFunctionalComponentUsingProps,
     PlaceholderComponent: ({ someProp }) => <div>{someProp}</div>,
-  },
-);
+  });
 
 expectAssignable<React.ComponentType<{ someProp: string }>>(
   InjectableComponentUsingPlaceholderThatUsesProps,
@@ -150,9 +152,9 @@ expectType<React.ComponentType<{ someProp: string }>>(
 );
 
 // given injection token, and component with contradictory props, typing is not ok
-const SomeFunctionalComponentUsingContradictoryPropsAsComponentType: React.ComponentType<{ someProp: number }> = ({
-  someProp,
-}) => <div>{someProp}</div>;
+const SomeFunctionalComponentUsingContradictoryPropsAsComponentType: React.ComponentType<{
+  someProp: number;
+}> = ({ someProp }) => <div>{someProp}</div>;
 
 expectError(
   getInjectableComponent2({
@@ -178,7 +180,9 @@ expectError(
 );
 
 // given non-sensical injection token, and functional component, typing is not ok
-const someNonSensicalInjectionToken = getInjectionToken2<() => 'some-non-component'>({
+const someNonSensicalInjectionToken = getInjectionToken2<
+  () => 'some-non-component'
+>({
   id: 'irrelevant',
 });
 
@@ -299,9 +303,9 @@ expectAssignable<React.ComponentType<{ someProp: 'some-type' }>>(
   SomeInjectableComponentForTypedSpecifier,
 );
 
-expectAssignable<Injectable2<() => React.ComponentType<{ someProp: 'some-type' }>>>(
-  SomeInjectableComponentForTypedSpecifier,
-);
+expectAssignable<
+  Injectable2<() => React.ComponentType<{ someProp: 'some-type' }>>
+>(SomeInjectableComponentForTypedSpecifier);
 
 expectType<React.ComponentType<{ someProp: 'some-type' }>>(
   di.inject(someInjectionTokenWithTypedSpecifier.for(someTypedSpecifier)),

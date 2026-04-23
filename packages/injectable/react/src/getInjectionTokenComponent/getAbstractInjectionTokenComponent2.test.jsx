@@ -133,8 +133,7 @@ describe('getAbstractInjectionTokenComponent2', () => {
         specificInjectionTokenFactory: customFactory,
       });
 
-      SpecificTokenComponent =
-        SomeAbstractTokenComponent.for('some-specific');
+      SpecificTokenComponent = SomeAbstractTokenComponent.for('some-specific');
     });
 
     it('the custom factory is called with the specifier', () => {

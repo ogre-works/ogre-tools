@@ -53,7 +53,9 @@ describe('computedInjectMaybe with instantiation parameter', () => {
       const contextSpyDecorator = getInjectable2({
         id: 'context-spy-decorator',
 
-        instantiate: () => () =>
+        instantiate:
+          () =>
+          () =>
           toBeDecorated =>
           (...params) =>
             toBeDecorated(...params),

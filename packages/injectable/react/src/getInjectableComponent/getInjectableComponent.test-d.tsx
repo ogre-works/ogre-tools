@@ -21,7 +21,8 @@ const someInjectionTokenUsingProps = getInjectionToken<
 
 const SomeFunctionalComponentNotUsingProps = () => <div>irrelevant</div>;
 
-const SomeFunctionalComponentNotUsingPropsAsComponentType: React.ComponentType = () => <div>irrelevant</div>;
+const SomeFunctionalComponentNotUsingPropsAsComponentType: React.ComponentType =
+  () => <div>irrelevant</div>;
 
 const SomeFunctionalComponentUsingProps = ({
   someProp,
@@ -29,9 +30,9 @@ const SomeFunctionalComponentUsingProps = ({
   someProp: string;
 }) => <div>irrelevant</div>;
 
-const SomeFunctionalComponentUsingPropsAsComponentType: React.ComponentType<{ someProp: string }> = ({
-  someProp,
-}) => <div>irrelevant</div>;
+const SomeFunctionalComponentUsingPropsAsComponentType: React.ComponentType<{
+  someProp: string;
+}> = ({ someProp }) => <div>irrelevant</div>;
 
 class SomeClassComponentNotUsingProps extends React.Component {
   render() {
@@ -150,9 +151,9 @@ expectType<React.ComponentType<{ someProp: string }>>(
 );
 
 // given injection token, and component with contradictory props, typing is not ok
-const SomeFunctionalComponentUsingContradictoryPropsAsComponentType: React.ComponentType<{ someProp: number }> = ({
-  someProp,
-}) => <div>{someProp}</div>;
+const SomeFunctionalComponentUsingContradictoryPropsAsComponentType: React.ComponentType<{
+  someProp: number;
+}> = ({ someProp }) => <div>{someProp}</div>;
 
 expectError(
   getInjectableComponent({

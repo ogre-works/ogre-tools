@@ -46,7 +46,7 @@ const measure = (label, fn) => {
   return median;
 };
 
-const makeTokens = (n) =>
+const makeTokens = n =>
   Array.from({ length: n }, (_, i) =>
     getInjectionToken({ id: `bench-token-${i}` }),
   );
@@ -81,7 +81,7 @@ describe('benchmark (extension-for-mobx)', () => {
       for (const inj of seeds) di.register(inj);
 
       const computedInjectMany = di.inject(computedInjectManyInjectionToken);
-      const disposers = tokens.map((t) => {
+      const disposers = tokens.map(t => {
         const c = computedInjectMany(t);
         return autorun(() => c.get());
       });
@@ -90,7 +90,7 @@ describe('benchmark (extension-for-mobx)', () => {
       const extras = tokens.map((t, i) => makeInjectableForToken(t, 1));
       for (const inj of extras) di.register(inj);
 
-      disposers.forEach((d) => d());
+      disposers.forEach(d => d());
     });
   });
 

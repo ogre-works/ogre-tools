@@ -52,9 +52,9 @@ expectType<number>(useInjectDeferred(someInjectionToken, 'x'));
 expectError(useInject(someInjectionToken));
 expectError(useInject(someInjectionToken, 42));
 
-const someAbstractInjectionToken = getAbstractInjectionToken2<
-  () => string
->({ id: 'some-abstract-token' });
+const someAbstractInjectionToken = getAbstractInjectionToken2<() => string>({
+  id: 'some-abstract-token',
+});
 
 expectError(useInject(someAbstractInjectionToken));
 expectError(useInjectDeferred(someAbstractInjectionToken));
@@ -64,9 +64,7 @@ const someTypedSpecifierInjectionToken = getInjectionToken2<
   () => unknown[],
   <T extends TypedSpecifierWithType<'some-specifier'>>(
     specifier: T,
-  ) => SpecificInjectionToken2<
-    () => TypedSpecifierType<'some-specifier', T>
-  >
+  ) => SpecificInjectionToken2<() => TypedSpecifierType<'some-specifier', T>>
 >({ id: 'some-typed-specifier-token' });
 
 const someTypedSpecifier = getTypedSpecifier<{

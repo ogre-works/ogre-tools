@@ -75,9 +75,7 @@ describe('getInjectionTokenComponent', () => {
 
     di.register(someImplementation);
 
-    rendered = mount(
-      <SomeTokenComponent>some-children</SomeTokenComponent>,
-    );
+    rendered = mount(<SomeTokenComponent>some-children</SomeTokenComponent>);
 
     expect(rendered.baseElement).toMatchInlineSnapshot(`
       <body>

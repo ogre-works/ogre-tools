@@ -47,7 +47,9 @@ describe('factory-shape computed-inject-2 variants', () => {
 
         di.register(firstImpl);
 
-        const computedInjectMany2 = di.inject2(computedInjectMany2InjectionToken);
+        const computedInjectMany2 = di.inject2(
+          computedInjectMany2InjectionToken,
+        );
         const factoryForToken = computedInjectMany2(someToken);
 
         observed = [];
@@ -115,9 +117,9 @@ describe('factory-shape computed-inject-2 variants', () => {
 
         di.register(firstTupleImpl);
 
-        const factoryForToken = di.inject2(
-          computedInjectMany2InjectionToken,
-        )(tupleToken2);
+        const factoryForToken = di.inject2(computedInjectMany2InjectionToken)(
+          tupleToken2,
+        );
 
         observed = [];
         stop = autorun(() => {
