@@ -461,11 +461,15 @@ describe('createContainer.keyed-singleton', () => {
       });
 
       it('the first matching entry yields a new instance', () => {
-        expect(di.inject(injectable, getCompositeKey('a', 'b', 'c'))).not.toBe(abc);
+        expect(di.inject(injectable, getCompositeKey('a', 'b', 'c'))).not.toBe(
+          abc,
+        );
       });
 
       it('the second matching entry yields a new instance', () => {
-        expect(di.inject(injectable, getCompositeKey('a', 'b', 'd'))).not.toBe(abd);
+        expect(di.inject(injectable, getCompositeKey('a', 'b', 'd'))).not.toBe(
+          abd,
+        );
       });
 
       it('the non-matching entry yields the same instance', () => {

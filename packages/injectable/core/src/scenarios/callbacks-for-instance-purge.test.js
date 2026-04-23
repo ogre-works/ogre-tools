@@ -72,10 +72,11 @@ describe('callbacks-for-instance-purge', () => {
           asPurgeCallbackInjectable(
             'purge-callback',
             greetInjectable2,
-            ({ instance }) => (name, greeting) => {
-              innerArgs(instance, name, greeting);
-              return instance;
-            },
+            ({ instance }) =>
+              (name, greeting) => {
+                innerArgs(instance, name, greeting);
+                return instance;
+              },
           ),
           greetInjectable2,
         );
@@ -128,10 +129,11 @@ describe('callbacks-for-instance-purge', () => {
           asPurgeCallbackInjectable(
             'purge-callback',
             handlerToken2,
-            ({ instance }) => name => {
-              innerArgs(instance, name);
-              return instance;
-            },
+            ({ instance }) =>
+              name => {
+                innerArgs(instance, name);
+                return instance;
+              },
           ),
           implA,
           implB,
@@ -209,10 +211,11 @@ describe('callbacks-for-instance-purge', () => {
           asPurgeCallbackInjectable(
             'purge-callback',
             keyedInjectable,
-            ({ instance }) => key => {
-              innerArgs(instance, key);
-              return instance;
-            },
+            ({ instance }) =>
+              key => {
+                innerArgs(instance, key);
+                return instance;
+              },
           ),
           keyedInjectable,
         );
@@ -336,20 +339,12 @@ describe('callbacks-for-instance-purge', () => {
         });
 
         di.register(
-          asPurgeCallbackInjectable(
-            'purge-callback-for-a',
-            peerA,
-            () => () => {
-              observedBFromACallback = di.inject(peerB);
-            },
-          ),
-          asPurgeCallbackInjectable(
-            'purge-callback-for-b',
-            peerB,
-            () => () => {
-              observedAFromBCallback = di.inject(peerA);
-            },
-          ),
+          asPurgeCallbackInjectable('purge-callback-for-a', peerA, () => () => {
+            observedBFromACallback = di.inject(peerB);
+          }),
+          asPurgeCallbackInjectable('purge-callback-for-b', peerB, () => () => {
+            observedAFromBCallback = di.inject(peerA);
+          }),
           peerA,
           peerB,
         );
@@ -490,9 +485,7 @@ describe('callbacks-for-instance-purge', () => {
     describe('when injecting the base token directly', () => {
       it('throws an abstract error', () => {
         const di = createContainer('some-container');
-        expect(() => di.inject(instancePurgeCallbackToken)).toThrow(
-          /abstract/,
-        );
+        expect(() => di.inject(instancePurgeCallbackToken)).toThrow(/abstract/);
       });
     });
 

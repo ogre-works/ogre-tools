@@ -124,9 +124,7 @@ describe('getAbstractInjectionToken2', () => {
 
       di.register(outerInjectable);
 
-      expect(() => di.inject(outerInjectable)).toThrow(
-        'but it is abstract',
-      );
+      expect(() => di.inject(outerInjectable)).toThrow('but it is abstract');
     });
 
     it('when registering an injectable with the abstract token as injectionToken, throws', () => {
@@ -168,9 +166,7 @@ describe('getAbstractInjectionToken2', () => {
       });
 
       it('when injecting the level-1 token directly, throws', () => {
-        expect(() => di.inject(level1Token)).toThrow(
-          'but it is abstract',
-        );
+        expect(() => di.inject(level1Token)).toThrow('but it is abstract');
       });
 
       describe('given .for() on the abstract sub-token produces a concrete token with an injectable registered', () => {

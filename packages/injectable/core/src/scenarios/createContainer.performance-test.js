@@ -64,7 +64,6 @@ describe('createContainer.performance', () => {
       expect(p2 - p1).toBeLessThan(200);
     });
   });
-
 });
 
 const someInjectionToken = getInjectionToken({ id: 'some-injection-token' });

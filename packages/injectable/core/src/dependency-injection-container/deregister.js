@@ -56,7 +56,9 @@ export const deregisterFor =
     });
 
     flatInjectables.forEach(injectable => {
-      if (isRelatedToToken(injectable.injectionToken, injectionDecoratorToken)) {
+      if (
+        isRelatedToToken(injectable.injectionToken, injectionDecoratorToken)
+      ) {
         decoratorCache.injection = null;
       }
 
@@ -73,7 +75,9 @@ export const deregisterFor =
         }),
         ...(injectable.injectionToken
           ? injectMany({
-              alias: deregistrationDecoratorToken.for(injectable.injectionToken),
+              alias: deregistrationDecoratorToken.for(
+                injectable.injectionToken,
+              ),
               instantiationParameters: [],
               injectingInjectable: source,
             })

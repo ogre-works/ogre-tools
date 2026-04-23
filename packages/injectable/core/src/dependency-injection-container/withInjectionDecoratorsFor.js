@@ -6,7 +6,11 @@ export const withInjectionDecoratorsFor =
   toBeDecorated =>
   ({ alias, instantiationParameters, injectingInjectable }) => {
     if (alias.decorable === false) {
-      return toBeDecorated({ alias, instantiationParameters, injectingInjectable });
+      return toBeDecorated({
+        alias,
+        instantiationParameters,
+        injectingInjectable,
+      });
     }
 
     // When decoratorCache.injection is null, a decorator was registered or
@@ -51,7 +55,11 @@ export const withInjectionDecoratorsFor =
     }
 
     if (decorated === null) {
-      return toBeDecorated({ alias, instantiationParameters, injectingInjectable });
+      return toBeDecorated({
+        alias,
+        instantiationParameters,
+        injectingInjectable,
+      });
     }
 
     return decorated(...instantiationParameters);

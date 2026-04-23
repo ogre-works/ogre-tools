@@ -21,7 +21,9 @@ describe('createContainer.targeted-decoration', () => {
       injectionToken: injectionDecoratorToken.for(childInjectable),
       decorable: false,
 
-      instantiate: () => () =>
+      instantiate:
+        () =>
+        () =>
         injectToBeDecorated =>
         (...instantiationParameter) => {
           const decoratedInstantiationParameter = instantiationParameter.map(
@@ -63,7 +65,11 @@ describe('createContainer.targeted-decoration', () => {
         let decorateSpy;
 
         beforeEach(() => {
-          decorateSpy = jest.fn(inject => (...params) => inject(...params));
+          decorateSpy = jest.fn(
+            inject =>
+              (...params) =>
+                inject(...params),
+          );
 
           const someInjectable = getInjectable({
             id: 'some-injectable',
@@ -77,7 +83,9 @@ describe('createContainer.targeted-decoration', () => {
             instantiate: () => () => decorateSpy,
           });
 
-          const di = createContainer('some-container', { injectionDecorators: true });
+          const di = createContainer('some-container', {
+            injectionDecorators: true,
+          });
           di.register(decoratorInjectable, someInjectable);
 
           di.inject(someInjectable);
@@ -102,7 +110,11 @@ describe('createContainer.targeted-decoration', () => {
             injectionToken: someToken,
           });
 
-          decorateSpy = jest.fn(inject => (...params) => inject(...params));
+          decorateSpy = jest.fn(
+            inject =>
+              (...params) =>
+                inject(...params),
+          );
 
           const decoratorInjectable = getInjectable2({
             id: 'spy-decorator',
@@ -111,7 +123,9 @@ describe('createContainer.targeted-decoration', () => {
             instantiate: () => () => decorateSpy,
           });
 
-          const di = createContainer('some-container', { injectionDecorators: true });
+          const di = createContainer('some-container', {
+            injectionDecorators: true,
+          });
           di.register(decoratorInjectable, someInjectable);
 
           di.inject(someInjectable);
@@ -136,7 +150,11 @@ describe('createContainer.targeted-decoration', () => {
             injectionToken: someToken,
           });
 
-          decorateSpy = jest.fn(inject => (...params) => inject(...params));
+          decorateSpy = jest.fn(
+            inject =>
+              (...params) =>
+                inject(...params),
+          );
 
           const decoratorInjectable = getInjectable2({
             id: 'spy-decorator',
@@ -145,7 +163,9 @@ describe('createContainer.targeted-decoration', () => {
             instantiate: () => () => decorateSpy,
           });
 
-          const di = createContainer('some-container', { injectionDecorators: true });
+          const di = createContainer('some-container', {
+            injectionDecorators: true,
+          });
           di.register(decoratorInjectable, someInjectable);
 
           di.inject(someInjectable);
@@ -162,7 +182,11 @@ describe('createContainer.targeted-decoration', () => {
         beforeEach(() => {
           const someToken = getInjectionToken({ id: 'some-token' });
 
-          decorateSpy = jest.fn(inject => (...params) => inject(...params));
+          decorateSpy = jest.fn(
+            inject =>
+              (...params) =>
+                inject(...params),
+          );
 
           const decoratorInjectable = getInjectable2({
             id: 'spy-decorator',
@@ -183,7 +207,9 @@ describe('createContainer.targeted-decoration', () => {
             injectionToken: someToken,
           });
 
-          const di = createContainer('some-container', { injectionDecorators: true });
+          const di = createContainer('some-container', {
+            injectionDecorators: true,
+          });
           di.register(decoratorInjectable, implA, implB);
 
           di.injectMany(someToken);
@@ -208,7 +234,11 @@ describe('createContainer.targeted-decoration', () => {
             injectionToken: someToken,
           });
 
-          decorateSpy = jest.fn(inject => (...params) => inject(...params));
+          decorateSpy = jest.fn(
+            inject =>
+              (...params) =>
+                inject(...params),
+          );
 
           const decoratorInjectable = getInjectable2({
             id: 'spy-decorator',
@@ -217,7 +247,9 @@ describe('createContainer.targeted-decoration', () => {
             instantiate: () => () => decorateSpy,
           });
 
-          const di = createContainer('some-container', { injectionDecorators: true });
+          const di = createContainer('some-container', {
+            injectionDecorators: true,
+          });
           di.register(decoratorInjectable, someInjectable);
 
           di.inject(someInjectable);
@@ -237,10 +269,14 @@ describe('createContainer.targeted-decoration', () => {
 
     const decoratorInjectable = getInjectable2({
       id: 'some-injection-token-decorator',
-      injectionToken: injectionDecoratorToken.for(someInjectionTokenForTargetedDecoration),
+      injectionToken: injectionDecoratorToken.for(
+        someInjectionTokenForTargetedDecoration,
+      ),
       decorable: false,
 
-      instantiate: () => () =>
+      instantiate:
+        () =>
+        () =>
         injectToBeDecorated =>
         (...instantiationParameter) => {
           const decoratedParameter = instantiationParameter.map(

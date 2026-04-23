@@ -16,11 +16,10 @@ const asV1Shape = (stub, isV2Target) =>
 
 // v2-shape stub: (di) => (...params) => instance. Unwraps for v1 targets.
 const asV2Shape = (stub, isV2Target) =>
-  isV2Target
-    ? stub
-    : (di, ...params) => stub(di)(...params);
+  isV2Target ? stub : (di, ...params) => stub(di)(...params);
 
-const earlyOverrideImplFor = normalize =>
+const earlyOverrideImplFor =
+  normalize =>
   ({
     getRelatedInjectables,
     alreadyInjected,
