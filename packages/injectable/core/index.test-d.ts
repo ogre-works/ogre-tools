@@ -2,8 +2,6 @@ import { expectAssignable, expectError, expectNotType, expectType } from 'tsd';
 
 import {
   createContainer,
-  createInjectionTargetDecorator,
-  createInstantiationTargetDecorator,
   DiContainer,
   DiContainerForInjection,
   getInjectable,
@@ -41,26 +39,6 @@ const someGetNumberInjectionToken = getInjectionToken<GetNumber>({
   id: 'some-get-number-token',
 });
 
-// given injectable and decorator targeting a token, typing is ok
-const decoratorForToken = getInjectable({
-  id: 'decorator-for-token',
-
-  instantiate: () =>
-    createInstantiationTargetDecorator({
-      target: someGetNumberInjectionToken,
-
-      decorate: toBeDecorated => di => {
-        expectType<Instantiate<GetNumber>>(toBeDecorated);
-
-        const instance = toBeDecorated(di);
-
-        return instance;
-      },
-    }),
-
-  injectionToken: instantiationDecoratorToken,
-});
-
 const foo: unknown = 'number';
 
 if (isInjectable(foo)) {
@@ -78,32 +56,11 @@ if (isInjectableBunch(foo)) {
 const x1: boolean = isInjectable(foo);
 const x2: boolean = isInjectionToken(foo);
 
-// given injectable without instantiation paramater and decorator targeting the injectable, typing is ok
 const someInjectableToBeDecorated = getInjectable({
   id: 'some-injectable-to-be-decorated',
   instantiate: () => () => 42,
 });
 
-const decoratorForInjectable = getInjectable({
-  id: 'decorator-for-injectable',
-
-  instantiate: () =>
-    createInstantiationTargetDecorator({
-      target: someInjectableToBeDecorated,
-
-      decorate: toBeDecorated => di => {
-        expectType<Instantiate<() => 42>>(toBeDecorated);
-
-        const instance = toBeDecorated(di);
-
-        return instance;
-      },
-    }),
-
-  injectionToken: instantiationDecoratorToken,
-});
-
-// given injectable with instantiation parameter and decorator targeting the injectable, typing is ok
 const someParameterInjectableToBeDecorated = getInjectable({
   id: 'some-parameter-injectable-to-be-decorated',
   instantiate: (di, parameter: number) => `some-instance-${parameter}`,
@@ -113,64 +70,6 @@ const someParameterInjectableToBeDecorated = getInjectable({
 expectType<Injectable<string, unknown, number>>(
   someParameterInjectableToBeDecorated,
 );
-
-const decoratorForParameterInjectable = getInjectable({
-  id: 'decorator-for-parameter-injectable',
-
-  instantiate: () =>
-    createInstantiationTargetDecorator({
-      target: someParameterInjectableToBeDecorated,
-
-      decorate: toBeDecorated => (di, param) => {
-        expectType<number>(param);
-        expectType<Instantiate<string, number>>(toBeDecorated);
-
-        const instance = toBeDecorated(di, param);
-
-        return instance;
-      },
-    }),
-
-  injectionToken: instantiationDecoratorToken,
-});
-
-const decoratorWithoutTargetInjectable = getInjectable({
-  id: 'decorator-without-target',
-
-  instantiate: () =>
-    createInstantiationTargetDecorator({
-      decorate: toBeDecorated => (di, param) => {
-        expectType<unknown>(param);
-        expectType<Instantiate<unknown, unknown>>(toBeDecorated);
-
-        const instance = toBeDecorated(di, param);
-
-        return instance;
-      },
-    }),
-
-  injectionToken: instantiationDecoratorToken,
-});
-
-const decoratorForInjectionParameterInjectable = getInjectable({
-  id: 'decorator-for-parameter-injectable',
-
-  instantiate: () =>
-    createInjectionTargetDecorator({
-      decorate: injectionToBeDecorated => (key, param) => {
-        expectType<SpecificInject<unknown, unknown>>(injectionToBeDecorated);
-        expectType<
-          | Injectable<unknown, unknown, unknown>
-          | InjectionToken<unknown, unknown>
-        >(key);
-        expectType<unknown>(param);
-
-        return injectionToBeDecorated(key, param);
-      },
-    }),
-
-  injectionToken: injectionDecoratorToken,
-});
 
 type SomeKey<T, P> = TypedSpecifier<string, { value: T; param: P }>;
 
@@ -193,26 +92,6 @@ const injectableFor = <T, P>(id: SomeKey<T, P>, lifecycle: Lifecycle<P>) =>
     injectionToken: somethingInjectionToken.for(id),
     lifecycle,
   });
-
-const decoratorForSpecificInjectionParameterInjectable = getInjectable({
-  id: 'decorator-for-parameter-injectable',
-
-  instantiate: () =>
-    createInjectionTargetDecorator({
-      decorate: injectionToBeDecorated => (key, param) => {
-        expectType<SpecificInject<string, number>>(injectionToBeDecorated);
-        expectType<
-          Injectable<string, unknown, number> | InjectionToken<string, number>
-        >(key);
-        expectType<number>(param);
-
-        return injectionToBeDecorated(key, param);
-      },
-      target: someParameterInjectableToBeDecorated,
-    }),
-
-  injectionToken: injectionDecoratorToken,
-});
 
 // given injectable with unspecified type for instantiation parameter, argument typing is OK
 const someInjectableForTypingOfInstantiate = getInjectable({
@@ -1015,46 +894,46 @@ const innerInjectable2 = getInjectable2({
   id: 'inner',
   instantiate: (di: DiContainerForInjection2) => {
     // new-style injectable2 → returns factory directly
-    const getParametric = di.inject2(parametricInjectable2);
+    const getParametric = di.inject(parametricInjectable2);
     expectType<(name: string, age: number) => { name: string; age: number }>(
       getParametric,
     );
 
     // new-style token2 → returns factory directly
-    const getHandler = di.inject2(handlerToken2);
+    const getHandler = di.inject(handlerToken2);
     expectType<() => string>(getHandler);
 
     // old-style injectable without param → wrapped in () => I factory
-    const getOldSingleton = di.inject2(someInjectableToBeDecorated);
+    const getOldSingleton = di.inject(someInjectableToBeDecorated);
     expectType<() => () => 42>(getOldSingleton);
 
     // old-style injectable with param → wrapped in (param: P) => I factory
-    const getOldParam = di.inject2(someParameterInjectableToBeDecorated);
+    const getOldParam = di.inject(someParameterInjectableToBeDecorated);
     expectType<(param: number) => string>(getOldParam);
 
     // old-style token without param → wrapped in () => I factory
-    const getOldTokenValue = di.inject2(someGetNumberInjectionToken);
+    const getOldTokenValue = di.inject(someGetNumberInjectionToken);
     expectType<() => GetNumber>(getOldTokenValue);
 
     return () => 'result';
   },
 });
 
-// --- DiContainerForInjection2: injectMany2 returns ManyFactory inside new-style ---
+// --- DiContainerForInjection2: injectMany returns ManyFactory inside new-style ---
 
 const innerWithInjectMany = getInjectable2({
   id: 'inner-many',
   instantiate: (di: DiContainerForInjection2) => {
     // token2 → returns ManyFactory
-    const getHandlers = di.injectMany2(handlerToken2);
+    const getHandlers = di.injectMany(handlerToken2);
     expectType<() => string[]>(getHandlers);
 
     // token2 with explicit ManyFactory → returns the explicit ManyFactory
-    const getWrappers = di.injectMany2(wrapperToken2);
+    const getWrappers = di.injectMany(wrapperToken2);
     expectType<WrapperManyFactory>(getWrappers);
 
     // old-style token without param → returns () => I[]
-    const getOldMany = di.injectMany2(someGetNumberInjectionToken);
+    const getOldMany = di.injectMany(someGetNumberInjectionToken);
     expectType<() => GetNumber[]>(getOldMany);
 
     return () => 'result';
@@ -1131,14 +1010,14 @@ expectType<InjectionInstanceWithMeta<{ id: string }>[]>(
   di.injectManyWithMeta(userServiceToken2, 'user-123'),
 );
 
-// Inside new-style: injectWithMeta2 for non-generic returns factory for meta wrapper
+// Inside new-style: injectWithMeta for non-generic returns factory for meta wrapper
 const innerWithMeta = getInjectable2({
   id: 'inner-with-meta',
   instantiate: (di: DiContainerForInjection2) => {
-    const getHandlerMeta = di.injectWithMeta2(handlerToken2);
+    const getHandlerMeta = di.injectWithMeta(handlerToken2);
     expectType<() => InjectionInstanceWithMeta<string>>(getHandlerMeta);
 
-    const getHandlersMeta = di.injectManyWithMeta2(handlerToken2);
+    const getHandlersMeta = di.injectManyWithMeta(handlerToken2);
     expectType<() => InjectionInstanceWithMeta<string>[]>(getHandlersMeta);
 
     return () => {};
@@ -1237,9 +1116,9 @@ expectError(
   })),
 );
 
-// injectable2: stub receives DiContainerForInjection2 (inject2 returns factories)
+// injectable2: stub receives DiContainerForInjection2 (inject returns factories)
 di.override2(parametricInjectable2, di => {
-  const getHandler = di.inject2(handlerToken2);
+  const getHandler = di.inject(handlerToken2);
   expectType<() => string>(getHandler);
   return (name, age) => ({ name, age });
 });
