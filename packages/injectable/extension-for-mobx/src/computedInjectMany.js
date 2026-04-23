@@ -158,7 +158,7 @@ const computedInjectMany2InjectableFor = ({
       injectionToken =>
       (...args) =>
         di
-          .inject(reactiveInstances, {
+          .inject(reactiveInstances)({
             injectionToken,
             args,
           })
