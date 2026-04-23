@@ -1,19 +1,100 @@
 import { getNamespacedIdFor } from './getNamespacedIdFor';
-import { registrationCallbackToken } from './tokens';
+import {
+  registrationCallbackToken,
+  registrationDecoratorToken,
+} from './tokens';
 import toFlatInjectables from './toFlatInjectables';
 import { CompositeMap } from '../composite-map/composite-map';
 import { LruCompositeMap } from '../composite-map/lru-composite-map';
-import { getRelatedTokens } from './getRelatedTokens';
+import { getRelatedTokens, isRelatedToToken } from './getRelatedTokens';
 import { invalidateRelatedInjectablesCache } from './getRelatedInjectablesFor';
+import flow from './fastFlow';
 
 export const registerFor =
   ({ registerSingle, injectMany }) =>
   ({ injectables, context, source }) => {
     const flatInjectables = toFlatInjectables(injectables);
 
+    const registeredDecoratorInjectables = [];
+    const nonDecoratorInjectables = [];
+
     for (let i = 0; i < flatInjectables.length; i++) {
-      registerSingle(flatInjectables[i], context);
+      const injectable = flatInjectables[i];
+
+      if (
+        isRelatedToToken(injectable.injectionToken, registrationDecoratorToken)
+      ) {
+        registerSingle(injectable, context);
+        registeredDecoratorInjectables.push(injectable);
+      } else {
+        nonDecoratorInjectables.push(injectable);
+      }
     }
+
+    let batchInProgress = true;
+    const registeredInjectables = [];
+
+    const fireCallbacksFor = injectable => {
+      const callbacks = injectMany({
+        alias: registrationCallbackToken,
+        instantiationParameters: [],
+        injectingInjectable: source,
+      });
+
+      for (let j = 0; j < callbacks.length; j++) {
+        callbacks[j](injectable);
+      }
+    };
+
+    nonDecoratorInjectables.forEach(injectable => {
+      if (injectable.decorable === false) {
+        registerSingle(injectable, context);
+        registeredInjectables.push(injectable);
+        return;
+      }
+
+      const decorators = [
+        ...injectMany({
+          alias: registrationDecoratorToken.for(injectable),
+          instantiationParameters: [],
+          injectingInjectable: source,
+        }),
+        ...(injectable.injectionToken
+          ? injectMany({
+              alias: registrationDecoratorToken.for(injectable.injectionToken),
+              instantiationParameters: [],
+              injectingInjectable: source,
+            })
+          : []),
+      ];
+
+      if (decorators.length === 0) {
+        registerSingle(injectable, context);
+        registeredInjectables.push(injectable);
+        return;
+      }
+
+      let wasRegisteredThisInjectable = false;
+
+      const boundRegisterSingle = inj => {
+        registerSingle(inj, context);
+        wasRegisteredThisInjectable = true;
+
+        if (!batchInProgress) {
+          fireCallbacksFor(inj);
+        }
+      };
+
+      const decoratedRegister = flow(...decorators)(boundRegisterSingle);
+
+      decoratedRegister(injectable);
+
+      if (wasRegisteredThisInjectable) {
+        registeredInjectables.push(injectable);
+      }
+    });
+
+    batchInProgress = false;
 
     const callbacks = injectMany({
       alias: registrationCallbackToken,
@@ -21,13 +102,14 @@ export const registerFor =
       injectingInjectable: source,
     });
 
-    for (let i = 0; i < flatInjectables.length; i++) {
-      const injectable = flatInjectables[i];
-
+    const fireBatchCallbacks = injectable => {
       for (let j = 0; j < callbacks.length; j++) {
         callbacks[j](injectable);
       }
-    }
+    };
+
+    registeredDecoratorInjectables.forEach(fireBatchCallbacks);
+    registeredInjectables.forEach(fireBatchCallbacks);
   };
 
 export const registerSingleFor = ({

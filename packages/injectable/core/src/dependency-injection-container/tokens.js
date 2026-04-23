@@ -32,3 +32,17 @@ export const instancePurgeCallbackToken = getAbstractInjectionToken2({
   specificInjectionTokenFactory: target =>
     getSpecificInjectionToken2({ id: target.id, speciality: target }),
 });
+
+export const registrationDecoratorToken = getAbstractInjectionToken2({
+  id: 'registration-decorator-token',
+  decorable: false,
+  specificInjectionTokenFactory: target =>
+    getSpecificInjectionToken2({ id: target.id, speciality: target }),
+});
+
+export const deregistrationDecoratorToken = getAbstractInjectionToken2({
+  id: 'deregistration-decorator-token',
+  decorable: false,
+  specificInjectionTokenFactory: target =>
+    getSpecificInjectionToken2({ id: target.id, speciality: target }),
+});

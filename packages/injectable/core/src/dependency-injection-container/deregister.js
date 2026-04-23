@@ -1,11 +1,13 @@
 import {
   deregistrationCallbackToken,
+  deregistrationDecoratorToken,
   injectionDecoratorToken,
 } from './tokens';
 import toFlatInjectables from './toFlatInjectables';
 import isInjectionToken from '../getInjectionToken/isInjectionToken';
 import { getRelatedTokens, isRelatedToToken } from './getRelatedTokens';
 import { invalidateRelatedInjectablesCache } from './getRelatedInjectablesFor';
+import flow from './fastFlow';
 
 export const deregisterFor =
   ({
@@ -58,7 +60,34 @@ export const deregisterFor =
         decoratorCache.injection = null;
       }
 
-      deregisterSingle(injectable);
+      if (injectable.decorable === false) {
+        deregisterSingle(injectable);
+        return;
+      }
+
+      const decorators = [
+        ...injectMany({
+          alias: deregistrationDecoratorToken.for(injectable),
+          instantiationParameters: [],
+          injectingInjectable: source,
+        }),
+        ...(injectable.injectionToken
+          ? injectMany({
+              alias: deregistrationDecoratorToken.for(injectable.injectionToken),
+              instantiationParameters: [],
+              injectingInjectable: source,
+            })
+          : []),
+      ];
+
+      if (decorators.length === 0) {
+        deregisterSingle(injectable);
+        return;
+      }
+
+      const decoratedDeregister = flow(...decorators)(deregisterSingle);
+
+      decoratedDeregister(injectable);
     });
   };
 

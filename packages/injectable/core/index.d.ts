@@ -441,6 +441,40 @@ export const instantiationDecoratorToken: AbstractInjectionToken2<
   InstantiationDecoratorSpecificFactory
 >;
 
+// --- registrationDecoratorToken ---
+//
+// Abstract token for decorating registration. Decorators must be registered
+// against a target via `.for(target)` where target is an Injectable, Injectable2,
+// InjectionToken, or InjectionToken2. The decorator receives the bound register
+// call and may call it (to proceed), skip it (to prevent registration), or
+// store it for deferred invocation.
+
+export type RegistrationDecorator = () =>
+  (register: (injectable: Injectable<any, any, any> | Injectable2<any>) => void)
+    => (injectable: Injectable<any, any, any> | Injectable2<any>) => void;
+
+export interface RegistrationDecoratorSpecificFactory {
+  <Factory extends (...args: any[]) => any>(
+    target: Injectable2<Factory> | InjectionToken2<Factory>,
+  ): SpecificInjectionToken2<RegistrationDecorator>;
+
+  <InjectionInstance, InstantiationParam = void>(
+    target: Injectable<InjectionInstance, any, InstantiationParam> | InjectionToken<InjectionInstance, InstantiationParam>,
+  ): SpecificInjectionToken2<RegistrationDecorator>;
+}
+
+export const registrationDecoratorToken: AbstractInjectionToken2<
+  (...args: any[]) => any,
+  (...args: any[]) => any[],
+  RegistrationDecoratorSpecificFactory
+>;
+
+export const deregistrationDecoratorToken: AbstractInjectionToken2<
+  (...args: any[]) => any,
+  (...args: any[]) => any[],
+  RegistrationDecoratorSpecificFactory
+>;
+
 export const registrationCallbackToken: RegistrationCallback;
 export const deregistrationCallbackToken: RegistrationCallback;
 

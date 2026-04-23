@@ -32,10 +32,12 @@ export const getKeyedSingletonCompositeKey = getCompositeKey;
 
 export {
   deregistrationCallbackToken,
+  deregistrationDecoratorToken,
   injectionDecoratorToken,
   instancePurgeCallbackToken,
   instantiationDecoratorToken,
   registrationCallbackToken,
+  registrationDecoratorToken,
 } from './src/dependency-injection-container/tokens';
 
 export {
