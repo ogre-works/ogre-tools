@@ -83,6 +83,22 @@ export declare function getInjectableComponent<
   },
 ): InjectableComponent<Component>;
 
+export type InjectableComponent2<Component extends React.ComponentType<any>> =
+  Component & Injectable2<() => Component>;
+
+type ExcludedKeys2 = 'aliasType' | 'instantiate' | 'decorable' | 'injectionToken';
+
+export declare function getInjectableComponent2<
+  Component extends React.ComponentType<any>
+>(
+  injectable: Omit<Injectable2<() => Component>, ExcludedKeys2> & {
+    id: string;
+    Component: Component;
+    PlaceholderComponent?: React.ComponentType<React.ComponentProps<Component>>;
+    injectionToken?: InjectionToken2<() => Component> & { readonly __abstract?: never };
+  },
+): InjectableComponent2<Component>;
+
 export type SpecificInjectionTokenComponent<
   Component extends React.ComponentType<any>,
 > = Component & SpecificInjectionToken2<() => Component>;
