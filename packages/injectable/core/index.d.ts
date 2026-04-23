@@ -216,7 +216,7 @@ export interface Inject2 {
   <F extends (...args: any[]) => any>(alias: Injectable2<F>): F;
   <F extends (...args: any[]) => any>(alias: InjectionToken2<F> & { readonly __abstract?: never }): F;
   <I>(alias: Injectable<I, any> | InjectionToken<I>): () => I;
-  <I, P>(alias: Injectable<I, any, P> | InjectionToken<I, P>): (...params: P extends any[] ? P : [P]) => I;
+  <I, P>(alias: Injectable<I, any, P> | InjectionToken<I, P>): (...params: [P]) => I;
 }
 
 type TuplePrefix<T extends any[]> = T extends [infer First, ...infer Rest]
