@@ -1,5 +1,5 @@
 import React, { forwardRef, Suspense } from 'react';
-import { getInjectionToken2 } from '@lensapp/injectable';
+import { getInjectionToken } from '@lensapp/injectable';
 import { useInject } from '../useInject/useInject';
 
 export const getInjectionTokenComponent = ({
@@ -23,7 +23,7 @@ export const getInjectionTokenComponent = ({
     );
   });
 
-  TokenComponent = getInjectionToken2({
+  TokenComponent = getInjectionToken({
     id,
     decorable,
     target: ComponentForReact,

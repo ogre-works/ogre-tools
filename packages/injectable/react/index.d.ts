@@ -101,7 +101,7 @@ export declare function getInjectableComponent2<
 
 export type SpecificInjectionTokenComponent<
   Component extends React.ComponentType<any>,
-> = Component & SpecificInjectionToken2<() => Component>;
+> = Component & SpecificInjectionToken<Component>;
 
 export type InjectionTokenComponent<
   Component extends React.ComponentType<any>,
@@ -110,7 +110,7 @@ export type InjectionTokenComponent<
   ) => SpecificInjectionTokenComponent<Component> = (
     id: string,
   ) => SpecificInjectionTokenComponent<Component>,
-> = Component & InjectionToken2<() => Component, () => Component[], SpecificFactory>;
+> = Component & InjectionToken<Component, void, SpecificFactory>;
 
 export declare function getInjectionTokenComponent<
   Component extends React.ComponentType<any>,
