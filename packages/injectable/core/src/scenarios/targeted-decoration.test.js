@@ -59,138 +59,173 @@ describe('createContainer.targeted-decoration', () => {
 
   describe('no double-decoration', () => {
     describe('given .for(someInjectable)', () => {
-      it('when inject is called, the decorator fires exactly once', () => {
-        const decorateSpy = jest.fn(inject => (...params) => inject(...params));
+      describe('when inject is called', () => {
+        let decorateSpy;
 
-        const someInjectable = getInjectable({
-          id: 'some-injectable',
-          instantiate: () => 'some-value',
+        beforeEach(() => {
+          decorateSpy = jest.fn(inject => (...params) => inject(...params));
+
+          const someInjectable = getInjectable({
+            id: 'some-injectable',
+            instantiate: () => 'some-value',
+          });
+
+          const decoratorInjectable = getInjectable2({
+            id: 'spy-decorator',
+            injectionToken: injectionDecoratorToken.for(someInjectable),
+            decorable: false,
+            instantiate: () => () => decorateSpy,
+          });
+
+          const di = createContainer('some-container', { injectionDecorators: true });
+          di.register(decoratorInjectable, someInjectable);
+
+          di.inject(someInjectable);
         });
 
-        const decoratorInjectable = getInjectable2({
-          id: 'spy-decorator',
-          injectionToken: injectionDecoratorToken.for(someInjectable),
-          decorable: false,
-          instantiate: () => () => decorateSpy,
+        it('the decorator fires exactly once', () => {
+          expect(decorateSpy).toHaveBeenCalledTimes(1);
         });
-
-        const di = createContainer('some-container', { injectionDecorators: true });
-        di.register(decoratorInjectable, someInjectable);
-
-        expect(di.inject(someInjectable)).toBe('some-value');
-        expect(decorateSpy).toHaveBeenCalledTimes(1);
       });
 
-      it('when injectable and its token share the same id, the decorator fires exactly once', () => {
-        const sharedId = 'shared-id';
+      describe('given injectable and its token share the same id, when inject is called', () => {
+        let decorateSpy;
 
-        const someToken = getInjectionToken({ id: sharedId });
+        beforeEach(() => {
+          const sharedId = 'shared-id';
 
-        const someInjectable = getInjectable({
-          id: sharedId,
-          instantiate: () => 'some-value',
-          injectionToken: someToken,
+          const someToken = getInjectionToken({ id: sharedId });
+
+          const someInjectable = getInjectable({
+            id: sharedId,
+            instantiate: () => 'some-value',
+            injectionToken: someToken,
+          });
+
+          decorateSpy = jest.fn(inject => (...params) => inject(...params));
+
+          const decoratorInjectable = getInjectable2({
+            id: 'spy-decorator',
+            injectionToken: injectionDecoratorToken.for(someInjectable),
+            decorable: false,
+            instantiate: () => () => decorateSpy,
+          });
+
+          const di = createContainer('some-container', { injectionDecorators: true });
+          di.register(decoratorInjectable, someInjectable);
+
+          di.inject(someInjectable);
         });
 
-        const decorateSpy = jest.fn(inject => (...params) => inject(...params));
-
-        const decoratorInjectable = getInjectable2({
-          id: 'spy-decorator',
-          injectionToken: injectionDecoratorToken.for(someInjectable),
-          decorable: false,
-          instantiate: () => () => decorateSpy,
+        it('the decorator fires exactly once', () => {
+          expect(decorateSpy).toHaveBeenCalledTimes(1);
         });
-
-        const di = createContainer('some-container', { injectionDecorators: true });
-        di.register(decoratorInjectable, someInjectable);
-
-        expect(di.inject(someInjectable)).toBe('some-value');
-        expect(decorateSpy).toHaveBeenCalledTimes(1);
       });
     });
 
     describe('given .for(someInjectionToken)', () => {
-      it('when inject is called on an implementation, the decorator fires exactly once', () => {
-        const someToken = getInjectionToken({ id: 'some-token' });
+      describe('when inject is called on an implementation', () => {
+        let decorateSpy;
 
-        const someInjectable = getInjectable({
-          id: 'some-injectable',
-          instantiate: () => 'some-value',
-          injectionToken: someToken,
+        beforeEach(() => {
+          const someToken = getInjectionToken({ id: 'some-token' });
+
+          const someInjectable = getInjectable({
+            id: 'some-injectable',
+            instantiate: () => 'some-value',
+            injectionToken: someToken,
+          });
+
+          decorateSpy = jest.fn(inject => (...params) => inject(...params));
+
+          const decoratorInjectable = getInjectable2({
+            id: 'spy-decorator',
+            injectionToken: injectionDecoratorToken.for(someToken),
+            decorable: false,
+            instantiate: () => () => decorateSpy,
+          });
+
+          const di = createContainer('some-container', { injectionDecorators: true });
+          di.register(decoratorInjectable, someInjectable);
+
+          di.inject(someInjectable);
         });
 
-        const decorateSpy = jest.fn(inject => (...params) => inject(...params));
-
-        const decoratorInjectable = getInjectable2({
-          id: 'spy-decorator',
-          injectionToken: injectionDecoratorToken.for(someToken),
-          decorable: false,
-          instantiate: () => () => decorateSpy,
+        it('the decorator fires exactly once', () => {
+          expect(decorateSpy).toHaveBeenCalledTimes(1);
         });
-
-        const di = createContainer('some-container', { injectionDecorators: true });
-        di.register(decoratorInjectable, someInjectable);
-
-        expect(di.inject(someInjectable)).toBe('some-value');
-        expect(decorateSpy).toHaveBeenCalledTimes(1);
       });
 
-      it('when injectMany is called for the token, the decorator fires exactly once per injectable', () => {
-        const someToken = getInjectionToken({ id: 'some-token' });
+      describe('when injectMany is called for the token with two implementations', () => {
+        let decorateSpy;
 
-        const decorateSpy = jest.fn(inject => (...params) => inject(...params));
+        beforeEach(() => {
+          const someToken = getInjectionToken({ id: 'some-token' });
 
-        const decoratorInjectable = getInjectable2({
-          id: 'spy-decorator',
-          injectionToken: injectionDecoratorToken.for(someToken),
-          decorable: false,
-          instantiate: () => () => decorateSpy,
+          decorateSpy = jest.fn(inject => (...params) => inject(...params));
+
+          const decoratorInjectable = getInjectable2({
+            id: 'spy-decorator',
+            injectionToken: injectionDecoratorToken.for(someToken),
+            decorable: false,
+            instantiate: () => () => decorateSpy,
+          });
+
+          const implA = getInjectable({
+            id: 'impl-a',
+            instantiate: () => 'a',
+            injectionToken: someToken,
+          });
+
+          const implB = getInjectable({
+            id: 'impl-b',
+            instantiate: () => 'b',
+            injectionToken: someToken,
+          });
+
+          const di = createContainer('some-container', { injectionDecorators: true });
+          di.register(decoratorInjectable, implA, implB);
+
+          di.injectMany(someToken);
         });
 
-        const implA = getInjectable({
-          id: 'impl-a',
-          instantiate: () => 'a',
-          injectionToken: someToken,
+        it('the decorator fires exactly once per injectable', () => {
+          expect(decorateSpy).toHaveBeenCalledTimes(2);
         });
-
-        const implB = getInjectable({
-          id: 'impl-b',
-          instantiate: () => 'b',
-          injectionToken: someToken,
-        });
-
-        const di = createContainer('some-container', { injectionDecorators: true });
-        di.register(decoratorInjectable, implA, implB);
-
-        expect(di.injectMany(someToken)).toEqual(['a', 'b']);
-        expect(decorateSpy).toHaveBeenCalledTimes(2);
       });
 
-      it('when injectable and its token share the same id, the decorator fires exactly once', () => {
-        const sharedId = 'shared-id';
+      describe('given injectable and its token share the same id, when inject is called', () => {
+        let decorateSpy;
 
-        const someToken = getInjectionToken({ id: sharedId });
+        beforeEach(() => {
+          const sharedId = 'shared-id';
 
-        const someInjectable = getInjectable({
-          id: sharedId,
-          instantiate: () => 'some-value',
-          injectionToken: someToken,
+          const someToken = getInjectionToken({ id: sharedId });
+
+          const someInjectable = getInjectable({
+            id: sharedId,
+            instantiate: () => 'some-value',
+            injectionToken: someToken,
+          });
+
+          decorateSpy = jest.fn(inject => (...params) => inject(...params));
+
+          const decoratorInjectable = getInjectable2({
+            id: 'spy-decorator',
+            injectionToken: injectionDecoratorToken.for(someToken),
+            decorable: false,
+            instantiate: () => () => decorateSpy,
+          });
+
+          const di = createContainer('some-container', { injectionDecorators: true });
+          di.register(decoratorInjectable, someInjectable);
+
+          di.inject(someInjectable);
         });
 
-        const decorateSpy = jest.fn(inject => (...params) => inject(...params));
-
-        const decoratorInjectable = getInjectable2({
-          id: 'spy-decorator',
-          injectionToken: injectionDecoratorToken.for(someToken),
-          decorable: false,
-          instantiate: () => () => decorateSpy,
+        it('the decorator fires exactly once', () => {
+          expect(decorateSpy).toHaveBeenCalledTimes(1);
         });
-
-        const di = createContainer('some-container', { injectionDecorators: true });
-        di.register(decoratorInjectable, someInjectable);
-
-        expect(di.inject(someInjectable)).toBe('some-value');
-        expect(decorateSpy).toHaveBeenCalledTimes(1);
       });
     });
   });

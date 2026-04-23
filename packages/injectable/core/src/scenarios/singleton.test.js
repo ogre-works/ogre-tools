@@ -120,28 +120,45 @@ describe('createContainer.singleton', () => {
     );
   });
 
-  it('given a singleton and injected with only undefined args, tolerates it and returns cached instance', () => {
-    let instantiationCount = 0;
+  describe('given a singleton injected with only undefined args', () => {
+    let singletonInjectable;
+    let di;
+    let instantiationCount;
+    let actual1;
+    let actual2;
+    let actual3;
 
-    const singletonInjectable = getInjectable({
-      id: 'some-injectable',
-      instantiate: () => {
-        instantiationCount++;
-        return {};
-      },
-      lifecycle: lifecycleEnum.singleton,
+    beforeEach(() => {
+      instantiationCount = 0;
+
+      singletonInjectable = getInjectable({
+        id: 'some-injectable',
+        instantiate: () => {
+          instantiationCount++;
+          return {};
+        },
+        lifecycle: lifecycleEnum.singleton,
+      });
+
+      di = createContainer('some-container');
+
+      di.register(singletonInjectable);
+
+      actual1 = di.inject(singletonInjectable, undefined);
+      actual2 = di.inject(singletonInjectable, undefined);
+      actual3 = di.inject(singletonInjectable);
     });
 
-    const di = createContainer('some-container');
+    it('when injected twice with undefined, returns the same instance', () => {
+      expect(actual1).toBe(actual2);
+    });
 
-    di.register(singletonInjectable);
+    it('when injected with undefined and then without args, returns the same instance', () => {
+      expect(actual2).toBe(actual3);
+    });
 
-    const actual1 = di.inject(singletonInjectable, undefined);
-    const actual2 = di.inject(singletonInjectable, undefined);
-    const actual3 = di.inject(singletonInjectable);
-
-    expect(actual1).toBe(actual2);
-    expect(actual2).toBe(actual3);
-    expect(instantiationCount).toBe(1);
+    it('instantiates only once', () => {
+      expect(instantiationCount).toBe(1);
+    });
   });
 });

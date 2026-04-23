@@ -31,38 +31,48 @@ describe('factory-shape computed-inject-2 variants', () => {
   });
 
   describe('computedInjectMany2', () => {
-    it('given v1 token, fn(token)() returns the instance array and reacts to registrations', () => {
-      const someToken = getInjectionToken({ id: 'many-2-v1-token' });
+    describe('given v1 token with one impl registered and autorun observing', () => {
+      let someToken;
+      let observed;
+      let stop;
 
-      const firstImpl = getInjectable({
-        id: 'first-impl',
-        instantiate: () => 'first',
-        injectionToken: someToken,
+      beforeEach(() => {
+        someToken = getInjectionToken({ id: 'many-2-v1-token' });
+
+        const firstImpl = getInjectable({
+          id: 'first-impl',
+          instantiate: () => 'first',
+          injectionToken: someToken,
+        });
+
+        di.register(firstImpl);
+
+        const computedInjectMany2 = di.inject2(computedInjectMany2InjectionToken);
+        const factoryForToken = computedInjectMany2(someToken);
+
+        observed = [];
+        stop = autorun(() => {
+          observed.push([...factoryForToken()]);
+        });
       });
 
-      di.register(firstImpl);
+      afterEach(() => stop());
 
-      const computedInjectMany2 = di.inject2(computedInjectMany2InjectionToken);
-      const factoryForToken = computedInjectMany2(someToken);
-
-      const observed = [];
-      const stop = autorun(() => {
-        observed.push([...factoryForToken()]);
+      it('fn(token)() returns the instance array', () => {
+        expect(observed).toEqual([['first']]);
       });
 
-      expect(observed).toEqual([['first']]);
+      it('when a second impl is registered, fn(token)() reacts to the registration', () => {
+        const secondImpl = getInjectable({
+          id: 'second-impl',
+          instantiate: () => 'second',
+          injectionToken: someToken,
+        });
 
-      const secondImpl = getInjectable({
-        id: 'second-impl',
-        instantiate: () => 'second',
-        injectionToken: someToken,
+        runInAction(() => di.register(secondImpl));
+
+        expect(observed).toEqual([['first'], ['first', 'second']]);
       });
-
-      runInAction(() => di.register(secondImpl));
-
-      expect(observed).toEqual([['first'], ['first', 'second']]);
-
-      stop();
     });
 
     it('given v2 token with a param, fn(token) returns a factory that accepts the param', () => {
@@ -89,45 +99,55 @@ describe('factory-shape computed-inject-2 variants', () => {
       stop();
     });
 
-    it('given v2 token whose factory returns a tuple, fn(token)(args) yields an array of that tuple type that reacts to registrations', () => {
-      const tupleToken2 = getInjectionToken2({ id: 'many-2-tuple-token' });
+    describe('given v2 token with a tuple impl registered and autorun observing', () => {
+      let tupleToken2;
+      let observed;
+      let stop;
 
-      const firstTupleImpl = getInjectable2({
-        id: 'first-tuple-impl',
-        injectionToken: tupleToken2,
-        instantiate: () => (a, b) => [a, b],
+      beforeEach(() => {
+        tupleToken2 = getInjectionToken2({ id: 'many-2-tuple-token' });
+
+        const firstTupleImpl = getInjectable2({
+          id: 'first-tuple-impl',
+          injectionToken: tupleToken2,
+          instantiate: () => (a, b) => [a, b],
+        });
+
+        di.register(firstTupleImpl);
+
+        const factoryForToken = di.inject2(
+          computedInjectMany2InjectionToken,
+        )(tupleToken2);
+
+        observed = [];
+        stop = autorun(() => {
+          observed.push(factoryForToken('x', 'y').map(entry => [...entry]));
+        });
       });
 
-      di.register(firstTupleImpl);
+      afterEach(() => stop());
 
-      const factoryForToken = di.inject2(
-        computedInjectMany2InjectionToken,
-      )(tupleToken2);
-
-      const observed = [];
-      const stop = autorun(() => {
-        observed.push(factoryForToken('x', 'y').map(entry => [...entry]));
+      it('fn(token)(args) yields an array of the tuple type', () => {
+        expect(observed).toEqual([[['x', 'y']]]);
       });
 
-      expect(observed).toEqual([[['x', 'y']]]);
+      it('when a second tuple impl is registered, fn(token)(args) reacts to the registration', () => {
+        const secondTupleImpl = getInjectable2({
+          id: 'second-tuple-impl',
+          injectionToken: tupleToken2,
+          instantiate: () => (a, b) => [`${a}!`, `${b}!`],
+        });
 
-      const secondTupleImpl = getInjectable2({
-        id: 'second-tuple-impl',
-        injectionToken: tupleToken2,
-        instantiate: () => (a, b) => [`${a}!`, `${b}!`],
+        runInAction(() => di.register(secondTupleImpl));
+
+        expect(observed).toEqual([
+          [['x', 'y']],
+          [
+            ['x', 'y'],
+            ['x!', 'y!'],
+          ],
+        ]);
       });
-
-      runInAction(() => di.register(secondTupleImpl));
-
-      expect(observed).toEqual([
-        [['x', 'y']],
-        [
-          ['x', 'y'],
-          ['x!', 'y!'],
-        ],
-      ]);
-
-      stop();
     });
 
     it('given same token and same args, fn(token)(...args) hits the same reactive instance (referentially stable)', () => {

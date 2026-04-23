@@ -122,31 +122,40 @@ describe('useInject2', () => {
     expect(rendered.getByTestId('value').textContent).toBe('impl(arg)');
   });
 
-  it('the factory identity is stable across re-renders for the same alias', () => {
-    const someInjectable2 = getInjectable2({
-      id: 'stable',
-      instantiate: () => () => 'ok',
+  describe('given a v2 injectable rendered and then re-rendered', () => {
+    let factoryRefs;
+
+    beforeEach(() => {
+      const someInjectable2 = getInjectable2({
+        id: 'stable',
+        instantiate: () => () => 'ok',
+      });
+
+      di.register(someInjectable2);
+
+      factoryRefs = [];
+
+      const SomeComponent = () => {
+        const factory = useInject2(someInjectable2);
+        factoryRefs.push(factory);
+
+        return <div>{factory()}</div>;
+      };
+
+      const rendered = mount(<SomeComponent />);
+      rendered.rerender(
+        <DiContextProvider value={di}>
+          <SomeComponent />
+        </DiContextProvider>,
+      );
     });
 
-    di.register(someInjectable2);
+    it('the component rendered at least twice', () => {
+      expect(factoryRefs.length).toBeGreaterThanOrEqual(2);
+    });
 
-    const factoryRefs = [];
-
-    const SomeComponent = () => {
-      const factory = useInject2(someInjectable2);
-      factoryRefs.push(factory);
-
-      return <div>{factory()}</div>;
-    };
-
-    const rendered = mount(<SomeComponent />);
-    rendered.rerender(
-      <DiContextProvider value={di}>
-        <SomeComponent />
-      </DiContextProvider>,
-    );
-
-    expect(factoryRefs.length).toBeGreaterThanOrEqual(2);
-    expect(factoryRefs[0]).toBe(factoryRefs[1]);
+    it('the factory identity is stable across re-renders for the same alias', () => {
+      expect(factoryRefs[0]).toBe(factoryRefs[1]);
+    });
   });
 });

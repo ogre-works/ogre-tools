@@ -12,28 +12,25 @@ describe('getInjectable2', () => {
     di = createContainer('test-container');
   });
 
-  describe('non-parametric singleton', () => {
-    it('returns instance from public inject (factory called internally)', () => {
-      const fooInjectable = getInjectable2({
-        id: 'foo',
-        instantiate: () => () => 42,
-      });
+  describe('given a non-parametric injectable2 is registered', () => {
+    let fooInjectable;
 
-      di.register(fooInjectable);
-
-      const result = di.inject(fooInjectable);
-
-      expect(result).toBe(42);
-    });
-
-    it('returns same instance on subsequent injections (singleton)', () => {
-      const fooInjectable = getInjectable2({
+    beforeEach(() => {
+      fooInjectable = getInjectable2({
         id: 'foo',
         instantiate: () => () => ({}),
       });
 
       di.register(fooInjectable);
+    });
 
+    it('when injected, returns the instance produced by the factory', () => {
+      const result = di.inject(fooInjectable);
+
+      expect(result).toEqual({});
+    });
+
+    it('when injected twice, returns the same instance', () => {
       const result1 = di.inject(fooInjectable);
       const result2 = di.inject(fooInjectable);
 
@@ -41,8 +38,19 @@ describe('getInjectable2', () => {
     });
   });
 
-  describe('parametric keyed singleton', () => {
-    it('returns instance with params passed to factory', () => {
+  describe('given a parametric keyed-singleton injectable2 is registered', () => {
+    let objInjectable;
+
+    beforeEach(() => {
+      objInjectable = getInjectable2({
+        id: 'obj',
+        instantiate: () => key => ({ key }),
+      });
+
+      di.register(objInjectable);
+    });
+
+    it('when injected with params, returns an instance reflecting those params', () => {
       const greetInjectable = getInjectable2({
         id: 'greet',
         instantiate: () => (name, greeting) => `${greeting}, ${name}!`,
@@ -55,35 +63,41 @@ describe('getInjectable2', () => {
       expect(result).toBe('Hello, Alice!');
     });
 
-    it('caches by params (keyed singleton)', () => {
-      const objInjectable = getInjectable2({
-        id: 'obj',
-        instantiate: () => key => ({ key }),
+    describe('given injected twice with the same key and once with a different key', () => {
+      let result1;
+      let result2;
+      let result3;
+
+      beforeEach(() => {
+        result1 = di.inject(objInjectable, 'a');
+        result2 = di.inject(objInjectable, 'a');
+        result3 = di.inject(objInjectable, 'b');
       });
 
-      di.register(objInjectable);
+      it('when comparing same-key injections, returns the same instance', () => {
+        expect(result1).toBe(result2);
+      });
 
-      const result1 = di.inject(objInjectable, 'a');
-      const result2 = di.inject(objInjectable, 'a');
-      const result3 = di.inject(objInjectable, 'b');
-
-      expect(result1).toBe(result2);
-      expect(result1).not.toBe(result3);
-      expect(result1).toEqual({ key: 'a' });
-      expect(result3).toEqual({ key: 'b' });
+      it('when comparing different-key injections, returns different instances', () => {
+        expect(result1).not.toBe(result3);
+      });
     });
   });
 
-  describe('transient', () => {
-    it('creates new instance every time', () => {
-      const requestInjectable = getInjectable2({
+  describe('given a transient injectable2 is registered', () => {
+    let requestInjectable;
+
+    beforeEach(() => {
+      requestInjectable = getInjectable2({
         id: 'request',
         instantiate: () => () => ({}),
         transient: true,
       });
 
       di.register(requestInjectable);
+    });
 
+    it('when injected twice, returns different instances', () => {
       const result1 = di.inject(requestInjectable);
       const result2 = di.inject(requestInjectable);
 
@@ -91,8 +105,8 @@ describe('getInjectable2', () => {
     });
   });
 
-  describe('factory-returning inject2 inside new-style instantiate', () => {
-    it('di.inject2 returns factory for old-style deps', () => {
+  describe('given factory-returning inject2 is used inside new-style instantiate', () => {
+    it('when old-style dep is injected via inject2, returns its value through the factory', () => {
       const oldDep = getInjectable({
         id: 'old-dep',
         instantiate: () => 'old-value',
@@ -114,7 +128,7 @@ describe('getInjectable2', () => {
       expect(result).toBe('using-old-value');
     });
 
-    it('di.inject2 returns factory for new-style deps', () => {
+    it('when new-style dep is injected via inject2, returns its value through the factory', () => {
       const dep = getInjectable2({
         id: 'dep',
         instantiate: () => name => `hello-${name}`,
@@ -136,7 +150,7 @@ describe('getInjectable2', () => {
       expect(result).toBe('hello-world');
     });
 
-    it('di.injectMany2 returns factory for instance array', () => {
+    it('when injectMany2 is used for a token, returns joined instances through the factory', () => {
       const token = getInjectionToken({ id: 'handler' });
 
       const handler1 = getInjectable({
@@ -168,9 +182,11 @@ describe('getInjectable2', () => {
     });
   });
 
-  describe('injectionToken2', () => {
-    it('works with inject and injectMany', () => {
-      const token = getInjectionToken2({ id: 'service' });
+  describe('given an injectionToken2 with one implementation registered', () => {
+    let token;
+
+    beforeEach(() => {
+      token = getInjectionToken2({ id: 'service' });
 
       const impl = getInjectable2({
         id: 'impl',
@@ -179,19 +195,23 @@ describe('getInjectable2', () => {
       });
 
       di.register(impl);
+    });
 
-      // Public inject returns instance
+    it('when injected via token, returns the instance', () => {
       const instance = di.inject(token);
-      expect(instance).toBe('impl-value');
 
-      // Public injectMany returns instance array
+      expect(instance).toBe('impl-value');
+    });
+
+    it('when injectMany is called via token, returns an array of instances', () => {
       const instances = di.injectMany(token);
+
       expect(instances).toEqual(['impl-value']);
     });
   });
 
-  describe('mixed old and new style in same container', () => {
-    it('old-style injectable works as before', () => {
+  describe('given old and new style injectables coexist in the same container', () => {
+    it('when an old-style injectable is injected, returns its value as before', () => {
       const oldInjectable = getInjectable({
         id: 'old',
         instantiate: (di, param) => `old-${param}`,
@@ -203,7 +223,7 @@ describe('getInjectable2', () => {
       expect(di.inject(oldInjectable, 'test')).toBe('old-test');
     });
 
-    it('new-style injectable works alongside old-style', () => {
+    it('when a new-style injectable depends on an old-style one, returns the combined value', () => {
       const oldDep = getInjectable({
         id: 'old-dep',
         instantiate: () => 'from-old',
@@ -223,8 +243,8 @@ describe('getInjectable2', () => {
     });
   });
 
-  describe('injectable whose instance is a function', () => {
-    it('wrapping in zero-arg factory preserves function instance', () => {
+  describe('given an injectable2 whose instance is a function', () => {
+    it('when injected, returns the function as the instance', () => {
       const doublerInjectable = getInjectable2({
         id: 'doubler',
         instantiate: () => () => x => x * 2,
@@ -238,8 +258,8 @@ describe('getInjectable2', () => {
     });
   });
 
-  describe('injectWithMeta', () => {
-    it('returns instance with meta for non-parametric injectable2', () => {
+  describe('given injectWithMeta is used', () => {
+    it('when a non-parametric injectable2 is injected, returns instance with meta', () => {
       const fooInjectable = getInjectable2({
         id: 'foo-with-meta',
         instantiate: () => () => 42,
@@ -255,7 +275,7 @@ describe('getInjectable2', () => {
       });
     });
 
-    it('returns instance with meta for parametric injectable2', () => {
+    it('when a parametric injectable2 is injected, returns instance with meta', () => {
       const greetInjectable = getInjectable2({
         id: 'greet-with-meta',
         instantiate: () => name => `hello-${name}`,
@@ -272,8 +292,8 @@ describe('getInjectable2', () => {
     });
   });
 
-  describe('injectManyWithMeta', () => {
-    it('returns instances with meta for token2', () => {
+  describe('given injectManyWithMeta is used', () => {
+    it('when a token2 with implementations is injected, returns instances with meta', () => {
       const token = getInjectionToken2({ id: 'meta-token' });
 
       const impl1 = getInjectable2({
@@ -298,7 +318,7 @@ describe('getInjectable2', () => {
       ]);
     });
 
-    it('returns instances with meta for parametric token2', () => {
+    it('when a parametric token2 is injected with a key, returns instances with meta', () => {
       const token = getInjectionToken2({ id: 'param-meta-token' });
 
       const impl = getInjectable2({
@@ -317,8 +337,8 @@ describe('getInjectable2', () => {
     });
   });
 
-  describe('override', () => {
-    it('override2 with curried stub works for injectable2', () => {
+  describe('given override is used', () => {
+    it('when override2 is called with a curried stub, returns the overridden value', () => {
       const fooInjectable = getInjectable2({
         id: 'overridable-foo',
         instantiate: () => () => 'original',
@@ -331,7 +351,7 @@ describe('getInjectable2', () => {
       expect(di.inject(fooInjectable)).toBe('overridden');
     });
 
-    it('override2 with parametric curried stub works for injectable2', () => {
+    it('when override2 is called with a parametric curried stub, returns the overridden value with params', () => {
       const fooInjectable = getInjectable2({
         id: 'overridable-param',
         instantiate: () => name => `original-${name}`,
@@ -344,7 +364,7 @@ describe('getInjectable2', () => {
       expect(di.inject(fooInjectable, 'test')).toBe('overridden-test');
     });
 
-    it('override with v1-shape stub works for injectable2 (cross-compat)', () => {
+    it('when override is called with a v1-shape stub, returns the overridden value', () => {
       const fooInjectable = getInjectable2({
         id: 'overridable-foo-v1-shape',
         instantiate: () => () => 'original',
@@ -357,7 +377,7 @@ describe('getInjectable2', () => {
       expect(di.inject(fooInjectable)).toBe('overridden');
     });
 
-    it('override with parametric v1-shape stub works for injectable2 (cross-compat)', () => {
+    it('when override is called with a parametric v1-shape stub, returns the overridden value with params', () => {
       const fooInjectable = getInjectable2({
         id: 'overridable-param-v1-shape',
         instantiate: () => name => `original-${name}`,
@@ -371,242 +391,370 @@ describe('getInjectable2', () => {
     });
   });
 
-  describe('maxCacheSize (LRU)', () => {
-    it('evicts LRU entry when parametric cache exceeds maxCacheSize', () => {
-      const objInjectable = getInjectable2({
-        id: 'lru-obj',
-        maxCacheSize: 2,
-        instantiate: () => key => ({ key }),
+  describe('given maxCacheSize (LRU) is configured', () => {
+    describe('given a parametric injectable2 with maxCacheSize 2 is registered', () => {
+      let objInjectable;
+
+      beforeEach(() => {
+        objInjectable = getInjectable2({
+          id: 'lru-obj',
+          maxCacheSize: 2,
+          instantiate: () => key => ({ key }),
+        });
+
+        di.register(objInjectable);
       });
 
-      di.register(objInjectable);
+      describe('given keys a, b, and c are injected in order', () => {
+        let a;
 
-      const a = di.inject(objInjectable, 'a');
-      di.inject(objInjectable, 'b');
-      di.inject(objInjectable, 'c'); // should evict 'a'
+        beforeEach(() => {
+          a = di.inject(objInjectable, 'a');
+          di.inject(objInjectable, 'b');
+          di.inject(objInjectable, 'c');
+        });
 
-      const aAgain = di.inject(objInjectable, 'a');
-      expect(aAgain).not.toBe(a); // new instance
-      expect(aAgain).toEqual({ key: 'a' });
+        it('when key a is injected again, returns a new instance because a was evicted', () => {
+          const aAgain = di.inject(objInjectable, 'a');
+
+          expect(aAgain).not.toBe(a);
+        });
+
+        it('when key a is injected again, returns an instance with the correct value', () => {
+          const aAgain = di.inject(objInjectable, 'a');
+
+          expect(aAgain).toEqual({ key: 'a' });
+        });
+      });
+
+      describe('given keys a and b are injected, then a is re-accessed, then c is injected', () => {
+        let a;
+
+        beforeEach(() => {
+          a = di.inject(objInjectable, 'a');
+          di.inject(objInjectable, 'b');
+          di.inject(objInjectable, 'a');
+          di.inject(objInjectable, 'c');
+        });
+
+        it('when key a is injected again, returns the same instance because a was promoted', () => {
+          expect(di.inject(objInjectable, 'a')).toBe(a);
+        });
+      });
     });
 
-    it('promotes entry on access so it is not evicted', () => {
-      const objInjectable = getInjectable2({
-        id: 'lru-promote',
-        maxCacheSize: 2,
-        instantiate: () => key => ({ key }),
+    describe('given a token2 with maxCacheSize 2 and an implementing injectable2', () => {
+      let impl;
+
+      beforeEach(() => {
+        const token = getInjectionToken2({
+          id: 'lru-token2',
+          maxCacheSize: 2,
+        });
+
+        impl = getInjectable2({
+          id: 'lru-token2-impl',
+          injectionToken: token,
+          instantiate: () => key => ({ key }),
+        });
+
+        di.register(impl);
       });
 
-      di.register(objInjectable);
+      it('when cache exceeds maxCacheSize, evicts the LRU entry', () => {
+        const a = di.inject(impl, 'a');
+        di.inject(impl, 'b');
+        di.inject(impl, 'c');
 
-      const a = di.inject(objInjectable, 'a');
-      di.inject(objInjectable, 'b');
+        const aAgain = di.inject(impl, 'a');
 
-      // Re-access 'a' to promote it
-      di.inject(objInjectable, 'a');
-
-      // Now 'b' is LRU
-      di.inject(objInjectable, 'c');
-
-      expect(di.inject(objInjectable, 'a')).toBe(a); // still cached
+        expect(aAgain).not.toBe(a);
+      });
     });
 
-    it('token2 maxCacheSize propagates to implementing injectables', () => {
-      const token = getInjectionToken2({
-        id: 'lru-token2',
-        maxCacheSize: 2,
+    describe('given a token2 with maxCacheSize 10 and an implementing injectable2 with maxCacheSize 2', () => {
+      let impl;
+
+      beforeEach(() => {
+        const token = getInjectionToken2({
+          id: 'lru-token2-override',
+          maxCacheSize: 10,
+        });
+
+        impl = getInjectable2({
+          id: 'lru-override-impl',
+          injectionToken: token,
+          maxCacheSize: 2,
+          instantiate: () => key => ({ key }),
+        });
+
+        di.register(impl);
       });
 
-      const impl = getInjectable2({
-        id: 'lru-token2-impl',
-        injectionToken: token,
-        instantiate: () => key => ({ key }),
+      it('when cache exceeds the injectable maxCacheSize, evicts using the injectable limit not the token limit', () => {
+        const a = di.inject(impl, 'a');
+        di.inject(impl, 'b');
+        di.inject(impl, 'c');
+
+        const aAgain = di.inject(impl, 'a');
+
+        expect(aAgain).not.toBe(a);
       });
-
-      di.register(impl);
-
-      const a = di.inject(impl, 'a');
-      di.inject(impl, 'b');
-      di.inject(impl, 'c'); // should evict 'a'
-
-      const aAgain = di.inject(impl, 'a');
-      expect(aAgain).not.toBe(a);
     });
 
-    it('injectable2 maxCacheSize overrides token2 maxCacheSize', () => {
-      const token = getInjectionToken2({
-        id: 'lru-token2-override',
-        maxCacheSize: 10,
+    describe('given a general token2 with maxCacheSize 2 and a specific token derived from it', () => {
+      let impl;
+
+      beforeEach(() => {
+        const generalToken = getInjectionToken2({
+          id: 'lru-general-token2',
+          maxCacheSize: 2,
+        });
+
+        const specificToken = generalToken.for('specific');
+
+        impl = getInjectable2({
+          id: 'lru-specific-impl',
+          injectionToken: specificToken,
+          instantiate: () => key => ({ key }),
+        });
+
+        di.register(impl);
       });
 
-      const impl = getInjectable2({
-        id: 'lru-override-impl',
-        injectionToken: token,
-        maxCacheSize: 2,
-        instantiate: () => key => ({ key }),
+      it('when cache exceeds maxCacheSize, evicts using the inherited limit', () => {
+        const a = di.inject(impl, 'a');
+        di.inject(impl, 'b');
+        di.inject(impl, 'c');
+
+        const aAgain = di.inject(impl, 'a');
+
+        expect(aAgain).not.toBe(a);
       });
-
-      di.register(impl);
-
-      const a = di.inject(impl, 'a');
-      di.inject(impl, 'b');
-      di.inject(impl, 'c'); // should evict 'a' (maxCacheSize=2, not 10)
-
-      const aAgain = di.inject(impl, 'a');
-      expect(aAgain).not.toBe(a);
     });
 
-    it('specific token2 inherits maxCacheSize from general token2', () => {
-      const generalToken = getInjectionToken2({
-        id: 'lru-general-token2',
-        maxCacheSize: 2,
+    describe('given a non-parametric injectable2 with maxCacheSize is registered', () => {
+      let single;
+
+      beforeEach(() => {
+        single = getInjectable2({
+          id: 'lru-single',
+          maxCacheSize: 5,
+          instantiate: () => () => 42,
+        });
+
+        di.register(single);
       });
 
-      const specificToken = generalToken.for('specific');
+      it('when injected, returns the correct value', () => {
+        const result = di.inject(single);
 
-      const impl = getInjectable2({
-        id: 'lru-specific-impl',
-        injectionToken: specificToken,
-        instantiate: () => key => ({ key }),
+        expect(result).toBe(42);
       });
 
-      di.register(impl);
+      it('when injected twice, returns the same instance', () => {
+        const result1 = di.inject(single);
+        const result2 = di.inject(single);
 
-      const a = di.inject(impl, 'a');
-      di.inject(impl, 'b');
-      di.inject(impl, 'c'); // should evict 'a'
-
-      const aAgain = di.inject(impl, 'a');
-      expect(aAgain).not.toBe(a);
+        expect(result1).toBe(result2);
+      });
     });
 
-    it('non-parametric injectable2 with maxCacheSize works without issues', () => {
-      const single = getInjectable2({
-        id: 'lru-single',
-        maxCacheSize: 5,
-        instantiate: () => () => 42,
+    describe('given a transient injectable2 with maxCacheSize is registered', () => {
+      let trans;
+
+      beforeEach(() => {
+        trans = getInjectable2({
+          id: 'lru-transient',
+          transient: true,
+          maxCacheSize: 5,
+          instantiate: () => () => ({}),
+        });
+
+        di.register(trans);
       });
 
-      di.register(single);
+      it('when injected twice, returns different instances', () => {
+        const result1 = di.inject(trans);
+        const result2 = di.inject(trans);
 
-      const result1 = di.inject(single);
-      const result2 = di.inject(single);
-      expect(result1).toBe(42);
-      expect(result1).toBe(result2);
-    });
-
-    it('transient injectable2 with maxCacheSize is harmless', () => {
-      const trans = getInjectable2({
-        id: 'lru-transient',
-        transient: true,
-        maxCacheSize: 5,
-        instantiate: () => () => ({}),
+        expect(result1).not.toBe(result2);
       });
-
-      di.register(trans);
-
-      const result1 = di.inject(trans);
-      const result2 = di.inject(trans);
-      expect(result1).not.toBe(result2);
-    });
-  });
-
-  describe('purge by key', () => {
-    it('purges specific parametric entry by key', () => {
-      const obj = getInjectable2({
-        id: 'purge-key-obj',
-        instantiate: () => key => ({ key }),
-      });
-
-      di.register(obj);
-
-      const a = di.inject(obj, 'a');
-      const b = di.inject(obj, 'b');
-
-      di.purge(obj, 'a');
-
-      expect(di.inject(obj, 'a')).not.toBe(a);
-      expect(di.inject(obj, 'b')).toBe(b);
-    });
-
-    it('purges by prefix for multi-param injectable2', () => {
-      const obj = getInjectable2({
-        id: 'purge-prefix-obj',
-        instantiate: () => (cat, id) => ({ cat, id }),
-      });
-
-      di.register(obj);
-
-      const ab = di.inject(obj, 'a', 'b');
-      const ac = di.inject(obj, 'a', 'c');
-      const xz = di.inject(obj, 'x', 'z');
-
-      di.purge(obj, 'a');
-
-      expect(di.inject(obj, 'a', 'b')).not.toBe(ab);
-      expect(di.inject(obj, 'a', 'c')).not.toBe(ac);
-      expect(di.inject(obj, 'x', 'z')).toBe(xz);
-    });
-
-    it('purges by token2 across all implementing injectables', () => {
-      const token = getInjectionToken2({ id: 'purge-token2' });
-
-      const impl1 = getInjectable2({
-        id: 'purge-token2-impl-1',
-        injectionToken: token,
-        instantiate: () => key => ({ key, src: 1 }),
-      });
-
-      const impl2 = getInjectable2({
-        id: 'purge-token2-impl-2',
-        injectionToken: token,
-        instantiate: () => key => ({ key, src: 2 }),
-      });
-
-      di.register(impl1, impl2);
-
-      const i1 = di.inject(impl1, 'k');
-      const i2 = di.inject(impl2, 'k');
-
-      di.purge(token);
-
-      expect(di.inject(impl1, 'k')).not.toBe(i1);
-      expect(di.inject(impl2, 'k')).not.toBe(i2);
-    });
-
-    it('purges by token2 with key across all implementing injectables', () => {
-      const token = getInjectionToken2({ id: 'purge-token2-key' });
-
-      const impl1 = getInjectable2({
-        id: 'purge-token2-key-impl-1',
-        injectionToken: token,
-        instantiate: () => key => ({ key, src: 1 }),
-      });
-
-      const impl2 = getInjectable2({
-        id: 'purge-token2-key-impl-2',
-        injectionToken: token,
-        instantiate: () => key => ({ key, src: 2 }),
-      });
-
-      di.register(impl1, impl2);
-
-      const i1a = di.inject(impl1, 'a');
-      const i1b = di.inject(impl1, 'b');
-      const i2a = di.inject(impl2, 'a');
-      const i2b = di.inject(impl2, 'b');
-
-      di.purge(token, 'a');
-
-      expect(di.inject(impl1, 'a')).not.toBe(i1a);
-      expect(di.inject(impl1, 'b')).toBe(i1b);
-      expect(di.inject(impl2, 'a')).not.toBe(i2a);
-      expect(di.inject(impl2, 'b')).toBe(i2b);
     });
   });
 
-  describe('scoped purge from within instantiate', () => {
-    it('can purge a child injectable registered in its own context', () => {
+  describe('given purge by key is used', () => {
+    describe('given a parametric injectable2 with two cached keys', () => {
+      let obj;
+      let a;
+      let b;
+
+      beforeEach(() => {
+        obj = getInjectable2({
+          id: 'purge-key-obj',
+          instantiate: () => key => ({ key }),
+        });
+
+        di.register(obj);
+
+        a = di.inject(obj, 'a');
+        b = di.inject(obj, 'b');
+      });
+
+      describe('when key a is purged', () => {
+        beforeEach(() => {
+          di.purge(obj, 'a');
+        });
+
+        it('when key a is injected again, returns a new instance', () => {
+          expect(di.inject(obj, 'a')).not.toBe(a);
+        });
+
+        it('when key b is injected again, returns the same cached instance', () => {
+          expect(di.inject(obj, 'b')).toBe(b);
+        });
+      });
+    });
+
+    describe('given a multi-param injectable2 with three cached entries', () => {
+      let obj;
+      let ab;
+      let ac;
+      let xz;
+
+      beforeEach(() => {
+        obj = getInjectable2({
+          id: 'purge-prefix-obj',
+          instantiate: () => (cat, id) => ({ cat, id }),
+        });
+
+        di.register(obj);
+
+        ab = di.inject(obj, 'a', 'b');
+        ac = di.inject(obj, 'a', 'c');
+        xz = di.inject(obj, 'x', 'z');
+      });
+
+      describe('when purged by prefix a', () => {
+        beforeEach(() => {
+          di.purge(obj, 'a');
+        });
+
+        it('when key (a, b) is injected again, returns a new instance', () => {
+          expect(di.inject(obj, 'a', 'b')).not.toBe(ab);
+        });
+
+        it('when key (a, c) is injected again, returns a new instance', () => {
+          expect(di.inject(obj, 'a', 'c')).not.toBe(ac);
+        });
+
+        it('when key (x, z) is injected again, returns the same cached instance', () => {
+          expect(di.inject(obj, 'x', 'z')).toBe(xz);
+        });
+      });
+    });
+
+    describe('given a token2 with two implementing injectable2s each with a cached key', () => {
+      let token;
+      let impl1;
+      let impl2;
+      let i1;
+      let i2;
+
+      beforeEach(() => {
+        token = getInjectionToken2({ id: 'purge-token2' });
+
+        impl1 = getInjectable2({
+          id: 'purge-token2-impl-1',
+          injectionToken: token,
+          instantiate: () => key => ({ key, src: 1 }),
+        });
+
+        impl2 = getInjectable2({
+          id: 'purge-token2-impl-2',
+          injectionToken: token,
+          instantiate: () => key => ({ key, src: 2 }),
+        });
+
+        di.register(impl1, impl2);
+
+        i1 = di.inject(impl1, 'k');
+        i2 = di.inject(impl2, 'k');
+      });
+
+      describe('when purged by token', () => {
+        beforeEach(() => {
+          di.purge(token);
+        });
+
+        it('when impl1 is injected again with key k, returns a new instance', () => {
+          expect(di.inject(impl1, 'k')).not.toBe(i1);
+        });
+
+        it('when impl2 is injected again with key k, returns a new instance', () => {
+          expect(di.inject(impl2, 'k')).not.toBe(i2);
+        });
+      });
+    });
+
+    describe('given a token2 with two implementing injectable2s each with keys a and b cached', () => {
+      let token;
+      let impl1;
+      let impl2;
+      let i1a;
+      let i1b;
+      let i2a;
+      let i2b;
+
+      beforeEach(() => {
+        token = getInjectionToken2({ id: 'purge-token2-key' });
+
+        impl1 = getInjectable2({
+          id: 'purge-token2-key-impl-1',
+          injectionToken: token,
+          instantiate: () => key => ({ key, src: 1 }),
+        });
+
+        impl2 = getInjectable2({
+          id: 'purge-token2-key-impl-2',
+          injectionToken: token,
+          instantiate: () => key => ({ key, src: 2 }),
+        });
+
+        di.register(impl1, impl2);
+
+        i1a = di.inject(impl1, 'a');
+        i1b = di.inject(impl1, 'b');
+        i2a = di.inject(impl2, 'a');
+        i2b = di.inject(impl2, 'b');
+      });
+
+      describe('when purged by token with key a', () => {
+        beforeEach(() => {
+          di.purge(token, 'a');
+        });
+
+        it('when impl1 is injected with key a, returns a new instance', () => {
+          expect(di.inject(impl1, 'a')).not.toBe(i1a);
+        });
+
+        it('when impl1 is injected with key b, returns the same cached instance', () => {
+          expect(di.inject(impl1, 'b')).toBe(i1b);
+        });
+
+        it('when impl2 is injected with key a, returns a new instance', () => {
+          expect(di.inject(impl2, 'a')).not.toBe(i2a);
+        });
+
+        it('when impl2 is injected with key b, returns the same cached instance', () => {
+          expect(di.inject(impl2, 'b')).toBe(i2b);
+        });
+      });
+    });
+  });
+
+  describe('given scoped purge from within instantiate', () => {
+    it('when purging a child injectable registered in its own context, returns a new instance', () => {
       const childInjectable = getInjectable2({
         id: 'child2',
         instantiate: () => key => ({ key }),
@@ -636,7 +784,7 @@ describe('getInjectable2', () => {
       expect(child2).not.toBe(child1);
     });
 
-    it('throws when trying to purge an unrelated injectable outside its context tree', () => {
+    it('when trying to purge an unrelated injectable outside its context tree, throws', () => {
       const unrelatedInjectable = getInjectable2({
         id: 'unrelated2',
         instantiate: () => key => ({ key }),

@@ -97,7 +97,7 @@ describe('getNumberOfInstances', () => {
     expect(di.getNumberOfInstances()).toEqual({});
   });
 
-  it('is accessible from within an injectable instantiate', () => {
+  it('given a first injectable already injected, when a second injectable calls getNumberOfInstances during instantiation, returns count of existing instances', () => {
     let capturedCounts;
 
     const firstInjectable = getInjectable({
@@ -122,7 +122,7 @@ describe('getNumberOfInstances', () => {
     });
   });
 
-  it('is accessible from within an injectable2 instantiate', () => {
+  it('given a first injectable already injected, when an injectable2 calls getNumberOfInstances during instantiation, returns count of existing instances', () => {
     let capturedCounts;
 
     const firstInjectable = getInjectable({

@@ -110,30 +110,43 @@ describe('createContainer.targeted-decoration-of-instantiation', () => {
     );
   });
 
-  it('given decorator targeting an injectable that is overridden, the decorator still applies to the override', () => {
-    const someInjectable = getInjectable({
-      id: 'some-injectable',
-      instantiate: () => 'original',
+  describe('given decorator targeting an injectable that is overridden', () => {
+    let di;
+    let someInjectable;
+    let decorateSpy;
+
+    beforeEach(() => {
+      someInjectable = getInjectable({
+        id: 'some-injectable',
+        instantiate: () => 'original',
+      });
+
+      decorateSpy = jest.fn(
+        instantiate => (di, ...params) =>
+          `decorated(${instantiate(di, ...params)})`,
+      );
+
+      const decoratorInjectable = getInjectable2({
+        id: 'some-decorator',
+        injectionToken: instantiationDecoratorToken.for(someInjectable),
+        decorable: false,
+        instantiate: () => () => decorateSpy,
+      });
+
+      di = createContainer('some-container');
+      di.register(someInjectable, decoratorInjectable);
+
+      di.override(someInjectable, () => 'overridden');
     });
 
-    const decorateSpy = jest.fn(
-      instantiate => (di, ...params) =>
-        `decorated(${instantiate(di, ...params)})`,
-    );
-
-    const decoratorInjectable = getInjectable2({
-      id: 'some-decorator',
-      injectionToken: instantiationDecoratorToken.for(someInjectable),
-      decorable: false,
-      instantiate: () => () => decorateSpy,
+    it('when injected, the decorator applies to the override', () => {
+      expect(di.inject(someInjectable)).toBe('decorated(overridden)');
     });
 
-    const di = createContainer('some-container');
-    di.register(someInjectable, decoratorInjectable);
+    it('when injected, the decorator fires exactly once', () => {
+      di.inject(someInjectable);
 
-    di.override(someInjectable, () => 'overridden');
-
-    expect(di.inject(someInjectable)).toBe('decorated(overridden)');
-    expect(decorateSpy).toHaveBeenCalledTimes(1);
+      expect(decorateSpy).toHaveBeenCalledTimes(1);
+    });
   });
 });

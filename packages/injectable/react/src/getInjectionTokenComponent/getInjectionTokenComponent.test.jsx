@@ -364,7 +364,7 @@ describe('getInjectionTokenComponent', () => {
     expect(onErrorWhileRenderingMock).toHaveBeenCalled();
   });
 
-  it('is an injection token', () => {
+  it('given a token component is created, it is an injection token', () => {
     const SomeTokenComponent = getInjectionTokenComponent({
       id: 'some-token-component',
     });
@@ -372,7 +372,7 @@ describe('getInjectionTokenComponent', () => {
     expect(isInjectionToken(SomeTokenComponent)).toBe(true);
   });
 
-  it('has displayName related to the id', () => {
+  it('given a token component is created, it has displayName related to the id', () => {
     const SomeTokenComponent = getInjectionTokenComponent({
       id: 'some-token-component',
     });
@@ -383,7 +383,7 @@ describe('getInjectionTokenComponent', () => {
   });
 
   describe('.for() specific tokens', () => {
-    it('returns the same object for same specifier', () => {
+    it('given a token component, when .for() is called twice with the same specifier, returns the same object', () => {
       const SomeTokenComponent = getInjectionTokenComponent({
         id: 'some-token-component',
       });
@@ -394,7 +394,7 @@ describe('getInjectionTokenComponent', () => {
       expect(specific1).toBe(specific2);
     });
 
-    it('returns a renderable component that injects implementation from DI', () => {
+    it('given a specific token with an implementation registered, when rendered, injects from DI', () => {
       const SomeTokenComponent = getInjectionTokenComponent({
         id: 'some-token-component',
       });
@@ -422,7 +422,7 @@ describe('getInjectionTokenComponent', () => {
       `);
     });
 
-    it('returns a renderable component that passes props to implementation', () => {
+    it('given a specific token with an implementation registered, when rendered with props, passes props to implementation', () => {
       const SomeTokenComponent = getInjectionTokenComponent({
         id: 'some-token-component',
       });
@@ -454,7 +454,7 @@ describe('getInjectionTokenComponent', () => {
       `);
     });
 
-    it('has specificTokenOf pointing to the general token component', () => {
+    it('given a specific token, it has specificTokenOf pointing to the general token component', () => {
       const SomeTokenComponent = getInjectionTokenComponent({
         id: 'some-token-component',
       });
@@ -482,7 +482,7 @@ describe('getInjectionTokenComponent', () => {
       expect(implementations).toHaveLength(1);
     });
 
-    it('has displayName with combined id', () => {
+    it('given a specific token, it has displayName with combined id', () => {
       const SomeTokenComponent = getInjectionTokenComponent({
         id: 'some-token-component',
       });
@@ -494,7 +494,7 @@ describe('getInjectionTokenComponent', () => {
       );
     });
 
-    it('is an injection token', () => {
+    it('given a specific token, it is an injection token', () => {
       const SomeTokenComponent = getInjectionTokenComponent({
         id: 'some-token-component',
       });

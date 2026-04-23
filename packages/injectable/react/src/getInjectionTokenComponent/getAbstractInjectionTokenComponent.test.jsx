@@ -18,7 +18,7 @@ describe('getAbstractInjectionTokenComponent', () => {
       render(<DiContextProvider value={di}>{node}</DiContextProvider>);
   });
 
-  it('is an abstract injection token', () => {
+  it('given a token component is created, it is an abstract injection token', () => {
     const SomeAbstractTokenComponent = getAbstractInjectionTokenComponent({
       id: 'some-abstract-token-component',
     });
@@ -116,27 +116,37 @@ describe('getAbstractInjectionTokenComponent', () => {
     expect(rendered.getByTestId('some-placeholder')).toBeInTheDocument();
   });
 
-  it('given custom specificInjectionTokenFactory, uses it instead of the default', () => {
-    const customFactory = jest.fn(specId =>
-      getInjectionTokenComponent({
-        id: `custom-${specId}`,
-        speciality: specId,
-      }),
-    );
+  describe('given custom specificInjectionTokenFactory, when .for() is called', () => {
+    let customFactory;
+    let SpecificTokenComponent;
 
-    const SomeAbstractTokenComponent = getAbstractInjectionTokenComponent({
-      id: 'some-abstract-token-component',
-      specificInjectionTokenFactory: customFactory,
+    beforeEach(() => {
+      customFactory = jest.fn(specId =>
+        getInjectionTokenComponent({
+          id: `custom-${specId}`,
+          speciality: specId,
+        }),
+      );
+
+      const SomeAbstractTokenComponent = getAbstractInjectionTokenComponent({
+        id: 'some-abstract-token-component',
+        specificInjectionTokenFactory: customFactory,
+      });
+
+      SpecificTokenComponent =
+        SomeAbstractTokenComponent.for('some-specific');
     });
 
-    const SpecificTokenComponent =
-      SomeAbstractTokenComponent.for('some-specific');
+    it('the custom factory is called with the specifier', () => {
+      expect(customFactory).toHaveBeenCalledWith('some-specific');
+    });
 
-    expect(customFactory).toHaveBeenCalledWith('some-specific');
-    expect(SpecificTokenComponent.id).toContain('custom-some-specific');
+    it('the resulting token has the custom id', () => {
+      expect(SpecificTokenComponent.id).toContain('custom-some-specific');
+    });
   });
 
-  it('without Suspense wrapper, renders non-suspended content from specific token', () => {
+  it('given a specific token with an implementation, when rendered without Suspense wrapper, renders the content', () => {
     const SomeAbstractTokenComponent = getAbstractInjectionTokenComponent({
       id: 'some-abstract-token-component',
     });

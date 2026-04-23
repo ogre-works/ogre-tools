@@ -60,87 +60,114 @@ describe('computedInjectMany with registration decoration', () => {
       });
     });
 
-    it('when an injectable is registered while flagged, computedInjectMany does not include it', () => {
-      const computedInjectMany = di.inject(computedInjectManyInjectionToken);
-      const reactiveInstances = computedInjectMany(someToken);
-
+    describe('given computedInjectMany observing the token, when an injectable is registered while flagged', () => {
       let observed;
+      let reactiveInstances;
 
-      observe(reactiveInstances, change => {
-        observed = change.newValue;
+      beforeEach(() => {
+        const computedInjectMany = di.inject(computedInjectManyInjectionToken);
+        reactiveInstances = computedInjectMany(someToken);
+
+        observe(reactiveInstances, change => {
+          observed = change.newValue;
+        });
+
+        runInAction(() => {
+          di.register(someInjectable);
+        });
       });
 
-      runInAction(() => {
-        di.register(someInjectable);
+      it('the observer does not fire', () => {
+        expect(observed).toBeUndefined();
       });
 
-      expect(observed).toBeUndefined();
-      expect(runInAction(() => reactiveInstances.get())).toEqual([]);
+      it('computedInjectMany returns an empty array', () => {
+        expect(runInAction(() => reactiveInstances.get())).toEqual([]);
+      });
     });
 
-    it('when the deferred registration is released, computedInjectMany reacts and includes the injectable', () => {
-      const computedInjectMany = di.inject(computedInjectManyInjectionToken);
-      const reactiveInstances = computedInjectMany(someToken);
+    describe('given an injectable registered while flagged, when the deferred registration is released', () => {
+      let observations;
+      let reactiveInstances;
 
-      const observations = [];
+      beforeEach(() => {
+        const computedInjectMany = di.inject(computedInjectManyInjectionToken);
+        reactiveInstances = computedInjectMany(someToken);
 
-      observe(reactiveInstances, change => {
-        observations.push(change.newValue);
+        observations = [];
+
+        observe(reactiveInstances, change => {
+          observations.push(change.newValue);
+        });
+
+        runInAction(() => {
+          di.register(someInjectable);
+        });
+
+        runInAction(() => {
+          const release = deferredRegistrations.get(someInjectable);
+          release();
+        });
       });
 
-      runInAction(() => {
-        di.register(someInjectable);
+      it('the observer fires with the instance', () => {
+        expect(observations).toEqual([['some-instance']]);
       });
 
-      expect(runInAction(() => reactiveInstances.get())).toEqual([]);
-
-      runInAction(() => {
-        const release = deferredRegistrations.get(someInjectable);
-        release();
+      it('computedInjectMany returns the instance', () => {
+        expect(runInAction(() => reactiveInstances.get())).toEqual([
+          'some-instance',
+        ]);
       });
-
-      expect(observations).toEqual([['some-instance']]);
-      expect(runInAction(() => reactiveInstances.get())).toEqual([
-        'some-instance',
-      ]);
     });
 
-    it('when multiple injectables are deferred and then released one by one, computedInjectMany reacts to each', () => {
-      const someOtherInjectable = getInjectable({
-        id: 'some-other-injectable',
-        instantiate: () => 'some-other-instance',
-        injectionToken: someToken,
+    describe('given multiple injectables deferred', () => {
+      let observations;
+      let someOtherInjectable;
+
+      beforeEach(() => {
+        someOtherInjectable = getInjectable({
+          id: 'some-other-injectable',
+          instantiate: () => 'some-other-instance',
+          injectionToken: someToken,
+        });
+
+        const computedInjectMany = di.inject(computedInjectManyInjectionToken);
+        const reactiveInstances = computedInjectMany(someToken);
+
+        observations = [];
+
+        observe(reactiveInstances, change => {
+          observations.push([...change.newValue]);
+        });
+
+        runInAction(() => {
+          di.register(someInjectable, someOtherInjectable);
+        });
       });
 
-      const computedInjectMany = di.inject(computedInjectManyInjectionToken);
-      const reactiveInstances = computedInjectMany(someToken);
+      it('when the first injectable is released, computedInjectMany reacts', () => {
+        runInAction(() => {
+          deferredRegistrations.get(someInjectable)();
+        });
 
-      const observations = [];
-
-      observe(reactiveInstances, change => {
-        observations.push([...change.newValue]);
+        expect(observations).toEqual([['some-instance']]);
       });
 
-      runInAction(() => {
-        di.register(someInjectable, someOtherInjectable);
+      it('when both injectables are released one by one, computedInjectMany reacts to each', () => {
+        runInAction(() => {
+          deferredRegistrations.get(someInjectable)();
+        });
+
+        runInAction(() => {
+          deferredRegistrations.get(someOtherInjectable)();
+        });
+
+        expect(observations).toEqual([
+          ['some-instance'],
+          ['some-instance', 'some-other-instance'],
+        ]);
       });
-
-      expect(runInAction(() => reactiveInstances.get())).toEqual([]);
-
-      runInAction(() => {
-        deferredRegistrations.get(someInjectable)();
-      });
-
-      expect(observations).toEqual([['some-instance']]);
-
-      runInAction(() => {
-        deferredRegistrations.get(someOtherInjectable)();
-      });
-
-      expect(observations).toEqual([
-        ['some-instance'],
-        ['some-instance', 'some-other-instance'],
-      ]);
     });
   });
 
@@ -172,89 +199,108 @@ describe('computedInjectMany with registration decoration', () => {
       });
     });
 
-    it('when flag is deregistered and deferred registrations are released, computedInjectMany includes the injectable', () => {
-      const computedInjectMany = di.inject(computedInjectManyInjectionToken);
-      const reactiveInstances = computedInjectMany(someToken);
+    describe('given flag decorator is registered and an injectable is registered while flagged', () => {
+      let reactiveInstances;
+      let observations;
 
-      const observations = [];
+      beforeEach(() => {
+        const computedInjectMany = di.inject(computedInjectManyInjectionToken);
+        reactiveInstances = computedInjectMany(someToken);
 
-      observe(reactiveInstances, change => {
-        observations.push([...change.newValue]);
+        observations = [];
+
+        observe(reactiveInstances, change => {
+          observations.push([...change.newValue]);
+        });
+
+        runInAction(() => {
+          di.register(flagDecorator);
+        });
+
+        runInAction(() => {
+          di.register(someInjectable);
+        });
       });
 
-      runInAction(() => {
-        di.register(flagDecorator);
+      it('computedInjectMany returns empty while flagged', () => {
+        expect(runInAction(() => reactiveInstances.get())).toEqual([]);
       });
 
-      runInAction(() => {
-        di.register(someInjectable);
+      it('when flag is deregistered and deferred registrations are released, computedInjectMany includes the injectable', () => {
+        runInAction(() => {
+          di.deregister(flagDecorator);
+
+          for (const release of deferred.values()) {
+            release();
+          }
+        });
+
+        expect(observations).toEqual([['some-instance']]);
       });
-
-      expect(runInAction(() => reactiveInstances.get())).toEqual([]);
-
-      runInAction(() => {
-        di.deregister(flagDecorator);
-
-        for (const release of deferred.values()) {
-          release();
-        }
-      });
-
-      expect(observations).toEqual([['some-instance']]);
     });
   });
 
   describe('given a registration decorator that conditionally blocks based on injectable identity', () => {
-    it('only blocked injectables are excluded from computedInjectMany, non-blocked injectables appear immediately', () => {
-      const someToken = getInjectionToken({ id: 'some-token' });
+    describe('given a selective decorator that blocks one injectable but allows another, when both are registered', () => {
+      let observations;
+      let reactiveInstances;
 
-      const blockedInjectable = getInjectable({
-        id: 'blocked-injectable',
-        instantiate: () => 'blocked-instance',
-        injectionToken: someToken,
+      beforeEach(() => {
+        const someToken = getInjectionToken({ id: 'some-token' });
+
+        const blockedInjectable = getInjectable({
+          id: 'blocked-injectable',
+          instantiate: () => 'blocked-instance',
+          injectionToken: someToken,
+        });
+
+        const allowedInjectable = getInjectable({
+          id: 'allowed-injectable',
+          instantiate: () => 'allowed-instance',
+          injectionToken: someToken,
+        });
+
+        const decoratorInjectable = getInjectable2({
+          id: 'selective-decorator',
+          injectionToken: registrationDecoratorToken.for(someToken),
+          decorable: false,
+
+          instantiate: () => () => registerToBeDecorated => injectable => {
+            if (injectable === blockedInjectable) {
+              return;
+            }
+
+            registerToBeDecorated(injectable);
+          },
+        });
+
+        const computedInjectMany = di.inject(computedInjectManyInjectionToken);
+        reactiveInstances = computedInjectMany(someToken);
+
+        observations = [];
+
+        observe(reactiveInstances, change => {
+          observations.push([...change.newValue]);
+        });
+
+        runInAction(() => {
+          di.register(decoratorInjectable);
+        });
+
+        runInAction(() => {
+          di.register(blockedInjectable, allowedInjectable);
+        });
       });
 
-      const allowedInjectable = getInjectable({
-        id: 'allowed-injectable',
-        instantiate: () => 'allowed-instance',
-        injectionToken: someToken,
+      it('the observer fires with only the allowed instance', () => {
+        expect(observations).toEqual([['allowed-instance']]);
       });
 
-      const decoratorInjectable = getInjectable2({
-        id: 'selective-decorator',
-        injectionToken: registrationDecoratorToken.for(someToken),
-        decorable: false,
-
-        instantiate: () => () => registerToBeDecorated => injectable => {
-          if (injectable === blockedInjectable) {
-            return;
-          }
-
-          registerToBeDecorated(injectable);
-        },
+      it('computedInjectMany returns only the allowed instance', () => {
+        expect(runInAction(() => reactiveInstances.get())).toEqual([
+          'allowed-instance',
+        ]);
       });
-
-      const computedInjectMany = di.inject(computedInjectManyInjectionToken);
-      const reactiveInstances = computedInjectMany(someToken);
-
-      const observations = [];
-
-      observe(reactiveInstances, change => {
-        observations.push([...change.newValue]);
-      });
-
-      runInAction(() => {
-        di.register(decoratorInjectable);
-      });
-
-      runInAction(() => {
-        di.register(blockedInjectable, allowedInjectable);
-      });
-
-      expect(observations).toEqual([['allowed-instance']]);
-      expect(runInAction(() => reactiveInstances.get())).toEqual([
-        'allowed-instance',
-      ]);
     });
   });
 });

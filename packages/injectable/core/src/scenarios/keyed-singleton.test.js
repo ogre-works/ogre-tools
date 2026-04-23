@@ -216,41 +216,39 @@ describe('createContainer.keyed-singleton', () => {
       di.register(injectable);
     });
 
-    it('evicts LRU entry when cache exceeds maxCacheSize', () => {
+    it('when cache exceeds maxCacheSize, the oldest entry is evicted', () => {
       const a = di.inject(injectable, 'key-a');
       di.inject(injectable, 'key-b');
-      di.inject(injectable, 'key-c'); // should evict 'key-a'
+      di.inject(injectable, 'key-c');
 
       const aAgain = di.inject(injectable, 'key-a');
 
-      expect(aAgain).not.toBe(a); // new instance, not cached
+      expect(aAgain).not.toBe(a);
     });
 
-    it('promotes entry on access so it is not evicted', () => {
+    it('when an entry is re-accessed before eviction, it survives', () => {
       const a = di.inject(injectable, 'key-a');
       di.inject(injectable, 'key-b');
 
-      // Re-access 'key-a' to promote it
       di.inject(injectable, 'key-a');
 
-      // Now 'key-b' is LRU, should be evicted
       di.inject(injectable, 'key-c');
 
       const aStill = di.inject(injectable, 'key-a');
-      expect(aStill).toBe(a); // same instance, was promoted
+      expect(aStill).toBe(a);
     });
 
-    it('getNumberOfInstances returns only surviving entries', () => {
+    it('getNumberOfInstances returns count of surviving entries only', () => {
       di.inject(injectable, 'key-a');
       di.inject(injectable, 'key-b');
-      di.inject(injectable, 'key-c'); // evicts 'key-a'
+      di.inject(injectable, 'key-c');
 
       expect(di.getNumberOfInstances()).toEqual({
         'lru-injectable': 2,
       });
     });
 
-    it('purge clears all entries including LRU state', () => {
+    it('when purged, getNumberOfInstances returns empty', () => {
       di.inject(injectable, 'key-a');
       di.inject(injectable, 'key-b');
 
@@ -261,7 +259,7 @@ describe('createContainer.keyed-singleton', () => {
   });
 
   describe('given maxCacheSize on injection token', () => {
-    it('applies token maxCacheSize as default for implementing injectable', () => {
+    it('given token with maxCacheSize, when cache exceeds size, the oldest entry is evicted', () => {
       const {
         getInjectionToken,
       } = require('../getInjectionToken/getInjectionToken');
@@ -286,13 +284,13 @@ describe('createContainer.keyed-singleton', () => {
 
       const a = di.inject(injectable, 'key-a');
       di.inject(injectable, 'key-b');
-      di.inject(injectable, 'key-c'); // should evict 'key-a'
+      di.inject(injectable, 'key-c');
 
       const aAgain = di.inject(injectable, 'key-a');
       expect(aAgain).not.toBe(a);
     });
 
-    it('injectable maxCacheSize overrides token maxCacheSize', () => {
+    it('given injectable maxCacheSize overriding token maxCacheSize, when cache exceeds injectable size, the oldest entry is evicted', () => {
       const {
         getInjectionToken,
       } = require('../getInjectionToken/getInjectionToken');
@@ -318,13 +316,13 @@ describe('createContainer.keyed-singleton', () => {
 
       const a = di.inject(injectable, 'key-a');
       di.inject(injectable, 'key-b');
-      di.inject(injectable, 'key-c'); // should evict 'key-a' (maxCacheSize=2, not 10)
+      di.inject(injectable, 'key-c');
 
       const aAgain = di.inject(injectable, 'key-a');
       expect(aAgain).not.toBe(a);
     });
 
-    it('specific token inherits maxCacheSize from general token', () => {
+    it('given specific token inheriting maxCacheSize from general token, when cache exceeds size, the oldest entry is evicted', () => {
       const {
         getInjectionToken,
       } = require('../getInjectionToken/getInjectionToken');
@@ -351,14 +349,14 @@ describe('createContainer.keyed-singleton', () => {
 
       const a = di.inject(injectable, 'key-a');
       di.inject(injectable, 'key-b');
-      di.inject(injectable, 'key-c'); // should evict 'key-a'
+      di.inject(injectable, 'key-c');
 
       const aAgain = di.inject(injectable, 'key-a');
       expect(aAgain).not.toBe(a);
     });
   });
 
-  describe('purge by key', () => {
+  describe('given purge by key', () => {
     let di;
     let injectable;
 
@@ -376,20 +374,27 @@ describe('createContainer.keyed-singleton', () => {
       di.register(injectable);
     });
 
-    it('purges specific key, leaving other entries intact', () => {
-      const a = di.inject(injectable, 'key-a');
-      const b = di.inject(injectable, 'key-b');
+    describe('given two entries injected, when purging by a specific key', () => {
+      let a;
+      let b;
 
-      di.purge(injectable, 'key-a');
+      beforeEach(() => {
+        a = di.inject(injectable, 'key-a');
+        b = di.inject(injectable, 'key-b');
 
-      const aAgain = di.inject(injectable, 'key-a');
-      const bAgain = di.inject(injectable, 'key-b');
+        di.purge(injectable, 'key-a');
+      });
 
-      expect(aAgain).not.toBe(a);
-      expect(bAgain).toBe(b);
+      it('the purged key yields a new instance', () => {
+        expect(di.inject(injectable, 'key-a')).not.toBe(a);
+      });
+
+      it('the non-purged key yields the same instance', () => {
+        expect(di.inject(injectable, 'key-b')).toBe(b);
+      });
     });
 
-    it('purging non-existent key does not affect existing entries', () => {
+    it('when purging a non-existent key, existing entries are not affected', () => {
       const a = di.inject(injectable, 'key-a');
 
       di.purge(injectable, 'key-nonexistent');
@@ -398,7 +403,7 @@ describe('createContainer.keyed-singleton', () => {
     });
   });
 
-  describe('purge by composite key prefix', () => {
+  describe('given purge by composite key prefix', () => {
     let di;
     let injectable;
 
@@ -416,125 +421,179 @@ describe('createContainer.keyed-singleton', () => {
       di.register(injectable);
     });
 
-    it('purges all entries matching composite key prefix', () => {
-      const ab = di.inject(injectable, getCompositeKey('a', 'b'));
-      const ac = di.inject(injectable, getCompositeKey('a', 'c'));
-      const x = di.inject(injectable, getCompositeKey('x', 'y'));
+    describe('given entries with composite keys, when purging by single-level prefix', () => {
+      let ab;
+      let ac;
+      let x;
 
-      di.purge(injectable, 'a');
+      beforeEach(() => {
+        ab = di.inject(injectable, getCompositeKey('a', 'b'));
+        ac = di.inject(injectable, getCompositeKey('a', 'c'));
+        x = di.inject(injectable, getCompositeKey('x', 'y'));
 
-      const abAgain = di.inject(injectable, getCompositeKey('a', 'b'));
-      const acAgain = di.inject(injectable, getCompositeKey('a', 'c'));
-      const xAgain = di.inject(injectable, getCompositeKey('x', 'y'));
+        di.purge(injectable, 'a');
+      });
 
-      expect(abAgain).not.toBe(ab);
-      expect(acAgain).not.toBe(ac);
-      expect(xAgain).toBe(x);
+      it('the first matching entry yields a new instance', () => {
+        expect(di.inject(injectable, getCompositeKey('a', 'b'))).not.toBe(ab);
+      });
+
+      it('the second matching entry yields a new instance', () => {
+        expect(di.inject(injectable, getCompositeKey('a', 'c'))).not.toBe(ac);
+      });
+
+      it('the non-matching entry yields the same instance', () => {
+        expect(di.inject(injectable, getCompositeKey('x', 'y'))).toBe(x);
+      });
     });
 
-    it('purges with multi-level prefix', () => {
-      const abc = di.inject(injectable, getCompositeKey('a', 'b', 'c'));
-      const abd = di.inject(injectable, getCompositeKey('a', 'b', 'd'));
-      const ax = di.inject(injectable, getCompositeKey('a', 'x'));
+    describe('given entries with composite keys, when purging by multi-level prefix', () => {
+      let abc;
+      let abd;
+      let ax;
 
-      di.purge(injectable, 'a', 'b');
+      beforeEach(() => {
+        abc = di.inject(injectable, getCompositeKey('a', 'b', 'c'));
+        abd = di.inject(injectable, getCompositeKey('a', 'b', 'd'));
+        ax = di.inject(injectable, getCompositeKey('a', 'x'));
 
-      const abcAgain = di.inject(injectable, getCompositeKey('a', 'b', 'c'));
-      const abdAgain = di.inject(injectable, getCompositeKey('a', 'b', 'd'));
-      const axAgain = di.inject(injectable, getCompositeKey('a', 'x'));
+        di.purge(injectable, 'a', 'b');
+      });
 
-      expect(abcAgain).not.toBe(abc);
-      expect(abdAgain).not.toBe(abd);
-      expect(axAgain).toBe(ax);
+      it('the first matching entry yields a new instance', () => {
+        expect(di.inject(injectable, getCompositeKey('a', 'b', 'c'))).not.toBe(abc);
+      });
+
+      it('the second matching entry yields a new instance', () => {
+        expect(di.inject(injectable, getCompositeKey('a', 'b', 'd'))).not.toBe(abd);
+      });
+
+      it('the non-matching entry yields the same instance', () => {
+        expect(di.inject(injectable, getCompositeKey('a', 'x'))).toBe(ax);
+      });
     });
   });
 
-  describe('purge by injection token', () => {
-    it('purges all injectables implementing the token', () => {
-      const {
-        getInjectionToken,
-      } = require('../getInjectionToken/getInjectionToken');
+  describe('given purge by injection token', () => {
+    describe('given two injectables implementing a token, when purging by token', () => {
+      let di;
+      let injectable1;
+      let injectable2;
+      let inst1;
+      let inst2;
 
-      const token = getInjectionToken({ id: 'purge-token' });
+      beforeEach(() => {
+        const {
+          getInjectionToken,
+        } = require('../getInjectionToken/getInjectionToken');
 
-      const injectable1 = getInjectable({
-        id: 'purge-token-impl-1',
-        injectionToken: token,
-        instantiate: () => ({}),
+        const token = getInjectionToken({ id: 'purge-token' });
 
-        lifecycle: lifecycleEnum.keyedSingleton({
-          getInstanceKey: (_, param) => param,
-        }),
+        injectable1 = getInjectable({
+          id: 'purge-token-impl-1',
+          injectionToken: token,
+          instantiate: () => ({}),
+
+          lifecycle: lifecycleEnum.keyedSingleton({
+            getInstanceKey: (_, param) => param,
+          }),
+        });
+
+        injectable2 = getInjectable({
+          id: 'purge-token-impl-2',
+          injectionToken: token,
+          instantiate: () => ({}),
+
+          lifecycle: lifecycleEnum.keyedSingleton({
+            getInstanceKey: (_, param) => param,
+          }),
+        });
+
+        di = createContainer('some-container');
+        di.register(injectable1, injectable2);
+
+        inst1 = di.inject(injectable1, 'key');
+        inst2 = di.inject(injectable2, 'key');
+
+        di.purge(token);
       });
 
-      const injectable2 = getInjectable({
-        id: 'purge-token-impl-2',
-        injectionToken: token,
-        instantiate: () => ({}),
-
-        lifecycle: lifecycleEnum.keyedSingleton({
-          getInstanceKey: (_, param) => param,
-        }),
+      it('the first injectable yields a new instance', () => {
+        expect(di.inject(injectable1, 'key')).not.toBe(inst1);
       });
 
-      const di = createContainer('some-container');
-      di.register(injectable1, injectable2);
-
-      const inst1 = di.inject(injectable1, 'key');
-      const inst2 = di.inject(injectable2, 'key');
-
-      di.purge(token);
-
-      expect(di.inject(injectable1, 'key')).not.toBe(inst1);
-      expect(di.inject(injectable2, 'key')).not.toBe(inst2);
+      it('the second injectable yields a new instance', () => {
+        expect(di.inject(injectable2, 'key')).not.toBe(inst2);
+      });
     });
 
-    it('purges by key across all injectables implementing the token', () => {
-      const {
-        getInjectionToken,
-      } = require('../getInjectionToken/getInjectionToken');
+    describe('given two injectables with two keys each, when purging by token and specific key', () => {
+      let di;
+      let injectable1;
+      let injectable2;
+      let inst1a;
+      let inst1b;
+      let inst2a;
+      let inst2b;
 
-      const token = getInjectionToken({ id: 'purge-token-key' });
+      beforeEach(() => {
+        const {
+          getInjectionToken,
+        } = require('../getInjectionToken/getInjectionToken');
 
-      const injectable1 = getInjectable({
-        id: 'purge-token-key-impl-1',
-        injectionToken: token,
-        instantiate: () => ({}),
+        const token = getInjectionToken({ id: 'purge-token-key' });
 
-        lifecycle: lifecycleEnum.keyedSingleton({
-          getInstanceKey: (_, param) => param,
-        }),
+        injectable1 = getInjectable({
+          id: 'purge-token-key-impl-1',
+          injectionToken: token,
+          instantiate: () => ({}),
+
+          lifecycle: lifecycleEnum.keyedSingleton({
+            getInstanceKey: (_, param) => param,
+          }),
+        });
+
+        injectable2 = getInjectable({
+          id: 'purge-token-key-impl-2',
+          injectionToken: token,
+          instantiate: () => ({}),
+
+          lifecycle: lifecycleEnum.keyedSingleton({
+            getInstanceKey: (_, param) => param,
+          }),
+        });
+
+        di = createContainer('some-container');
+        di.register(injectable1, injectable2);
+
+        inst1a = di.inject(injectable1, 'a');
+        inst1b = di.inject(injectable1, 'b');
+        inst2a = di.inject(injectable2, 'a');
+        inst2b = di.inject(injectable2, 'b');
+
+        di.purge(token, 'a');
       });
 
-      const injectable2 = getInjectable({
-        id: 'purge-token-key-impl-2',
-        injectionToken: token,
-        instantiate: () => ({}),
-
-        lifecycle: lifecycleEnum.keyedSingleton({
-          getInstanceKey: (_, param) => param,
-        }),
+      it('the first injectable purged key yields a new instance', () => {
+        expect(di.inject(injectable1, 'a')).not.toBe(inst1a);
       });
 
-      const di = createContainer('some-container');
-      di.register(injectable1, injectable2);
+      it('the first injectable non-purged key yields the same instance', () => {
+        expect(di.inject(injectable1, 'b')).toBe(inst1b);
+      });
 
-      const inst1a = di.inject(injectable1, 'a');
-      const inst1b = di.inject(injectable1, 'b');
-      const inst2a = di.inject(injectable2, 'a');
-      const inst2b = di.inject(injectable2, 'b');
+      it('the second injectable purged key yields a new instance', () => {
+        expect(di.inject(injectable2, 'a')).not.toBe(inst2a);
+      });
 
-      di.purge(token, 'a');
-
-      expect(di.inject(injectable1, 'a')).not.toBe(inst1a);
-      expect(di.inject(injectable1, 'b')).toBe(inst1b);
-      expect(di.inject(injectable2, 'a')).not.toBe(inst2a);
-      expect(di.inject(injectable2, 'b')).toBe(inst2b);
+      it('the second injectable non-purged key yields the same instance', () => {
+        expect(di.inject(injectable2, 'b')).toBe(inst2b);
+      });
     });
   });
 
   describe('scoped purge from within instantiate', () => {
-    it('can purge a child injectable registered in its own context', () => {
+    it('given a child injectable registered in scope, when purging it by key, yields a new instance on next inject', () => {
       const di = createContainer('some-container');
 
       const childInjectable = getInjectable({
@@ -571,7 +630,7 @@ describe('createContainer.keyed-singleton', () => {
       expect(child2).not.toBe(child1);
     });
 
-    it('throws when trying to purge an unrelated injectable outside its context tree', () => {
+    it('when trying to purge an unrelated injectable outside its context tree, throws', () => {
       const di = createContainer('some-container');
 
       const unrelatedInjectable = getInjectable({
@@ -600,7 +659,7 @@ describe('createContainer.keyed-singleton', () => {
       );
     });
 
-    it('can purge itself', () => {
+    it('when purging itself by key, yields a new instance on next inject', () => {
       const di = createContainer('some-container');
       let purgeSelf;
 
@@ -625,53 +684,66 @@ describe('createContainer.keyed-singleton', () => {
       expect(instance2).not.toBe(instance1);
     });
 
-    it('purge with no alias purges entire registration context branch', () => {
-      const di = createContainer('some-container');
+    describe('given children registered in scope, when purging with no alias', () => {
+      let di;
+      let child1;
+      let child2;
+      let c1;
+      let c2;
 
-      const child1 = getInjectable({
-        id: 'branch-child-1',
-        instantiate: () => ({}),
+      beforeEach(() => {
+        di = createContainer('some-container');
 
-        lifecycle: lifecycleEnum.keyedSingleton({
-          getInstanceKey: (_, param) => param,
-        }),
+        child1 = getInjectable({
+          id: 'branch-child-1',
+          instantiate: () => ({}),
+
+          lifecycle: lifecycleEnum.keyedSingleton({
+            getInstanceKey: (_, param) => param,
+          }),
+        });
+
+        child2 = getInjectable({
+          id: 'branch-child-2',
+          instantiate: () => ({}),
+
+          lifecycle: lifecycleEnum.keyedSingleton({
+            getInstanceKey: (_, param) => param,
+          }),
+        });
+
+        let purgeAll;
+
+        const parentInjectable = getInjectable({
+          id: 'branch-parent',
+          instantiate: minimalDi => {
+            minimalDi.register(child1, child2);
+            purgeAll = () => minimalDi.purge();
+            return {};
+          },
+
+          lifecycle: lifecycleEnum.singleton,
+        });
+
+        di.register(parentInjectable);
+        di.inject(parentInjectable);
+
+        c1 = di.inject(child1, 'a');
+        c2 = di.inject(child2, 'b');
+
+        purgeAll();
       });
 
-      const child2 = getInjectable({
-        id: 'branch-child-2',
-        instantiate: () => ({}),
-
-        lifecycle: lifecycleEnum.keyedSingleton({
-          getInstanceKey: (_, param) => param,
-        }),
+      it('the first child yields a new instance', () => {
+        expect(di.inject(child1, 'a')).not.toBe(c1);
       });
 
-      let purgeAll;
-
-      const parentInjectable = getInjectable({
-        id: 'branch-parent',
-        instantiate: minimalDi => {
-          minimalDi.register(child1, child2);
-          purgeAll = () => minimalDi.purge();
-          return {};
-        },
-
-        lifecycle: lifecycleEnum.singleton,
+      it('the second child yields a new instance', () => {
+        expect(di.inject(child2, 'b')).not.toBe(c2);
       });
-
-      di.register(parentInjectable);
-      di.inject(parentInjectable);
-
-      const c1 = di.inject(child1, 'a');
-      const c2 = di.inject(child2, 'b');
-
-      purgeAll();
-
-      expect(di.inject(child1, 'a')).not.toBe(c1);
-      expect(di.inject(child2, 'b')).not.toBe(c2);
     });
 
-    it('purge with no alias does not affect injectables outside the branch', () => {
+    it('given injectables outside the branch, when purging with no alias, the outside injectable yields the same instance', () => {
       const di = createContainer('some-container');
 
       const outsideInjectable = getInjectable({
