@@ -80,7 +80,7 @@ export declare function getInjectableComponent<
     Component: Component;
     PlaceholderComponent?: React.ComponentType<React.ComponentProps<Component>>;
     injectionToken?: InjectionToken<Component> | InjectionToken<React.ComponentType<
-      unknown extends React.ComponentProps<Component> ? {} : React.ComponentProps<Component>
+      unknown extends React.ComponentProps<Component> ? any : React.ComponentProps<Component>
     >>;
   },
 ): InjectableComponent<Component>;

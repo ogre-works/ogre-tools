@@ -384,3 +384,25 @@ const InjectableClassComponentWithWideToken = getInjectableComponent({
 expectAssignable<React.ComponentType<{ someProp: string }>>(
   InjectableClassComponentWithWideToken,
 );
+
+// given a bare arrow function component and a ComponentType<SpecificProps>
+// injection token, typing is ok — the component declares no props, so any
+// ComponentType-shaped token is compatible
+interface SomeMenuItem {
+  id: string;
+  kind: 'internal-separator';
+}
+
+const someInjectionTokenForSpecificComponentType = getInjectionToken<
+  React.ComponentType<SomeMenuItem>
+>({
+  id: 'irrelevant',
+});
+
+const InjectableBareComponentWithSpecificToken = getInjectableComponent({
+  id: 'irrelevant',
+  Component: NarrowFunctionComponentNoProps,
+  injectionToken: someInjectionTokenForSpecificComponentType,
+});
+
+expectAssignable<React.ComponentType>(InjectableBareComponentWithSpecificToken);
