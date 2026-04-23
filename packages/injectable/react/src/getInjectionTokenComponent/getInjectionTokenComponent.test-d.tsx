@@ -3,7 +3,7 @@ import React from 'react';
 import { expectAssignable, expectError, expectType } from 'tsd';
 import {
   getInjectionTokenComponent,
-  getInjectableComponent,
+  getInjectableComponent2,
   SpecificInjectionTokenComponent,
 } from '../../index';
 import {
@@ -47,12 +47,12 @@ expectType<React.ComponentType<{ someProp: string }>>(
   di.inject(SomeTokenComponentWithProps),
 );
 
-// can be used as injectionToken in getInjectableComponent
+// can be used as injectionToken in getInjectableComponent2
 const SomeComponentWithProps: React.ComponentType<{ someProp: string }> = ({
   someProp,
 }) => <div>{someProp}</div>;
 
-const SomeInjectableComponent = getInjectableComponent({
+const SomeInjectableComponent = getInjectableComponent2({
   id: 'irrelevant',
   Component: SomeComponentWithProps,
   injectionToken: SomeTokenComponentWithProps,
@@ -67,7 +67,7 @@ const SomeComponentWithWrongProps: React.ComponentType<{ someProp: number }> =
   ({ someProp }) => <div>{someProp}</div>;
 
 expectError(
-  getInjectableComponent({
+  getInjectableComponent2({
     id: 'irrelevant',
     Component: SomeComponentWithWrongProps,
     injectionToken: SomeTokenComponentWithProps,
@@ -108,8 +108,8 @@ expectType<React.ComponentType<{ someProp: string }>>(
   di.inject(SomeSpecificToken),
 );
 
-// specific token works as injectionToken in getInjectableComponent
-getInjectableComponent({
+// specific token works as injectionToken in getInjectableComponent2
+getInjectableComponent2({
   id: 'irrelevant',
   Component: SomeComponentWithProps,
   injectionToken: SomeSpecificToken,
@@ -130,7 +130,7 @@ const someTypedSpecifier =
     'irrelevant',
   );
 
-const SomeInjectableComponentForTypedSpecifier = getInjectableComponent({
+const SomeInjectableComponentForTypedSpecifier = getInjectableComponent2({
   id: 'irrelevant',
   Component: props => {
     expectType<{ someProp: 'some-type' }>(props);
@@ -209,9 +209,9 @@ expectError(di.inject(SomeAbstractTokenComponent));
 // concrete specific token can be injected
 di.inject(SomeConcreteFromAbstract);
 
-// abstract token component cannot be used as injectionToken in getInjectableComponent
+// abstract token component cannot be used as injectionToken in getInjectableComponent2
 expectError(
-  getInjectableComponent({
+  getInjectableComponent2({
     id: 'irrelevant',
     Component: SomeComponentWithProps,
     injectionToken: SomeAbstractTokenComponent,
@@ -219,7 +219,7 @@ expectError(
 );
 
 // concrete specific token can be used as injectionToken
-getInjectableComponent({
+getInjectableComponent2({
   id: 'irrelevant',
   Component: SomeComponentWithProps,
   injectionToken: SomeConcreteFromAbstract,

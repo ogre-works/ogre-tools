@@ -79,7 +79,7 @@ export declare function getInjectableComponent<
     id: string;
     Component: Component;
     PlaceholderComponent?: React.ComponentType<React.ComponentProps<Component>>;
-    injectionToken?: InjectionToken2<() => Component> & { readonly __abstract?: never };
+    injectionToken?: InjectionToken<Component>;
   },
 ): InjectableComponent<Component>;
 
