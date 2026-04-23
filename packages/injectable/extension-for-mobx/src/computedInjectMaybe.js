@@ -64,6 +64,6 @@ export const computedInjectMaybe2Injectable = getInjectable2({
     di =>
     token =>
     (...args) =>
-      di.inject(_computedInjectMaybeInjectable, { token, args }),
+      di.inject(_computedInjectMaybeInjectable, { token, args }).get(),
   injectionToken: computedInjectMaybe2InjectionToken,
 });

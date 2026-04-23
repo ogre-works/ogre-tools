@@ -37,8 +37,13 @@ const someParamToken2 = getInjectionToken2<(key: string) => number>({
   id: "some-param-token2",
 });
 
-// v2 InjectionToken2 for a GENERIC factory — its T is decided at invocation time
-const someGenericToken2 = getInjectionToken2<<T>(value: T) => T>({
+// v2 InjectionToken2 for a GENERIC factory — its T is decided at invocation time.
+// Explicit ManyFactory carries <T> through the many-shape, so helpers that
+// return ManyFactory preserve the generic at call time.
+const someGenericToken2 = getInjectionToken2<
+  <T>(value: T) => T,
+  <T>(value: T) => T[]
+>({
   id: "some-generic-token2",
 });
 
@@ -163,7 +168,10 @@ expectError(computedInjectMaybe(someGenericToken2));
 // ===========================================================================
 // SECTION 4
 // Factory-shape helpers (computedInjectMany2 / WithMeta2 / Maybe2) with v1
-// tokens. These take `(token)` and RETURN a factory `(...p) => IComputedValue`.
+// tokens. These take `(token)` and RETURN a factory whose signature mirrors
+// the token's parameter shape. Invoking the factory returns the unwrapped
+// instance array / meta-wrapped array / maybe-instance — no `.get()` at the
+// call site; observation still flows via the enclosing reactive context.
 // Same relationship as `di.inject` vs `di.inject2`.
 // ===========================================================================
 
@@ -175,26 +183,26 @@ const computedInjectMaybe2 = di.inject2(computedInjectMaybe2InjectionToken);
 
 // The returned factory is `(param_0: void) => ...` — a single void-typed
 // parameter that is assignable from `undefined` / omitted at the call site.
-expectType<(param_0: void) => IComputedValue<string[]>>(
+expectType<(param_0: void) => string[]>(
   computedInjectMany2(someInjectionToken),
 );
-expectType<(param_0: void) => IComputedValue<InjectionInstanceWithMeta<string>[]>>(
+expectType<(param_0: void) => InjectionInstanceWithMeta<string>[]>(
   computedInjectManyWithMeta2(someInjectionToken),
 );
-expectType<(param_0: void) => IComputedValue<string | undefined>>(
+expectType<(param_0: void) => string | undefined>(
   computedInjectMaybe2(someInjectionToken),
 );
 
 // --- v1 token with instantiation parameter --------------------------------
 
 // The returned factory accepts the token's param type
-expectType<(param: number) => IComputedValue<string[]>>(
+expectType<(param: number) => string[]>(
   computedInjectMany2(someInjectionTokenWithParameter),
 );
-expectType<(param: number) => IComputedValue<InjectionInstanceWithMeta<string>[]>>(
+expectType<(param: number) => InjectionInstanceWithMeta<string>[]>(
   computedInjectManyWithMeta2(someInjectionTokenWithParameter),
 );
-expectType<(param: number) => IComputedValue<string | undefined>>(
+expectType<(param: number) => string | undefined>(
   computedInjectMaybe2(someInjectionTokenWithParameter),
 );
 
@@ -206,26 +214,34 @@ expectError(computedInjectMaybe2(someInjectionTokenWithParameter)("wrong"));
 // ===========================================================================
 // SECTION 5
 // Factory-shape helpers with non-generic InjectionToken2.
-// Factory signature mirrors Parameters<F> / ReturnType<F>.
+//
+// computedInjectMany2 returns the token's ManyFactory (MF) — the sibling
+// generic on InjectionToken2<F, MF>. For non-generic tokens MF is auto-
+// derived as `(...Parameters<F>) => ReturnType<F>[]`, so the observable
+// shape matches that derivation.
+//
+// WithMeta2 / Maybe2 have no ManyFactory analog and synthesize from
+// Parameters<F> / ReturnType<F> directly (same limitation as
+// InjectManyWithMeta2 / InjectWithMeta2 in the core package).
 // ===========================================================================
 
 // --- v2 non-parametric token ----------------------------------------------
 
-expectType<() => IComputedValue<string[]>>(computedInjectMany2(someToken2));
-expectType<() => IComputedValue<InjectionInstanceWithMeta<string>[]>>(
+expectType<() => string[]>(computedInjectMany2(someToken2));
+expectType<() => InjectionInstanceWithMeta<string>[]>(
   computedInjectManyWithMeta2(someToken2),
 );
-expectType<() => IComputedValue<string | undefined>>(computedInjectMaybe2(someToken2));
+expectType<() => string | undefined>(computedInjectMaybe2(someToken2));
 
 // --- v2 parametric token --------------------------------------------------
 
-expectType<(key: string) => IComputedValue<number[]>>(
+expectType<(key: string) => number[]>(
   computedInjectMany2(someParamToken2),
 );
-expectType<(key: string) => IComputedValue<InjectionInstanceWithMeta<number>[]>>(
+expectType<(key: string) => InjectionInstanceWithMeta<number>[]>(
   computedInjectManyWithMeta2(someParamToken2),
 );
-expectType<(key: string) => IComputedValue<number | undefined>>(
+expectType<(key: string) => number | undefined>(
   computedInjectMaybe2(someParamToken2),
 );
 
@@ -238,20 +254,49 @@ expectError(computedInjectMaybe2(someParamToken2)(42));
 // SECTION 6
 // Factory-shape helpers with a GENERIC InjectionToken2 factory.
 //
-// Same TS limitation as SECTION 3: `Parameters<F>` / `ReturnType<F>` collapse
-// the generic T to its constraint. The returned factory is therefore typed
-// as `(...args: [unknown]) => IComputedValue<unknown[]>`, not as a generic
-// function in T.
+// computedInjectMany2 uses the token's ManyFactory (MF) generic — when MF is
+// declared generic, the returned callable IS that generic function and `<T>`
+// is decided at each invocation. WithMeta2 / Maybe2 still collapse to the
+// constraint (`unknown`) because they have no ManyFactory analog.
 // ===========================================================================
 
-// Factory collapses to `(value: unknown) => IComputedValue<unknown[]>`
-expectType<(value: unknown) => IComputedValue<unknown[]>>(
-  computedInjectMany2(someGenericToken2),
+// --- computedInjectMany2: generic <T> preserved via ManyFactory -----------
+
+// The key assertion: a generic ManyFactory stays generic end-to-end, so the
+// inferred T at the call site flows straight through to the returned T[].
+expectType<boolean[]>(computedInjectMany2(someGenericToken2)(false));
+expectType<string[]>(computedInjectMany2(someGenericToken2)("hi"));
+expectType<number[]>(computedInjectMany2(someGenericToken2)(42));
+
+type WrapFactory = <T>(value: T) => { wrapped: T };
+type WrapManyFactory = <T>(value: T) => { wrapped: T }[];
+const wrapToken2 = getInjectionToken2<WrapFactory, WrapManyFactory>({ id: "wrap-2" });
+
+const wrapMany = computedInjectMany2(wrapToken2);
+expectType<WrapManyFactory>(wrapMany);
+
+// Generic decided per-call — NOT collapsed to unknown
+expectType<{ wrapped: string }[]>(wrapMany("str" as string));
+expectType<{ wrapped: number }[]>(wrapMany(42 as number));
+expectType<{ wrapped: "lit" }[]>(wrapMany("lit"));
+
+// Non-generic tuple token — the user's motivating example:
+// `instances` types as `[string, string][]` matching both params being strings
+const tupleToken2 = getInjectionToken2<(a: string, b: string) => [string, string]>({
+  id: "tuple-2",
+});
+expectType<(a: string, b: string) => [string, string][]>(
+  computedInjectMany2(tupleToken2),
 );
-expectType<(value: unknown) => IComputedValue<InjectionInstanceWithMeta<unknown>[]>>(
+expectError(computedInjectMany2(tupleToken2)("x", 123));
+
+// --- WithMeta2 / Maybe2: generic T still collapses to unknown -------------
+
+// Factory collapses to `(value: unknown) => ...unknown...`
+expectType<(value: unknown) => InjectionInstanceWithMeta<unknown>[]>(
   computedInjectManyWithMeta2(someGenericToken2),
 );
-expectType<(value: unknown) => IComputedValue<unknown | undefined>>(
+expectType<(value: unknown) => unknown | undefined>(
   computedInjectMaybe2(someGenericToken2),
 );
 
@@ -269,27 +314,13 @@ expectType<(value: unknown) => IComputedValue<unknown | undefined>>(
 
 // The returned function retains its multi-overload shape: v1 vs v2 tokens
 // are distinguished at call site.
-expectType<IComputedValue<string[]>>(computedInjectMany2(someInjectionToken)());
-expectType<IComputedValue<string[]>>(computedInjectMany2(someToken2)());
-expectType<IComputedValue<number[]>>(computedInjectMany2(someParamToken2)("x"));
+expectType<string[]>(computedInjectMany2(someInjectionToken)());
+expectType<string[]>(computedInjectMany2(someToken2)());
+expectType<number[]>(computedInjectMany2(someParamToken2)("x"));
 
-// ===========================================================================
-// SECTION 8
-// Generic flow through di.inject2 on a generic InjectionToken2 directly
-// (not the computedInject* helpers — they can't preserve this by design).
-//
-// When `inject2` receives a v2 token whose factory is generic, the returned
-// function IS the native factory, so invoking it at the call site resolves T
-// at that call. This is the only path that preserves generics end-to-end.
-// ===========================================================================
-
-const genericFactory = di.inject2(someGenericToken2);
-
-// T is inferred at each invocation — not collapsed to unknown
-expectType<string>(genericFactory("some string" as string));
-expectType<number>(genericFactory(42 as number));
-expectType<{ flag: boolean }>(genericFactory({ flag: true } as { flag: boolean }));
-
-// Literal narrowing at the call site also works — T = "literal"
-expectType<"literal-value">(genericFactory("literal-value"));
-expectType<7>(genericFactory(7));
+// Note on `di.inject(X, token)(...args)` sugar: it runs correctly but cannot
+// carry generics. `di.inject` routes through InjectInjectable2, which reads
+// Parameters<F> / ReturnType<F> off ComputedInjectMany2's v2 overload — a
+// generic signature whose `MF` widens to `any` under Parameters/ReturnType.
+// For generic preservation use `di.inject2(X)(token)(...args)`, which returns
+// ComputedInjectMany2 verbatim and lets overload resolution run at call site.

@@ -139,10 +139,12 @@ export const computedInjectManyWithMetaInjectable =
     injectionToken: computedInjectManyWithMetaInjectionToken,
   });
 
-// Factory-shape variants: `fn(token)` returns `(...args) => IComputedValue<...>`
-// — mirrors the relationship between di.injectMany and di.injectMany2.
-// These are injectable2 / injectionToken2 so that `di.inject2` preserves the
-// overloaded (and possibly generic) function type intact.
+// Factory-shape variants: `di.inject(X, token)` returns `(...args) => T[]`
+// (the token's ManyFactory). The factory calls `.get()` internally so the
+// computation observation flows through whatever reactive context the caller
+// is in — autorun, computed, reaction — without per-call `.get()` ceremony.
+// These are injectable2 / injectionToken2 so that the `InjectionToken2<F, MF>`
+// generics (especially the sibling ManyFactory MF) propagate verbatim.
 const computedInjectMany2InjectableFor = ({
   id,
   reactiveInstances,
@@ -155,10 +157,12 @@ const computedInjectMany2InjectableFor = ({
       di =>
       injectionToken =>
       (...args) =>
-        di.inject(reactiveInstances, {
-          injectionToken,
-          args,
-        }),
+        di
+          .inject(reactiveInstances, {
+            injectionToken,
+            args,
+          })
+          .get(),
 
     injectionToken,
   });
