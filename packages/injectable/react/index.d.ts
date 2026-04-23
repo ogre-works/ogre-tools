@@ -79,7 +79,9 @@ export declare function getInjectableComponent<
     id: string;
     Component: Component;
     PlaceholderComponent?: React.ComponentType<React.ComponentProps<Component>>;
-    injectionToken?: InjectionToken<Component>;
+    injectionToken?: InjectionToken<Component> | InjectionToken<React.ComponentType<
+      unknown extends React.ComponentProps<Component> ? {} : React.ComponentProps<Component>
+    >>;
   },
 ): InjectableComponent<Component>;
 

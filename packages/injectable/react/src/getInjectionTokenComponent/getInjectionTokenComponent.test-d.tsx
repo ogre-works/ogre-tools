@@ -180,3 +180,36 @@ expectError(
     id: 'irrelevant',
   }),
 );
+
+// --- Narrow function component with InjectionTokenComponent token ---
+
+// given a narrow function component (not annotated as ComponentType) with an
+// InjectionTokenComponent<ComponentType<{}>> token, typing is ok
+const NarrowFunctionComponentNoProps = () => <div>irrelevant</div>;
+
+getInjectableComponent({
+  id: 'irrelevant',
+  Component: NarrowFunctionComponentNoProps,
+  injectionToken: SomeTokenComponent,
+});
+
+// given a narrow function component with props with an
+// InjectionTokenComponent<ComponentType<Props>> token, typing is ok
+const NarrowFunctionComponentWithProps = ({
+  someProp,
+}: {
+  someProp: string;
+}) => <div>{someProp}</div>;
+
+getInjectableComponent({
+  id: 'irrelevant',
+  Component: NarrowFunctionComponentWithProps,
+  injectionToken: SomeTokenComponentWithProps,
+});
+
+// given a narrow function component with a .for()-specific token, typing is ok
+getInjectableComponent({
+  id: 'irrelevant',
+  Component: NarrowFunctionComponentWithProps,
+  injectionToken: SomeSpecificToken,
+});

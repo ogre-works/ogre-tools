@@ -341,3 +341,46 @@ expectError(
     someOtherProp="some-string"
   />,
 );
+
+// --- Narrow function component with wider ComponentType token ---
+
+// given a narrow function component (not annotated as ComponentType) with a
+// ComponentType<{}> injection token, typing is ok
+const NarrowFunctionComponentNoProps = () => <div>irrelevant</div>;
+
+const InjectableComponentNarrowWithWideToken = getInjectableComponent({
+  id: 'irrelevant',
+  Component: NarrowFunctionComponentNoProps,
+  injectionToken: someInjectionTokenNotUsingProps,
+});
+
+expectAssignable<React.ComponentType>(InjectableComponentNarrowWithWideToken);
+
+// given a narrow function component with props (not annotated as ComponentType)
+// with a ComponentType<Props> injection token, typing is ok
+const NarrowFunctionComponentWithProps = ({
+  someProp,
+}: {
+  someProp: string;
+}) => <div>{someProp}</div>;
+
+const InjectableComponentNarrowPropsWithWideToken = getInjectableComponent({
+  id: 'irrelevant',
+  Component: NarrowFunctionComponentWithProps,
+  injectionToken: someInjectionTokenUsingProps,
+});
+
+expectAssignable<React.ComponentType<{ someProp: string }>>(
+  InjectableComponentNarrowPropsWithWideToken,
+);
+
+// given a class component with a ComponentType<Props> injection token, typing is ok
+const InjectableClassComponentWithWideToken = getInjectableComponent({
+  id: 'irrelevant',
+  Component: SomeClassComponentUsingProps,
+  injectionToken: someInjectionTokenUsingProps,
+});
+
+expectAssignable<React.ComponentType<{ someProp: string }>>(
+  InjectableClassComponentWithWideToken,
+);
