@@ -1,0 +1,231 @@
+import React from 'react';
+
+import { expectAssignable, expectError, expectType } from 'tsd';
+import {
+  getInjectionTokenComponent2,
+  getInjectableComponent2,
+  getAbstractInjectionTokenComponent,
+  SpecificInjectionTokenComponent,
+} from '../../index';
+import {
+  createContainer,
+  getTypedSpecifier,
+  InjectionToken2,
+  TypedSpecifierType,
+  TypedSpecifierWithType,
+} from '@lensapp/injectable';
+
+// given no type parameter, result is assignable to React.ComponentType and InjectionToken2
+const SomeTokenComponent = getInjectionTokenComponent2({
+  id: 'irrelevant',
+});
+
+expectAssignable<React.ComponentType>(SomeTokenComponent);
+expectAssignable<InjectionToken2<() => React.ComponentType>>(
+  SomeTokenComponent,
+);
+
+// given typed as component with props, result is assignable to React.ComponentType<Props> and InjectionToken2<() => Component>
+const SomeTokenComponentWithProps = getInjectionTokenComponent2<
+  React.ComponentType<{ someProp: string }>
+>({
+  id: 'irrelevant',
+});
+
+expectAssignable<React.ComponentType<{ someProp: string }>>(
+  SomeTokenComponentWithProps,
+);
+
+expectAssignable<
+  InjectionToken2<() => React.ComponentType<{ someProp: string }>>
+>(SomeTokenComponentWithProps);
+
+// di.inject returns the correct component type
+const di = createContainer('irrelevant');
+
+expectType<React.ComponentType<{ someProp: string }>>(
+  di.inject(SomeTokenComponentWithProps),
+);
+
+// can be used as injectionToken in getInjectableComponent2
+const SomeComponentWithProps: React.ComponentType<{ someProp: string }> = ({
+  someProp,
+}) => <div>{someProp}</div>;
+
+const SomeInjectableComponent = getInjectableComponent2({
+  id: 'irrelevant',
+  Component: SomeComponentWithProps,
+  injectionToken: SomeTokenComponentWithProps,
+});
+
+expectAssignable<React.ComponentType<{ someProp: string }>>(
+  SomeInjectableComponent,
+);
+
+// given contradictory component, typing is not ok
+const SomeComponentWithWrongProps: React.ComponentType<{ someProp: number }> =
+  ({ someProp }) => <div>{someProp}</div>;
+
+expectError(
+  getInjectableComponent2({
+    id: 'irrelevant',
+    Component: SomeComponentWithWrongProps,
+    injectionToken: SomeTokenComponentWithProps,
+  }),
+);
+
+// given placeholder component, typing is ok
+const SomeTokenComponentWithPlaceholder = getInjectionTokenComponent2<
+  React.ComponentType<{ someProp: string }>
+>({
+  id: 'irrelevant',
+  PlaceholderComponent: ({ someProp }) => <div>{someProp}</div>,
+});
+
+expectAssignable<React.ComponentType<{ someProp: string }>>(
+  SomeTokenComponentWithPlaceholder,
+);
+
+// given placeholder with wrong props, typing is not ok
+expectError(
+  getInjectionTokenComponent2<React.ComponentType<{ someProp: string }>>({
+    id: 'irrelevant',
+    PlaceholderComponent: ({ wrongProp }: { wrongProp: number }) => (
+      <div>{wrongProp}</div>
+    ),
+  }),
+);
+
+// .for() returns a SpecificInjectionTokenComponent
+const SomeSpecificToken = SomeTokenComponentWithProps.for('some-specific');
+
+expectAssignable<
+  SpecificInjectionTokenComponent<React.ComponentType<{ someProp: string }>>
+>(SomeSpecificToken);
+
+// specific token is injectable
+expectType<React.ComponentType<{ someProp: string }>>(
+  di.inject(SomeSpecificToken),
+);
+
+// specific token works as injectionToken in getInjectableComponent2
+getInjectableComponent2({
+  id: 'irrelevant',
+  Component: SomeComponentWithProps,
+  injectionToken: SomeSpecificToken,
+});
+
+// given typed specifier, .for() returns a specific token with typed props, and InjectableComponent2 using it has correct props
+const SomeTokenComponentWithTypedSpecifier = getInjectionTokenComponent2<
+  React.ComponentType<unknown>,
+  <T extends TypedSpecifierWithType<'someSpecifier'>>(
+    specifier: T,
+  ) => SpecificInjectionTokenComponent<
+    React.ComponentType<TypedSpecifierType<'someSpecifier', T>>
+  >
+>({ id: 'irrelevant' });
+
+const someTypedSpecifier =
+  getTypedSpecifier<{ someSpecifier: { someProp: 'some-type' } }>()(
+    'irrelevant',
+  );
+
+const SomeInjectableComponentForTypedSpecifier = getInjectableComponent2({
+  id: 'irrelevant',
+  Component: props => {
+    expectType<{ someProp: 'some-type' }>(props);
+
+    return <div>irrelevant</div>;
+  },
+
+  injectionToken: SomeTokenComponentWithTypedSpecifier.for(someTypedSpecifier),
+});
+
+expectAssignable<React.ComponentType<{ someProp: 'some-type' }>>(
+  SomeInjectableComponentForTypedSpecifier,
+);
+
+expectType<React.ComponentType<{ someProp: 'some-type' }>>(
+  di.inject(SomeTokenComponentWithTypedSpecifier.for(someTypedSpecifier)),
+);
+
+// ---- Direct JSX rendering (without injecting first) ----
+
+// token component without props renders in JSX
+<SomeTokenComponent />;
+
+// token component with props renders in JSX with correct props
+<SomeTokenComponentWithProps someProp="some-value" />;
+
+// token component with props errors when required prop is missing
+expectError(<SomeTokenComponentWithProps />);
+
+// token component with props errors when prop has wrong type
+expectError(<SomeTokenComponentWithProps someProp={42} />);
+
+// specific token from .for() renders in JSX with correct props
+<SomeSpecificToken someProp="some-value" />;
+
+// specific token from .for() errors when required prop is missing
+expectError(<SomeSpecificToken />);
+
+// typed specifier specific token renders in JSX with typed props
+const SomeTypedSpecificToken =
+  SomeTokenComponentWithTypedSpecifier.for(someTypedSpecifier);
+<SomeTypedSpecificToken someProp="some-type" />;
+
+// typed specifier specific token errors when prop has wrong type
+expectError(<SomeTypedSpecificToken someProp={42} />);
+
+// ---- Abstract InjectionTokenComponent2 ----
+
+const SomeAbstractTokenComponent = getAbstractInjectionTokenComponent<
+  React.ComponentType<{ someProp: string }>
+>({ id: 'irrelevant' });
+
+// abstract token component is not assignable to React.ComponentType (cannot be rendered)
+expectError<React.ComponentType<{ someProp: string }>>(
+  SomeAbstractTokenComponent,
+);
+
+// .for() returns a renderable specific token component
+const SomeConcreteFromAbstract =
+  SomeAbstractTokenComponent.for('some-specific');
+
+// concrete specific token from .for() CAN be rendered as JSX
+<SomeConcreteFromAbstract someProp="value" />;
+
+// concrete specific token errors on missing required prop
+expectError(<SomeConcreteFromAbstract />);
+
+// concrete specific token errors on wrong prop type
+expectError(<SomeConcreteFromAbstract someProp={42} />);
+
+// abstract token component cannot be injected
+expectError(di.inject(SomeAbstractTokenComponent));
+
+// concrete specific token can be injected
+di.inject(SomeConcreteFromAbstract);
+
+// abstract token component cannot be used as injectionToken in getInjectableComponent2
+expectError(
+  getInjectableComponent2({
+    id: 'irrelevant',
+    Component: SomeComponentWithProps,
+    injectionToken: SomeAbstractTokenComponent,
+  }),
+);
+
+// concrete specific token can be used as injectionToken
+getInjectableComponent2({
+  id: 'irrelevant',
+  Component: SomeComponentWithProps,
+  injectionToken: SomeConcreteFromAbstract,
+});
+
+// given non-sensical type (not a component), typing is not ok
+expectError(
+  getInjectionTokenComponent2<'some-non-component'>({
+    id: 'irrelevant',
+  }),
+);

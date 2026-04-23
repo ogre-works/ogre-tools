@@ -39,7 +39,7 @@
   "scripts": {
     "build": "ogre-tools-build-js",
     "test": "ogre-tools-test",
-    "test:types": "tsd --files ./src/getInjectableComponent/getInjectableComponent.test-d.tsx && tsd --files ./src/getInjectableComponent/getInjectableComponent2.test-d.tsx && tsd --files ./src/getInjectionTokenComponent/getInjectionTokenComponent.test-d.tsx && tsd --files ./src/useInject/useInject.test-d.tsx && tsd --files ./src/useInject/useInject2.test-d.tsx",
+    "test:types": "tsd --files ./src/getInjectableComponent/getInjectableComponent.test-d.tsx && tsd --files ./src/getInjectableComponent/getInjectableComponent2.test-d.tsx && tsd --files ./src/getInjectionTokenComponent/getInjectionTokenComponent.test-d.tsx && tsd --files ./src/getInjectionTokenComponent/getInjectionTokenComponent2.test-d.tsx && tsd --files ./src/useInject/useInject.test-d.tsx && tsd --files ./src/useInject/useInject2.test-d.tsx",
     "code-style:verify": "ogre-tools-verify-code-style",
     "code-style:fix": "ogre-tools-fix-code-style"
   },

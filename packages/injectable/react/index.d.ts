@@ -126,6 +126,33 @@ export declare function getInjectionTokenComponent<
   specificInjectionTokenFactory?: SpecificFactory;
 }): InjectionTokenComponent<Component, SpecificFactory>;
 
+export type SpecificInjectionTokenComponent2<
+  Component extends React.ComponentType<any>,
+> = Component & SpecificInjectionToken2<() => Component>;
+
+export type InjectionTokenComponent2<
+  Component extends React.ComponentType<any>,
+  SpecificFactory extends (
+    ...args: any[]
+  ) => SpecificInjectionTokenComponent2<Component> = (
+    id: string,
+  ) => SpecificInjectionTokenComponent2<Component>,
+> = Component & InjectionToken2<() => Component, () => Component[], SpecificFactory>;
+
+export declare function getInjectionTokenComponent2<
+  Component extends React.ComponentType<any>,
+  SpecificFactory extends (
+    ...args: any[]
+  ) => SpecificInjectionTokenComponent2<Component> = (
+    id: string,
+  ) => SpecificInjectionTokenComponent2<Component>,
+>(options: {
+  id: string;
+  PlaceholderComponent?: React.ComponentType<React.ComponentProps<Component>>;
+  decorable?: boolean;
+  specificInjectionTokenFactory?: SpecificFactory;
+}): InjectionTokenComponent2<Component, SpecificFactory>;
+
 export type AbstractInjectionTokenComponent<
   Component extends React.ComponentType<any>,
   SpecificFactory extends (
