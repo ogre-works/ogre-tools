@@ -12,7 +12,7 @@ import {
   InjectionToken,
   TypedSpecifierType,
   TypedSpecifierWithType,
-} from '@lensapp/injectable';
+} from '@ogre-tools/injectable';
 
 // given no type parameter, result is assignable to React.ComponentType and InjectionToken
 const SomeTokenComponent = getInjectionTokenComponent({
@@ -60,8 +60,9 @@ expectAssignable<React.ComponentType<{ someProp: string }>>(
 );
 
 // given contradictory component, typing is not ok
-const SomeComponentWithWrongProps: React.ComponentType<{ someProp: number }> =
-  ({ someProp }) => <div>{someProp}</div>;
+const SomeComponentWithWrongProps: React.ComponentType<{
+  someProp: number;
+}> = ({ someProp }) => <div>{someProp}</div>;
 
 expectError(
   getInjectableComponent({
@@ -122,10 +123,9 @@ const SomeTokenComponentWithTypedSpecifier = getInjectionTokenComponent<
   >
 >({ id: 'irrelevant' });
 
-const someTypedSpecifier =
-  getTypedSpecifier<{ someSpecifier: { someProp: 'some-type' } }>()(
-    'irrelevant',
-  );
+const someTypedSpecifier = getTypedSpecifier<{
+  someSpecifier: { someProp: 'some-type' };
+}>()('irrelevant');
 
 const SomeInjectableComponentForTypedSpecifier = getInjectableComponent({
   id: 'irrelevant',

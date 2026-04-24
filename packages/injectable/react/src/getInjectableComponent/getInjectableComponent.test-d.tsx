@@ -280,10 +280,9 @@ const someInjectionTokenWithTypedSpecifier = getInjectionToken<
   >
 >({ id: 'irrelevant' });
 
-const someTypedSpecifier =
-  getTypedSpecifier<{ someSpecifier: { someProp: 'some-type' } }>()(
-    'irrelevant',
-  );
+const someTypedSpecifier = getTypedSpecifier<{
+  someSpecifier: { someProp: 'some-type' };
+}>()('irrelevant');
 
 const SomeInjectableComponentForTypedSpecifier = getInjectableComponent({
   id: 'irrelevant',

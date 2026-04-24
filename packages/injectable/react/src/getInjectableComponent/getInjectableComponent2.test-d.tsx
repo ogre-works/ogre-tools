@@ -11,7 +11,7 @@ import {
   SpecificInjectionToken2,
   TypedSpecifierType,
   TypedSpecifierWithType,
-} from '@lensapp/injectable';
+} from '@ogre-tools/injectable';
 
 const someInjectionTokenUsingProps = getInjectionToken2<
   () => React.ComponentType<{ someProp: string }>
@@ -283,10 +283,9 @@ const someInjectionTokenWithTypedSpecifier = getInjectionToken2<
   >
 >({ id: 'irrelevant' });
 
-const someTypedSpecifier =
-  getTypedSpecifier<{ someSpecifier: { someProp: 'some-type' } }>()(
-    'irrelevant',
-  );
+const someTypedSpecifier = getTypedSpecifier<{
+  someSpecifier: { someProp: 'some-type' };
+}>()('irrelevant');
 
 const SomeInjectableComponentForTypedSpecifier = getInjectableComponent2({
   id: 'irrelevant',

@@ -6,7 +6,7 @@ import {
   getInjectable2,
   getInjectionToken,
   registrationDecoratorToken,
-} from '@lensapp/injectable';
+} from '@ogre-tools/injectable';
 
 import { computedInjectManyInjectionToken } from './computedInjectMany';
 import { registerMobX } from './registerMobx';

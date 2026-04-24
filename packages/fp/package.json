@@ -45,9 +45,9 @@
     "code-style:fix": "ogre-tools-fix-code-style"
   },
   "devDependencies": {
-    "@ogre-tools/infrastructure-jest": "^19.0.0",
-    "@ogre-tools/infrastructure-prettier": "^19.0.0",
-    "@ogre-tools/infrastructure-webpack-for-js": "^19.0.0",
+    "@ogre-tools/infrastructure-jest": "^19.0.0 || ^22.0.0",
+    "@ogre-tools/infrastructure-prettier": "^19.0.0 || ^22.0.0",
+    "@ogre-tools/infrastructure-webpack-for-js": "^19.0.0 || ^22.0.0",
     "tsd": "^0.29.0"
   }
 }

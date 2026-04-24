@@ -1,7 +1,7 @@
 const {
   cjsConfig: cjsConfigForJs,
   esmConfig: esmConfigForJs,
-} = require('@lensapp/infrastructure-webpack-for-js');
+} = require('@ogre-tools/infrastructure-webpack-for-js');
 
 const withTypeScript = (baseConfig, tsLoaderOptions = {}) => ({
   ...baseConfig,

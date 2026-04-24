@@ -1,6 +1,6 @@
 import React, { forwardRef, Suspense } from 'react';
 
-import { getInjectable2 } from '@lensapp/injectable';
+import { getInjectable2 } from '@ogre-tools/injectable';
 import { useInject } from '../useInject/useInject';
 
 export const getInjectableComponent2 = ({

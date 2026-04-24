@@ -7,7 +7,7 @@ import {
   SpecificInjectionToken2,
   TypedSpecifierType,
   TypedSpecifierWithType,
-} from '@lensapp/injectable';
+} from '@ogre-tools/injectable';
 import { useInject, useInjectDeferred } from '../../index';
 
 const noParamsInjectable = getInjectable2({

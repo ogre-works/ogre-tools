@@ -1,5 +1,5 @@
 const { cjsConfig, esmConfig } =
-  require('@lensapp/infrastructure-webpack-for-ts');
+  require('@ogre-tools/infrastructure-webpack-for-ts');
 
 const overrides = { performance: undefined, externals: [] };
 

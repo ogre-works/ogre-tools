@@ -1,4 +1,4 @@
-import { getAbstractInjectionToken2 } from '@lensapp/injectable';
+import { getAbstractInjectionToken2 } from '@ogre-tools/injectable';
 import { getInjectionTokenComponent2 } from './getInjectionTokenComponent2';
 
 export const getAbstractInjectionTokenComponent2 = ({

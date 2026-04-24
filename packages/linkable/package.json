@@ -27,17 +27,17 @@
   "license": "MIT",
   "homepage": "https://github.com/ogre-works/ogre-tools#readme",
   "dependencies": {
-    "@ogre-tools/fp": "^19.0.0",
-    "@ogre-tools/injectable": "^19.0.0",
-    "@ogre-tools/injectable-extension-for-auto-registration": "^19.0.0",
+    "@ogre-tools/fp": "^19.0.0 || ^22.0.0",
+    "@ogre-tools/injectable": "^19.0.0 || ^22.0.0",
+    "@ogre-tools/injectable-extension-for-auto-registration": "^19.0.0 || ^22.0.0",
     "fast-glob": "^3.2.12",
-    "fs-extra": "^9.0.1",
+    "fs-extra": "^11.0.0",
     "lodash": "^4.17.21",
     "yalc": "^1.0.0-pre.53"
   },
   "devDependencies": {
     "@async-fn/jest": "^1.6.4",
-    "@ogre-tools/test-utils": "^19.0.0",
+    "@ogre-tools/test-utils": "^19.0.0 || ^22.0.0",
     "@types/fs-extra": "^9.0.13"
   },
   "scripts": {

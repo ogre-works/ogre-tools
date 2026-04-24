@@ -6,7 +6,7 @@ import {
   getInjectable2,
   getInjectionToken,
   getInjectionToken2,
-} from '@lensapp/injectable';
+} from '@ogre-tools/injectable';
 
 import {
   computedInjectMany2InjectionToken,

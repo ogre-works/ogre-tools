@@ -6,7 +6,7 @@ import {
   getInjectable2,
   getInjectionToken2,
   lifecycleEnum,
-} from '@lensapp/injectable';
+} from '@ogre-tools/injectable';
 import { DiContextProvider } from '../withInjectables/withInjectables';
 import { useInject2 } from './useInject2';
 

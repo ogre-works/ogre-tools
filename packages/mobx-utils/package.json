@@ -1,5 +1,5 @@
 {
-  "name": "@lensapp/mobx-utils",
+  "name": "@ogre-tools/mobx-utils",
   "private": false,
   "version": "22.0.0",
   "description": "A brutal component for injecting components that use injectable",
@@ -9,7 +9,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/lensapp/ogre-tools"
+    "url": "https://github.com/ogre-works/ogre-tools"
   },
   "main": "build/index.js",
   "module": "build/index.mjs",
@@ -30,19 +30,19 @@
     "lodash": "^4.17.21"
   },
   "peerDependencies": {
-    "@lensapp/fp": "^16 || ^17 || ^18 || ^19 || ^20 || ^21 || ^22",
+    "@ogre-tools/fp": "^16 || ^17 || ^18 || ^19 || ^20 || ^21 || ^22",
     "@ogre-tools/injectable": "^16 || ^17 || ^18 || ^19 || ^20 || ^21 || ^22",
     "mobx": "^6.12.4"
   },
   "gitHead": "a5e3d70aa0d5d45dbf2f3d37f586fac93bfffc86",
   "bugs": {
-    "url": "https://github.com/lensapp/ogre-tools/issues"
+    "url": "https://github.com/ogre-works/ogre-tools/issues"
   },
-  "homepage": "https://github.com/lensapp/ogre-tools#readme",
+  "homepage": "https://github.com/ogre-works/ogre-tools#readme",
   "publishConfig": {
     "access": "public"
   },
-  "prettier": "@lensapp/infrastructure-prettier",
+  "prettier": "@ogre-tools/infrastructure-prettier",
   "scripts": {
     "build": "ogre-tools-build-js",
     "test": "ogre-tools-test",
@@ -51,9 +51,9 @@
     "code-style:fix": "ogre-tools-fix-code-style"
   },
   "devDependencies": {
-    "@lensapp/infrastructure-babel-for-js": "^22.0.0",
-    "@lensapp/infrastructure-jest": "^22.0.0",
-    "@lensapp/infrastructure-prettier": "^22.0.0",
-    "@lensapp/infrastructure-webpack-for-js": "^22.0.0"
+    "@ogre-tools/infrastructure-babel-for-js": "^19.0.0 || ^22.0.0",
+    "@ogre-tools/infrastructure-jest": "^19.0.0 || ^22.0.0",
+    "@ogre-tools/infrastructure-prettier": "^19.0.0 || ^22.0.0",
+    "@ogre-tools/infrastructure-webpack-for-js": "^19.0.0 || ^22.0.0"
   }
 }

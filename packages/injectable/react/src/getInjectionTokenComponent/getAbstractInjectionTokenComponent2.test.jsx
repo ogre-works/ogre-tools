@@ -1,7 +1,7 @@
 import asyncFn from '@async-fn/jest';
 import React, { Suspense } from 'react';
 import { render } from '@testing-library/react';
-import { createContainer, getInjectable } from '@lensapp/injectable';
+import { createContainer, getInjectable } from '@ogre-tools/injectable';
 import { DiContextProvider } from '../withInjectables/withInjectables';
 import { getAbstractInjectionTokenComponent2 } from './getAbstractInjectionTokenComponent2';
 import { getInjectionTokenComponent2 } from './getInjectionTokenComponent2';

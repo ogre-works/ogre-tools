@@ -6,7 +6,7 @@ import {
   getInjectionToken,
   getInjectionToken2,
   lifecycleEnum,
-} from '@lensapp/injectable';
+} from '@ogre-tools/injectable';
 import { useInject2 } from '../../index';
 
 const noParamsInjectable2 = getInjectable2({

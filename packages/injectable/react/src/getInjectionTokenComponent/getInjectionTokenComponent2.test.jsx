@@ -6,13 +6,13 @@ import {
   createContainer,
   getInjectable,
   isInjectionToken,
-} from '@lensapp/injectable';
+} from '@ogre-tools/injectable';
 import { DiContextProvider } from '../withInjectables/withInjectables';
 import { getInjectionTokenComponent2 } from './getInjectionTokenComponent2';
 import { getInjectableComponent2 } from '../getInjectableComponent/getInjectableComponent2';
-import { isPromise } from '@lensapp/fp';
+import { isPromise } from '@ogre-tools/fp';
 import { useInjectDeferred } from '../useInject/useInject';
-import { discoverFor } from '@lensapp/discoverable';
+import { discoverFor } from '@ogre-tools/discoverable';
 
 describe('getInjectionTokenComponent2', () => {
   let di;

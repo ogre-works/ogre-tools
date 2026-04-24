@@ -1,5 +1,5 @@
 import React, { forwardRef, Suspense } from 'react';
-import { getInjectionToken } from '@lensapp/injectable';
+import { getInjectionToken } from '@ogre-tools/injectable';
 import { useInject } from '../useInject/useInject';
 
 export const getInjectionTokenComponent = ({

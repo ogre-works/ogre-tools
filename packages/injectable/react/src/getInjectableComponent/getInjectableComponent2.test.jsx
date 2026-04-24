@@ -7,13 +7,13 @@ import {
   getInjectable,
   getInjectionToken,
   lifecycleEnum,
-} from '@lensapp/injectable';
+} from '@ogre-tools/injectable';
 import { DiContextProvider } from '../withInjectables/withInjectables';
 import { getInjectableComponent2 } from './getInjectableComponent2';
-import { isPromise } from '@lensapp/fp';
+import { isPromise } from '@ogre-tools/fp';
 import { useInject, useInjectDeferred } from '../useInject/useInject';
-import { discoverFor } from '@lensapp/discoverable';
-import { flushPromises } from '@lensapp/ogre-test-utils';
+import { discoverFor } from '@ogre-tools/discoverable';
+import { flushPromises } from '@ogre-tools/test-utils';
 
 describe('getInjectableComponent2', () => {
   let di;
