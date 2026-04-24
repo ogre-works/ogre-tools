@@ -16,9 +16,9 @@ const withTypeScript = (baseConfig, tsLoaderOptions = {}) => ({
       {
         test: /\.tsx?$/,
         loader: 'ts-loader',
-        ...Object.keys(tsLoaderOptions).length > 0
+        ...(Object.keys(tsLoaderOptions).length > 0
           ? { options: tsLoaderOptions }
-          : {},
+          : {}),
       },
 
       ...baseConfig.module.rules,

@@ -140,9 +140,7 @@ export class CompositeMap {
 
   #canPrune(node) {
     return (
-      !node.hasWeakEntries &&
-      node.layer.size === 0 &&
-      node.children.size === 0
+      !node.hasWeakEntries && node.layer.size === 0 && node.children.size === 0
     );
   }
 
