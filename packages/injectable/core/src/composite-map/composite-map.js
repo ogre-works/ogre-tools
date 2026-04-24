@@ -1,5 +1,16 @@
+const isObjectKey = key =>
+  (typeof key === 'object' && key !== null) || typeof key === 'function';
+
+const makeNode = () => ({
+  layer: new Map(),
+  weakLayer: new WeakMap(),
+  children: new Map(),
+  weakChildren: new WeakMap(),
+  hasWeakEntries: false,
+});
+
 export class CompositeMap {
-  #internalMap = { layer: new Map(), children: new Map() };
+  #internalMap = makeNode();
 
   constructor(initialValues = []) {
     for (const [key, value] of initialValues) {
@@ -7,16 +18,28 @@ export class CompositeMap {
     }
   }
 
+  #layerFor(mapEntry, key) {
+    return isObjectKey(key) ? mapEntry.weakLayer : mapEntry.layer;
+  }
+
+  #childrenFor(mapEntry, key) {
+    return isObjectKey(key) ? mapEntry.weakChildren : mapEntry.children;
+  }
+
   #set(mapEntry, key, value) {
     if (key.length === 1) {
-      mapEntry.layer.set(key[0], value);
+      const first = key[0];
+      this.#layerFor(mapEntry, first).set(first, value);
+      if (isObjectKey(first)) mapEntry.hasWeakEntries = true;
     } else {
       const [first, ...rest] = key;
-      let nextMapEntry = mapEntry.children.get(first);
+      const childMap = this.#childrenFor(mapEntry, first);
+      let nextMapEntry = childMap.get(first);
 
       if (!nextMapEntry) {
-        nextMapEntry = { layer: new Map(), children: new Map() };
-        mapEntry.children.set(first, nextMapEntry);
+        nextMapEntry = makeNode();
+        childMap.set(first, nextMapEntry);
+        if (isObjectKey(first)) mapEntry.hasWeakEntries = true;
       }
 
       this.#set(nextMapEntry, rest, value);
@@ -37,10 +60,10 @@ export class CompositeMap {
 
   #get(mapEntry, key) {
     if (key.length === 1) {
-      return mapEntry.layer.get(key[0]);
+      return this.#layerFor(mapEntry, key[0]).get(key[0]);
     } else {
       const [first, ...rest] = key;
-      const nextMapEntry = mapEntry.children.get(first);
+      const nextMapEntry = this.#childrenFor(mapEntry, first).get(first);
 
       if (!nextMapEntry) {
         return undefined;
@@ -64,10 +87,10 @@ export class CompositeMap {
 
   #has(mapEntry, key) {
     if (key.length === 1) {
-      return mapEntry.layer.has(key[0]);
+      return this.#layerFor(mapEntry, key[0]).has(key[0]);
     } else {
       const [first, ...rest] = key;
-      const nextMapEntry = mapEntry.children.get(first);
+      const nextMapEntry = this.#childrenFor(mapEntry, first).get(first);
 
       if (!nextMapEntry) {
         return false;
@@ -115,13 +138,22 @@ export class CompositeMap {
     yield* this.#entries(this.#internalMap, []);
   }
 
+  #canPrune(node) {
+    return (
+      !node.hasWeakEntries &&
+      node.layer.size === 0 &&
+      node.children.size === 0
+    );
+  }
+
   #delete(mapEntry, key) {
     if (key.length === 1) {
-      return mapEntry.layer.delete(key[0]);
+      return this.#layerFor(mapEntry, key[0]).delete(key[0]);
     }
 
     const [first, ...rest] = key;
-    const nextMapEntry = mapEntry.children.get(first);
+    const childMap = this.#childrenFor(mapEntry, first);
+    const nextMapEntry = childMap.get(first);
 
     if (!nextMapEntry) {
       return false;
@@ -129,12 +161,8 @@ export class CompositeMap {
 
     const deleted = this.#delete(nextMapEntry, rest);
 
-    if (
-      deleted &&
-      nextMapEntry.layer.size === 0 &&
-      nextMapEntry.children.size === 0
-    ) {
-      mapEntry.children.delete(first);
+    if (deleted && this.#canPrune(nextMapEntry)) {
+      childMap.delete(first);
     }
 
     return deleted;
@@ -161,19 +189,21 @@ export class CompositeMap {
   #deleteByPrefix(mapEntry, keyPrefix, onValue) {
     if (keyPrefix.length === 1) {
       const key = keyPrefix[0];
+      const layer = this.#layerFor(mapEntry, key);
+      const childMap = this.#childrenFor(mapEntry, key);
       let deleted = false;
 
-      if (mapEntry.layer.has(key)) {
-        if (onValue) onValue(mapEntry.layer.get(key));
-        mapEntry.layer.delete(key);
+      if (layer.has(key)) {
+        if (onValue) onValue(layer.get(key));
+        layer.delete(key);
         deleted = true;
       }
 
-      const childEntry = mapEntry.children.get(key);
+      const childEntry = childMap.get(key);
 
       if (childEntry) {
         if (onValue) this.#forEachInSubtree(childEntry, onValue);
-        mapEntry.children.delete(key);
+        childMap.delete(key);
         deleted = true;
       }
 
@@ -181,7 +211,8 @@ export class CompositeMap {
     }
 
     const [first, ...rest] = keyPrefix;
-    const nextMapEntry = mapEntry.children.get(first);
+    const childMap = this.#childrenFor(mapEntry, first);
+    const nextMapEntry = childMap.get(first);
 
     if (!nextMapEntry) {
       return false;
@@ -189,12 +220,8 @@ export class CompositeMap {
 
     const deleted = this.#deleteByPrefix(nextMapEntry, rest, onValue);
 
-    if (
-      deleted &&
-      nextMapEntry.layer.size === 0 &&
-      nextMapEntry.children.size === 0
-    ) {
-      mapEntry.children.delete(first);
+    if (deleted && this.#canPrune(nextMapEntry)) {
+      childMap.delete(first);
     }
 
     return deleted;
@@ -209,6 +236,6 @@ export class CompositeMap {
   }
 
   clear() {
-    this.#internalMap = { layer: new Map(), children: new Map() };
+    this.#internalMap = makeNode();
   }
 }

@@ -108,6 +108,92 @@ describe('compositeMap', () => {
 
       expect(actual).toBe(undefined);
     });
+
+    describe('weak-holding of object-typed key parts', () => {
+      it('when a value is set with an object leaf key, getting with the same reference returns the value', () => {
+        const ref = {};
+
+        compositeMap.set([ref], 'some-value');
+
+        expect(compositeMap.get([ref])).toBe('some-value');
+      });
+
+      it('when a value is set with an object leaf key, getting with a different reference returns undefined', () => {
+        compositeMap.set([{}], 'some-value');
+
+        expect(compositeMap.get([{}])).toBe(undefined);
+      });
+
+      it('when a value is set with a function leaf key, getting with the same reference returns the value', () => {
+        const fn = () => {};
+
+        compositeMap.set([fn], 'some-value');
+
+        expect(compositeMap.get([fn])).toBe('some-value');
+      });
+
+      it('when a value is set with a mixed composite key (object first), getting with the same references returns the value', () => {
+        const ref = {};
+
+        compositeMap.set([ref, 'primitive'], 'some-value');
+
+        expect(compositeMap.get([ref, 'primitive'])).toBe('some-value');
+      });
+
+      it('when a value is set with a mixed composite key (object last), getting with the same references returns the value', () => {
+        const ref = {};
+
+        compositeMap.set(['primitive', ref], 'some-value');
+
+        expect(compositeMap.get(['primitive', ref])).toBe('some-value');
+      });
+
+      it('when values are set under object keys, iteration does not yield them', () => {
+        const ref = {};
+
+        compositeMap.set([ref], 'weakly-held');
+        compositeMap.set(['primitive'], 'strongly-held');
+
+        expect([...compositeMap.values()]).toEqual(['strongly-held']);
+      });
+
+      it('when values are set under object keys, iteration does not yield entries below weak children', () => {
+        const ref = {};
+
+        compositeMap.set([ref, 'x'], 'weakly-held');
+        compositeMap.set(['primitive'], 'strongly-held');
+
+        expect([...compositeMap.values()]).toEqual(['strongly-held']);
+      });
+
+      it('when clearing, object-keyed entries are no longer retrievable', () => {
+        const ref = {};
+        compositeMap.set([ref], 'some-value');
+
+        compositeMap.clear();
+
+        expect(compositeMap.get([ref])).toBe(undefined);
+      });
+
+      it('when deleting an object-keyed entry, get returns undefined', () => {
+        const ref = {};
+        compositeMap.set([ref], 'some-value');
+
+        compositeMap.delete([ref]);
+
+        expect(compositeMap.get([ref])).toBe(undefined);
+      });
+
+      it('when deleting one of several entries sharing an object prefix, the siblings survive', () => {
+        const ref = {};
+        compositeMap.set([ref, 'a'], 'a-val');
+        compositeMap.set([ref, 'b'], 'b-val');
+
+        compositeMap.delete([ref, 'a']);
+
+        expect(compositeMap.get([ref, 'b'])).toBe('b-val');
+      });
+    });
   });
 
   describe('given initial values, when a CompositeMap is created', () => {
