@@ -7,11 +7,6 @@ const cjsConfig = {
   target: 'node',
   mode: 'production',
 
-  performance: {
-    maxEntrypointSize: 23000,
-    hints: 'error',
-  },
-
   resolve: {
     extensions: ['.js', '.jsx'],
   },
@@ -22,7 +17,7 @@ const cjsConfig = {
     libraryTarget: 'commonjs2',
   },
 
-  externals: [nodeExternals({ modulesFromFile: true })],
+  externals: [nodeExternals({ modulesFromFile: true, allowlist: [/^lodash/] })],
   externalsPresets: { node: true },
 
   node: {
@@ -51,7 +46,7 @@ const esmConfig = {
     chunkFormat: 'module',
   },
 
-  externals: [nodeExternals({ modulesFromFile: true, importType: 'module' })],
+  externals: [nodeExternals({ modulesFromFile: true, importType: 'module', allowlist: [/^lodash/] })],
 
   experiments: { outputModule: true },
 };

@@ -27,9 +27,6 @@
   ],
   "author": "Ogre Works",
   "license": "MIT",
-  "peerDependencies": {
-    "lodash": "^4.17.21"
-  },
   "bugs": {
     "url": "https://github.com/ogre-works/ogre-tools/issues"
   },
