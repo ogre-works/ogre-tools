@@ -13,6 +13,13 @@
     "url": "git+https://github.com/ogre-works/ogre-tools.git"
   },
   "main": "build/index.js",
+  "module": "build/index.mjs",
+  "exports": {
+    ".": {
+      "import": { "types": "./build/index.d.ts", "default": "./build/index.mjs" },
+      "require": { "types": "./build/index.d.ts", "default": "./build/index.js" }
+    }
+  },
   "files": [
     "build"
   ],

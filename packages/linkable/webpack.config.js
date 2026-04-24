@@ -1,8 +1,9 @@
-const webpackConfig =
-  require('@ogre-tools/infrastructure-webpack-for-ts').webpackConfig;
+const { cjsConfig, esmConfig } =
+  require('@lensapp/infrastructure-webpack-for-ts');
 
-module.exports = {
-  ...webpackConfig,
-  performance: undefined,
-  externals: [],
-};
+const overrides = { performance: undefined, externals: [] };
+
+module.exports = [
+  { ...cjsConfig, ...overrides },
+  { ...esmConfig, ...overrides },
+];

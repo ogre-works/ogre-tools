@@ -12,6 +12,13 @@
     "url": "https://github.com/ogre-works/ogre-tools"
   },
   "main": "build/index.js",
+  "module": "build/index.mjs",
+  "exports": {
+    ".": {
+      "import": { "types": "./build/index.d.ts", "default": "./build/index.mjs" },
+      "require": { "types": "./build/index.d.ts", "default": "./build/index.js" }
+    }
+  },
   "types": "build/index.d.ts",
   "keywords": [
     "dependency-injection",

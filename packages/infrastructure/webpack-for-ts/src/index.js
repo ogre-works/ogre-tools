@@ -1,3 +1,7 @@
-const webpackConfig = require('./webpack.config');
+const { cjsConfig, esmConfig } = require('./webpack.config');
 
-module.exports = { webpackConfig };
+module.exports = {
+  webpackConfig: [cjsConfig, esmConfig],
+  cjsConfig,
+  esmConfig,
+};

@@ -2,7 +2,7 @@ const path = require('path');
 
 const nodeExternals = require('webpack-node-externals');
 
-module.exports = {
+const cjsConfig = {
   entry: './index.js',
   target: 'node',
   mode: 'production',
@@ -40,3 +40,20 @@ module.exports = {
     ],
   },
 };
+
+const esmConfig = {
+  ...cjsConfig,
+
+  output: {
+    path: path.resolve(process.cwd(), 'build'),
+    filename: 'index.mjs',
+    library: { type: 'module' },
+    chunkFormat: 'module',
+  },
+
+  externals: [nodeExternals({ modulesFromFile: true, importType: 'module' })],
+
+  experiments: { outputModule: true },
+};
+
+module.exports = { cjsConfig, esmConfig };
