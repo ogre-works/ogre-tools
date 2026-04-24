@@ -46,7 +46,13 @@ const esmConfig = {
     chunkFormat: 'module',
   },
 
-  externals: [nodeExternals({ modulesFromFile: true, importType: 'module', allowlist: [/^lodash/] })],
+  externals: [
+    nodeExternals({
+      modulesFromFile: true,
+      importType: 'module',
+      allowlist: [/^lodash/],
+    }),
+  ],
 
   experiments: { outputModule: true },
 };
