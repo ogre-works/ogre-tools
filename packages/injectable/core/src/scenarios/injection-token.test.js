@@ -28,7 +28,7 @@ describe('createContainer.injection-token', () => {
     expect(() => {
       di.inject(someSharedInjectionToken);
     }).toThrow(
-      `Tried to inject single injectable for injection token "some-injection-token" but found multiple injectables: "some-injectable", "some-other-injectable"`,
+      `Tried to inject single injectable for injection token "some-injection-token" from "some-container" but found multiple injectables: "some-injectable", "some-other-injectable"`,
     );
   });
 
@@ -143,63 +143,5 @@ describe('createContainer.injection-token', () => {
     di.register(someInjectable);
 
     expect(di.inject(injectionToken)).toBe('some-instance');
-  });
-
-  it('given injectables with a dependency cycle, when injecting many with custom root context, throws error with the custom context', () => {
-    const injectionToken = getInjectionToken({ id: 'some-injection-token' });
-
-    const childInjectable = getInjectable({
-      id: 'some-child-injectable',
-      instantiate: di => di.context,
-    });
-
-    const parentInjectable = getInjectable({
-      id: 'some-parent-injectable',
-      instantiate: di => di.inject(childInjectable),
-      injectionToken,
-    });
-
-    const di = createContainer('some-container');
-
-    di.register(parentInjectable, childInjectable);
-
-    const actualContext = di
-      .inject(injectionToken, undefined, {
-        injectable: {
-          id: 'some-custom-context-id',
-          lifecycle: lifecycleEnum.transient,
-        },
-      })
-      .map(x => x.injectable.id);
-
-    expect(actualContext).toEqual([
-      'some-container',
-      'some-custom-context-id',
-      'some-parent-injectable',
-      'some-child-injectable',
-    ]);
-  });
-
-  it('given injectables, when injecting many with custom root context, works', () => {
-    const injectionToken = getInjectionToken({ id: 'some-injection-token' });
-
-    const someInjectable = getInjectable({
-      id: 'some-some-injectable',
-      instantiate: () => 42,
-      injectionToken,
-    });
-
-    const di = createContainer('some-container');
-
-    di.register(someInjectable);
-
-    const actual = di.injectMany(injectionToken, undefined, {
-      injectable: {
-        id: 'some-custom-context-id',
-        lifecycle: lifecycleEnum.transient,
-      },
-    });
-
-    expect(actual).toEqual([42]);
   });
 });

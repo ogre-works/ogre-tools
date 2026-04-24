@@ -1,4 +1,5 @@
 import getInjectable from '../getInjectable/getInjectable';
+import getInjectable2 from '../getInjectable2/getInjectable2';
 import createContainer from '../dependency-injection-container/createContainer';
 import { getInjectionToken } from '../getInjectionToken/getInjectionToken';
 import { injectionDecoratorToken } from '../dependency-injection-container/tokens';
@@ -6,28 +7,6 @@ import lifecycleEnum from '../dependency-injection-container/lifecycleEnum';
 
 describe('createContainer.targeted-decoration', () => {
   it('given decorator targeting child, when parent is injected, decorates instance and instantiation parameter of only child', () => {
-    const decoratorInjectable = getInjectable({
-      id: 'some-child-decorator',
-      injectionToken: injectionDecoratorToken,
-      decorable: false,
-
-      instantiate: () => ({
-        decorate:
-          injectToBeDecorated =>
-          (alias, instantiationParameter, ...args) => {
-            const decoratedInstantiationParameter = `decorated-parameter(${instantiationParameter})`;
-
-            return `decorated-instance(${injectToBeDecorated(
-              alias,
-              decoratedInstantiationParameter,
-              ...args,
-            )})`;
-          },
-
-        target: childInjectable,
-      }),
-    });
-
     const childInjectable = getInjectable({
       id: 'some-child-injectable',
 
@@ -35,6 +14,26 @@ describe('createContainer.targeted-decoration', () => {
         `child(${instantiationParameter})`,
 
       lifecycle: lifecycleEnum.transient,
+    });
+
+    const decoratorInjectable = getInjectable2({
+      id: 'some-child-decorator',
+      injectionToken: injectionDecoratorToken.for(childInjectable),
+      decorable: false,
+
+      instantiate:
+        () =>
+        () =>
+        injectToBeDecorated =>
+        (...instantiationParameter) => {
+          const decoratedInstantiationParameter = instantiationParameter.map(
+            p => `decorated-parameter(${p})`,
+          );
+
+          return `decorated-instance(${injectToBeDecorated(
+            ...decoratedInstantiationParameter,
+          )})`;
+        },
     });
 
     const parentInjectable = getInjectable({
@@ -49,7 +48,7 @@ describe('createContainer.targeted-decoration', () => {
       lifecycle: lifecycleEnum.transient,
     });
 
-    const di = createContainer('some-container');
+    const di = createContainer('some-container', { injectionDecorators: true });
 
     di.register(parentInjectable, childInjectable, decoratorInjectable);
 
@@ -60,28 +59,234 @@ describe('createContainer.targeted-decoration', () => {
     );
   });
 
+  describe('no double-decoration', () => {
+    describe('given .for(someInjectable)', () => {
+      describe('when inject is called', () => {
+        let decorateSpy;
+
+        beforeEach(() => {
+          decorateSpy = jest.fn(
+            inject =>
+              (...params) =>
+                inject(...params),
+          );
+
+          const someInjectable = getInjectable({
+            id: 'some-injectable',
+            instantiate: () => 'some-value',
+          });
+
+          const decoratorInjectable = getInjectable2({
+            id: 'spy-decorator',
+            injectionToken: injectionDecoratorToken.for(someInjectable),
+            decorable: false,
+            instantiate: () => () => decorateSpy,
+          });
+
+          const di = createContainer('some-container', {
+            injectionDecorators: true,
+          });
+          di.register(decoratorInjectable, someInjectable);
+
+          di.inject(someInjectable);
+        });
+
+        it('the decorator fires exactly once', () => {
+          expect(decorateSpy).toHaveBeenCalledTimes(1);
+        });
+      });
+
+      describe('given injectable and its token share the same id, when inject is called', () => {
+        let decorateSpy;
+
+        beforeEach(() => {
+          const sharedId = 'shared-id';
+
+          const someToken = getInjectionToken({ id: sharedId });
+
+          const someInjectable = getInjectable({
+            id: sharedId,
+            instantiate: () => 'some-value',
+            injectionToken: someToken,
+          });
+
+          decorateSpy = jest.fn(
+            inject =>
+              (...params) =>
+                inject(...params),
+          );
+
+          const decoratorInjectable = getInjectable2({
+            id: 'spy-decorator',
+            injectionToken: injectionDecoratorToken.for(someInjectable),
+            decorable: false,
+            instantiate: () => () => decorateSpy,
+          });
+
+          const di = createContainer('some-container', {
+            injectionDecorators: true,
+          });
+          di.register(decoratorInjectable, someInjectable);
+
+          di.inject(someInjectable);
+        });
+
+        it('the decorator fires exactly once', () => {
+          expect(decorateSpy).toHaveBeenCalledTimes(1);
+        });
+      });
+    });
+
+    describe('given .for(someInjectionToken)', () => {
+      describe('when inject is called on an implementation', () => {
+        let decorateSpy;
+
+        beforeEach(() => {
+          const someToken = getInjectionToken({ id: 'some-token' });
+
+          const someInjectable = getInjectable({
+            id: 'some-injectable',
+            instantiate: () => 'some-value',
+            injectionToken: someToken,
+          });
+
+          decorateSpy = jest.fn(
+            inject =>
+              (...params) =>
+                inject(...params),
+          );
+
+          const decoratorInjectable = getInjectable2({
+            id: 'spy-decorator',
+            injectionToken: injectionDecoratorToken.for(someToken),
+            decorable: false,
+            instantiate: () => () => decorateSpy,
+          });
+
+          const di = createContainer('some-container', {
+            injectionDecorators: true,
+          });
+          di.register(decoratorInjectable, someInjectable);
+
+          di.inject(someInjectable);
+        });
+
+        it('the decorator fires exactly once', () => {
+          expect(decorateSpy).toHaveBeenCalledTimes(1);
+        });
+      });
+
+      describe('when injectMany is called for the token with two implementations', () => {
+        let decorateSpy;
+
+        beforeEach(() => {
+          const someToken = getInjectionToken({ id: 'some-token' });
+
+          decorateSpy = jest.fn(
+            inject =>
+              (...params) =>
+                inject(...params),
+          );
+
+          const decoratorInjectable = getInjectable2({
+            id: 'spy-decorator',
+            injectionToken: injectionDecoratorToken.for(someToken),
+            decorable: false,
+            instantiate: () => () => decorateSpy,
+          });
+
+          const implA = getInjectable({
+            id: 'impl-a',
+            instantiate: () => 'a',
+            injectionToken: someToken,
+          });
+
+          const implB = getInjectable({
+            id: 'impl-b',
+            instantiate: () => 'b',
+            injectionToken: someToken,
+          });
+
+          const di = createContainer('some-container', {
+            injectionDecorators: true,
+          });
+          di.register(decoratorInjectable, implA, implB);
+
+          di.injectMany(someToken);
+        });
+
+        it('the decorator fires exactly once per injectable', () => {
+          expect(decorateSpy).toHaveBeenCalledTimes(2);
+        });
+      });
+
+      describe('given injectable and its token share the same id, when inject is called', () => {
+        let decorateSpy;
+
+        beforeEach(() => {
+          const sharedId = 'shared-id';
+
+          const someToken = getInjectionToken({ id: sharedId });
+
+          const someInjectable = getInjectable({
+            id: sharedId,
+            instantiate: () => 'some-value',
+            injectionToken: someToken,
+          });
+
+          decorateSpy = jest.fn(
+            inject =>
+              (...params) =>
+                inject(...params),
+          );
+
+          const decoratorInjectable = getInjectable2({
+            id: 'spy-decorator',
+            injectionToken: injectionDecoratorToken.for(someToken),
+            decorable: false,
+            instantiate: () => () => decorateSpy,
+          });
+
+          const di = createContainer('some-container', {
+            injectionDecorators: true,
+          });
+          di.register(decoratorInjectable, someInjectable);
+
+          di.inject(someInjectable);
+        });
+
+        it('the decorator fires exactly once', () => {
+          expect(decorateSpy).toHaveBeenCalledTimes(1);
+        });
+      });
+    });
+  });
+
   it('given decorator targeting an injection token and child implementing the token, when parent is injected, decorates instance and instantiation parameter of only the child', () => {
     const someInjectionTokenForTargetedDecoration = getInjectionToken({
       id: 'some-injection-token-for-targeted-decoration',
     });
 
-    const decoratorInjectable = getInjectable({
+    const decoratorInjectable = getInjectable2({
       id: 'some-injection-token-decorator',
-      injectionToken: injectionDecoratorToken,
+      injectionToken: injectionDecoratorToken.for(
+        someInjectionTokenForTargetedDecoration,
+      ),
       decorable: false,
 
-      instantiate: () => ({
-        decorate: injectToBeDecorated => (alias, instantiationParameter) => {
-          const decoratedParameter = `decorated-parameter(${instantiationParameter})`;
+      instantiate:
+        () =>
+        () =>
+        injectToBeDecorated =>
+        (...instantiationParameter) => {
+          const decoratedParameter = instantiationParameter.map(
+            p => `decorated-parameter(${p})`,
+          );
 
           return `decorated-instance(${injectToBeDecorated(
-            alias,
-            decoratedParameter,
+            ...decoratedParameter,
           )})`;
         },
-
-        target: someInjectionTokenForTargetedDecoration,
-      }),
     });
 
     const childInjectable = getInjectable({
@@ -107,7 +312,7 @@ describe('createContainer.targeted-decoration', () => {
       lifecycle: lifecycleEnum.transient,
     });
 
-    const di = createContainer('some-container');
+    const di = createContainer('some-container', { injectionDecorators: true });
 
     di.register(parentInjectable, childInjectable, decoratorInjectable);
 

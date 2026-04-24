@@ -1,7 +1,7 @@
 {
   "name": "@ogre-tools/generable",
   "private": false,
-  "version": "19.0.0",
+  "version": "22.0.0",
   "description": "A collection of low abstraction functions in functional programming flavor for generators",
   "files": [
     "build",
@@ -13,6 +13,13 @@
     "url": "https://github.com/ogre-works/ogre-tools"
   },
   "main": "build/index.js",
+  "module": "build/index.mjs",
+  "exports": {
+    ".": {
+      "import": { "types": "./index.d.ts", "default": "./build/index.mjs" },
+      "require": { "types": "./index.d.ts", "default": "./build/index.js" }
+    }
+  },
   "keywords": [
     "js",
     "functional-programming",
@@ -20,9 +27,11 @@
   ],
   "author": "Ogre Works",
   "license": "MIT",
-  "peerDependencies": {
-    "@ogre-tools/fp": "^19",
+  "dependencies": {
     "lodash": "^4.17.21"
+  },
+  "peerDependencies": {
+    "@ogre-tools/fp": "^16 || ^17 || ^18 || ^19 || ^20 || ^21 || ^22"
   },
   "bugs": {
     "url": "https://github.com/ogre-works/ogre-tools/issues"
@@ -38,8 +47,8 @@
     "code-style:fix": "ogre-tools-fix-code-style"
   },
   "devDependencies": {
-    "@ogre-tools/infrastructure-jest": "^19.0.0",
-    "@ogre-tools/infrastructure-prettier": "^19.0.0",
-    "@ogre-tools/infrastructure-webpack-for-js": "^19.0.0"
+    "@ogre-tools/infrastructure-jest": "^19.0.0 || ^22.0.0",
+    "@ogre-tools/infrastructure-prettier": "^19.0.0 || ^22.0.0",
+    "@ogre-tools/infrastructure-webpack-for-js": "^19.0.0 || ^22.0.0"
   }
 }

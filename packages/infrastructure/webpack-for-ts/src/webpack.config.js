@@ -1,13 +1,14 @@
 const {
-  webpackConfig: configForJs,
+  cjsConfig: cjsConfigForJs,
+  esmConfig: esmConfigForJs,
 } = require('@ogre-tools/infrastructure-webpack-for-js');
 
-module.exports = {
-  ...configForJs,
+const withTypeScript = (baseConfig, tsLoaderOptions = {}) => ({
+  ...baseConfig,
   entry: './index.ts',
 
   resolve: {
-    extensions: ['.ts', '.tsx', ...configForJs.resolve.extensions],
+    extensions: ['.ts', '.tsx', ...baseConfig.resolve.extensions],
   },
 
   module: {
@@ -15,9 +16,17 @@ module.exports = {
       {
         test: /\.tsx?$/,
         loader: 'ts-loader',
+        ...(Object.keys(tsLoaderOptions).length > 0
+          ? { options: tsLoaderOptions }
+          : {}),
       },
 
-      ...configForJs.module.rules,
+      ...baseConfig.module.rules,
     ],
   },
-};
+});
+
+const cjsConfig = withTypeScript(cjsConfigForJs);
+const esmConfig = withTypeScript(esmConfigForJs, { transpileOnly: true });
+
+module.exports = { cjsConfig, esmConfig };

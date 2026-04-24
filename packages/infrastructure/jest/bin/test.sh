@@ -1,4 +1,4 @@
-jest
+node --expose-gc ./node_modules/.bin/jest
 result=$?
 
 [ $result != 0 ] && [[ -z $CI ]] && open ./coverage/lcov-report/index.html

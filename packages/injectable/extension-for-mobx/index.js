@@ -1,20 +1,23 @@
 import {
+  computedInjectMany2InjectionToken,
   computedInjectManyInjectionToken,
+  computedInjectManyWithMeta2InjectionToken,
   computedInjectManyWithMetaInjectionToken,
-  computedInjectManyInjectable,
-  computedInjectManyWithMetaInjectable,
 } from './src/computedInjectMany';
 
 import {
-  registerMobX
-} from './src/registerMobx';
+  computedInjectMaybe2InjectionToken,
+  computedInjectMaybeInjectionToken,
+} from './src/computedInjectMaybe';
+
+import { registerMobX } from './src/registerMobx';
 
 export {
   registerMobX,
-  computedInjectManyInjectable,
-  computedInjectManyWithMetaInjectable,
   computedInjectManyInjectionToken,
   computedInjectManyWithMetaInjectionToken,
+  computedInjectMany2InjectionToken,
+  computedInjectManyWithMeta2InjectionToken,
+  computedInjectMaybeInjectionToken,
+  computedInjectMaybe2InjectionToken,
 };
-
-export  { computedInjectMaybeInjectionToken } from './src/computedInjectMaybe';

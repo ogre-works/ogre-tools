@@ -4,6 +4,7 @@ import { autorun, configure, runInAction, onReactionError } from 'mobx';
 import {
   createContainer,
   getInjectable,
+  getInjectable2,
   getInjectionToken,
   injectionDecoratorToken,
 } from '@ogre-tools/injectable';
@@ -32,10 +33,7 @@ describe('computedInjectMaybe', () => {
     let someOtherInjectable;
     let actualObservationsCount;
     let someInjectable;
-    let contextsOfSomeInjectable;
-
     beforeEach(() => {
-      contextsOfSomeInjectable = [];
       actualObservationsCount = 0;
 
       someInjectionToken = getInjectionToken({
@@ -48,27 +46,19 @@ describe('computedInjectMaybe', () => {
         injectionToken: someInjectionToken,
       });
 
-      const contextSpyDecorator = getInjectable({
+      const contextSpyDecorator = getInjectable2({
         id: 'context-spy-decorator',
 
-        instantiate: () => ({
-          target: someInjectable,
-
-          decorate:
-            toBeDecorated =>
-            (alias, instantiationParameter, context = []) => {
-              contextsOfSomeInjectable.push([
-                ...context.map(x => x.injectable.id),
-                alias.id,
-              ]);
-
-              return toBeDecorated(alias, instantiationParameter, context);
-            },
-        }),
+        instantiate:
+          () =>
+          () =>
+          toBeDecorated =>
+          (...params) =>
+            toBeDecorated(...params),
 
         decorable: false,
 
-        injectionToken: injectionDecoratorToken,
+        injectionToken: injectionDecoratorToken.for(someInjectable),
       });
 
       someOtherInjectable = getInjectable({
@@ -82,6 +72,13 @@ describe('computedInjectMaybe', () => {
       di.register(contextSpyDecorator);
 
       registerMobX(di);
+    });
+
+    it('when injecting the computedInjectMaybe injection token twice, returns the same wrapper function instance', () => {
+      const first = di.inject(computedInjectMaybeInjectionToken);
+      const second = di.inject(computedInjectMaybeInjectionToken);
+
+      expect(first).toBe(second);
     });
 
     describe('given in reactive context and observed as computedInjectMaybe, when no injectables that implement the injection token are registered', () => {
@@ -170,6 +167,28 @@ describe('computedInjectMaybe', () => {
             expect(actualError).toBe(
               'Tried to computedInjectMaybe "some-injection-token", but more than one contribution was encountered: "some-injectable", "some-colliding-injectable"',
             );
+          });
+
+          describe('when yet another colliding implementation for the token gets registered', () => {
+            beforeEach(() => {
+              const someThirdCollidingInjectable = getInjectable({
+                id: 'some-third-colliding-injectable',
+                instantiate: () => 'irrelevant',
+                injectionToken: someInjectionToken,
+              });
+
+              withSuppressedConsoleError(() => {
+                runInAction(() => {
+                  di.register(someThirdCollidingInjectable);
+                });
+              });
+            });
+
+            it('the error message lists every colliding id in registration order', () => {
+              expect(actualError).toBe(
+                'Tried to computedInjectMaybe "some-injection-token", but more than one contribution was encountered: "some-injectable", "some-colliding-injectable", "some-third-colliding-injectable"',
+              );
+            });
           });
         });
       });

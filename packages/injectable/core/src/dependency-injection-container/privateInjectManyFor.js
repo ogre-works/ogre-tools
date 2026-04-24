@@ -1,43 +1,47 @@
 export const privateInjectManyFor =
   ({
-    containerRootContextItem,
     getRelatedInjectables,
     getInject,
-    setDependee,
-    getNamespacedId,
+    checkForAbstractToken,
+    namespacedIdByInjectableMap,
   }) =>
   ({ withMeta }) =>
-  (
-    injectionToken,
-    instantiationParameter,
-    oldContext = [containerRootContextItem],
-    source,
-  ) => {
-    setDependee({ dependency: injectionToken, dependee: source });
+  ({ alias, instantiationParameters, injectingInjectable }) => {
+    checkForAbstractToken(alias, injectingInjectable);
 
     const inject = getInject();
 
-    const newContext = [...oldContext, { injectable: injectionToken }];
+    const relatedInjectables = getRelatedInjectables(alias);
+    const n = relatedInjectables.length;
 
-    const relatedInjectables = getRelatedInjectables(injectionToken);
+    if (n === 0) {
+      return [];
+    }
 
-    return relatedInjectables.map(injectable => {
-      const instance = inject(
-        injectable,
-        instantiationParameter,
-        newContext,
-        injectionToken,
-      );
+    const result = new Array(n);
 
-      if (!withMeta) {
-        return instance;
+    if (withMeta) {
+      for (let i = 0; i < n; i++) {
+        const injectable = relatedInjectables[i];
+        const instance = inject({
+          alias: injectable,
+          instantiationParameters,
+          injectingInjectable: alias,
+        });
+        result[i] = {
+          instance,
+          meta: { id: namespacedIdByInjectableMap.get(injectable) },
+        };
       }
+    } else {
+      for (let i = 0; i < n; i++) {
+        result[i] = inject({
+          alias: relatedInjectables[i],
+          instantiationParameters,
+          injectingInjectable: alias,
+        });
+      }
+    }
 
-      const namespacedId = getNamespacedId(injectable);
-
-      return {
-        instance,
-        meta: { id: namespacedId },
-      };
-    });
+    return result;
   };

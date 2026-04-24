@@ -2,15 +2,10 @@ const path = require('path');
 
 const nodeExternals = require('webpack-node-externals');
 
-module.exports = {
+const cjsConfig = {
   entry: './index.js',
   target: 'node',
   mode: 'production',
-
-  performance: {
-    maxEntrypointSize: 20000,
-    hints: 'error',
-  },
 
   resolve: {
     extensions: ['.js', '.jsx'],
@@ -22,7 +17,7 @@ module.exports = {
     libraryTarget: 'commonjs2',
   },
 
-  externals: [nodeExternals({ modulesFromFile: true })],
+  externals: [nodeExternals({ modulesFromFile: true, allowlist: [/^lodash/] })],
   externalsPresets: { node: true },
 
   node: {
@@ -40,3 +35,26 @@ module.exports = {
     ],
   },
 };
+
+const esmConfig = {
+  ...cjsConfig,
+
+  output: {
+    path: path.resolve(process.cwd(), 'build'),
+    filename: 'index.mjs',
+    library: { type: 'module' },
+    chunkFormat: 'module',
+  },
+
+  externals: [
+    nodeExternals({
+      modulesFromFile: true,
+      importType: 'module',
+      allowlist: [/^lodash/],
+    }),
+  ],
+
+  experiments: { outputModule: true },
+};
+
+module.exports = { cjsConfig, esmConfig };

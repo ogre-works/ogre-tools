@@ -1,14 +1,32 @@
 import isInjectableBunch from '../getInjectableBunch/isInjectableBunch';
 import isInjectable from '../getInjectable/isInjectable';
 
-const getDeepBunchValuesFlat = injectable =>
-  Object.values(injectable).flatMap(thing =>
-    isInjectableBunch(thing) ? getDeepBunchValuesFlat(thing) : [thing],
-  );
+const collectDeepBunchValues = (bunch, out) => {
+  const values = Object.values(bunch);
 
-export default injectables =>
-  injectables.flatMap(injectable =>
-    isInjectableBunch(injectable)
-      ? getDeepBunchValuesFlat(injectable).filter(isInjectable)
-      : [injectable],
-  );
+  for (let i = 0; i < values.length; i++) {
+    const thing = values[i];
+
+    if (isInjectableBunch(thing)) {
+      collectDeepBunchValues(thing, out);
+    } else if (isInjectable(thing)) {
+      out.push(thing);
+    }
+  }
+};
+
+export default injectables => {
+  const result = [];
+
+  for (let i = 0; i < injectables.length; i++) {
+    const injectable = injectables[i];
+
+    if (isInjectableBunch(injectable)) {
+      collectDeepBunchValues(injectable, result);
+    } else {
+      result.push(injectable);
+    }
+  }
+
+  return result;
+};

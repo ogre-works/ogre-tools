@@ -1,29 +1,33 @@
-import { isRelevantDecoratorFor } from './isRelevantDecoratorFor';
 import flow from './fastFlow';
 import { instantiationDecoratorToken } from './tokens';
 
-export const withInstantiationDecoratorsFor = ({ injectMany, injectable }) => {
-  const isRelevantDecorator = isRelevantDecoratorFor(injectable);
+export const withInstantiationDecoratorsFor =
+  ({ injectMany, injectable }) =>
+  toBeDecorated => {
+    if (injectable.decorable === false) {
+      return toBeDecorated;
+    }
 
-  return toBeDecorated =>
-    (...args) => {
-      if (injectable.decorable === false) {
-        return toBeDecorated(...args);
-      }
+    const target = injectable.overriddenInjectable || injectable;
 
-      const [{ context }] = args;
+    const decorators = [
+      ...injectMany({
+        alias: instantiationDecoratorToken.for(target),
+        instantiationParameters: [],
+        injectingInjectable: injectable,
+      }),
+      ...(target.injectionToken
+        ? injectMany({
+            alias: instantiationDecoratorToken.for(target.injectionToken),
+            instantiationParameters: [],
+            injectingInjectable: injectable,
+          })
+        : []),
+    ];
 
-      const decorators = injectMany(
-        instantiationDecoratorToken,
-        undefined,
-        context,
-        injectable,
-      )
-        .filter(isRelevantDecorator)
-        .map(x => x.decorate);
+    if (decorators.length === 0) {
+      return toBeDecorated;
+    }
 
-      const decorated = flow(...decorators)(toBeDecorated);
-
-      return decorated(...args);
-    };
-};
+    return flow(...decorators)(toBeDecorated);
+  };

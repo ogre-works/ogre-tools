@@ -10,11 +10,13 @@ import {
 import {
   createContainer,
   getInjectable,
+  getInjectable2,
   getInjectionToken,
   injectionDecoratorToken,
 } from '@ogre-tools/injectable';
 
 import {
+  atomsByTokenInjectable,
   computedInjectManyInjectable,
   computedInjectManyInjectionToken,
   isInternalOfComputedInjectMany,
@@ -40,10 +42,7 @@ describe('registerMobx', () => {
     let someOtherInjectable;
     let reactionCountForFirstToken;
     let someInjectable;
-    let contextsOfSomeInjectable;
-
     beforeEach(() => {
-      contextsOfSomeInjectable = [];
       reactionCountForFirstToken = 0;
 
       someFirstInjectionToken = getInjectionToken({
@@ -56,27 +55,19 @@ describe('registerMobx', () => {
         injectionToken: someFirstInjectionToken,
       });
 
-      const contextSpyDecorator = getInjectable({
+      const contextSpyDecorator = getInjectable2({
         id: 'context-spy-decorator',
 
-        instantiate: () => ({
-          target: someInjectable,
-
-          decorate:
-            toBeDecorated =>
-            (alias, instantiationParameter, context = []) => {
-              contextsOfSomeInjectable.push([
-                ...context.map(x => x.injectable.id),
-                alias.id,
-              ]);
-
-              return toBeDecorated(alias, instantiationParameter, context);
-            },
-        }),
+        instantiate:
+          () =>
+          () =>
+          toBeDecorated =>
+          (...params) =>
+            toBeDecorated(...params),
 
         decorable: false,
 
-        injectionToken: injectionDecoratorToken,
+        injectionToken: injectionDecoratorToken.for(someInjectable),
       });
 
       someOtherInjectable = getInjectable({
@@ -96,6 +87,97 @@ describe('registerMobx', () => {
       expect(() => {
         registerMobX(di);
       }).not.toThrow();
+    });
+
+    it('when injecting the computedInjectMany injection token twice, returns the same wrapper function instance', () => {
+      const first = di.inject(computedInjectManyInjectionToken);
+      const second = di.inject(computedInjectManyInjectionToken);
+
+      expect(first).toBe(second);
+    });
+
+    describe('given reactivity atoms are tracked lazily per token', () => {
+      let atomsByToken;
+
+      beforeEach(() => {
+        atomsByToken = di.inject(atomsByTokenInjectable);
+      });
+
+      it('given no token has been requested as reactive, the atom map is empty', () => {
+        expect(atomsByToken.size).toBe(0);
+      });
+
+      describe('when an implementation is registered against a token that nothing has requested as reactive', () => {
+        beforeEach(() => {
+          runInAction(() => {
+            di.register(someInjectable);
+          });
+        });
+
+        it('no atom is created for the token', () => {
+          expect(atomsByToken.has(someFirstInjectionToken)).toBe(false);
+        });
+      });
+
+      describe('when computedInjectMany is called for a token', () => {
+        beforeEach(() => {
+          const computedInjectMany = di.inject(
+            computedInjectManyInjectionToken,
+          );
+          computedInjectMany(someFirstInjectionToken);
+        });
+
+        it('an atom is registered for the token', () => {
+          expect(atomsByToken.has(someFirstInjectionToken)).toBe(true);
+        });
+
+        describe('when computedInjectMany is also called with additional instantiation parameters for the same token', () => {
+          beforeEach(() => {
+            const computedInjectMany = di.inject(
+              computedInjectManyInjectionToken,
+            );
+            computedInjectMany(someFirstInjectionToken, 'some-arg');
+          });
+
+          it('the same single atom is reused across the parameter variations', () => {
+            expect(atomsByToken.size).toBe(1);
+          });
+        });
+      });
+    });
+
+    describe('given a second MobX-enabled container', () => {
+      let atomsByToken;
+      let otherAtomsByToken;
+
+      beforeEach(() => {
+        const otherDi = createContainer('some-other-container');
+        registerMobX(otherDi);
+
+        atomsByToken = di.inject(atomsByTokenInjectable);
+        otherAtomsByToken = otherDi.inject(atomsByTokenInjectable);
+      });
+
+      it('the two containers own independent atom maps', () => {
+        expect(atomsByToken).not.toBe(otherAtomsByToken);
+      });
+
+      describe('when a token is requested as reactive in the original container', () => {
+        beforeEach(() => {
+          const computedInjectMany = di.inject(
+            computedInjectManyInjectionToken,
+          );
+          computedInjectMany(someFirstInjectionToken);
+        });
+
+        it('the atom exists in the original container', () => {
+          expect(atomsByToken.has(someFirstInjectionToken)).toBe(true);
+        });
+
+        it('the other container is unaffected', () => {
+          expect(otherAtomsByToken.has(someFirstInjectionToken)).toBe(false);
+        });
+      });
     });
 
     describe('given in reactive context and observed as computedInjectMany, when multiple injectables that implement the injection token are registered', () => {
@@ -245,37 +327,6 @@ describe('registerMobx', () => {
       });
     });
 
-    it('given an injection decorator, when an injectable is registered and deregistered, does not decorate internals of computedInjectMany because injects between registrations can happen too early', () => {
-      const someDecorator = getInjectable({
-        id: 'some-decorator',
-
-        instantiate: () => ({
-          decorate:
-            toBeDecorated =>
-            (injectable, ...args) => {
-              if (injectable[isInternalOfComputedInjectMany] === true) {
-                throw new Error(
-                  `Tried to decorate an internal of computedInjectMany: "${injectable.id}"`,
-                );
-              }
-
-              return toBeDecorated(injectable, ...args);
-            },
-        }),
-
-        decorable: false,
-
-        injectionToken: injectionDecoratorToken,
-      });
-
-      runInAction(() => {
-        di.register(someDecorator);
-
-        di.register(someInjectable);
-        di.deregister(someInjectable);
-      });
-    });
-
     describe('given nested injection token and implementations, when injected as reactive', () => {
       let observedRootValue;
 
@@ -334,22 +385,6 @@ describe('registerMobx', () => {
       it('observes root and nested values', () => {
         expect(observedRootValue).toEqual([
           'some-root-instance(some-instance, some-other-instance)',
-        ]);
-      });
-
-      it('a deeply nested injectable has full context', () => {
-        expect(contextsOfSomeInjectable).toEqual([
-          [
-            'some-container',
-            'computed-inject-many',
-            'reactive-instances',
-            'some-root-injection-token',
-            'some-root-injectable',
-            'computed-inject-many',
-            'reactive-instances',
-            'some-injection-token',
-            'some-injectable',
-          ],
         ]);
       });
     });

@@ -10,6 +10,7 @@ import {
 import {
   createContainer,
   getInjectable,
+  getInjectable2,
   getInjectionToken,
   injectionDecoratorToken,
 } from '@ogre-tools/injectable';
@@ -40,10 +41,7 @@ describe('registerMobx', () => {
     let someOtherInjectable;
     let reactionCountForFirstToken;
     let someInjectable;
-    let contextsOfSomeInjectable;
-
     beforeEach(() => {
-      contextsOfSomeInjectable = [];
       reactionCountForFirstToken = 0;
 
       someFirstInjectionToken = getInjectionToken({
@@ -56,27 +54,19 @@ describe('registerMobx', () => {
         injectionToken: someFirstInjectionToken,
       });
 
-      const contextSpyDecorator = getInjectable({
+      const contextSpyDecorator = getInjectable2({
         id: 'context-spy-decorator',
 
-        instantiate: () => ({
-          target: someInjectable,
-
-          decorate:
-            toBeDecorated =>
-            (alias, instantiationParameter, context = []) => {
-              contextsOfSomeInjectable.push([
-                ...context.map(x => x.injectable.id),
-                alias.id,
-              ]);
-
-              return toBeDecorated(alias, instantiationParameter, context);
-            },
-        }),
+        instantiate:
+          () =>
+          () =>
+          toBeDecorated =>
+          (...params) =>
+            toBeDecorated(...params),
 
         decorable: false,
 
-        injectionToken: injectionDecoratorToken,
+        injectionToken: injectionDecoratorToken.for(someInjectable),
       });
 
       someOtherInjectable = getInjectable({
@@ -260,37 +250,6 @@ describe('registerMobx', () => {
       });
     });
 
-    it('given an injection decorator, when an injectable is registered and deregistered, does not decorate internals of computedInjectMany because injects between registrations can happen too early', () => {
-      const someDecorator = getInjectable({
-        id: 'some-decorator',
-
-        instantiate: () => ({
-          decorate:
-            toBeDecorated =>
-            (injectable, ...args) => {
-              if (injectable[isInternalOfComputedInjectMany] === true) {
-                throw new Error(
-                  `Tried to decorate an internal of computedInjectMany: "${injectable.id}"`,
-                );
-              }
-
-              return toBeDecorated(injectable, ...args);
-            },
-        }),
-
-        decorable: false,
-
-        injectionToken: injectionDecoratorToken,
-      });
-
-      runInAction(() => {
-        di.register(someDecorator);
-
-        di.register(someInjectable);
-        di.deregister(someInjectable);
-      });
-    });
-
     describe('given nested injection token and implementations, when injected as reactive', () => {
       let observedRootValue;
 
@@ -354,22 +313,6 @@ describe('registerMobx', () => {
       it('observes root and nested values', () => {
         expect(observedRootValue).toEqual([
           'some-root-instance(some-instance, some-other-instance)',
-        ]);
-      });
-
-      it('a deeply nested injectable has full context', () => {
-        expect(contextsOfSomeInjectable).toEqual([
-          [
-            'some-container',
-            'computed-inject-many-with-meta',
-            'reactive-instances-with-meta',
-            'some-root-injection-token',
-            'some-root-injectable',
-            'computed-inject-many-with-meta',
-            'reactive-instances-with-meta',
-            'some-injection-token',
-            'some-injectable',
-          ],
         ]);
       });
     });

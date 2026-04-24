@@ -5,11 +5,13 @@ export const getInjectionToken = ({
 
   specificInjectionTokenFactory: specificTokenFactory = getSpecificTokenById,
 
+  target,
+
   ...rest
 }) => {
   const specificTokensBySpeciality = new Map();
 
-  const generalToken = {
+  const generalToken = Object.assign(target ?? {}, {
     ...rest,
 
     decorable,
@@ -32,12 +34,13 @@ export const getInjectionToken = ({
       specificToken.id = `${generalToken.id}/${specificToken.id}`;
       specificToken.specificTokenOf = generalToken;
       specificToken.decorable = generalToken.decorable;
+      specificToken.maxCacheSize = generalToken.maxCacheSize;
 
       specificTokensBySpeciality.set(specificToken.speciality, specificToken);
 
       return specificToken;
     },
-  };
+  });
 
   return generalToken;
 };

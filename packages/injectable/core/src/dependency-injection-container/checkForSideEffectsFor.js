@@ -1,11 +1,13 @@
 export const checkForSideEffectsFor =
   ({ getSideEffectsArePrevented, getNamespacedId }) =>
-  (injectable, context) => {
+  (injectable, injectingInjectable) => {
     if (getSideEffectsArePrevented(injectable)) {
       throw new Error(
-        `Tried to inject "${[...context, { injectable }]
-          .map(({ injectable }) => getNamespacedId(injectable))
-          .join('" -> "')}" when side-effects are prevented.`,
+        `Tried to inject "${getNamespacedId(
+          injectable,
+        )}" from "${getNamespacedId(
+          injectingInjectable,
+        )}" when side-effects are prevented.`,
       );
     }
   };

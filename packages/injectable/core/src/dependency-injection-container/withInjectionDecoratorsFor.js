@@ -1,31 +1,66 @@
-import { isRelevantDecoratorFor } from './isRelevantDecoratorFor';
 import flow from './fastFlow';
 import { injectionDecoratorToken } from './tokens';
 
 export const withInjectionDecoratorsFor =
-  ({ injectMany, setDependee }) =>
+  ({ injectMany, decoratorCache }) =>
   toBeDecorated =>
-  (alias, parameter, oldContext, source) => {
-    setDependee({ dependency: alias, dependee: source });
-
+  ({ alias, instantiationParameters, injectingInjectable }) => {
     if (alias.decorable === false) {
-      return toBeDecorated(alias, parameter, oldContext, source);
+      return toBeDecorated({
+        alias,
+        instantiationParameters,
+        injectingInjectable,
+      });
     }
 
-    const newContext = [...oldContext, { injectable: alias }];
+    // When decoratorCache.injection is null, a decorator was registered or
+    // deregistered — invalidate all per-alias cached compositions.
+    if (decoratorCache.injection === null) {
+      decoratorCache.injection = true;
+      decoratorCache.injectionByAlias = new Map();
+    }
 
-    const isRelevantDecorator = isRelevantDecoratorFor(alias);
+    let decorated = decoratorCache.injectionByAlias.get(alias);
 
-    const decorators = injectMany(
-      injectionDecoratorToken,
-      undefined,
-      newContext,
-      source,
-    )
-      .filter(isRelevantDecorator)
-      .map(x => x.decorate);
+    if (decorated === undefined) {
+      const decorators = [
+        ...injectMany({
+          alias: injectionDecoratorToken.for(alias),
+          instantiationParameters: [],
+          injectingInjectable,
+        }),
+        ...(alias.injectionToken
+          ? injectMany({
+              alias: injectionDecoratorToken.for(alias.injectionToken),
+              instantiationParameters: [],
+              injectingInjectable,
+            })
+          : []),
+      ];
 
-    const decorated = flow(...decorators)(toBeDecorated);
+      if (decorators.length > 0) {
+        const boundInject = (...params) =>
+          toBeDecorated({
+            alias,
+            instantiationParameters: params,
+            injectingInjectable,
+          });
 
-    return decorated(alias, parameter, oldContext, source);
+        decorated = flow(...decorators)(boundInject);
+      } else {
+        decorated = null;
+      }
+
+      decoratorCache.injectionByAlias.set(alias, decorated);
+    }
+
+    if (decorated === null) {
+      return toBeDecorated({
+        alias,
+        instantiationParameters,
+        injectingInjectable,
+      });
+    }
+
+    return decorated(...instantiationParameters);
   };

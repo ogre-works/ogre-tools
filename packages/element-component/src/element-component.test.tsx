@@ -342,4 +342,477 @@ describe('element', () => {
     // @ts-expect-error
     void render(<Div href="some-string" />);
   });
+
+  describe('given plugin returning $wrapper', () => {
+    it('wraps the element with the wrapper component', () => {
+      const WrapperComponent = ({
+        someWrapperProp,
+        children,
+      }: {
+        someWrapperProp: string;
+        children: React.ReactElement;
+      }) => (
+        <div data-wrapper-test data-wrapper-prop={someWrapperProp}>
+          {children}
+        </div>
+      );
+
+      const somePlugin = getPlugin<{ $somePluginProp?: string }>(
+        ({ $somePluginProp }) => ({
+          $somePluginProp: undefined,
+
+          ...($somePluginProp
+            ? {
+                $wrapper: {
+                  Component: WrapperComponent,
+                  props: { someWrapperProp: $somePluginProp },
+                },
+              }
+            : {}),
+        }),
+      );
+
+      const Div = getElementComponent('div', somePlugin);
+
+      const rendered = render(
+        <Div data-some-element-test $somePluginProp="some-value" />,
+      );
+
+      const discover = discoverFor(() => rendered);
+
+      expect(() => {
+        discover.getSingleElement('wrapper');
+      }).not.toThrow();
+
+      const wrapper = discover.getSingleElement('wrapper').discovered;
+
+      // @ts-ignore
+      expect(wrapper).toHaveAttribute('data-wrapper-prop', 'some-value');
+    });
+
+    it('does not wrap when plugin does not return $wrapper', () => {
+      const WrapperComponent = ({
+        children,
+      }: {
+        children: React.ReactElement;
+      }) => <div data-wrapper-test>{children}</div>;
+
+      const somePlugin = getPlugin<{ $somePluginProp?: string }>(
+        ({ $somePluginProp }) => ({
+          $somePluginProp: undefined,
+
+          ...($somePluginProp
+            ? {
+                $wrapper: {
+                  Component: WrapperComponent,
+                  props: {},
+                },
+              }
+            : {}),
+        }),
+      );
+
+      const Div = getElementComponent('div', somePlugin);
+
+      const rendered = render(<Div data-some-element-test />);
+
+      const discover = discoverFor(() => rendered);
+
+      expect(() => {
+        discover.getSingleElement('wrapper');
+      }).toThrow();
+    });
+
+    it('wrapper receives contributeRef and can access the element via useState', () => {
+      let capturedElement: HTMLElement | null = null;
+
+      const WrapperComponent = ({
+        contributeRef,
+        children,
+      }: {
+        contributeRef: (cb: (node: HTMLElement | null) => void) => void;
+        children: React.ReactElement;
+      }) => {
+        const [element, setElement] = React.useState<HTMLElement | null>(null);
+        contributeRef(setElement);
+
+        capturedElement = element;
+
+        return <>{children}</>;
+      };
+
+      const somePlugin = getPlugin<{ $somePluginProp?: boolean }>(() => ({
+        $somePluginProp: undefined,
+        $wrapper: {
+          Component: WrapperComponent,
+          props: {},
+        },
+      }));
+
+      const Div = getElementComponent('div', somePlugin);
+
+      render(<Div data-some-element-test $somePluginProp />);
+
+      expect(capturedElement).toBeInstanceOf(HTMLDivElement);
+    });
+
+    it('wrapper can use contributeRef element for hook-based side effects', () => {
+      const WrapperComponent = ({
+        contributeRef,
+        children,
+      }: {
+        contributeRef: (cb: (node: HTMLElement | null) => void) => void;
+        children: React.ReactElement;
+      }) => {
+        const [element, setElement] = React.useState<HTMLElement | null>(null);
+        contributeRef(setElement);
+
+        useEffect(() => {
+          element?.classList.add('some-class-from-wrapper-hook');
+        }, [element]);
+
+        return <>{children}</>;
+      };
+
+      const somePlugin = getPlugin<{ $somePluginProp?: boolean }>(() => ({
+        $somePluginProp: undefined,
+        $wrapper: {
+          Component: WrapperComponent,
+          props: {},
+        },
+      }));
+
+      const Div = getElementComponent('div', somePlugin);
+
+      const rendered = render(<Div data-some-element-test $somePluginProp />);
+
+      const discover = discoverFor(() => rendered);
+
+      expect(
+        discover
+          .getSingleElement('some-element')
+          .discovered.classList.contains('some-class-from-wrapper-hook'),
+      ).toBe(true);
+    });
+
+    it('multiple plugins returning $wrapper apply wrappers in order', () => {
+      const OuterWrapper = ({ children }: { children: React.ReactElement }) => (
+        <div data-outer-wrapper-test>{children}</div>
+      );
+
+      const InnerWrapper = ({ children }: { children: React.ReactElement }) => (
+        <div data-inner-wrapper-test>{children}</div>
+      );
+
+      const plugin1 = getPlugin<{ $plugin1?: boolean }>(() => ({
+        $plugin1: undefined,
+        $wrapper: { Component: InnerWrapper, props: {} },
+      }));
+
+      const plugin2 = getPlugin<{ $plugin2?: boolean }>(() => ({
+        $plugin2: undefined,
+        $wrapper: { Component: OuterWrapper, props: {} },
+      }));
+
+      const Div = getElementComponent('div', plugin1, plugin2);
+
+      const rendered = render(<Div data-some-element-test $plugin1 $plugin2 />);
+
+      const discover = discoverFor(() => rendered);
+
+      const outerWrapper =
+        discover.getSingleElement('outer-wrapper').discovered;
+      const innerWrapper =
+        discover.getSingleElement('inner-wrapper').discovered;
+
+      expect(outerWrapper.contains(innerWrapper)).toBe(true);
+    });
+
+    it('wrapper can use contributeProps to add props to the element', () => {
+      const WrapperComponent = ({
+        contributeProps,
+        children,
+      }: {
+        contributeProps: (props: Record<string, unknown>) => void;
+        children: React.ReactElement;
+      }) => {
+        contributeProps({ title: 'from-wrapper' });
+
+        return <>{children}</>;
+      };
+
+      const somePlugin = getPlugin<{ $somePluginProp?: boolean }>(() => ({
+        $somePluginProp: undefined,
+        $wrapper: {
+          Component: WrapperComponent,
+          props: {},
+        },
+      }));
+
+      const Div = getElementComponent('div', somePlugin);
+
+      const rendered = render(<Div data-some-element-test $somePluginProp />);
+
+      const discover = discoverFor(() => rendered);
+
+      // @ts-ignore
+      expect(
+        discover.getSingleElement('some-element').discovered,
+      ).toHaveAttribute('title', 'from-wrapper');
+    });
+
+    it('wrapper can use contributeProps to add event handlers to the element', () => {
+      const onClickSpy = jest.fn();
+
+      const WrapperComponent = ({
+        contributeProps,
+        children,
+      }: {
+        contributeProps: (props: Record<string, unknown>) => void;
+        children: React.ReactElement;
+      }) => {
+        contributeProps({ onClick: onClickSpy });
+
+        return <>{children}</>;
+      };
+
+      const somePlugin = getPlugin<{ $somePluginProp?: boolean }>(() => ({
+        $somePluginProp: undefined,
+        $wrapper: {
+          Component: WrapperComponent,
+          props: {},
+        },
+      }));
+
+      const Div = getElementComponent('div', somePlugin);
+
+      const rendered = render(<Div data-some-element-test $somePluginProp />);
+
+      const discover = discoverFor(() => rendered);
+      const element = discover.getSingleElement('some-element').discovered;
+
+      element.click();
+
+      expect(onClickSpy).toHaveBeenCalledTimes(1);
+    });
+
+    it('contributeProps overrides plugin props', () => {
+      const WrapperComponent = ({
+        contributeProps,
+        children,
+      }: {
+        contributeProps: (props: Record<string, unknown>) => void;
+        children: React.ReactElement;
+      }) => {
+        contributeProps({ title: 'from-wrapper' });
+
+        return <>{children}</>;
+      };
+
+      const somePlugin = getPlugin<{ $somePluginProp?: boolean }>(() => ({
+        $somePluginProp: undefined,
+        title: 'from-plugin',
+        $wrapper: {
+          Component: WrapperComponent,
+          props: {},
+        },
+      }));
+
+      const Div = getElementComponent('div', somePlugin);
+
+      const rendered = render(<Div data-some-element-test $somePluginProp />);
+
+      const discover = discoverFor(() => rendered);
+
+      // @ts-ignore
+      expect(
+        discover.getSingleElement('some-element').discovered,
+      ).toHaveAttribute('title', 'from-wrapper');
+    });
+
+    it('multiple wrappers contributing same event handler composes them', () => {
+      const calls: string[] = [];
+
+      const Wrapper1 = ({
+        contributeProps,
+        children,
+      }: {
+        contributeProps: (props: Record<string, unknown>) => void;
+        children: React.ReactElement;
+      }) => {
+        contributeProps({
+          onClick: () => {
+            calls.push('wrapper1');
+          },
+        });
+
+        return <>{children}</>;
+      };
+
+      const Wrapper2 = ({
+        contributeProps,
+        children,
+      }: {
+        contributeProps: (props: Record<string, unknown>) => void;
+        children: React.ReactElement;
+      }) => {
+        contributeProps({
+          onClick: () => {
+            calls.push('wrapper2');
+          },
+        });
+
+        return <>{children}</>;
+      };
+
+      const plugin1 = getPlugin<{ $plugin1?: boolean }>(() => ({
+        $plugin1: undefined,
+        $wrapper: { Component: Wrapper1, props: {} },
+      }));
+
+      const plugin2 = getPlugin<{ $plugin2?: boolean }>(() => ({
+        $plugin2: undefined,
+        $wrapper: { Component: Wrapper2, props: {} },
+      }));
+
+      const Div = getElementComponent('div', plugin1, plugin2);
+
+      const rendered = render(<Div data-some-element-test $plugin1 $plugin2 />);
+
+      const discover = discoverFor(() => rendered);
+      const element = discover.getSingleElement('some-element').discovered;
+
+      element.click();
+
+      expect(calls).toEqual(['wrapper2', 'wrapper1']);
+    });
+
+    it('contributeProps composes wrapper handler with plugin handler', () => {
+      const calls: string[] = [];
+
+      const WrapperComponent = ({
+        contributeProps,
+        children,
+      }: {
+        contributeProps: (props: Record<string, unknown>) => void;
+        children: React.ReactElement;
+      }) => {
+        contributeProps({
+          onClick: () => {
+            calls.push('wrapper');
+          },
+        });
+
+        return <>{children}</>;
+      };
+
+      const somePlugin = getPlugin<{ $somePluginProp?: boolean }>(() => ({
+        $somePluginProp: undefined,
+        onClick: () => {
+          calls.push('plugin');
+        },
+        $wrapper: {
+          Component: WrapperComponent,
+          props: {},
+        },
+      }));
+
+      const Div = getElementComponent('div', somePlugin);
+
+      const rendered = render(<Div data-some-element-test $somePluginProp />);
+
+      const discover = discoverFor(() => rendered);
+      const element = discover.getSingleElement('some-element').discovered;
+
+      element.click();
+
+      expect(calls).toEqual(['plugin', 'wrapper']);
+    });
+
+    it('toggling $wrapper between present and absent does not crash', () => {
+      const hookCallCounts = { current: 0 };
+
+      const WrapperComponent = ({
+        children,
+      }: {
+        children: React.ReactElement;
+      }) => {
+        hookCallCounts.current++;
+        React.useState(0);
+
+        return <>{children}</>;
+      };
+
+      const somePlugin = getPlugin<{ $somePluginProp?: boolean }>(
+        ({ $somePluginProp }) => ({
+          $somePluginProp: undefined,
+
+          ...($somePluginProp
+            ? {
+                $wrapper: {
+                  Component: WrapperComponent,
+                  props: {},
+                },
+              }
+            : {}),
+        }),
+      );
+
+      const Div = getElementComponent('div', somePlugin);
+
+      const rendered = render(<Div data-some-element-test $somePluginProp />);
+
+      expect(hookCallCounts.current).toBeGreaterThan(0);
+
+      hookCallCounts.current = 0;
+
+      rendered.rerender(<Div data-some-element-test />);
+
+      expect(hookCallCounts.current).toBe(0);
+
+      const discover = discoverFor(() => rendered);
+
+      expect(() => {
+        discover.getSingleElement('some-element');
+      }).not.toThrow();
+    });
+
+    it('$wrapper coexists with ref from the same plugin', () => {
+      const WrapperComponent = ({
+        children,
+      }: {
+        children: React.ReactElement;
+      }) => <div data-wrapper-test>{children}</div>;
+
+      const somePlugin = getPlugin<{ $somePluginProp?: boolean }>(() => {
+        const ref = useRef<HTMLElement>(null);
+
+        useEffect(() => {
+          ref.current!.classList.add('some-class-from-plugin-ref');
+        }, []);
+
+        return {
+          $somePluginProp: undefined,
+          ref,
+          $wrapper: { Component: WrapperComponent, props: {} },
+        };
+      });
+
+      const Div = getElementComponent('div', somePlugin);
+
+      const rendered = render(<Div data-some-element-test $somePluginProp />);
+
+      const discover = discoverFor(() => rendered);
+
+      expect(
+        discover
+          .getSingleElement('some-element')
+          .discovered.classList.contains('some-class-from-plugin-ref'),
+      ).toBe(true);
+
+      expect(() => {
+        discover.getSingleElement('wrapper');
+      }).not.toThrow();
+    });
+  });
 });

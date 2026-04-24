@@ -12,6 +12,13 @@
     "url": "https://github.com/ogre-works/ogre-tools"
   },
   "main": "build/index.js",
+  "module": "build/index.mjs",
+  "exports": {
+    ".": {
+      "import": { "types": "./index.d.ts", "default": "./build/index.mjs" },
+      "require": { "types": "./index.d.ts", "default": "./build/index.js" }
+    }
+  },
   "types": "./index.d.ts",
   "keywords": [
     "js",
@@ -20,9 +27,6 @@
   ],
   "author": "Ogre Works",
   "license": "MIT",
-  "peerDependencies": {
-    "lodash": "^4.17.21"
-  },
   "bugs": {
     "url": "https://github.com/ogre-works/ogre-tools/issues"
   },
@@ -38,9 +42,9 @@
     "code-style:fix": "ogre-tools-fix-code-style"
   },
   "devDependencies": {
-    "@ogre-tools/infrastructure-babel-for-js": "^19.0.0",
-    "@ogre-tools/infrastructure-jest": "^19.0.0",
-    "@ogre-tools/infrastructure-prettier": "^19.0.0",
-    "@ogre-tools/infrastructure-webpack-for-js": "^19.0.0"
+    "@ogre-tools/infrastructure-babel-for-js": "^19.0.0 || ^22.0.0",
+    "@ogre-tools/infrastructure-jest": "^19.0.0 || ^22.0.0",
+    "@ogre-tools/infrastructure-prettier": "^19.0.0 || ^22.0.0",
+    "@ogre-tools/infrastructure-webpack-for-js": "^19.0.0 || ^22.0.0"
   }
 }

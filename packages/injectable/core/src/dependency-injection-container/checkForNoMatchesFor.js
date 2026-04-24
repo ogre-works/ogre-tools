@@ -1,15 +1,11 @@
 export const checkForNoMatchesFor =
-  getNamespacedId => (relatedInjectables, alias, context) => {
+  ({ getNamespacedId }) =>
+  (relatedInjectables, alias, injectingInjectable) => {
     if (relatedInjectables.length === 0) {
-      const errorContextString = [
-        ...context,
-        { injectable: { id: alias.id, aliasType: alias.aliasType } },
-      ]
-        .map(({ injectable }) => getNamespacedId(injectable))
-        .join('" -> "');
-
       throw new Error(
-        `Tried to inject non-registered injectable "${errorContextString}".`,
+        `Tried to inject non-registered injectable "${
+          alias.id
+        }" from "${getNamespacedId(injectingInjectable)}".`,
       );
     }
   };

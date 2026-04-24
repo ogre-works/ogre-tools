@@ -18,7 +18,7 @@ describe('createContainer.deregistration', () => {
     expect(() => {
       di.inject(someInjectable);
     }).toThrow(
-      'Tried to inject non-registered injectable "some-container" -> "some-injectable".',
+      'Tried to inject non-registered injectable "some-injectable" from "some-container".',
     );
   });
 
@@ -42,7 +42,7 @@ describe('createContainer.deregistration', () => {
     expect(() => {
       di.inject(someInjectionToken);
     }).toThrow(
-      'Tried to inject non-registered injectable "some-container" -> "(some-injection-token)".',
+      'Tried to inject non-registered injectable "some-injection-token" from "some-container".',
     );
   });
 
@@ -66,7 +66,7 @@ describe('createContainer.deregistration', () => {
     expect(() => {
       di.inject(someOtherInjectable);
     }).toThrow(
-      'Tried to inject non-registered injectable "some-container" -> "some-other-injectable".',
+      'Tried to inject non-registered injectable "some-other-injectable" from "some-container".',
     );
   });
 
@@ -128,7 +128,7 @@ describe('createContainer.deregistration', () => {
     expect(() => {
       di.inject(someInjectable);
     }).toThrow(
-      'Tried to inject non-registered injectable "some-container" -> "some-injectable".',
+      'Tried to inject non-registered injectable "some-injectable" from "some-container".',
     );
   });
 
@@ -193,11 +193,11 @@ describe('createContainer.deregistration', () => {
     expect(() => {
       di.inject(someInjectable);
     }).toThrow(
-      'Tried to inject non-registered injectable "some-container" -> "some-injectable".',
+      'Tried to inject non-registered injectable "some-injectable" from "some-container".',
     );
   });
 
-  it('given injectable which can late register and implements an injection token, when the root injectable is deregistered, deregisters also the late registered injectables', () => {
+  it('given injectable registered by another injectable (not the root), when root is deregistered, the registered injectable is NOT cascade-deregistered', () => {
     const di = createContainer('some-container');
 
     const someInjectionToken = getInjectionToken({
@@ -234,11 +234,168 @@ describe('createContainer.deregistration', () => {
 
     di.deregister(someRootInjectable);
 
+    // someInjectable was registered by registererInjectable, not someRootInjectable,
+    // so it survives cascade deregistration of someRootInjectable
+    expect(di.inject(someInjectable)).toBe('some-instance');
+  });
+
+  it('given injectable registered by another, when child is deregistered directly and then parent is deregistered, does not throw', () => {
+    const di = createContainer('some-container');
+
+    const childInjectable = getInjectable({
+      id: 'some-child-injectable',
+      instantiate: () => 'some-child-instance',
+    });
+
+    const registererInjectable = getInjectable({
+      id: 'some-registerer',
+
+      instantiate: di => injectable => {
+        di.register(injectable);
+      },
+    });
+
+    di.register(registererInjectable);
+
+    const register = di.inject(registererInjectable);
+
+    register(childInjectable);
+
+    di.deregister(childInjectable);
+
+    // Deregister parent — should not throw
     expect(() => {
-      di.inject(someInjectable);
-    }).toThrow(
-      'Tried to inject non-registered injectable "some-container" -> "some-injectable".',
-    );
+      di.deregister(registererInjectable);
+    }).not.toThrow();
+  });
+
+  describe('given grandchild registered via nested scopes', () => {
+    let di;
+    let grandchildInjectable;
+    let parentScopeInjectable;
+
+    beforeEach(() => {
+      di = createContainer('some-container');
+
+      grandchildInjectable = getInjectable({
+        id: 'some-grandchild',
+        instantiate: () => 'grandchild-instance',
+      });
+
+      // Child scope: registers the grandchild
+      const childScopeInjectable = getInjectable({
+        id: 'some-child-scope',
+        instantiate: di => {
+          di.register(grandchildInjectable);
+          return 'child-scope-instance';
+        },
+        scope: true,
+      });
+
+      // Parent scope: registers the child scope
+      parentScopeInjectable = getInjectable({
+        id: 'some-parent-scope',
+        instantiate: di => {
+          di.register(childScopeInjectable);
+          di.inject(childScopeInjectable);
+          return 'parent-scope-instance';
+        },
+        scope: true,
+      });
+
+      di.register(parentScopeInjectable);
+      di.inject(parentScopeInjectable);
+    });
+
+    it('the grandchild is initially registered', () => {
+      expect(di.hasRegistrations(grandchildInjectable)).toBe(true);
+    });
+
+    it('when grandparent is deregistered, does not throw for grandchild already deregistered by child cascade', () => {
+      expect(() => {
+        di.deregister(parentScopeInjectable);
+      }).not.toThrow();
+    });
+
+    it('when grandparent is deregistered, the grandchild is no longer registered', () => {
+      di.deregister(parentScopeInjectable);
+
+      expect(di.hasRegistrations(grandchildInjectable)).toBe(false);
+    });
+  });
+
+  it('given injectable registered by another, when child is deregistered directly and then parent is deregistered, does not throw', () => {
+    const di = createContainer('some-container');
+
+    const childInjectable = getInjectable({
+      id: 'some-child-injectable',
+      instantiate: () => 'some-child-instance',
+    });
+
+    const registererInjectable = getInjectable({
+      id: 'some-registerer',
+
+      instantiate: di => injectable => {
+        di.register(injectable);
+      },
+    });
+
+    di.register(registererInjectable);
+
+    const register = di.inject(registererInjectable);
+
+    register(childInjectable);
+
+    // Deregister child directly (simulates experiment uninstall)
+    di.deregister(childInjectable);
+
+    // Deregister parent (simulates feature scope cascade) — should not throw
+    expect(() => {
+      di.deregister(registererInjectable);
+    }).not.toThrow();
+  });
+
+  it('given grandchild registered via nested scopes, when grandparent is deregistered, does not throw for grandchild already deregistered by child cascade', () => {
+    const di = createContainer('some-container');
+
+    const grandchildInjectable = getInjectable({
+      id: 'some-grandchild',
+      instantiate: () => 'grandchild-instance',
+    });
+
+    // Child scope: registers the grandchild
+    const childScopeInjectable = getInjectable({
+      id: 'some-child-scope',
+      instantiate: di => {
+        di.register(grandchildInjectable);
+        return 'child-scope-instance';
+      },
+      scope: true,
+    });
+
+    // Parent scope: registers the child scope
+    const parentScopeInjectable = getInjectable({
+      id: 'some-parent-scope',
+      instantiate: di => {
+        di.register(childScopeInjectable);
+        di.inject(childScopeInjectable);
+        return 'parent-scope-instance';
+      },
+      scope: true,
+    });
+
+    di.register(parentScopeInjectable);
+    di.inject(parentScopeInjectable);
+
+    expect(di.hasRegistrations(grandchildInjectable)).toBe(true);
+
+    // Deregistering parent cascades to child, which cascades to grandchild.
+    // Grandchild appears in both parent's and child's cascade results.
+    expect(() => {
+      di.deregister(parentScopeInjectable);
+    }).not.toThrow();
+
+    expect(di.hasRegistrations(grandchildInjectable)).toBe(false);
   });
 
   it('given injectable with token, and registered, when deregistered using the token, throws', () => {

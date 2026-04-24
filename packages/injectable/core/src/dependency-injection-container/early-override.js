@@ -1,7 +1,31 @@
 import isInjectionToken from '../getInjectionToken/isInjectionToken';
+import { injectableSymbol2 } from '../getInjectable2/getInjectable2';
+import { injectionTokenSymbol2 } from '../getInjectionToken2/getInjectionToken2';
 
-export const earlyOverrideFor =
-  ({ getRelatedInjectables, alreadyInjected, overridingInjectables }) =>
+const targetIsV2 = injectable =>
+  injectable.aliasType === injectableSymbol2 ||
+  injectable.aliasType === injectionTokenSymbol2;
+
+// v1-shape stub: (di, ...params) => instance. Wraps for v2 targets.
+const asV1Shape = (stub, isV2Target) =>
+  isV2Target
+    ? di =>
+        (...params) =>
+          stub(di, ...params)
+    : stub;
+
+// v2-shape stub: (di) => (...params) => instance. Unwraps for v1 targets.
+const asV2Shape = (stub, isV2Target) =>
+  isV2Target ? stub : (di, ...params) => stub(di)(...params);
+
+const earlyOverrideImplFor =
+  normalize =>
+  ({
+    getRelatedInjectables,
+    alreadyInjected,
+    overridingInjectables,
+    getNamespacedId,
+  }) =>
   (alias, instantiateStub) => {
     const relatedInjectables = getRelatedInjectables(alias);
 
@@ -10,7 +34,7 @@ export const earlyOverrideFor =
         `Tried to override single implementation of injection token "${
           alias.id
         }", but found multiple registered implementations: "${relatedInjectables
-          .map(x => x.id)
+          .map(getNamespacedId)
           .join('", "')}".`,
       );
     }
@@ -21,18 +45,23 @@ export const earlyOverrideFor =
       );
     }
 
-    if (alreadyInjected.has(alias)) {
+    const originalInjectable = relatedInjectables[0] || alias;
+
+    if (alreadyInjected.has(alias) || alreadyInjected.has(originalInjectable)) {
       throw new Error(
-        `Tried to override injectable "${alias.id}", but it was already injected.`,
+        `Tried to override injectable "${getNamespacedId(
+          originalInjectable,
+        )}", but it was already injected.`,
       );
     }
-
-    const originalInjectable = relatedInjectables[0] || alias;
 
     overridingInjectables.set(originalInjectable, {
       ...originalInjectable,
       overriddenInjectable: originalInjectable,
       causesSideEffects: false,
-      instantiate: instantiateStub,
+      instantiate: normalize(instantiateStub, targetIsV2(originalInjectable)),
     });
   };
+
+export const earlyOverrideFor = earlyOverrideImplFor(asV1Shape);
+export const earlyOverride2For = earlyOverrideImplFor(asV2Shape);

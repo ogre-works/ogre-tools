@@ -1,13 +1,15 @@
 import {
   deregistrationCallbackToken,
   getInjectable,
+  getInjectable2,
   getInjectionToken,
+  getInjectionToken2,
   getKeyedSingletonCompositeKey,
   lifecycleEnum,
   registrationCallbackToken,
 } from '@ogre-tools/injectable';
 
-import { computed, createAtom, runInAction } from 'mobx';
+import { computed, createAtom } from 'mobx';
 
 export const computedInjectManyInjectionToken = getInjectionToken({
   id: 'computed-inject-many',
@@ -17,35 +19,40 @@ export const computedInjectManyWithMetaInjectionToken = getInjectionToken({
   id: 'computed-inject-many-with-meta',
 });
 
+export const computedInjectMany2InjectionToken = getInjectionToken2({
+  id: 'computed-inject-many-2',
+});
+
+export const computedInjectManyWithMeta2InjectionToken = getInjectionToken2({
+  id: 'computed-inject-many-with-meta-2',
+});
+
 export const isInternalOfComputedInjectMany = Symbol(
   'isInternalOfComputedInjectMany',
 );
 
-export const invalidabilityForReactiveInstances = getInjectable({
-  id: 'invalidability-for-reactive-instances',
+export const atomsByTokenInjectable = getInjectable({
+  id: 'atoms-by-token-for-reactive-instances',
 
-  instantiate: (_, injectionToken) =>
-    createAtom(`reactivity-for-${injectionToken.id}`),
-
-  lifecycle: lifecycleEnum.keyedSingleton({
-    getInstanceKey: (_, injectionToken) => injectionToken,
-  }),
+  instantiate: () => new Map(),
 
   [isInternalOfComputedInjectMany]: true,
 
   decorable: false,
 });
 
-const getInvalidatorInstance = di => injectable => {
-  if (!injectable.injectionToken) {
-    return;
-  }
+const getInvalidatorInstance = di => {
+  const atomsByToken = di.inject(atomsByTokenInjectable);
 
-  getRelatedTokens(injectable.injectionToken)
-    .map(token => di.inject(invalidabilityForReactiveInstances, token))
-    .forEach(atom => {
-      atom.reportChanged();
-    });
+  return injectable => {
+    let token = injectable.injectionToken;
+
+    while (token !== undefined) {
+      const atom = atomsByToken.get(token);
+      if (atom !== undefined) atom.reportChanged();
+      token = token.specificTokenOf;
+    }
+  };
 };
 
 export const invalidateReactiveInstancesOnRegisterCallback = getInjectable({
@@ -68,25 +75,25 @@ const reactiveInstancesFor = ({ id, methodInDiToInjectMany }) =>
   getInjectable({
     id,
 
-    instantiate: (di, { injectionToken, instantiationParameter }) => {
-      const mobxAtomForToken = di.inject(
-        invalidabilityForReactiveInstances,
-        injectionToken,
-      );
+    instantiate: (di, { injectionToken, args }) => {
+      const atomsByToken = di.inject(atomsByTokenInjectable);
+      let mobxAtomForToken = atomsByToken.get(injectionToken);
+
+      if (mobxAtomForToken === undefined) {
+        mobxAtomForToken = createAtom(`reactivity-for-${injectionToken.id}`);
+        atomsByToken.set(injectionToken, mobxAtomForToken);
+      }
 
       return computed(() => {
         mobxAtomForToken.reportObserved();
 
-        return di[methodInDiToInjectMany](
-          injectionToken,
-          instantiationParameter,
-        );
+        return di[methodInDiToInjectMany](injectionToken, ...args);
       });
     },
 
     lifecycle: lifecycleEnum.keyedSingleton({
-      getInstanceKey: (di, { injectionToken, instantiationParameter }) =>
-        getKeyedSingletonCompositeKey(injectionToken, instantiationParameter),
+      getInstanceKey: (di, { injectionToken, args }) =>
+        getKeyedSingletonCompositeKey(injectionToken, ...args),
     }),
   });
 
@@ -108,13 +115,14 @@ const computedInjectManyInjectableFor = ({
   getInjectable({
     id,
 
-    instantiate: di => (injectionToken, instantiationParameter) =>
-      di.inject(reactiveInstances, {
-        injectionToken,
-        instantiationParameter,
-      }),
+    instantiate:
+      di =>
+      (injectionToken, ...args) =>
+        di.inject(reactiveInstances, {
+          injectionToken,
+          args,
+        }),
 
-    lifecycle: lifecycleEnum.transient,
     injectionToken,
   });
 
@@ -131,7 +139,43 @@ export const computedInjectManyWithMetaInjectable =
     injectionToken: computedInjectManyWithMetaInjectionToken,
   });
 
-const getRelatedTokens = token =>
-  token === undefined
-    ? []
-    : [token, ...getRelatedTokens(token.specificTokenOf)];
+// Factory-shape variants: `di.inject(X, token)` returns `(...args) => T[]`
+// (the token's ManyFactory). The factory calls `.get()` internally so the
+// computation observation flows through whatever reactive context the caller
+// is in — autorun, computed, reaction — without per-call `.get()` ceremony.
+// These are injectable2 / injectionToken2 so that the `InjectionToken2<F, MF>`
+// generics (especially the sibling ManyFactory MF) propagate verbatim.
+const computedInjectMany2InjectableFor = ({
+  id,
+  reactiveInstances,
+  injectionToken,
+}) =>
+  getInjectable2({
+    id,
+
+    instantiate:
+      di =>
+      injectionToken =>
+      (...args) =>
+        di
+          .inject(reactiveInstances)({
+            injectionToken,
+            args,
+          })
+          .get(),
+
+    injectionToken,
+  });
+
+export const computedInjectMany2Injectable = computedInjectMany2InjectableFor({
+  id: 'computed-inject-many-2',
+  reactiveInstances: reactiveInstancesInjectable,
+  injectionToken: computedInjectMany2InjectionToken,
+});
+
+export const computedInjectManyWithMeta2Injectable =
+  computedInjectMany2InjectableFor({
+    id: 'computed-inject-many-with-meta-2',
+    reactiveInstances: reactiveInstancesWithMetaInjectable,
+    injectionToken: computedInjectManyWithMeta2InjectionToken,
+  });

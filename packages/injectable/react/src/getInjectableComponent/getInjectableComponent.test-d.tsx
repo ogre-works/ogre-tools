@@ -21,11 +21,18 @@ const someInjectionTokenUsingProps = getInjectionToken<
 
 const SomeFunctionalComponentNotUsingProps = () => <div>irrelevant</div>;
 
+const SomeFunctionalComponentNotUsingPropsAsComponentType: React.ComponentType =
+  () => <div>irrelevant</div>;
+
 const SomeFunctionalComponentUsingProps = ({
   someProp,
 }: {
   someProp: string;
 }) => <div>irrelevant</div>;
+
+const SomeFunctionalComponentUsingPropsAsComponentType: React.ComponentType<{
+  someProp: string;
+}> = ({ someProp }) => <div>irrelevant</div>;
 
 class SomeClassComponentNotUsingProps extends React.Component {
   render() {
@@ -59,7 +66,7 @@ const someInjectionTokenNotUsingProps = getInjectionToken<React.ComponentType>({
 
 const InjectableComponentUsingInjectionToken = getInjectableComponent({
   id: 'irrelevant',
-  Component: SomeFunctionalComponentNotUsingProps,
+  Component: SomeFunctionalComponentNotUsingPropsAsComponentType,
   injectionToken: someInjectionTokenNotUsingProps,
 });
 
@@ -126,7 +133,7 @@ expectAssignable<Injectable<React.ComponentType>>(
 // given injection token, and functional component using props, typing is ok
 const SomeInjectableComponentUsingInjectionToken = getInjectableComponent({
   id: 'irrelevant',
-  Component: SomeFunctionalComponentUsingProps,
+  Component: SomeFunctionalComponentUsingPropsAsComponentType,
   injectionToken: someInjectionTokenUsingProps,
 });
 
@@ -143,20 +150,17 @@ expectType<React.ComponentType<{ someProp: string }>>(
   di.inject(SomeInjectableComponentUsingInjectionToken),
 );
 
-// given injection token, and component using less props than token, typing is not ok
-const SomeInjectableComponentUsingLessPropsThanInjectionToken =
+// given injection token, and component with contradictory props, typing is not ok
+const SomeFunctionalComponentUsingContradictoryPropsAsComponentType: React.ComponentType<{
+  someProp: number;
+}> = ({ someProp }) => <div>{someProp}</div>;
+
+expectError(
   getInjectableComponent({
     id: 'irrelevant',
-    Component: SomeFunctionalComponentNotUsingProps,
+    Component: SomeFunctionalComponentUsingContradictoryPropsAsComponentType,
     injectionToken: someInjectionTokenUsingProps,
-  });
-
-expectError<React.ComponentType>(
-  SomeInjectableComponentUsingLessPropsThanInjectionToken,
-);
-
-expectError<Injectable<React.ComponentType>>(
-  SomeInjectableComponentUsingLessPropsThanInjectionToken,
+  }),
 );
 
 // given injection token, and contradictory functional component using props, typing is not ok
@@ -276,10 +280,9 @@ const someInjectionTokenWithTypedSpecifier = getInjectionToken<
   >
 >({ id: 'irrelevant' });
 
-const someTypedSpecifier =
-  getTypedSpecifier<{ someSpecifier: { someProp: 'some-type' } }>()(
-    'irrelevant',
-  );
+const someTypedSpecifier = getTypedSpecifier<{
+  someSpecifier: { someProp: 'some-type' };
+}>()('irrelevant');
 
 const SomeInjectableComponentForTypedSpecifier = getInjectableComponent({
   id: 'irrelevant',
@@ -337,3 +340,68 @@ expectError(
     someOtherProp="some-string"
   />,
 );
+
+// --- Narrow function component with wider ComponentType token ---
+
+// given a narrow function component (not annotated as ComponentType) with a
+// ComponentType<{}> injection token, typing is ok
+const NarrowFunctionComponentNoProps = () => <div>irrelevant</div>;
+
+const InjectableComponentNarrowWithWideToken = getInjectableComponent({
+  id: 'irrelevant',
+  Component: NarrowFunctionComponentNoProps,
+  injectionToken: someInjectionTokenNotUsingProps,
+});
+
+expectAssignable<React.ComponentType>(InjectableComponentNarrowWithWideToken);
+
+// given a narrow function component with props (not annotated as ComponentType)
+// with a ComponentType<Props> injection token, typing is ok
+const NarrowFunctionComponentWithProps = ({
+  someProp,
+}: {
+  someProp: string;
+}) => <div>{someProp}</div>;
+
+const InjectableComponentNarrowPropsWithWideToken = getInjectableComponent({
+  id: 'irrelevant',
+  Component: NarrowFunctionComponentWithProps,
+  injectionToken: someInjectionTokenUsingProps,
+});
+
+expectAssignable<React.ComponentType<{ someProp: string }>>(
+  InjectableComponentNarrowPropsWithWideToken,
+);
+
+// given a class component with a ComponentType<Props> injection token, typing is ok
+const InjectableClassComponentWithWideToken = getInjectableComponent({
+  id: 'irrelevant',
+  Component: SomeClassComponentUsingProps,
+  injectionToken: someInjectionTokenUsingProps,
+});
+
+expectAssignable<React.ComponentType<{ someProp: string }>>(
+  InjectableClassComponentWithWideToken,
+);
+
+// given a bare arrow function component and a ComponentType<SpecificProps>
+// injection token, typing is ok — the component declares no props, so any
+// ComponentType-shaped token is compatible
+interface SomeMenuItem {
+  id: string;
+  kind: 'internal-separator';
+}
+
+const someInjectionTokenForSpecificComponentType = getInjectionToken<
+  React.ComponentType<SomeMenuItem>
+>({
+  id: 'irrelevant',
+});
+
+const InjectableBareComponentWithSpecificToken = getInjectableComponent({
+  id: 'irrelevant',
+  Component: NarrowFunctionComponentNoProps,
+  injectionToken: someInjectionTokenForSpecificComponentType,
+});
+
+expectAssignable<React.ComponentType>(InjectableBareComponentWithSpecificToken);

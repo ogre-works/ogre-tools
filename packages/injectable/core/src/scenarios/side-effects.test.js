@@ -3,23 +3,7 @@ import createContainer from '../dependency-injection-container/createContainer';
 import { getInjectionToken } from '@ogre-tools/injectable';
 
 describe('createContainer.side-effects', () => {
-  it('given in side effects are not prevented, when injecting injectable which causes side effects, does not throw', () => {
-    const someInjectable = getInjectable({
-      id: 'irrelevant',
-      causesSideEffects: true,
-      instantiate: () => 'some-instance',
-    });
-
-    const di = createContainer('some-container');
-
-    di.register(someInjectable);
-
-    const actual = di.inject(someInjectable);
-
-    expect(actual).toBe('some-instance');
-  });
-
-  it('given side effects are prevented, when injecting, throws', () => {
+  it('when injecting injectable which causes side effects, throws', () => {
     const someInjectable = getInjectable({
       id: 'some-injectable',
       causesSideEffects: true,
@@ -30,16 +14,32 @@ describe('createContainer.side-effects', () => {
 
     di.register(someInjectable);
 
-    di.preventSideEffects();
-
     expect(() => {
       di.inject(someInjectable);
     }).toThrow(
-      'Tried to inject "some-container" -> "some-injectable" when side-effects are prevented.',
+      'Tried to inject "some-injectable" from "some-container" when side-effects are prevented.',
     );
   });
 
-  it('given side effects are prevented, but then permitted for an injectable, when injecting, does not throw', () => {
+  it('given all side effects are permitted, when injecting injectable which causes side effects, does not throw', () => {
+    const someInjectable = getInjectable({
+      id: 'irrelevant',
+      causesSideEffects: true,
+      instantiate: () => 'some-instance',
+    });
+
+    const di = createContainer('some-container');
+
+    di.register(someInjectable);
+
+    di.permitSideEffects();
+
+    const actual = di.inject(someInjectable);
+
+    expect(actual).toBe('some-instance');
+  });
+
+  it('given side effects are permitted for an injectable, when injecting, does not throw', () => {
     const someInjectable = getInjectable({
       id: 'irrelevant',
       causesSideEffects: true,
@@ -50,8 +50,6 @@ describe('createContainer.side-effects', () => {
 
     di.register(someInjectable);
 
-    di.preventSideEffects();
-
     di.permitSideEffects(someInjectable);
 
     expect(() => {
@@ -59,7 +57,7 @@ describe('createContainer.side-effects', () => {
     }).not.toThrow();
   });
 
-  it('given side effects are prevented, but then permitted for an injection token, when injecting, does not throw', () => {
+  it('given side effects are permitted for an injection token, when injecting, does not throw', () => {
     const someInjectionToken = getInjectionToken({
       id: 'some-injection-token',
     });
@@ -75,8 +73,6 @@ describe('createContainer.side-effects', () => {
 
     di.register(someInjectable);
 
-    di.preventSideEffects();
-
     di.permitSideEffects(someInjectionToken);
 
     expect(() => {
@@ -84,7 +80,7 @@ describe('createContainer.side-effects', () => {
     }).not.toThrow();
   });
 
-  it('given side effects are prevented, but then permitted for an injection token, when injecting many, does not throw', () => {
+  it('given side effects are permitted for an injection token, when injecting many, does not throw', () => {
     const someInjectionToken = getInjectionToken({
       id: 'some-injection-token',
     });
@@ -106,8 +102,6 @@ describe('createContainer.side-effects', () => {
     const di = createContainer('some-container');
 
     di.register(someInjectable, someOtherInjectable);
-
-    di.preventSideEffects();
 
     di.permitSideEffects(someInjectionToken);
 

@@ -116,7 +116,49 @@ describe('createContainer.singleton', () => {
     expect(() => {
       di.inject(singletonInjectable, 'some-instantiation-parameter');
     }).toThrow(
-      'Tried to inject singleton "some-injectable", but illegally to singletons, an instantiationParameter was provided: "some-instantiation-parameter".',
+      'Tried to inject singleton "some-injectable" from "some-container", but illegally to singletons, instantiationParameters were provided: "some-instantiation-parameter".',
     );
+  });
+
+  describe('given a singleton injected with only undefined args', () => {
+    let singletonInjectable;
+    let di;
+    let instantiationCount;
+    let actual1;
+    let actual2;
+    let actual3;
+
+    beforeEach(() => {
+      instantiationCount = 0;
+
+      singletonInjectable = getInjectable({
+        id: 'some-injectable',
+        instantiate: () => {
+          instantiationCount++;
+          return {};
+        },
+        lifecycle: lifecycleEnum.singleton,
+      });
+
+      di = createContainer('some-container');
+
+      di.register(singletonInjectable);
+
+      actual1 = di.inject(singletonInjectable, undefined);
+      actual2 = di.inject(singletonInjectable, undefined);
+      actual3 = di.inject(singletonInjectable);
+    });
+
+    it('when injected twice with undefined, returns the same instance', () => {
+      expect(actual1).toBe(actual2);
+    });
+
+    it('when injected with undefined and then without args, returns the same instance', () => {
+      expect(actual2).toBe(actual3);
+    });
+
+    it('instantiates only once', () => {
+      expect(instantiationCount).toBe(1);
+    });
   });
 });

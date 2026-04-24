@@ -1,5 +1,3 @@
-import { earlyOverrideFor } from './early-override';
-
 export const overrideFor =
   ({ getRelatedInjectables, earlyOverride }) =>
   (alias, instantiateStub) => {
@@ -21,7 +19,7 @@ export const overrideFor =
   };
 
 export const unoverrideFor =
-  ({ overridingInjectables, getRelatedInjectables }) =>
+  ({ overridingInjectables, getRelatedInjectables, getNamespacedId }) =>
   alias => {
     const [injectable] = getRelatedInjectables(alias);
 
@@ -33,7 +31,9 @@ export const unoverrideFor =
 
     if (!overridingInjectables.has(injectable)) {
       throw new Error(
-        `Tried to unoverride "${alias.id}", but it was not overridden.`,
+        `Tried to unoverride "${getNamespacedId(
+          injectable,
+        )}", but it was not overridden.`,
       );
     }
 

@@ -1,7 +1,7 @@
 {
   "name": "@ogre-tools/discoverable",
   "private": false,
-  "version": "19.0.0",
+  "version": "22.0.0",
   "description": "A test-utility to control HTML-elements using data-attributes",
   "type": "commonjs",
   "publishConfig": {
@@ -13,6 +13,13 @@
     "url": "git+https://github.com/ogre-works/ogre-tools.git"
   },
   "main": "build/index.js",
+  "module": "build/index.mjs",
+  "exports": {
+    ".": {
+      "import": { "types": "./build/index.d.ts", "default": "./build/index.mjs" },
+      "require": { "types": "./build/index.d.ts", "default": "./build/index.js" }
+    }
+  },
   "types": "build/index.d.ts",
   "files": [
     "build"
@@ -20,22 +27,24 @@
   "author": "Ogre Works",
   "license": "MIT",
   "homepage": "https://github.com/ogre-works/ogre-tools#readme",
+  "dependencies": {
+    "lodash": "^4.17.21"
+  },
   "peerDependencies": {
-    "@ogre-tools/fp": "^19",
-    "@ogre-tools/test-utils": "^19",
+    "@ogre-tools/fp": "^16 || ^17 || ^18 || ^19 || ^20 || ^21 || ^22",
+    "@ogre-tools/test-utils": "^19.0.0 || ^20.1.0 || ^21 || ^22",
     "@testing-library/dom": "^10.4.0",
     "@testing-library/react": "^16.0.1",
     "@testing-library/user-event": "^14.5.2",
-    "lodash": "^4.17.21",
     "react": "^18 || ^19",
     "react-dom": "^18 || ^19"
   },
   "devDependencies": {
     "@async-fn/jest": "^1.6.4",
-    "@ogre-tools/infrastructure-babel-for-ts": "^19.0.0",
-    "@ogre-tools/infrastructure-jest": "^19.0.0",
-    "@ogre-tools/infrastructure-prettier": "^19.0.0",
-    "@ogre-tools/infrastructure-webpack-for-ts": "^19.0.0",
+    "@ogre-tools/infrastructure-babel-for-ts": "^19.0.0 || ^22.0.0",
+    "@ogre-tools/infrastructure-jest": "^19.0.0 || ^22.0.0",
+    "@ogre-tools/infrastructure-prettier": "^19.0.0 || ^22.0.0",
+    "@ogre-tools/infrastructure-webpack-for-ts": "^19.0.0 || ^22.0.0",
     "type-fest": "^4.27.0"
   },
   "scripts": {

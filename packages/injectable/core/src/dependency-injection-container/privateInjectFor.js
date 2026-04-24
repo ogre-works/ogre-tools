@@ -1,7 +1,10 @@
-import { nonStoredInstanceKey } from './lifecycleEnum';
+import { nonStoredInstanceKey, storedInstanceKey } from './lifecycleEnum';
 import { withInstantiationDecoratorsFor } from './withInstantiationDecoratorsFor';
-import { checkForTooManyMatches } from './checkForTooManyMatches';
 import { isCompositeKey } from '../getCompositeKey/getCompositeKey';
+import { injectableSymbol2 } from '../getInjectable2/getInjectable2';
+
+// Pre-allocated key for singleton instance lookup — avoids array creation per inject()
+const singletonCompositeKey = [storedInstanceKey];
 
 export const privateInjectFor =
   ({
@@ -11,107 +14,97 @@ export const privateInjectFor =
     instancesByInjectableMap,
     getDi,
     checkForNoMatches,
+    checkForTooManyMatches,
     checkForSideEffects,
+    checkForAbstractToken,
+    namespacedIdByInjectableMap,
     getNamespacedId,
   }) =>
   ({ withMeta }) =>
-  (alias, instantiationParameter, context = [], source) => {
+  ({ alias, instantiationParameters, injectingInjectable }) => {
+    checkForAbstractToken(alias, injectingInjectable);
+
     const di = getDi();
 
     const relatedInjectables = getRelatedInjectables(alias);
 
-    checkForTooManyMatches(relatedInjectables, alias);
-    checkForNoMatches(relatedInjectables, alias, context);
+    checkForTooManyMatches(relatedInjectables, alias, injectingInjectable);
+    checkForNoMatches(relatedInjectables, alias, injectingInjectable);
 
-    const originalInjectable = getRelatedInjectables(alias)[0];
+    const originalInjectable = relatedInjectables[0];
 
     alreadyInjected.add(originalInjectable);
 
-    const overriddenInjectable = overridingInjectables.get(originalInjectable);
+    const injectable =
+      overridingInjectables.size > 0
+        ? overridingInjectables.get(originalInjectable) || originalInjectable
+        : originalInjectable;
 
-    const injectable = overriddenInjectable || originalInjectable;
+    checkForSideEffects(injectable, injectingInjectable);
 
-    checkForSideEffects(injectable, context);
+    // Backward compat: old-style singletons tolerated `inject(alias, undefined)`.
+    // Normalize all-undefined args to [] so fast-path and singleton guard behave
+    // as if no parameter was supplied.
+    if (
+      injectable.aliasType !== injectableSymbol2 &&
+      injectable.lifecycle.id === 'singleton' &&
+      instantiationParameters.length > 0 &&
+      instantiationParameters.every(p => p === undefined)
+    ) {
+      instantiationParameters = [];
+    }
 
-    const instance = getInstance({
+    // Fast path: singleton cache hit — avoid creating minimalDi entirely.
+    if (instantiationParameters.length === 0) {
+      const instanceMap = instancesByInjectableMap.get(
+        injectable.overriddenInjectable || injectable,
+      );
+
+      const existingInstance = instanceMap.get(singletonCompositeKey);
+
+      if (existingInstance) {
+        if (!withMeta) {
+          return existingInstance;
+        }
+
+        return {
+          instance: existingInstance,
+          meta: { id: namespacedIdByInjectableMap.get(injectable) },
+        };
+      }
+    }
+
+    const instance = getInstance(
       di,
       injectable,
-      instantiationParameter,
-      context,
+      instantiationParameters,
       instancesByInjectableMap,
-      source,
+      injectingInjectable,
+      namespacedIdByInjectableMap,
       getNamespacedId,
-    });
+    );
 
     if (!withMeta) {
       return instance;
     }
 
-    const namespacedId = getNamespacedId(injectable);
-
     return {
       instance,
-      meta: { id: namespacedId },
+      meta: { id: namespacedIdByInjectableMap.get(injectable) },
     };
   };
 
-const getInstance = ({
+const createMinimalDi = (
   di,
-  injectable: injectableToBeInstantiated,
-  instantiationParameter,
-  context: oldContext,
-  instancesByInjectableMap,
-  source,
-  getNamespacedId,
-}) => {
-  const newContext = [
-    ...oldContext,
-
-    {
-      injectable: injectableToBeInstantiated,
-      instantiationParameter,
-    },
-  ];
-
-  const instanceMap = instancesByInjectableMap.get(
-    injectableToBeInstantiated.overriddenInjectable ||
-      injectableToBeInstantiated,
-  );
-
-  const minimalInject = (alias, parameter) =>
-    di.inject(alias, parameter, newContext, injectableToBeInstantiated);
-
-  const minimalDi = {
-    inject: minimalInject,
-
-    injectWithMeta: (alias, parameter) =>
-      di.injectWithMeta(
-        alias,
-        parameter,
-        newContext,
-        injectableToBeInstantiated,
-      ),
-
-    injectMany: (alias, parameter) =>
-      di.injectMany(alias, parameter, newContext, injectableToBeInstantiated),
-
-    injectManyWithMeta: (alias, parameter) =>
-      di.injectManyWithMeta(
-        alias,
-        parameter,
-        newContext,
-        injectableToBeInstantiated,
-      ),
-
-    injectFactory: alias => instantiationParameter =>
-      minimalInject(alias, instantiationParameter),
-
-    context: newContext,
-
+  injectableToBeInstantiated,
+  injectingInjectable,
+  namespacedIdByInjectableMap,
+) => {
+  const shared = {
     register: (...injectables) => {
       di.register({
         injectables,
-        context: newContext,
+        context: [{ injectable: injectableToBeInstantiated }],
         source: injectableToBeInstantiated,
       });
     },
@@ -119,23 +112,200 @@ const getInstance = ({
     deregister: (...injectables) => {
       di.deregister({
         injectables,
-        context: newContext,
+        context: [{ injectable: injectableToBeInstantiated }],
         source: injectableToBeInstantiated,
       });
     },
 
     get sourceNamespace() {
-      return (
-        getNamespacedId(source).split(':').slice(0, -1).join(':') || undefined
-      );
+      const nsId = namespacedIdByInjectableMap.get(injectingInjectable);
+      const lastColon = nsId ? nsId.lastIndexOf(':') : -1;
+
+      return lastColon > 0 ? nsId.slice(0, lastColon) : undefined;
     },
 
     hasRegistrations: di.hasRegistrations,
+    getNumberOfInstances: di.getNumberOfInstances,
+
+    purge: (alias, ...keyParts) =>
+      di.scopedPurge(injectableToBeInstantiated, alias, ...keyParts),
   };
+
+  // Unified shape for both v1 and v2:
+  //   inject/injectMany return instances (variadic params passed inline).
+  //   inject2/injectMany2 return factories (for v2 aliases the native factory, generics preserved;
+  //   for v1 aliases a synthesized (...p) => instance wrapper).
+  const minimalInject = (alias, ...args) =>
+    di.inject({
+      alias,
+      instantiationParameters: args,
+      injectingInjectable: injectableToBeInstantiated,
+    });
+
+  const minimalInjectMany = (alias, ...args) =>
+    di.injectMany({
+      alias,
+      instantiationParameters: args,
+      injectingInjectable: injectableToBeInstantiated,
+    });
+
+  const minimalInjectWithMeta = (alias, ...args) =>
+    di.injectWithMeta({
+      alias,
+      instantiationParameters: args,
+      injectingInjectable: injectableToBeInstantiated,
+    });
+
+  const minimalInjectManyWithMeta = (alias, ...args) =>
+    di.injectManyWithMeta({
+      alias,
+      instantiationParameters: args,
+      injectingInjectable: injectableToBeInstantiated,
+    });
+
+  if (injectableToBeInstantiated.aliasType === injectableSymbol2) {
+    // V2 minimalDi: inject/injectMany/etc are factory-returning
+    return {
+      ...shared,
+
+      inject:
+        alias =>
+        (...params) =>
+          minimalInject(alias, ...params),
+
+      injectMany:
+        alias =>
+        (...params) =>
+          minimalInjectMany(alias, ...params),
+
+      injectWithMeta:
+        alias =>
+        (...params) =>
+          minimalInjectWithMeta(alias, ...params),
+
+      injectManyWithMeta:
+        alias =>
+        (...params) =>
+          minimalInjectManyWithMeta(alias, ...params),
+    };
+  }
+
+  // V1 minimalDi: inject/injectMany/etc are instance-returning
+  return {
+    ...shared,
+
+    inject: minimalInject,
+    injectMany: minimalInjectMany,
+    injectWithMeta: minimalInjectWithMeta,
+    injectManyWithMeta: minimalInjectManyWithMeta,
+
+    injectFactory:
+      alias =>
+      (...params) =>
+        minimalInject(alias, ...params),
+  };
+};
+
+const instantiate = (
+  di,
+  injectableToBeInstantiated,
+  minimalDi,
+  instantiationParameters,
+) => {
+  const withInstantiationDecorators = withInstantiationDecoratorsFor({
+    injectMany: di.injectMany,
+    injectable: injectableToBeInstantiated,
+  });
+
+  const decorated = withInstantiationDecorators(
+    injectableToBeInstantiated.instantiate,
+  );
+
+  // New-style injectable2: curried (di) => (...params) => instance
+  if (injectableToBeInstantiated.aliasType === injectableSymbol2) {
+    return decorated(minimalDi)(...instantiationParameters);
+  }
+
+  // Old-style: (di, ...params) => instance
+  return decorated(minimalDi, ...instantiationParameters);
+};
+
+const getInstance = (
+  di,
+  injectableToBeInstantiated,
+  instantiationParameters,
+  instancesByInjectableMap,
+  injectingInjectable,
+  namespacedIdByInjectableMap,
+  getNamespacedId,
+) => {
+  const instanceMap = instancesByInjectableMap.get(
+    injectableToBeInstantiated.overriddenInjectable ||
+      injectableToBeInstantiated,
+  );
+
+  const lifecycleId = injectableToBeInstantiated.lifecycle.id;
+
+  // Singleton: fast path in privateInjectFor already checked cache and missed.
+  // Skip redundant getInstanceKey + cache check — go straight to instantiation.
+  if (lifecycleId === 'singleton') {
+    if (instantiationParameters.length > 0) {
+      throw new Error(
+        `Tried to inject singleton "${getNamespacedId(
+          injectableToBeInstantiated,
+        )}" from "${getNamespacedId(
+          injectingInjectable,
+        )}", but illegally to singletons, instantiationParameters were provided: "${instantiationParameters}".`,
+      );
+    }
+
+    const minimalDi = createMinimalDi(
+      di,
+      injectableToBeInstantiated,
+      injectingInjectable,
+      namespacedIdByInjectableMap,
+    );
+
+    const newInstance = instantiate(
+      di,
+      injectableToBeInstantiated,
+      minimalDi,
+      instantiationParameters,
+    );
+
+    instanceMap.set(singletonCompositeKey, newInstance);
+
+    return newInstance;
+  }
+
+  // Transient: never cached — skip key resolution, cache check, and cache store.
+  if (lifecycleId === 'transient') {
+    const minimalDi = createMinimalDi(
+      di,
+      injectableToBeInstantiated,
+      injectingInjectable,
+      namespacedIdByInjectableMap,
+    );
+
+    return instantiate(
+      di,
+      injectableToBeInstantiated,
+      minimalDi,
+      instantiationParameters,
+    );
+  }
+
+  // keyedSingleton / custom lifecycle: full key resolution + cache check.
+  const minimalDi = createMinimalDi(
+    di,
+    injectableToBeInstantiated,
+    injectingInjectable,
+    namespacedIdByInjectableMap,
+  );
 
   const instanceKey = injectableToBeInstantiated.lifecycle.getInstanceKey(
     minimalDi,
-    instantiationParameter,
+    ...instantiationParameters,
   );
 
   const instanceCompositeKey = isCompositeKey(instanceKey)
@@ -148,18 +318,11 @@ const getInstance = ({
     return existingInstance;
   }
 
-  const withInstantiationDecorators = withInstantiationDecoratorsFor({
-    injectMany: di.injectMany,
-    injectable: injectableToBeInstantiated,
-  });
-
-  const instantiateWithDecorators = withInstantiationDecorators(
-    injectableToBeInstantiated.instantiate,
-  );
-
-  const newInstance = instantiateWithDecorators(
+  const newInstance = instantiate(
+    di,
+    injectableToBeInstantiated,
     minimalDi,
-    ...(instantiationParameter === undefined ? [] : [instantiationParameter]),
+    instantiationParameters,
   );
 
   if (instanceCompositeKey[0] !== nonStoredInstanceKey) {

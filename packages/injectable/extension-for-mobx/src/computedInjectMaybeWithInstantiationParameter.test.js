@@ -4,6 +4,7 @@ import { autorun, configure, runInAction, onReactionError } from 'mobx';
 import {
   createContainer,
   getInjectable,
+  getInjectable2,
   getInjectionToken,
   injectionDecoratorToken,
   lifecycleEnum,
@@ -33,10 +34,7 @@ describe('computedInjectMaybe with instantiation parameter', () => {
     let someCollidingInjectable;
     let actualObservationsCount;
     let someInjectable;
-    let contextsOfSomeInjectable;
-
     beforeEach(() => {
-      contextsOfSomeInjectable = [];
       actualObservationsCount = 0;
 
       someInjectionToken = getInjectionToken({
@@ -52,27 +50,19 @@ describe('computedInjectMaybe with instantiation parameter', () => {
         }),
       });
 
-      const contextSpyDecorator = getInjectable({
+      const contextSpyDecorator = getInjectable2({
         id: 'context-spy-decorator',
 
-        instantiate: () => ({
-          target: someInjectable,
-
-          decorate:
-            toBeDecorated =>
-            (alias, instantiationParameter, context = []) => {
-              contextsOfSomeInjectable.push([
-                ...context.map(x => x.injectable.id),
-                alias.id,
-              ]);
-
-              return toBeDecorated(alias, instantiationParameter, context);
-            },
-        }),
+        instantiate:
+          () =>
+          () =>
+          toBeDecorated =>
+          (...params) =>
+            toBeDecorated(...params),
 
         decorable: false,
 
-        injectionToken: injectionDecoratorToken,
+        injectionToken: injectionDecoratorToken.for(someInjectable),
       });
 
       someCollidingInjectable = getInjectable({

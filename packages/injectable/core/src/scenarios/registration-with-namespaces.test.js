@@ -168,11 +168,11 @@ describe('registration with namespaces', () => {
     expect(() => {
       someInjectableInScope.inject(someNonRegisteredInjectable);
     }).toThrow(
-      'Tried to inject non-registered injectable "some-container" -> "some-scope:some-injectable-in-scope" -> "some-non-registered-injectable".',
+      'Tried to inject non-registered injectable "some-non-registered-injectable" from "some-scope:some-injectable-in-scope".',
     );
   });
 
-  it('given side effects are prevented and in scope, when injecting, throws', () => {
+  it('given in scope, when injecting injectable causing side effects, throws', () => {
     const someInjectableCausingSideEffects = getInjectable({
       id: 'some-injectable-in-scope-causing-side-effects',
       causesSideEffects: true,
@@ -188,8 +188,6 @@ describe('registration with namespaces', () => {
 
     const di = createContainer('some-container');
 
-    di.preventSideEffects();
-
     di.register(someScopeInjectable);
 
     const someScope = di.inject(someScopeInjectable);
@@ -199,11 +197,11 @@ describe('registration with namespaces', () => {
     expect(() => {
       di.inject(someInjectableCausingSideEffects);
     }).toThrow(
-      'Tried to inject "some-container" -> "some-scope:some-injectable-in-scope-causing-side-effects" when side-effects are prevented.',
+      'Tried to inject "some-scope:some-injectable-in-scope-causing-side-effects" from "some-container" when side-effects are prevented.',
     );
   });
 
-  it('given side effects are prevented and in scope, when injecting using an injection token, throws', () => {
+  it('given in scope, when injecting using an injection token for injectable causing side effects, throws', () => {
     const someInjectionToken = getInjectionToken({ id: 'some-token' });
 
     const someInjectableCausingSideEffects = getInjectable({
@@ -222,8 +220,6 @@ describe('registration with namespaces', () => {
 
     const di = createContainer('some-container');
 
-    di.preventSideEffects();
-
     di.register(someScopeInjectable);
 
     const someScope = di.inject(someScopeInjectable);
@@ -233,7 +229,7 @@ describe('registration with namespaces', () => {
     expect(() => {
       di.injectMany(someInjectionToken);
     }).toThrow(
-      'Tried to inject "some-container" -> "(some-token)" -> "some-scope:some-injectable-in-scope-causing-side-effects" when side-effects are prevented.',
+      'Tried to inject "some-scope:some-injectable-in-scope-causing-side-effects" from "(some-token)" when side-effects are prevented.',
     );
   });
 });

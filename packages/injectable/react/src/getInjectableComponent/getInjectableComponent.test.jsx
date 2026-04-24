@@ -24,8 +24,6 @@ describe('getInjectableComponent', () => {
   beforeEach(() => {
     di = createContainer('some-container');
 
-    di.preventSideEffects();
-
     onErrorWhileRenderingMock = jest.fn();
     mount = mountFor(di, onErrorWhileRenderingMock);
   });
@@ -46,6 +44,29 @@ describe('getInjectableComponent', () => {
           <div>
             some-content: 
             some-prop-value
+          </div>
+        </div>
+      </body>
+    `);
+  });
+
+  it('when rendered with children, renders them', () => {
+    const SomeInjectableComponent = getInjectableComponent({
+      id: 'some-injectable-component',
+      Component: ({ children }) => <div>{children}</div>,
+    });
+
+    di.register(SomeInjectableComponent);
+
+    rendered = mount(
+      <SomeInjectableComponent>some-children</SomeInjectableComponent>,
+    );
+
+    expect(rendered.baseElement).toMatchInlineSnapshot(`
+      <body>
+        <div>
+          <div>
+            some-children
           </div>
         </div>
       </body>
@@ -160,7 +181,7 @@ describe('getInjectableComponent', () => {
     });
 
     expect(onErrorWhileRenderingMock).toHaveBeenCalledWith(
-      'Tried to inject non-registered injectable "some-container" -> "some-non-registered-injectable".',
+      'Tried to inject non-registered injectable "some-non-registered-injectable" from "some-container".',
     );
   });
 
@@ -221,11 +242,11 @@ describe('getInjectableComponent', () => {
     onErrorWhileRenderingMock.mockClear();
 
     expect(someError1).toBe(
-      'Tried to inject non-registered injectable "some-container" -> "some-non-registered-injectable".',
+      'Tried to inject non-registered injectable "some-non-registered-injectable" from "some-container".',
     );
 
     expect(someError2).toBe(
-      'Tried to inject non-registered injectable "some-container" -> "some-non-registered-injectable".',
+      'Tried to inject non-registered injectable "some-non-registered-injectable" from "some-container".',
     );
   });
 
@@ -268,7 +289,7 @@ describe('getInjectableComponent', () => {
     });
 
     expect(onErrorWhileRenderingMock).toHaveBeenCalledWith(
-      'Tried to inject non-registered injectable "some-container" -> "some-non-registered-injectable".',
+      'Tried to inject non-registered injectable "some-non-registered-injectable" from "some-container".',
     );
   });
 
@@ -280,7 +301,7 @@ describe('getInjectableComponent', () => {
 
     di.register(SomeInjectableComponent);
 
-    di.override(SomeInjectableComponent, () => () => (
+    di.override2(SomeInjectableComponent, () => () => () => (
       <div>some-overridden-content</div>
     ));
 
@@ -291,6 +312,35 @@ describe('getInjectableComponent', () => {
         <div>
           <div>
             some-overridden-content
+          </div>
+        </div>
+      </body>
+    `);
+  });
+
+  it('given overridden via v1-shape override with children, when rendered, renders the override with children', () => {
+    const SomeInjectableComponent = getInjectableComponent({
+      id: 'some-injectable-component',
+      Component: () => <div>some-content</div>,
+    });
+
+    di.register(SomeInjectableComponent);
+
+    di.override(SomeInjectableComponent, () => ({ children }) => (
+      <div data-testid="some-override">{children}</div>
+    ));
+
+    rendered = mount(
+      <SomeInjectableComponent>some-children</SomeInjectableComponent>,
+    );
+
+    expect(rendered.baseElement).toMatchInlineSnapshot(`
+      <body>
+        <div>
+          <div
+            data-testid="some-override"
+          >
+            some-children
           </div>
         </div>
       </body>
@@ -320,7 +370,7 @@ describe('getInjectableComponent', () => {
       // someNonRegisteredInjectable
     );
 
-    di.override(SomeInjectableComponent, () => () => {
+    di.override2(SomeInjectableComponent, () => () => {
       useInjectDeferred(someNonRegisteredInjectable);
     });
 
@@ -333,9 +383,7 @@ describe('getInjectableComponent', () => {
     });
 
     expect(onErrorWhileRenderingMock).toHaveBeenCalledWith(
-      // Notice: some-injectable-component is missing from the context, as the override does not have access to it.
-      // This is a kludge, but a very pragmatic one, as this is a very niche corner-case.
-      'Tried to inject non-registered injectable "some-container" -> "some-non-registered-injectable".',
+      'Tried to inject non-registered injectable "some-non-registered-injectable" from "some-container".',
     );
   });
 
@@ -453,7 +501,7 @@ describe('getInjectableComponent', () => {
     });
 
     expect(onErrorWhileRenderingMock).toHaveBeenCalledWith(
-      'Tried to inject "some-container" -> "some-injectable-component" when side-effects are prevented.',
+      'Tried to inject "some-injectable-component" from "some-container" when side-effects are prevented.',
     );
   });
 
@@ -607,7 +655,7 @@ describe('getInjectableComponent', () => {
     });
 
     expect(onRenderingErrorMock).toHaveBeenCalledWith(
-      'Tried to inject non-registered injectable "some-container-1" -> "some-non-registered-injectable-component".',
+      'Tried to inject non-registered injectable "some-non-registered-injectable-component" from "some-container-1".',
     );
   });
 
@@ -703,7 +751,7 @@ describe('getInjectableComponent', () => {
     });
 
     it('given component is overridden, and injecting the component > when rendered > shows only the override, and no placeholder', async () => {
-      di.override(someComponentInjectionToken, () => () => (
+      di.override2(someComponentInjectionToken, () => () => () => (
         <div data-some-override-without-a-placeholder-test />
       ));
 

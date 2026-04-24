@@ -1,7 +1,13 @@
-import { deregistrationCallbackToken } from './tokens';
+import {
+  deregistrationCallbackToken,
+  deregistrationDecoratorToken,
+  injectionDecoratorToken,
+} from './tokens';
 import toFlatInjectables from './toFlatInjectables';
 import isInjectionToken from '../getInjectionToken/isInjectionToken';
-import { getRelatedTokens } from './getRelatedTokens';
+import { getRelatedTokens, isRelatedToToken } from './getRelatedTokens';
+import { invalidateRelatedInjectablesCache } from './getRelatedInjectablesFor';
+import flow from './fastFlow';
 
 export const deregisterFor =
   ({
@@ -13,21 +19,22 @@ export const deregisterFor =
     purgeInstances,
     injectableIdSet,
     namespacedIdByInjectableMap,
+    childrenByParentMap,
     // Todo: get rid of function usage.
     getDi,
-    dependenciesByDependencyMap,
-    dependeesByDependencyMap,
+    decoratorCache,
   }) =>
   ({ injectables, context, source }) => {
-    const callbacks = injectMany(
-      deregistrationCallbackToken,
-      undefined,
-      context,
-      source,
-    );
+    // Collect callbacks first (while all injectables are still registered)
+    const callbacks = injectMany({
+      alias: deregistrationCallbackToken,
+      instantiationParameters: [],
+      injectingInjectable: source,
+    });
 
     const flatInjectables = toFlatInjectables(injectables);
 
+    // Fire callbacks for all injectables being deregistered (original batch semantics)
     flatInjectables.forEach(injectable => {
       callbacks.forEach(callback => {
         callback(injectable);
@@ -44,14 +51,47 @@ export const deregisterFor =
       purgeInstances,
       injectableIdSet,
       namespacedIdByInjectableMap,
+      childrenByParentMap,
       di,
     });
 
     flatInjectables.forEach(injectable => {
-      dependenciesByDependencyMap.delete(injectable);
-      dependeesByDependencyMap.delete(injectable);
+      if (
+        isRelatedToToken(injectable.injectionToken, injectionDecoratorToken)
+      ) {
+        decoratorCache.injection = null;
+      }
 
-      deregisterSingle(injectable);
+      if (injectable.decorable === false) {
+        deregisterSingle(injectable);
+        return;
+      }
+
+      const decorators = [
+        ...injectMany({
+          alias: deregistrationDecoratorToken.for(injectable),
+          instantiationParameters: [],
+          injectingInjectable: source,
+        }),
+        ...(injectable.injectionToken
+          ? injectMany({
+              alias: deregistrationDecoratorToken.for(
+                injectable.injectionToken,
+              ),
+              instantiationParameters: [],
+              injectingInjectable: source,
+            })
+          : []),
+      ];
+
+      if (decorators.length === 0) {
+        deregisterSingle(injectable);
+        return;
+      }
+
+      const decoratedDeregister = flow(...decorators)(deregisterSingle);
+
+      decoratedDeregister(injectable);
     });
   };
 
@@ -64,6 +104,7 @@ export const deregisterSingleFor =
     purgeInstances,
     injectableIdSet,
     namespacedIdByInjectableMap,
+    childrenByParentMap,
     di,
   }) =>
   injectable => {
@@ -79,20 +120,25 @@ export const deregisterSingleFor =
       );
     }
 
-    [...injectableAndRegistrationContext.entries()]
-      .filter(([, context]) =>
-        context.find(contextItem => contextItem.injectable === injectable),
-      )
-      .map(x => x[0])
-      .forEach(injectable => {
-        injectableAndRegistrationContext.delete(injectable);
+    // Cascade deregister children using the reverse index (O(1) lookup).
+    const children = childrenByParentMap.get(injectable);
 
-        di.deregister({
-          injectables: [injectable],
-        });
+    if (children) {
+      children.forEach(child => {
+        injectableAndRegistrationContext.delete(child);
+
+        if (injectableSet.has(child)) {
+          di.deregister({
+            injectables: [child],
+          });
+        }
       });
 
+      childrenByParentMap.delete(injectable);
+    }
+
     purgeInstances(injectable);
+    injectableAndRegistrationContext.delete(injectable);
     const namespacedId = namespacedIdByInjectableMap.get(injectable);
     injectableIdSet.delete(namespacedId);
     injectableSet.delete(injectable);
@@ -101,7 +147,9 @@ export const deregisterSingleFor =
     const tokens = getRelatedTokens(injectable.injectionToken);
 
     tokens.forEach(token => {
-      injectablesByInjectionToken.get(token).delete(injectable);
+      const tokenSet = injectablesByInjectionToken.get(token);
+      tokenSet.delete(injectable);
+      invalidateRelatedInjectablesCache(tokenSet);
     });
 
     overridingInjectables.delete(injectable);

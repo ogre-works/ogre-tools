@@ -1,42 +1,130 @@
 import { getNamespacedIdFor } from './getNamespacedIdFor';
-import { registrationCallbackToken } from './tokens';
+import {
+  registrationCallbackToken,
+  registrationDecoratorToken,
+} from './tokens';
 import toFlatInjectables from './toFlatInjectables';
 import { CompositeMap } from '../composite-map/composite-map';
-import { getRelatedTokens } from './getRelatedTokens';
+import { LruCompositeMap } from '../composite-map/lru-composite-map';
+import { getRelatedTokens, isRelatedToToken } from './getRelatedTokens';
+import { invalidateRelatedInjectablesCache } from './getRelatedInjectablesFor';
+import flow from './fastFlow';
 
 export const registerFor =
   ({ registerSingle, injectMany }) =>
   ({ injectables, context, source }) => {
     const flatInjectables = toFlatInjectables(injectables);
 
-    flatInjectables.forEach(injectable => {
-      registerSingle(injectable, context);
-    });
+    const registeredDecoratorInjectables = [];
+    const nonDecoratorInjectables = [];
 
-    const callbacks = injectMany(
-      registrationCallbackToken,
-      undefined,
-      context,
-      source,
-    );
+    for (let i = 0; i < flatInjectables.length; i++) {
+      const injectable = flatInjectables[i];
 
-    flatInjectables.forEach(injectable => {
-      callbacks.forEach(callback => {
-        callback(injectable);
+      if (
+        isRelatedToToken(injectable.injectionToken, registrationDecoratorToken)
+      ) {
+        registerSingle(injectable, context);
+        registeredDecoratorInjectables.push(injectable);
+      } else {
+        nonDecoratorInjectables.push(injectable);
+      }
+    }
+
+    let batchInProgress = true;
+    const registeredInjectables = [];
+
+    const fireCallbacksFor = injectable => {
+      const callbacks = injectMany({
+        alias: registrationCallbackToken,
+        instantiationParameters: [],
+        injectingInjectable: source,
       });
+
+      for (let j = 0; j < callbacks.length; j++) {
+        callbacks[j](injectable);
+      }
+    };
+
+    nonDecoratorInjectables.forEach(injectable => {
+      if (injectable.decorable === false) {
+        registerSingle(injectable, context);
+        registeredInjectables.push(injectable);
+        return;
+      }
+
+      const decorators = [
+        ...injectMany({
+          alias: registrationDecoratorToken.for(injectable),
+          instantiationParameters: [],
+          injectingInjectable: source,
+        }),
+        ...(injectable.injectionToken
+          ? injectMany({
+              alias: registrationDecoratorToken.for(injectable.injectionToken),
+              instantiationParameters: [],
+              injectingInjectable: source,
+            })
+          : []),
+      ];
+
+      if (decorators.length === 0) {
+        registerSingle(injectable, context);
+        registeredInjectables.push(injectable);
+        return;
+      }
+
+      let wasRegisteredThisInjectable = false;
+
+      const boundRegisterSingle = inj => {
+        registerSingle(inj, context);
+        wasRegisteredThisInjectable = true;
+
+        if (!batchInProgress) {
+          fireCallbacksFor(inj);
+        }
+      };
+
+      const decoratedRegister = flow(...decorators)(boundRegisterSingle);
+
+      decoratedRegister(injectable);
+
+      if (wasRegisteredThisInjectable) {
+        registeredInjectables.push(injectable);
+      }
     });
+
+    batchInProgress = false;
+
+    const callbacks = injectMany({
+      alias: registrationCallbackToken,
+      instantiationParameters: [],
+      injectingInjectable: source,
+    });
+
+    const fireBatchCallbacks = injectable => {
+      for (let j = 0; j < callbacks.length; j++) {
+        callbacks[j](injectable);
+      }
+    };
+
+    registeredDecoratorInjectables.forEach(fireBatchCallbacks);
+    registeredInjectables.forEach(fireBatchCallbacks);
   };
 
-export const registerSingleFor =
-  ({
-    injectableSet,
-    injectableIdSet,
-    instancesByInjectableMap,
-    namespacedIdByInjectableMap,
-    injectablesByInjectionToken,
-    injectableAndRegistrationContext,
-  }) =>
-  (injectable, injectionContext) => {
+export const registerSingleFor = ({
+  injectableSet,
+  injectableIdSet,
+  instancesByInjectableMap,
+  namespacedIdByInjectableMap,
+  injectablesByInjectionToken,
+  injectableAndRegistrationContext,
+  childrenByParentMap,
+  firePurgeCallbacks,
+}) => {
+  const getNamespacedId = getNamespacedIdFor(injectableAndRegistrationContext);
+
+  return (injectable, injectionContext) => {
     const injectableId = injectable.id;
 
     if (!injectableId) {
@@ -45,15 +133,26 @@ export const registerSingleFor =
 
     injectableAndRegistrationContext.set(injectable, injectionContext);
 
-    const getNamespacedId = getNamespacedIdFor(
-      injectableAndRegistrationContext,
-    );
+    // Build reverse index: for each parent in the context, record this injectable as a child.
+    for (let i = 0; i < injectionContext.length; i++) {
+      const parent = injectionContext[i].injectable;
+      let children = childrenByParentMap.get(parent);
+
+      if (!children) {
+        children = new Set();
+        childrenByParentMap.set(parent, children);
+      }
+
+      children.add(injectable);
+    }
 
     const namespacedId = getNamespacedId(injectable);
 
     if (namespacedIdByInjectableMap.has(injectable)) {
       throw new Error(
-        `Tried to register same injectable multiple times: "${injectable.id}"`,
+        `Tried to register same injectable multiple times: "${namespacedIdByInjectableMap.get(
+          injectable,
+        )}"`,
       );
     }
 
@@ -66,16 +165,38 @@ export const registerSingleFor =
     injectableIdSet.add(namespacedId);
     injectableSet.add(injectable);
     namespacedIdByInjectableMap.set(injectable, namespacedId);
-    instancesByInjectableMap.set(injectable, new CompositeMap());
+    if (injectable.injectionToken?.abstract) {
+      throw new Error(
+        `Tried to register injectable "${namespacedId}" with injection token "${injectable.injectionToken.id}", but it is abstract. Use ".for(specifier)" for a concrete token.`,
+      );
+    }
+
+    const maxCacheSize =
+      injectable.maxCacheSize ?? injectable.injectionToken?.maxCacheSize;
+
+    const instanceMap =
+      maxCacheSize > 0
+        ? new LruCompositeMap(maxCacheSize, {
+            onEvict: (instance, keyArray) =>
+              firePurgeCallbacks(injectable, instance, keyArray),
+          })
+        : new CompositeMap();
+
+    instancesByInjectableMap.set(injectable, instanceMap);
 
     const tokens = getRelatedTokens(injectable.injectionToken);
 
-    tokens.forEach(token => {
-      const injectablesSet =
-        injectablesByInjectionToken.get(token) || new Set();
+    for (let t = 0; t < tokens.length; t++) {
+      const token = tokens[t];
+      let injectablesSet = injectablesByInjectionToken.get(token);
+
+      if (!injectablesSet) {
+        injectablesSet = new Set();
+        injectablesByInjectionToken.set(token, injectablesSet);
+      }
 
       injectablesSet.add(injectable);
-
-      injectablesByInjectionToken.set(token, injectablesSet);
-    });
+      invalidateRelatedInjectablesCache(injectablesSet);
+    }
   };
+};

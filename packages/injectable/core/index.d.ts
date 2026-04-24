@@ -1,6 +1,7 @@
 /// <reference types="jest" />
 
-export type Override = <
+// v1-shape stub for v1 targets: (di, param) => instance
+type OverrideV1ShapeOldStyle = <
   InjectionInstance extends InjectionTokenInstance,
   InjectionTokenInstance,
   InstantiationParam,
@@ -11,29 +12,73 @@ export type Override = <
   instantiateStub: Instantiate<InjectionInstance, InstantiationParam>,
 ) => void;
 
+// v1-shape stub for v2 targets (cross-compat): (di, ...params) => instance
+type OverrideV1ShapeForInjectable2 = <F extends (...args: any[]) => any>(
+  alias: Injectable2<F> | InjectionToken2<F>,
+  instantiateStub: (
+    di: DiContainerForInjection2,
+    ...params: Parameters<F>
+  ) => ReturnType<F>,
+) => void;
+
+// v2-shape stub for v2 targets: (di) => (...params) => instance
+export type OverrideInjectable2 = <F extends (...args: any[]) => any>(
+  alias: Injectable2<F> | InjectionToken2<F>,
+  instantiateStub: (di: DiContainerForInjection2) => F,
+) => void;
+
+// v2-shape stub for v1 targets (cross-compat): (di) => (param) => instance
+type Override2V2ShapeForOldStyle = <
+  InjectionInstance extends InjectionTokenInstance,
+  InjectionTokenInstance,
+  InstantiationParam,
+>(
+  injectable:
+    | InjectionToken<InjectionInstance, InstantiationParam>
+    | Injectable<InjectionInstance, InjectionTokenInstance, InstantiationParam>,
+  instantiateStub: (
+    di: DiContainerForInjection,
+  ) => (param: InstantiationParam) => InjectionInstance,
+) => void;
+
+// Cross-compat override: v1-shape stub works on any target.
+export type Override = OverrideV1ShapeOldStyle & OverrideV1ShapeForInjectable2;
+
+// Cross-compat override2: v2-shape stub works on any target.
+export type Override2 = OverrideInjectable2 & Override2V2ShapeForOldStyle;
+
 export interface DiContainer extends DiContainerForInjection {
-  purge: (injectableKey: Injectable<any, any, any>) => void;
+  inject2: Inject2;
+  injectMany2: InjectMany2;
+  injectWithMeta2: InjectWithMeta2;
+  injectManyWithMeta2: InjectManyWithMeta2;
+
+  purge: Purge;
   purgeAllButOverrides: () => void;
 
-  preventSideEffects: () => void;
   permitSideEffects: (
-    injectableKey: InjectionToken<any, any> | Injectable<any, any, any>,
+    injectableKey?: InjectionToken<any, any> | Injectable<any, any, any> | InjectionToken2<any> | Injectable2<any>,
   ) => void;
 
   override: Override;
+  override2: Override2;
   earlyOverride: Override;
+  earlyOverride2: Override2;
+  unoverride<F extends (...args: any[]) => any>(alias: Injectable2<F> | InjectionToken2<F>): void;
   unoverride(alias: InjectionToken<any, any> | Injectable<any, any, any>): void;
 
   register(
-    ...injectables: (Injectable<any, any, any> | InjectableBunch<any>)[]
+    ...injectables: (Injectable<any, any, any> | Injectable2<any> | InjectableBunch<any>)[]
   ): void;
 
   deregister(
-    ...injectables: (Injectable<any, any, any> | InjectableBunch<any>)[]
+    ...injectables: (Injectable<any, any, any> | Injectable2<any> | InjectableBunch<any>)[]
   ): void;
+
+  getNumberOfInstances: () => Record<string, number>;
 }
 
-export type Instantiate<InjectionInstance, InstantiationParam> = (di: DiContainerForInjection, param: InstantiationParam) => InjectionInstance;
+export type Instantiate<InjectionInstance, InstantiationParam = void> = (di: DiContainerForInjection, param: InstantiationParam) => InjectionInstance;
 
 export interface InjectionToken<
   InjectionInstance,
@@ -49,6 +94,7 @@ export interface InjectionToken<
   key: Symbol;
   id: string;
   for: SpecificInjectionTokenFactory;
+  maxCacheSize?: number;
 }
 
 export interface SpecificInjectionToken<
@@ -82,12 +128,12 @@ export interface Injectable<
   readonly lifecycle: Lifecycle<InstantiationParam>;
   readonly decorable?: boolean;
   readonly tags?: any[];
-  readonly scope?: boolean;
+  readonly maxCacheSize?: number;
 }
 
-export type GetInjectableOptionsWithoutInstantiationParameter<I extends TI, TI> = Omit<Injectable<I, TI, void>, "lifecycle" | "instantiate"> & {
+export type GetInjectableOptionsWithoutInstantiationParameter<I extends TI, TI> = Omit<Injectable<I, TI>, "lifecycle" | "instantiate"> & {
   readonly instantiate: (di: DiContainerForInjection, param: void) => I;
-  readonly lifecycle?: Lifecycle<void>;
+  readonly lifecycle?: Lifecycle;
 }
 
 export type GetInjectableOptionsWithInstantiationParameter<I extends TI, TI, P> = Omit<Injectable<I, TI, P>, "instantiate"> & {
@@ -95,7 +141,7 @@ export type GetInjectableOptionsWithInstantiationParameter<I extends TI, TI, P> 
 };
 
 export interface GetInjectable{
-  <I extends TI, TI>(options: GetInjectableOptionsWithoutInstantiationParameter<I, TI>): Injectable<I, TI, void>;
+  <I extends TI, TI>(options: GetInjectableOptionsWithoutInstantiationParameter<I, TI>): Injectable<I, TI>;
   <I extends TI, TI, P>(options: GetInjectableOptionsWithInstantiationParameter<I, TI, P>): Injectable<I, TI, P>;
 }
 
@@ -118,6 +164,8 @@ export function getInjectionToken<
 >(options: {
   id: string;
   specificInjectionTokenFactory?: SpecificInjectionTokenFactory;
+  target?: object;
+  maxCacheSize?: number;
 }): InjectionToken<
   InjectionInstance,
   InstantiationParam,
@@ -154,19 +202,43 @@ export type InjectWithParameter = <InjectionInstance, InstantiationParam>(
   param: InstantiationParam,
 ) => InjectionInstance;
 
-export type Inject = InjectWithoutParameter & InjectWithParameter;
+export type InjectInjectable2 = <F extends (...args: any[]) => any>(
+  key: Injectable2<F> | (InjectionToken2<F> & { readonly __abstract?: never }),
+  ...params: Parameters<F>
+) => ReturnType<F>;
 
-export type InjectFactory = <InjectionInstance, InstantiationParam>(
-  alias:
-    | Injectable<InjectionInstance, unknown, InstantiationParam>
-    | InjectionToken<InjectionInstance, InstantiationParam>,
-) => InstantiationParam extends void ? (() => InjectionInstance) : ((param: InstantiationParam) => InjectionInstance);
+export type Inject = InjectWithoutParameter & InjectWithParameter & InjectInjectable2;
 
-export type GetInstances = <InjectionInstance>(
-  alias:
-    | Injectable<InjectionInstance, unknown>
-    | InjectionToken<InjectionInstance>,
-) => InjectionInstance[];
+// Factory-returning inject — handles all aliases (v1 and v2).
+// v2 aliases return the native factory F; v1 aliases return a synthesized factory.
+export interface Inject2 {
+  <F extends (...args: any[]) => any>(alias: Injectable2<F>): F;
+  <F extends (...args: any[]) => any>(alias: InjectionToken2<F> & { readonly __abstract?: never }): F;
+  <I>(alias: Injectable<I, any> | InjectionToken<I>): () => I;
+  <I, P>(alias: Injectable<I, any, P> | InjectionToken<I, P>): (...params: [P]) => I;
+}
+
+type TuplePrefix<T extends any[]> = T extends [infer First, ...infer Rest]
+  ? [] | [First, ...TuplePrefix<Rest>]
+  : [];
+
+type PurgeAll = () => void;
+
+type PurgeInjectable2 = <F extends (...args: any[]) => any>(
+  alias: Injectable2<F> | InjectionToken2<F>,
+  ...keyParts: TuplePrefix<Parameters<F>>
+) => void;
+
+type PurgeWithoutParameter = <I>(
+  alias: Injectable<I, any> | InjectionToken<I>,
+) => void;
+
+type PurgeWithParameter = <I, P>(
+  alias: Injectable<I, any, P> | InjectionToken<I, P>,
+  ...keyParts: [] | [P]
+) => void;
+
+export type Purge = PurgeAll & PurgeInjectable2 & PurgeWithoutParameter & PurgeWithParameter;
 
 export type SpecificInjectWithoutParameter<InjectionInstance> = (
   key:
@@ -188,6 +260,11 @@ export type SpecificInject<InjectionInstance, InstantiationParam> =
     : SpecificInjectWithParameter<InjectionInstance, InstantiationParam>;
 
 interface InjectMany {
+  <F extends (...args: any[]) => any>(
+    key: InjectionToken2<F> & { readonly __abstract?: never },
+    ...params: Parameters<F>
+  ): ReturnType<F>[];
+
   <InjectionInstance>(
     key:
       | Injectable<InjectionInstance, unknown>
@@ -212,6 +289,11 @@ export type InjectionInstanceWithMeta<InjectionInstance> = {
 };
 
 interface InjectManyWithMeta {
+  <F extends (...args: any[]) => any>(
+    key: InjectionToken2<F> & { readonly __abstract?: never },
+    ...params: Parameters<F>
+  ): InjectionInstanceWithMeta<ReturnType<F>>[];
+
   <InjectionInstance>(
     key:
       | Injectable<InjectionInstance, unknown>
@@ -227,6 +309,11 @@ interface InjectManyWithMeta {
 }
 
 interface InjectWithMeta {
+  <F extends (...args: any[]) => any>(
+    key: Injectable2<F> | (InjectionToken2<F> & { readonly __abstract?: never }),
+    ...params: Parameters<F>
+  ): InjectionInstanceWithMeta<ReturnType<F>>;
+
   <InjectionInstance>(
     key:
       | Injectable<InjectionInstance, unknown>
@@ -241,36 +328,33 @@ interface InjectWithMeta {
   ): InjectionInstanceWithMeta<InjectionInstance>;
 }
 
-interface ContextItem {
-  injectable: Injectable<any, any, any>;
-  instantiationParameter: unknown;
-}
-
 export interface DiContainerForInjection {
   inject: Inject;
-  injectWithMeta: InjectWithMeta;
-  injectFactory: InjectFactory;
   injectMany: InjectMany;
+  injectWithMeta: InjectWithMeta;
   injectManyWithMeta: InjectManyWithMeta;
+  injectFactory: Inject2;
 
   register(
-    ...injectables: (Injectable<any, any, any> | InjectableBunch<any>)[]
+    ...injectables: (Injectable<any, any, any> | Injectable2<any> | InjectableBunch<any>)[]
   ): void;
 
   deregister(
-    ...injectables: (Injectable<any, any, any> | InjectableBunch<any>)[]
+    ...injectables: (Injectable<any, any, any> | Injectable2<any> | InjectableBunch<any>)[]
   ): void;
 
-  context: ContextItem[];
-  getInstances: GetInstances;
   sourceNamespace: string | undefined;
 
+  purge: Purge;
+
   hasRegistrations: (
-    alias: InjectionToken<any, any, any> | Injectable<any, any, any>,
+    alias: InjectionToken<any, any, any> | Injectable<any, any, any> | InjectionToken2<any> | Injectable2<any>,
   ) => boolean;
+
+  getNumberOfInstances: () => Record<string, number>;
 }
 
-export interface Lifecycle<InstantiationParam> {
+export interface Lifecycle<InstantiationParam = void> {
   getInstanceKey: (di: DiContainer, params: InstantiationParam) => any;
 }
 
@@ -293,133 +377,143 @@ export const lifecycleEnum: {
 
 type RegistrationCallback = (injectable: Injectable<any, any, any>) => void;
 
-export type SpecificInjectionTargetDecorator<
-  InjectionInstance extends InjectionTokenInstance,
-  InjectionTokenInstance = InjectionInstance,
-  InstantiationParam = void,
-> = {
-  decorate: (
-    inject: SpecificInject<InjectionInstance, InstantiationParam>,
-  ) => SpecificInject<InjectionInstance, InstantiationParam>;
-  target:
-    | InjectionToken<InjectionInstance, InstantiationParam, any>
-    | Injectable<InjectionInstance, InjectionTokenInstance, InstantiationParam>;
-};
+// --- injectionDecoratorToken ---
+//
+// Abstract token for decorating injection. Decorators must be registered
+// against a target via `.for(target)` where target is an Injectable, Injectable2,
+// InjectionToken, or InjectionToken2.
+//
+// The decorator function receives the bound inject for that alias:
+//   inject => (...params) => decoratedInstance
+// where inject: (...params) => instance.
+//
+// This decorator does not respect lifecycle — it is called on every `di.inject`.
 
-export type GeneralInjectionTargetDecorator = {
-  decorate: (
-    inject: SpecificInject<unknown, unknown>,
-  ) => SpecificInject<unknown, unknown>;
-};
+export type InjectionDecoratorForInjectable2<
+  Factory extends (...args: any[]) => any,
+> = () => (inject: (...params: Parameters<Factory>) => ReturnType<Factory>)
+       => (...params: Parameters<Factory>) => ReturnType<Factory>;
 
-export type InjectionTargetDecorator<
-  InjectionInstance extends InjectionTokenInstance,
-  InjectionTokenInstance = InjectionInstance,
-  InstantiationParam = void,
-> =
-  | GeneralInjectionTargetDecorator
-  | SpecificInjectionTargetDecorator<
-      InjectionInstance,
-      InjectionTokenInstance,
-      InstantiationParam
-    >;
+export interface InjectionDecoratorSpecificFactory {
+  <Factory extends (...args: any[]) => any>(
+    target: Injectable2<Factory> | InjectionToken2<Factory>,
+  ): SpecificInjectionToken2<InjectionDecoratorForInjectable2<Factory>>;
 
-export interface CreateInjectionTargetDecorator {
-  <
-    InjectionInstance extends InjectionTokenInstance,
-    InjectionTokenInstance = InjectionInstance,
-    InstantiationParam = void,
-  >(
-    desc: SpecificInjectionTargetDecorator<
-      InjectionInstance,
-      InjectionTokenInstance,
-      InstantiationParam
-    >,
-  ): SpecificInjectionTargetDecorator<
-    InjectionInstance,
-    InjectionTokenInstance,
-    InstantiationParam
-  >;
-  (desc: GeneralInjectionTargetDecorator): GeneralInjectionTargetDecorator;
+  <InjectionInstance, InstantiationParam = void>(
+    target: Injectable<InjectionInstance, any, InstantiationParam> | InjectionToken<InjectionInstance, InstantiationParam>,
+  ): SpecificInjectionToken2<() => (inject: (...params: any[]) => any) => (...params: any[]) => any>;
 }
 
-export const createInjectionTargetDecorator: CreateInjectionTargetDecorator;
-
-/**
- * This is used for decorating the injection of injectables.
- * If a target is used then only the injections related to that alias (either injectable or injectionToken) will be decorated by an implementation of this token.
- * This kind of decorator does not respect the lifecycle of the injectables but instead is called on every call to `di.inject`
- */
-export const injectionDecoratorToken: InjectionToken<
-  InjectionTargetDecorator<any, any, any>
+export const injectionDecoratorToken: AbstractInjectionToken2<
+  (...args: any[]) => any,
+  (...args: any[]) => any[],
+  InjectionDecoratorSpecificFactory
 >;
 
-export type SpecificInstantiationTargetDecorator<
-  InjectionInstance extends InjectionTokenInstance,
-  InjectionTokenInstance = InjectionInstance,
-  InstantiationParam = void,
-> = {
-  decorate: (
-    instantiate: Instantiate<InjectionInstance, InstantiationParam>,
-  ) => Instantiate<InjectionInstance, InstantiationParam>;
+// --- instantiationDecoratorToken ---
+//
+// Abstract token for decorating instantiation. Decorators must be registered
+// against a target via `.for(target)` where target is an Injectable, Injectable2,
+// InjectionToken, or InjectionToken2.
+//
+// The decorator function wraps the instantiate function:
+//   instantiate => (di, ...params) => decoratedInstance   (v1 injectables)
+//   instantiate => (di) => (...params) => decoratedInstance (v2 injectables)
+//
+// This decorator respects the lifecycle of the injectables.
 
-  target:
-    | InjectionToken<InjectionInstance, InstantiationParam, any>
-    | Injectable<InjectionInstance, InjectionTokenInstance, InstantiationParam>;
-};
+export type InstantiationDecoratorForInjectable2<
+  Factory extends (...args: any[]) => any,
+> = () => (instantiate: (di: DiContainerForInjection) => Factory)
+       => (di: DiContainerForInjection) => Factory;
 
-export type GeneralInstantiationTargetDecorator = {
-  decorate: (
-    instantiate: Instantiate<unknown, unknown>,
-  ) => Instantiate<unknown, unknown>;
-};
+export interface InstantiationDecoratorSpecificFactory {
+  <Factory extends (...args: any[]) => any>(
+    target: Injectable2<Factory> | InjectionToken2<Factory>,
+  ): SpecificInjectionToken2<InstantiationDecoratorForInjectable2<Factory>>;
 
-export type InstantiationTargetDecorator<
-  InjectionInstance extends InjectionTokenInstance,
-  InjectionTokenInstance = InjectionInstance,
-  InstantiationParam = void,
-> =
-  | GeneralInstantiationTargetDecorator
-  | SpecificInstantiationTargetDecorator<
-      InjectionInstance,
-      InjectionTokenInstance,
-      InstantiationParam
-    >;
-
-export interface CreateInstantiationTargetDecorator {
-  <
-    InjectionInstance extends InjectionTokenInstance,
-    InjectionTokenInstance = InjectionInstance,
-    InstantiationParam = void,
-  >(
-    desc: SpecificInstantiationTargetDecorator<
-      InjectionInstance,
-      InjectionTokenInstance,
-      InstantiationParam
-    >,
-  ): SpecificInstantiationTargetDecorator<
-    InjectionInstance,
-    InjectionTokenInstance,
-    InstantiationParam
-  >;
-  (
-    desc: GeneralInstantiationTargetDecorator,
-  ): GeneralInstantiationTargetDecorator;
+  <InjectionInstance, InstantiationParam = void>(
+    target: Injectable<InjectionInstance, any, InstantiationParam> | InjectionToken<InjectionInstance, InstantiationParam>,
+  ): SpecificInjectionToken2<() => (instantiate: Instantiate<any, any>) => Instantiate<any, any>>;
 }
 
-export const createInstantiationTargetDecorator: CreateInstantiationTargetDecorator;
+export const instantiationDecoratorToken: AbstractInjectionToken2<
+  (...args: any[]) => any,
+  (...args: any[]) => any[],
+  InstantiationDecoratorSpecificFactory
+>;
 
-/**
- * This is used for decorating the instantiation of injectables.
- * If a target is used then only the instantiations related to that alias (either injectable or injectionToken) will be decorated by an implementation of this token.
- * This kind of decorator respects the lifecycle of the injectables.
- */
-export const instantiationDecoratorToken: InjectionToken<
-  InstantiationTargetDecorator<any, any, any>
+// --- registrationDecoratorToken ---
+//
+// Abstract token for decorating registration. Decorators must be registered
+// against a target via `.for(target)` where target is an Injectable, Injectable2,
+// InjectionToken, or InjectionToken2. The decorator receives the bound register
+// call and may call it (to proceed), skip it (to prevent registration), or
+// store it for deferred invocation.
+
+export type RegistrationDecorator = () =>
+  (register: (injectable: Injectable<any, any, any> | Injectable2<any>) => void)
+    => (injectable: Injectable<any, any, any> | Injectable2<any>) => void;
+
+export interface RegistrationDecoratorSpecificFactory {
+  <Factory extends (...args: any[]) => any>(
+    target: Injectable2<Factory> | InjectionToken2<Factory>,
+  ): SpecificInjectionToken2<RegistrationDecorator>;
+
+  <InjectionInstance, InstantiationParam = void>(
+    target: Injectable<InjectionInstance, any, InstantiationParam> | InjectionToken<InjectionInstance, InstantiationParam>,
+  ): SpecificInjectionToken2<RegistrationDecorator>;
+}
+
+export const registrationDecoratorToken: AbstractInjectionToken2<
+  (...args: any[]) => any,
+  (...args: any[]) => any[],
+  RegistrationDecoratorSpecificFactory
+>;
+
+export const deregistrationDecoratorToken: AbstractInjectionToken2<
+  (...args: any[]) => any,
+  (...args: any[]) => any[],
+  RegistrationDecoratorSpecificFactory
 >;
 
 export const registrationCallbackToken: RegistrationCallback;
 export const deregistrationCallbackToken: RegistrationCallback;
+
+// --- instancePurgeCallbackToken ---
+//
+// Abstract base token. Callbacks must be registered against a specifier-
+// scoped token produced by `.for(target)` — there is no untargeted variant.
+// Targets are `Injectable2<F>` or `InjectionToken2<F>`; old-style targets
+// are not supported. Firing happens when a cached instance of an injectable2
+// is evicted by `di.purge(...)`, `di.deregister(...)`, or LRU eviction.
+//
+// The scoped token's Factory is `() => Callback` — parameterless so it
+// resolves as a singleton per callback injectable (one cached entry under
+// the singleton key, not one per evicted instance). The returned Callback
+// is CURRIED `(payload) => Factory` — mirroring the Override `(di) => F`
+// trick — so free generics in `Factory` survive to the inner arrow. The
+// inner Factory's return value is discarded at runtime; it is required
+// only to keep Factory intact as a covariant return position.
+//
+// Payload is an object for readability.
+
+export type InstancePurgeCallbackForInjectable2<
+  Factory extends (...args: any[]) => any,
+> = () => (payload: { instance: ReturnType<Factory> }) => Factory;
+
+export interface InstancePurgeCallbackSpecificFactory {
+  <Factory extends (...args: any[]) => any>(
+    target: Injectable2<Factory> | InjectionToken2<Factory>,
+  ): SpecificInjectionToken2<InstancePurgeCallbackForInjectable2<Factory>>;
+}
+
+export const instancePurgeCallbackToken: AbstractInjectionToken2<
+  (...args: any[]) => any,
+  (...args: any[]) => any[],
+  InstancePurgeCallbackSpecificFactory
+>;
+
 export const isInjectable: (
   thing: unknown,
 ) => thing is Injectable<unknown, unknown, unknown>;
@@ -432,6 +526,23 @@ export const isInjectionToken: (
 
 export function createContainer(
   containerId: string,
+  options?: {
+    /**
+     * Enable per-inject injection decorators (injectables registered against
+     * `injectionDecoratorToken.for(...)`).
+     *
+     * Disabled by default because the decorator wrapper adds overhead to every
+     * `inject` call, even when no decorators are registered. Enable only when
+     * the container needs to intercept every inject (e.g. for logging,
+     * metrics, or cross-cutting concerns that must see cached-singleton reads).
+     *
+     * Instantiation decorators (`instantiationDecoratorToken`) are always
+     * available — they run per-instantiation and are unaffected by this flag.
+     *
+     * @default false
+     */
+    injectionDecorators?: boolean;
+  },
 ): DiContainer;
 
 export function getKeyedSingletonCompositeKey<T extends [...unknown[]]>(
@@ -453,3 +564,190 @@ export function getTypedSpecifier
   <Typing extends object>():
     <SpecifierName extends string>(specifier: SpecifierName) =>
       TypedSpecifier<SpecifierName, Typing>;
+
+// ---- Injectable2 / InjectionToken2 ----
+
+export interface Injectable2<Factory extends (...args: any[]) => any> {
+  readonly aliasType: 'injectable2';
+  readonly id: string;
+  readonly instantiate: (di: DiContainerForInjection2) => Factory;
+  readonly injectionToken?: InjectionToken2<Factory> & { readonly __abstract?: never };
+  readonly transient?: boolean;
+  readonly causesSideEffects?: boolean;
+  readonly decorable?: boolean;
+  readonly tags?: any[];
+  readonly maxCacheSize?: number;
+}
+
+export function getInjectable2<Factory extends (...args: any[]) => any>(options: {
+  readonly id: string;
+  readonly instantiate: (di: DiContainerForInjection2) => Factory;
+  readonly injectionToken?: InjectionToken2<Factory> & { readonly __abstract?: never };
+  readonly transient?: boolean;
+  readonly causesSideEffects?: boolean;
+  readonly decorable?: boolean;
+  readonly tags?: any[];
+  readonly maxCacheSize?: number;
+}): Injectable2<Factory>;
+
+type AutoManyFactory<F> = F extends (...args: infer P) => infer R
+  ? (...args: P) => R[]
+  : never;
+
+export interface InjectionToken2<
+  Factory extends (...args: any[]) => any,
+  ManyFactory extends (...args: Parameters<Factory>) => ReturnType<Factory>[] = AutoManyFactory<Factory>,
+  SpecificFactory extends (
+    ...args: any[]
+  ) => SpecificInjectionToken2<Factory, ManyFactory> = (
+    id: string,
+  ) => SpecificInjectionToken2<Factory, ManyFactory>,
+> {
+  template: Factory;
+  manyTemplate: ManyFactory;
+  key: Symbol;
+  id: string;
+  for: SpecificFactory;
+  maxCacheSize?: number;
+}
+
+export interface SpecificInjectionToken2<
+  Factory extends (...args: any[]) => any,
+  ManyFactory extends (...args: Parameters<Factory>) => ReturnType<Factory>[] = AutoManyFactory<Factory>,
+  SpecificFactory extends (
+    ...args: any[]
+  ) => SpecificInjectionToken2<Factory, ManyFactory> = (
+    id: string,
+  ) => SpecificInjectionToken2<Factory, ManyFactory>,
+> extends InjectionToken2<Factory, ManyFactory, SpecificFactory> {
+  speciality: any;
+}
+
+export function getInjectionToken2<
+  Factory extends (...args: any[]) => any,
+  ManyFactory extends (...args: Parameters<Factory>) => ReturnType<Factory>[] = AutoManyFactory<Factory>,
+  SpecificFactory extends (
+    ...args: any[]
+  ) => SpecificInjectionToken2<Factory, ManyFactory> = (
+    id: string,
+  ) => SpecificInjectionToken2<Factory, ManyFactory>,
+>(options: {
+  id: string;
+  specificInjectionTokenFactory?: SpecificFactory;
+  target?: object;
+  decorable?: boolean;
+  maxCacheSize?: number;
+}): InjectionToken2<Factory, ManyFactory, SpecificFactory>;
+
+export function getSpecificInjectionToken2<
+  Factory extends (...args: any[]) => any,
+  ManyFactory extends (...args: Parameters<Factory>) => ReturnType<Factory>[] = AutoManyFactory<Factory>,
+  SpecificFactory extends (
+    ...args: any[]
+  ) => SpecificInjectionToken2<Factory, ManyFactory> = (
+    id: string,
+  ) => SpecificInjectionToken2<Factory, ManyFactory>,
+>(options: {
+  id: string;
+  speciality: any;
+}): SpecificInjectionToken2<Factory, ManyFactory, SpecificFactory>;
+
+export interface AbstractInjectionToken2<
+  Factory extends (...args: any[]) => any,
+  ManyFactory extends (...args: Parameters<Factory>) => ReturnType<Factory>[] = AutoManyFactory<Factory>,
+  SpecificFactory extends (
+    ...args: any[]
+  ) => SpecificInjectionToken2<Factory, ManyFactory> | AbstractInjectionToken2<Factory, ManyFactory> = (
+    id: string,
+  ) => SpecificInjectionToken2<Factory, ManyFactory>,
+> {
+  readonly __abstract: true;
+  template: Factory;
+  manyTemplate: ManyFactory;
+  key: Symbol;
+  id: string;
+  for: SpecificFactory;
+  maxCacheSize?: number;
+}
+
+export function getAbstractInjectionToken2<
+  Factory extends (...args: any[]) => any,
+  ManyFactory extends (...args: Parameters<Factory>) => ReturnType<Factory>[] = AutoManyFactory<Factory>,
+  SpecificFactory extends (
+    ...args: any[]
+  ) => SpecificInjectionToken2<Factory, ManyFactory> | AbstractInjectionToken2<Factory, ManyFactory> = (
+    id: string,
+  ) => SpecificInjectionToken2<Factory, ManyFactory>,
+>(options: {
+  id: string;
+  specificInjectionTokenFactory?: SpecificFactory;
+  target?: object;
+  decorable?: boolean;
+  maxCacheSize?: number;
+}): AbstractInjectionToken2<Factory, ManyFactory, SpecificFactory>;
+
+// ---- DiContainerForInjection2 (new-style minimalDi) ----
+
+export interface DiContainerForInjection2 {
+  inject: Inject2;
+  injectMany: InjectMany2;
+  injectWithMeta: InjectWithMeta2;
+  injectManyWithMeta: InjectManyWithMeta2;
+
+  register(
+    ...injectables: (Injectable2<any> | Injectable<any, any, any> | InjectableBunch<any>)[]
+  ): void;
+
+  deregister(
+    ...injectables: (Injectable2<any> | Injectable<any, any, any> | InjectableBunch<any>)[]
+  ): void;
+
+  sourceNamespace: string | undefined;
+
+  purge: Purge;
+
+  hasRegistrations: HasRegistrations2;
+
+  getNumberOfInstances: () => Record<string, number>;
+}
+
+interface HasRegistrations2 {
+  <F extends (...args: any[]) => any, MF extends (...args: Parameters<F>) => ReturnType<F>[]>(
+    alias: Injectable2<F> | InjectionToken2<F, MF> | AbstractInjectionToken2<F, MF>,
+  ): boolean;
+  <I extends TI, TI, P>(
+    alias: Injectable<I, TI, P> | InjectionToken<TI, P>,
+  ): boolean;
+}
+
+// Factory-returning injectMany — v2 returns ManyFactory (generics preserved), v1 returns synthesized many-factory
+interface InjectMany2 {
+  <F extends (...args: any[]) => any, MF extends (...args: Parameters<F>) => ReturnType<F>[]>(alias: InjectionToken2<F, MF> & { readonly __abstract?: never }): MF;
+  <I>(alias: InjectionToken<I>): () => I[];
+  <I, P>(alias: InjectionToken<I, P>): (...params: P extends any[] ? P : [P]) => I[];
+}
+
+// Helper: transforms a factory's return type to InjectionInstanceWithMeta<R>
+// For non-generic factories this auto-derives correctly.
+// For generic factories, TypeScript loses the generic (returns unknown).
+// In that case, users should use inject/injectMany (non-meta) for generic types.
+type ToWithMetaFactory<F> = F extends (...args: infer P) => infer R
+  ? (...args: P) => InjectionInstanceWithMeta<R>
+  : never;
+
+type ToWithMetaManyFactory<F> = F extends (...args: infer P) => infer R
+  ? (...args: P) => InjectionInstanceWithMeta<R>[]
+  : never;
+
+interface InjectWithMeta2 {
+  <F extends (...args: any[]) => any>(alias: Injectable2<F>): ToWithMetaFactory<F>;
+  <F extends (...args: any[]) => any>(alias: InjectionToken2<F> & { readonly __abstract?: never }): ToWithMetaFactory<F>;
+  <I>(alias: Injectable<I, any> | InjectionToken<I>): () => InjectionInstanceWithMeta<I>;
+  <I, P>(alias: Injectable<I, any, P> | InjectionToken<I, P>): (...params: P extends any[] ? P : [P]) => InjectionInstanceWithMeta<I>;
+}
+
+interface InjectManyWithMeta2 {
+  <F extends (...args: any[]) => any>(alias: InjectionToken2<F> & { readonly __abstract?: never }): ToWithMetaManyFactory<F>;
+  <I>(alias: InjectionToken<I>): () => InjectionInstanceWithMeta<I>[];
+  <I, P>(alias: InjectionToken<I, P>): (...params: P extends any[] ? P : [P]) => InjectionInstanceWithMeta<I>[];
+}
