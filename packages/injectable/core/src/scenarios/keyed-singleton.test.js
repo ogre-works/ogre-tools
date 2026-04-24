@@ -792,4 +792,72 @@ describe('createContainer.keyed-singleton', () => {
       expect(di.inject(outsideInjectable, 'x')).toBe(outside);
     });
   });
+
+  describe('garbage collection of weakly-held object-keyed instances', () => {
+    const waitUntilCollected = target =>
+      new Promise(resolve => {
+        const registry = new FinalizationRegistry(() => resolve());
+        registry.register(target);
+        target = undefined;
+
+        setImmediate(() => {
+          // Reading `registry` keeps it in the setImmediate closure, which
+          // keeps the registry strongly reachable across the GC cycle —
+          // FinalizationRegistry callbacks only fire while the registry is.
+          registry;
+          global.gc();
+        });
+      });
+
+    describe('given an instance keyed on an object reference', () => {
+      let di;
+      let injectable;
+
+      beforeEach(() => {
+        injectable = getInjectable({
+          id: 'weak-keyed',
+          instantiate: () => ({}),
+
+          lifecycle: lifecycleEnum.keyedSingleton({
+            getInstanceKey: (_, key) => key,
+          }),
+        });
+
+        di = createContainer('some-container');
+        di.register(injectable);
+      });
+
+      it('releases the instance once the key reference is dropped', async () => {
+        let key = {};
+        let collectionPromise;
+
+        (() => {
+          const instance = di.inject(injectable, key);
+          collectionPromise = waitUntilCollected(instance);
+        })();
+
+        key = undefined;
+
+        await collectionPromise;
+      });
+
+      it('releases the instance of a composite key once any object part is dropped', async () => {
+        let objA = {};
+        const objB = {};
+        let collectionPromise;
+
+        (() => {
+          const instance = di.inject(
+            injectable,
+            getCompositeKey(objA, 'x', objB),
+          );
+          collectionPromise = waitUntilCollected(instance);
+        })();
+
+        objA = undefined;
+
+        await collectionPromise;
+      });
+    });
+  });
 });
