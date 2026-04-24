@@ -24,7 +24,7 @@ export default (containerId, { injectionDecorators = false } = {}) => {
     ? { injection: null, injectionByAlias: new Map() }
     : null;
   const overridingInjectables = new Map();
-  let sideEffectsArePrevented = false;
+  let sideEffectsArePrevented = true;
   const alreadyInjected = new Set();
   const injectablesWithPermittedSideEffects = new Set();
   const injectableIdSet = new Set();
@@ -248,11 +248,12 @@ export default (containerId, { injectionDecorators = false } = {}) => {
       overridingInjectables.clear();
     },
 
-    preventSideEffects: () => {
-      sideEffectsArePrevented = true;
-    },
-
     permitSideEffects: alias => {
+      if (alias === undefined) {
+        sideEffectsArePrevented = false;
+        return;
+      }
+
       getRelatedInjectables(alias).forEach(injectable =>
         injectablesWithPermittedSideEffects.add(injectable),
       );

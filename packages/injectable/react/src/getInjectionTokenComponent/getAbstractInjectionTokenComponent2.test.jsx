@@ -13,7 +13,6 @@ describe('getAbstractInjectionTokenComponent2', () => {
 
   beforeEach(() => {
     di = createContainer('some-container');
-    di.preventSideEffects();
     mount = node =>
       render(<DiContextProvider value={di}>{node}</DiContextProvider>);
   });

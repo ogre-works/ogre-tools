@@ -24,8 +24,6 @@ describe('getInjectableComponent2', () => {
   beforeEach(() => {
     di = createContainer('some-container');
 
-    di.preventSideEffects();
-
     onErrorWhileRenderingMock = jest.fn();
     mount = mountFor(di, onErrorWhileRenderingMock);
   });
