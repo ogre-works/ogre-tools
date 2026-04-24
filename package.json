@@ -15,7 +15,7 @@
     "install-all-packages": "npm install",
     "reinstall-all-dependencies": "./npm-scripts/reinstall-all-dependencies.sh",
     "build-all-packages": "npm run remove-all-package-builds && lerna run build",
-    "build-and-publish": "npm run remove-all-package-builds && npm run test:ci && npm run build-all-packages && lerna publish --yes && npm run remove-all-package-builds",
+    "build-and-publish": "npm run remove-all-package-builds && npm run build-all-packages && npm run test:ci && lerna publish --yes && npm run remove-all-package-builds",
     "remove-all-package-builds": "find ./packages -name build -type d -prune -exec rm -rfv {} \\;",
     "test": "node --expose-gc ./node_modules/.bin/jest --watch-all",
     "test:performance": "node --expose-gc ./node_modules/.bin/jest --watch --testMatch \"**/?(*.)+(performance-test).[jt]s?(x)\"",
