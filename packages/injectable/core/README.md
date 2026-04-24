@@ -312,6 +312,210 @@ expect(validate("torvalds")).toBe(false);
 expect(validate(42)).toBe(false);
 ```
 
+### Injectable2 — Curried Instantiation
+
+`getInjectable2` is an evolution of `getInjectable` that uses **curried instantiation**: `instantiate` receives only `di` and returns a **factory function**. The factory's parameters become the injection parameters, and its return value becomes the instance. This gives full generic and variadic parameter support in TypeScript.
+
+All v2 APIs are **cross-compatible** with v1 — old and new injectables coexist in the same container.
+
+| | v1 (`getInjectable`) | v2 (`getInjectable2`) |
+|---|---|---|
+| **Instantiate shape** | `(di, param?) => instance` | `(di) => (...params) => instance` |
+| **Lifecycle** | `singleton`, `keyedSingleton`, `transient` | keyed singleton (default), `transient: true` |
+| **Parameters** | Single instantiation parameter | Variadic (multiple parameters) |
+| **Generic support** | Limited | Full — factory type flows through |
+
+#### Basic usage
+
+```ts
+// Non-parametric singleton
+const configInjectable = getInjectable2({
+  id: "config",
+  instantiate: (di) => () => ({ port: 3000 }),
+});
+
+di.register(configInjectable);
+const config = di.inject(configInjectable); // { port: 3000 }
+```
+
+```ts
+// Parametric keyed singleton — same params = same instance
+const userInjectable = getInjectable2({
+  id: "user",
+  instantiate: (di) => (id: string) => ({ id, name: `User ${id}` }),
+});
+
+di.register(userInjectable);
+const user1 = di.inject(userInjectable, "alice");
+const user2 = di.inject(userInjectable, "alice");
+expect(user1).toBe(user2); // same instance — keyed singleton
+```
+
+```ts
+// Transient — new instance every time
+const requestInjectable = getInjectable2({
+  id: "request",
+  instantiate: (di) => () => ({ timestamp: Date.now() }),
+  transient: true,
+});
+```
+
+```ts
+// Multiple parameters
+const greetInjectable = getInjectable2({
+  id: "greet",
+  instantiate: (di) => (name: string, greeting: string) => `${greeting}, ${name}!`,
+});
+
+di.register(greetInjectable);
+di.inject(greetInjectable, "Alice", "Hello"); // "Hello, Alice!"
+```
+
+#### Injecting dependencies inside `instantiate`
+
+Inside the `instantiate` of `getInjectable2`, `di.inject` and `di.injectMany` return **factory functions** (not raw instances). Call the factory to get the value:
+
+```ts
+const depInjectable = getInjectable2({
+  id: "dep",
+  instantiate: (di) => (name: string) => `hello-${name}`,
+});
+
+const serviceInjectable = getInjectable2({
+  id: "service",
+  instantiate: (di) => {
+    const getDep = di.inject(depInjectable);  // returns the factory
+    return () => getDep("world");             // call the factory
+  },
+});
+
+di.register(depInjectable, serviceInjectable);
+di.inject(serviceInjectable); // "hello-world"
+```
+
+This also works with v1 dependencies — they are auto-wrapped into factories:
+
+```ts
+const oldDep = getInjectable({
+  id: "old-dep",
+  instantiate: () => "old-value",
+});
+
+const newService = getInjectable2({
+  id: "new-service",
+  instantiate: (di) => {
+    const getOld = di.inject(oldDep);  // returns () => "old-value"
+    return () => `using-${getOld()}`;
+  },
+});
+```
+
+#### `getInjectionToken2` — Contracts for factories
+
+```ts
+const serviceToken = getInjectionToken2<(id: string) => ServiceResult>({
+  id: "service",
+});
+
+const implInjectable = getInjectable2({
+  id: "impl",
+  injectionToken: serviceToken,
+  instantiate: (di) => (id) => ({ id, status: "ok" }),
+});
+
+di.register(implInjectable);
+
+di.inject(serviceToken, "abc");       // { id: "abc", status: "ok" }
+di.injectMany(serviceToken, "abc");   // [{ id: "abc", status: "ok" }]
+```
+
+`getAbstractInjectionToken2` defines tokens that cannot be injected directly — they must be targeted via `.for()`:
+
+```ts
+const abstractToken = getAbstractInjectionToken2<(x: number) => string>({
+  id: "formatter",
+});
+
+const currencyFormatter = getInjectable2({
+  id: "currency-formatter",
+  injectionToken: abstractToken.for("currency"),
+  instantiate: (di) => (amount) => `$${amount.toFixed(2)}`,
+});
+```
+
+#### Overriding
+
+Both `override2` (curried) and `override` (v1-shape) work on v2 injectables:
+
+```ts
+const fooInjectable = getInjectable2({
+  id: "foo",
+  instantiate: (di) => (name: string) => `original-${name}`,
+});
+
+di.register(fooInjectable);
+
+// v2-style override (curried)
+di.override2(fooInjectable, (di) => (name) => `stub-${name}`);
+
+// v1-style override also works
+di.override(fooInjectable, (di, name) => `stub-${name}`);
+```
+
+#### Meta-data injection
+
+```ts
+di.injectWithMeta(fooInjectable, "test");
+// { instance: "original-test", meta: { id: "foo" } }
+
+di.injectManyWithMeta(serviceToken, "abc");
+// [{ instance: { id: "abc", status: "ok" }, meta: { id: "impl" } }]
+```
+
+#### LRU caching (`maxCacheSize`)
+
+Limits how many keyed-singleton instances are cached. When the limit is reached, the least recently used entry is evicted:
+
+```ts
+const cacheableInjectable = getInjectable2({
+  id: "cacheable",
+  maxCacheSize: 2,
+  instantiate: (di) => (key: string) => ({ key }),
+});
+
+di.register(cacheableInjectable);
+
+const a = di.inject(cacheableInjectable, "a");
+di.inject(cacheableInjectable, "b");
+di.inject(cacheableInjectable, "c"); // evicts "a"
+
+di.inject(cacheableInjectable, "a") !== a; // true — a was evicted
+```
+
+`maxCacheSize` can also be set on `getInjectionToken2` to apply as a default for all implementations. An injectable's own `maxCacheSize` takes precedence.
+
+#### Purging by key
+
+Selectively purge cached instances by key or key prefix:
+
+```ts
+const obj = getInjectable2({
+  id: "obj",
+  instantiate: (di) => (category: string, id: string) => ({ category, id }),
+});
+
+di.register(obj);
+
+di.inject(obj, "a", "1");
+di.inject(obj, "a", "2");
+di.inject(obj, "b", "1");
+
+di.purge(obj, "a");           // purges all instances with prefix "a" → ("a","1") and ("a","2")
+di.purge(obj, "a", "1");      // purges only the specific composite key ("a","1")
+di.purge(token);              // purges all implementations of a token
+di.purge(token, "a");         // purges key "a" across all implementations of a token
+```
+
 ### Extensions:
 #### MobX: Reactive ways To Inject
 Reactive utilities in `@ogre-tools/injectable-mobx`.
