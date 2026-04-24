@@ -30,17 +30,17 @@
     "lodash": "^4.17.21"
   },
   "peerDependencies": {
-    "@ogre-tools/fp": "^16 || ^17 || ^18 || ^19 || ^20 || ^21 || ^22",
-    "@ogre-tools/injectable": "^16 || ^17 || ^18 || ^19 || ^20 || ^21 || ^22"
+    "@ogre-tools/fp": "^16 || ^17 || ^18 || ^19 || ^20 || ^21 || ^22 || ^23",
+    "@ogre-tools/injectable": "^16 || ^17 || ^18 || ^19 || ^20 || ^21 || ^22 || ^23"
   },
   "devDependencies": {
     "@async-fn/jest": "^1.6.4",
-    "@ogre-tools/infrastructure-babel-for-ts": "^19.0.0 || ^22.0.0",
-    "@ogre-tools/infrastructure-jest": "^19.0.0 || ^22.0.0",
-    "@ogre-tools/infrastructure-prettier": "^19.0.0 || ^22.0.0",
-    "@ogre-tools/infrastructure-typescript": "^19.0.0 || ^22.0.0",
-    "@ogre-tools/infrastructure-webpack-for-ts": "^19.0.0 || ^22.0.0",
-    "@ogre-tools/test-utils": "^19.0.0 || ^22.0.0"
+    "@ogre-tools/infrastructure-babel-for-ts": "^19.0.0 || ^22.0.0 || ^23.0.0",
+    "@ogre-tools/infrastructure-jest": "^19.0.0 || ^22.0.0 || ^23.0.0",
+    "@ogre-tools/infrastructure-prettier": "^19.0.0 || ^22.0.0 || ^23.0.0",
+    "@ogre-tools/infrastructure-typescript": "^19.0.0 || ^22.0.0 || ^23.0.0",
+    "@ogre-tools/infrastructure-webpack-for-ts": "^19.0.0 || ^22.0.0 || ^23.0.0",
+    "@ogre-tools/test-utils": "^19.0.0 || ^22.0.0 || ^23.0.0"
   },
   "gitHead": "a5e3d70aa0d5d45dbf2f3d37f586fac93bfffc86",
   "bugs": {
