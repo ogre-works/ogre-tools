@@ -46,7 +46,6 @@ describe('computedInjectMany with registration decoration', () => {
       featureFlagDecorator = getInjectable2({
         id: 'feature-flag-decorator',
         injectionToken: registrationDecoratorToken.for(someToken),
-        decorable: false,
 
         instantiate: () => () => registerToBeDecorated => injectable => {
           deferredRegistrations.set(injectable, () =>
@@ -191,7 +190,6 @@ describe('computedInjectMany with registration decoration', () => {
       flagDecorator = getInjectable2({
         id: 'flag-decorator',
         injectionToken: registrationDecoratorToken.for(someToken),
-        decorable: false,
 
         instantiate: () => () => registerToBeDecorated => injectable => {
           deferred.set(injectable, () => registerToBeDecorated(injectable));
@@ -263,7 +261,6 @@ describe('computedInjectMany with registration decoration', () => {
         const decoratorInjectable = getInjectable2({
           id: 'selective-decorator',
           injectionToken: registrationDecoratorToken.for(someToken),
-          decorable: false,
 
           instantiate: () => () => registerToBeDecorated => injectable => {
             if (injectable === blockedInjectable) {

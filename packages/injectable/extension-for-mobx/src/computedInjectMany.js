@@ -37,8 +37,6 @@ export const atomsByTokenInjectable = getInjectable({
   instantiate: () => new Map(),
 
   [isInternalOfComputedInjectMany]: true,
-
-  decorable: false,
 });
 
 const getInvalidatorInstance = di => {
@@ -60,7 +58,6 @@ export const invalidateReactiveInstancesOnRegisterCallback = getInjectable({
   instantiate: getInvalidatorInstance,
   injectionToken: registrationCallbackToken,
   [isInternalOfComputedInjectMany]: true,
-  decorable: false,
 });
 
 export const invalidateReactiveInstancesOnDeregisterCallback = getInjectable({
@@ -68,7 +65,6 @@ export const invalidateReactiveInstancesOnDeregisterCallback = getInjectable({
   instantiate: getInvalidatorInstance,
   injectionToken: deregistrationCallbackToken,
   [isInternalOfComputedInjectMany]: true,
-  decorable: false,
 });
 
 const reactiveInstancesFor = ({ id, methodInDiToInjectMany }) =>

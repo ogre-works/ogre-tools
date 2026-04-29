@@ -5,14 +5,6 @@ export const withInjectionDecoratorsFor =
   ({ injectMany, decoratorCache }) =>
   toBeDecorated =>
   ({ alias, instantiationParameters, injectingInjectable }) => {
-    if (alias.decorable === false) {
-      return toBeDecorated({
-        alias,
-        instantiationParameters,
-        injectingInjectable,
-      });
-    }
-
     // When decoratorCache.injection is null, a decorator was registered or
     // deregistered — invalidate all per-alias cached compositions.
     if (decoratorCache.injection === null) {

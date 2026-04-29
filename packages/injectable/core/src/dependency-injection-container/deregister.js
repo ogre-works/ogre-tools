@@ -62,11 +62,6 @@ export const deregisterFor =
         decoratorCache.injection = null;
       }
 
-      if (injectable.decorable === false) {
-        deregisterSingle(injectable);
-        return;
-      }
-
       const decorators = [
         ...injectMany({
           alias: deregistrationDecoratorToken.for(injectable),

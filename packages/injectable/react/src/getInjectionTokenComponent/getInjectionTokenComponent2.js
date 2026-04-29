@@ -5,7 +5,6 @@ import { useInject } from '../useInject/useInject';
 export const getInjectionTokenComponent2 = ({
   PlaceholderComponent,
   id,
-  decorable,
   specificInjectionTokenFactory,
   speciality,
 }) => {
@@ -25,7 +24,6 @@ export const getInjectionTokenComponent2 = ({
 
   TokenComponent = getInjectionToken2({
     id,
-    decorable,
     target: ComponentForReact,
     speciality,
 

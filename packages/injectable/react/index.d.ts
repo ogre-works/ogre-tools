@@ -70,7 +70,7 @@ export function useInject2<TReturnValue, TInstantiationParameter>(
 export type InjectableComponent<Component extends React.ComponentType<any>> =
   Component & Injectable<Component>;
 
-type ExcludedKeys = 'instantiate' | 'lifecycle' | 'scope' | 'decorable' | 'injectionToken';
+type ExcludedKeys = 'instantiate' | 'lifecycle' | 'scope' | 'injectionToken';
 
 export declare function getInjectableComponent<
   Component extends React.ComponentType<any>
@@ -88,7 +88,7 @@ export declare function getInjectableComponent<
 export type InjectableComponent2<Component extends React.ComponentType<any>> =
   Component & Injectable2<() => Component>;
 
-type ExcludedKeys2 = 'aliasType' | 'instantiate' | 'decorable' | 'injectionToken';
+type ExcludedKeys2 = 'aliasType' | 'instantiate' | 'injectionToken';
 
 export declare function getInjectableComponent2<
   Component extends React.ComponentType<any>
@@ -124,7 +124,6 @@ export declare function getInjectionTokenComponent<
 >(options: {
   id: string;
   PlaceholderComponent?: React.ComponentType<React.ComponentProps<Component>>;
-  decorable?: boolean;
   specificInjectionTokenFactory?: SpecificFactory;
 }): InjectionTokenComponent<Component, SpecificFactory>;
 
@@ -151,7 +150,6 @@ export declare function getInjectionTokenComponent2<
 >(options: {
   id: string;
   PlaceholderComponent?: React.ComponentType<React.ComponentProps<Component>>;
-  decorable?: boolean;
   specificInjectionTokenFactory?: SpecificFactory;
 }): InjectionTokenComponent2<Component, SpecificFactory>;
 
@@ -174,7 +172,6 @@ export declare function getAbstractInjectionTokenComponent2<
 >(options: {
   id: string;
   PlaceholderComponent?: React.ComponentType<React.ComponentProps<Component>>;
-  decorable?: boolean;
   specificInjectionTokenFactory?: SpecificFactory;
 }): AbstractInjectionTokenComponent2<Component, SpecificFactory>;
 

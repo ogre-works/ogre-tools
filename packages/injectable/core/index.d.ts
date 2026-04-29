@@ -126,7 +126,6 @@ export interface Injectable<
   >;
   readonly instantiate: Instantiate<InjectionInstance, InstantiationParam>;
   readonly lifecycle: Lifecycle<InstantiationParam>;
-  readonly decorable?: boolean;
   readonly tags?: any[];
   readonly maxCacheSize?: number;
 }
@@ -574,7 +573,6 @@ export interface Injectable2<Factory extends (...args: any[]) => any> {
   readonly injectionToken?: InjectionToken2<Factory> & { readonly __abstract?: never };
   readonly transient?: boolean;
   readonly causesSideEffects?: boolean;
-  readonly decorable?: boolean;
   readonly tags?: any[];
   readonly maxCacheSize?: number;
 }
@@ -585,7 +583,6 @@ export function getInjectable2<Factory extends (...args: any[]) => any>(options:
   readonly injectionToken?: InjectionToken2<Factory> & { readonly __abstract?: never };
   readonly transient?: boolean;
   readonly causesSideEffects?: boolean;
-  readonly decorable?: boolean;
   readonly tags?: any[];
   readonly maxCacheSize?: number;
 }): Injectable2<Factory>;
@@ -635,7 +632,6 @@ export function getInjectionToken2<
   id: string;
   specificInjectionTokenFactory?: SpecificFactory;
   target?: object;
-  decorable?: boolean;
   maxCacheSize?: number;
 }): InjectionToken2<Factory, ManyFactory, SpecificFactory>;
 
@@ -682,7 +678,6 @@ export function getAbstractInjectionToken2<
   id: string;
   specificInjectionTokenFactory?: SpecificFactory;
   target?: object;
-  decorable?: boolean;
   maxCacheSize?: number;
 }): AbstractInjectionToken2<Factory, ManyFactory, SpecificFactory>;
 

@@ -515,16 +515,6 @@ describe('getInjectableComponent2', () => {
     expect(SomeComponentUsingTags.tags).toEqual(['some-tag']);
   });
 
-  it('given decorable, is not really decorable, as that is YAGNI and not supported yet', () => {
-    const SomeComponent = getInjectableComponent2({
-      id: 'some-injectable-component',
-      Component: () => <div>irrelevant</div>,
-      decorable: true,
-    });
-
-    expect(SomeComponent.decorable).toBe(undefined);
-  });
-
   it('given no existing react "displayName", and function without name, has displayName related to the injectable id', () => {
     const SomeComponent = getInjectableComponent2({
       id: 'some-injectable-component',

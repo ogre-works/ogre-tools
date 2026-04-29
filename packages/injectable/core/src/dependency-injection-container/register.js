@@ -47,12 +47,6 @@ export const registerFor =
     };
 
     nonDecoratorInjectables.forEach(injectable => {
-      if (injectable.decorable === false) {
-        registerSingle(injectable, context);
-        registeredInjectables.push(injectable);
-        return;
-      }
-
       const decorators = [
         ...injectMany({
           alias: registrationDecoratorToken.for(injectable),

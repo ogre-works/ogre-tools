@@ -19,8 +19,6 @@ describe('createContainer.targeted-decoration-of-instantiation', () => {
     const decoratorInjectable = getInjectable2({
       id: 'some-child-decorator',
       injectionToken: instantiationDecoratorToken.for(childInjectable),
-      decorable: false,
-
       instantiate:
         () =>
         () =>
@@ -68,8 +66,6 @@ describe('createContainer.targeted-decoration-of-instantiation', () => {
       injectionToken: instantiationDecoratorToken.for(
         someInjectionTokenForTargetedDecoration,
       ),
-      decorable: false,
-
       instantiate:
         () =>
         () =>
@@ -138,7 +134,6 @@ describe('createContainer.targeted-decoration-of-instantiation', () => {
       const decoratorInjectable = getInjectable2({
         id: 'some-decorator',
         injectionToken: instantiationDecoratorToken.for(someInjectable),
-        decorable: false,
         instantiate: () => () => decorateSpy,
       });
 
