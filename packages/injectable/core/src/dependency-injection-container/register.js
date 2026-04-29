@@ -12,7 +12,7 @@ import { invalidateRelatedInjectablesCache } from './getRelatedInjectablesFor';
 import flow from './fastFlow';
 
 export const registerFor =
-  ({ registerSingle, injectMany, getTagKeyedDecorators }) =>
+  ({ registerSingle, injectMany, getApplicableDecorators }) =>
   ({ injectables, context, source }) => {
     const flatInjectables = toFlatInjectables(injectables);
 
@@ -62,25 +62,11 @@ export const registerFor =
     };
 
     const registerThroughPipeline = injectable => {
-      const decorators = [
-        ...injectMany({
-          alias: registrationDecoratorToken.for(injectable),
-          instantiationParameters: [],
-          injectingInjectable: source,
-        }),
-        ...(injectable.injectionToken
-          ? injectMany({
-              alias: registrationDecoratorToken.for(injectable.injectionToken),
-              instantiationParameters: [],
-              injectingInjectable: source,
-            })
-          : []),
-        ...getTagKeyedDecorators({
-          token: registrationDecoratorToken,
-          injectable,
-          injectingInjectable: source,
-        }),
-      ];
+      const decorators = getApplicableDecorators({
+        decoratorToken: registrationDecoratorToken,
+        target: injectable,
+        injectingInjectable: source,
+      });
 
       if (decorators.length === 0) {
         registerSingle(injectable, context);

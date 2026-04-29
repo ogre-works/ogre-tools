@@ -19,7 +19,7 @@ export const privateInjectFor =
     checkForAbstractToken,
     namespacedIdByInjectableMap,
     getNamespacedId,
-    getTagKeyedDecorators,
+    getApplicableDecorators,
   }) =>
   ({ withMeta }) =>
   ({ alias, instantiationParameters, injectingInjectable }) => {
@@ -83,7 +83,7 @@ export const privateInjectFor =
       injectingInjectable,
       namespacedIdByInjectableMap,
       getNamespacedId,
-      getTagKeyedDecorators,
+      getApplicableDecorators,
     );
 
     if (!withMeta) {
@@ -213,12 +213,11 @@ const instantiate = (
   injectableToBeInstantiated,
   minimalDi,
   instantiationParameters,
-  getTagKeyedDecorators,
+  getApplicableDecorators,
 ) => {
   const withInstantiationDecorators = withInstantiationDecoratorsFor({
-    injectMany: di.injectMany,
     injectable: injectableToBeInstantiated,
-    getTagKeyedDecorators,
+    getApplicableDecorators,
   });
 
   const decorated = withInstantiationDecorators(
@@ -242,7 +241,7 @@ const getInstance = (
   injectingInjectable,
   namespacedIdByInjectableMap,
   getNamespacedId,
-  getTagKeyedDecorators,
+  getApplicableDecorators,
 ) => {
   const instanceMap = instancesByInjectableMap.get(
     injectableToBeInstantiated.overriddenInjectable ||
@@ -276,7 +275,7 @@ const getInstance = (
       injectableToBeInstantiated,
       minimalDi,
       instantiationParameters,
-      getTagKeyedDecorators,
+      getApplicableDecorators,
     );
 
     instanceMap.set(singletonCompositeKey, newInstance);
@@ -298,7 +297,7 @@ const getInstance = (
       injectableToBeInstantiated,
       minimalDi,
       instantiationParameters,
-      getTagKeyedDecorators,
+      getApplicableDecorators,
     );
   }
 
@@ -330,7 +329,7 @@ const getInstance = (
     injectableToBeInstantiated,
     minimalDi,
     instantiationParameters,
-    getTagKeyedDecorators,
+    getApplicableDecorators,
   );
 
   if (instanceCompositeKey[0] !== nonStoredInstanceKey) {

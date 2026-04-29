@@ -511,6 +511,41 @@ describe('callbacks-for-instance-purge', () => {
     });
   });
 
+  describe('parent-token chain walk for purge callbacks', () => {
+    it('a callback targeting the parent token fires when a child specialization\'s instance is purged', () => {
+      const di = createContainer('some-container');
+      const purgeSpy = jest.fn();
+
+      const someToken = getInjectionToken2({ id: 'parent-purge-token' });
+
+      const childInjectable = getInjectable2({
+        id: 'child-purge',
+        injectionToken: someToken.for('some-specifier'),
+        instantiate: () => () => ({ value: 'instance' }),
+      });
+
+      const parentCallback = getInjectable2({
+        id: 'parent-purge-callback',
+        injectionToken: instancePurgeCallbackToken.for(someToken),
+        instantiate:
+          () =>
+          () =>
+          ({ instance }) =>
+          () => {
+            purgeSpy(instance);
+          },
+      });
+
+      di.register(childInjectable, parentCallback);
+
+      const instance = di.inject(childInjectable);
+      di.purge(childInjectable);
+
+      expect(purgeSpy).toHaveBeenCalledTimes(1);
+      expect(purgeSpy).toHaveBeenCalledWith(instance);
+    });
+  });
+
   describe('tag-keyed purge callbacks', () => {
     it('a callback targeting a string tag fires when a tagged injectable is purged', () => {
       const di = createContainer('some-container');
