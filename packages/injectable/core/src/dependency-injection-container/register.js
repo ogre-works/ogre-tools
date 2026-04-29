@@ -1,5 +1,6 @@
 import { getNamespacedIdFor } from './getNamespacedIdFor';
 import {
+  instantiationDecoratorToken,
   registrationCallbackToken,
   registrationDecoratorToken,
 } from './tokens';
@@ -15,8 +16,18 @@ export const registerFor =
   ({ injectables, context, source }) => {
     const flatInjectables = toFlatInjectables(injectables);
 
-    const registeredDecoratorInjectables = [];
-    const nonDecoratorInjectables = [];
+    // Phase 0: instantiation-decorator-tagged injectables. They register
+    //   first so that any same-batch overrides of (registration-)decorators
+    //   are already in place by the time those decorators are instantiated
+    //   in phase 2. They go through the registration-decorator pipeline so
+    //   production code can opt them out via tag/target-keyed decorators.
+    // Phase 1: registration-decorator-tagged injectables. They register
+    //   directly via registerSingle (no recursive decoration) to avoid
+    //   bootstrap chaos.
+    // Phase 2: regular injectables register through the decorator pipeline.
+    const phase0Injectables = [];
+    const registeredRegistrationDecoratorInjectables = [];
+    const phase2Injectables = [];
 
     for (let i = 0; i < flatInjectables.length; i++) {
       const injectable = flatInjectables[i];
@@ -25,9 +36,13 @@ export const registerFor =
         isRelatedToToken(injectable.injectionToken, registrationDecoratorToken)
       ) {
         registerSingle(injectable, context);
-        registeredDecoratorInjectables.push(injectable);
+        registeredRegistrationDecoratorInjectables.push(injectable);
+      } else if (
+        isRelatedToToken(injectable.injectionToken, instantiationDecoratorToken)
+      ) {
+        phase0Injectables.push(injectable);
       } else {
-        nonDecoratorInjectables.push(injectable);
+        phase2Injectables.push(injectable);
       }
     }
 
@@ -46,7 +61,7 @@ export const registerFor =
       }
     };
 
-    nonDecoratorInjectables.forEach(injectable => {
+    const registerThroughPipeline = injectable => {
       const decorators = [
         ...injectMany({
           alias: registrationDecoratorToken.for(injectable),
@@ -59,6 +74,15 @@ export const registerFor =
               instantiationParameters: [],
               injectingInjectable: source,
             })
+          : []),
+        ...(injectable.tags
+          ? injectable.tags.flatMap(tag =>
+              injectMany({
+                alias: registrationDecoratorToken.for(tag),
+                instantiationParameters: [],
+                injectingInjectable: source,
+              }),
+            )
           : []),
       ];
 
@@ -86,7 +110,10 @@ export const registerFor =
       if (wasRegisteredThisInjectable) {
         registeredInjectables.push(injectable);
       }
-    });
+    };
+
+    phase0Injectables.forEach(registerThroughPipeline);
+    phase2Injectables.forEach(registerThroughPipeline);
 
     batchInProgress = false;
 
@@ -102,7 +129,7 @@ export const registerFor =
       }
     };
 
-    registeredDecoratorInjectables.forEach(fireBatchCallbacks);
+    registeredRegistrationDecoratorInjectables.forEach(fireBatchCallbacks);
     registeredInjectables.forEach(fireBatchCallbacks);
   };
 

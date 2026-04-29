@@ -251,6 +251,256 @@ describe('createContainer.registration-decoration', () => {
     });
   });
 
+  describe('tag-keyed registration decorators', () => {
+    it('given a decorator targeting a tag, when an injectable carrying that tag is registered, the decorator fires for it', () => {
+      const seen = [];
+      const tagDecorator = getInjectable2({
+        id: 'some-tag-decorator',
+        injectionToken: registrationDecoratorToken.for('some-tag'),
+        instantiate: () => () => registerToBeDecorated => injectable => {
+          seen.push(injectable.id);
+          registerToBeDecorated(injectable);
+        },
+      });
+
+      const taggedInjectable = getInjectable({
+        id: 'some-tagged-injectable',
+        tags: ['some-tag'],
+        instantiate: () => 'some-value',
+      });
+
+      di.register(tagDecorator, taggedInjectable);
+
+      expect(seen).toEqual(['some-tagged-injectable']);
+    });
+
+    it('given an injectable with multiple tags, each tag-keyed decorator fires once', () => {
+      const aSeen = [];
+      const bSeen = [];
+
+      const aDecorator = getInjectable2({
+        id: 'a-decorator',
+        injectionToken: registrationDecoratorToken.for('tag-a'),
+        instantiate: () => () => registerToBeDecorated => injectable => {
+          aSeen.push(injectable.id);
+          registerToBeDecorated(injectable);
+        },
+      });
+
+      const bDecorator = getInjectable2({
+        id: 'b-decorator',
+        injectionToken: registrationDecoratorToken.for('tag-b'),
+        instantiate: () => () => registerToBeDecorated => injectable => {
+          bSeen.push(injectable.id);
+          registerToBeDecorated(injectable);
+        },
+      });
+
+      const dualTaggedInjectable = getInjectable({
+        id: 'dual-tagged',
+        tags: ['tag-a', 'tag-b'],
+        instantiate: () => 'value',
+      });
+
+      di.register(aDecorator, bDecorator, dualTaggedInjectable);
+
+      expect(aSeen).toEqual(['dual-tagged']);
+      expect(bSeen).toEqual(['dual-tagged']);
+    });
+
+    it('given multiple injectables sharing a tag, the tag-keyed decorator fires for each', () => {
+      const seen = [];
+      const tagDecorator = getInjectable2({
+        id: 'shared-tag-decorator',
+        injectionToken: registrationDecoratorToken.for('shared'),
+        instantiate: () => () => registerToBeDecorated => injectable => {
+          seen.push(injectable.id);
+          registerToBeDecorated(injectable);
+        },
+      });
+
+      const a = getInjectable({
+        id: 'a',
+        tags: ['shared'],
+        instantiate: () => 'a',
+      });
+      const b = getInjectable({
+        id: 'b',
+        tags: ['shared'],
+        instantiate: () => 'b',
+      });
+      const c = getInjectable({
+        id: 'c',
+        tags: ['unrelated'],
+        instantiate: () => 'c',
+      });
+
+      di.register(tagDecorator, a, b, c);
+
+      expect(seen.sort()).toEqual(['a', 'b']);
+    });
+
+    it('given a decorator targeting a tag that no registered injectable carries, the decorator never fires', () => {
+      const fired = jest.fn();
+      const tagDecorator = getInjectable2({
+        id: 'unused-tag-decorator',
+        injectionToken: registrationDecoratorToken.for('never-used'),
+        instantiate: () => () => registerToBeDecorated => injectable => {
+          fired(injectable.id);
+          registerToBeDecorated(injectable);
+        },
+      });
+
+      const someInjectable = getInjectable({
+        id: 'untagged',
+        instantiate: () => 'value',
+      });
+
+      di.register(tagDecorator, someInjectable);
+
+      expect(fired).not.toHaveBeenCalled();
+      expect(di.inject(someInjectable)).toBe('value');
+    });
+
+    it('given a tag-keyed decorator that prevents registration, when a tagged injectable is registered, injecting it throws', () => {
+      const taggedInjectable = getInjectable({
+        id: 'should-be-dropped',
+        tags: ['drop-me'],
+        instantiate: () => 'value',
+      });
+
+      const dropDecorator = getInjectable2({
+        id: 'drop-decorator',
+        injectionToken: registrationDecoratorToken.for('drop-me'),
+        instantiate: () => () => () => () => {
+          // Don't call registerToBeDecorated — drop the registration.
+        },
+      });
+
+      di.register(dropDecorator, taggedInjectable);
+
+      expect(() => di.inject(taggedInjectable)).toThrow();
+    });
+
+    it('given both target-keyed and tag-keyed decorators on the same injectable, both fire and compose', () => {
+      const calls = [];
+
+      const taggedInjectable = getInjectable({
+        id: 'composite',
+        tags: ['cross-cutting'],
+        instantiate: () => 'value',
+      });
+
+      const targetDecorator = getInjectable2({
+        id: 'target-decorator',
+        injectionToken: registrationDecoratorToken.for(taggedInjectable),
+        instantiate: () => () => registerToBeDecorated => injectable => {
+          calls.push('target');
+          registerToBeDecorated(injectable);
+        },
+      });
+
+      const tagDecorator = getInjectable2({
+        id: 'tag-decorator',
+        injectionToken: registrationDecoratorToken.for('cross-cutting'),
+        instantiate: () => () => registerToBeDecorated => injectable => {
+          calls.push('tag');
+          registerToBeDecorated(injectable);
+        },
+      });
+
+      di.register(targetDecorator, tagDecorator, taggedInjectable);
+
+      expect(calls).toEqual(expect.arrayContaining(['target', 'tag']));
+      expect(calls).toHaveLength(2);
+      expect(di.inject(taggedInjectable)).toBe('value');
+    });
+
+    it('given a tag-keyed decorator that defers registration, when called later, the injectable becomes injectable', () => {
+      let deferredRegister;
+
+      const taggedInjectable = getInjectable({
+        id: 'deferred',
+        tags: ['lazy'],
+        instantiate: () => 'value',
+      });
+
+      const lazyDecorator = getInjectable2({
+        id: 'lazy-decorator',
+        injectionToken: registrationDecoratorToken.for('lazy'),
+        instantiate: () => () => registerToBeDecorated => injectable => {
+          deferredRegister = () => registerToBeDecorated(injectable);
+        },
+      });
+
+      di.register(lazyDecorator, taggedInjectable);
+
+      expect(() => di.inject(taggedInjectable)).toThrow();
+
+      deferredRegister();
+
+      expect(di.inject(taggedInjectable)).toBe('value');
+    });
+
+    it('a tag-keyed decorator targeting a v2 injectable receives the same shape as a target-keyed one', () => {
+      const seen = [];
+
+      const tagDecorator = getInjectable2({
+        id: 'v2-tag-decorator',
+        injectionToken: registrationDecoratorToken.for('v2-tag'),
+        instantiate: () => () => registerToBeDecorated => injectable => {
+          seen.push(injectable.id);
+          registerToBeDecorated(injectable);
+        },
+      });
+
+      const taggedV2 = getInjectable2({
+        id: 'tagged-v2',
+        tags: ['v2-tag'],
+        instantiate: () => () => 'v2-value',
+      });
+
+      di.register(tagDecorator, taggedV2);
+
+      expect(seen).toEqual(['tagged-v2']);
+      expect(di.inject(taggedV2)).toBe('v2-value');
+    });
+
+    it('a tag-keyed decorator does NOT fire for a registration-decorator-tagged injectable (phase 1 bypasses the decoration pipeline)', () => {
+      const tagFired = jest.fn();
+
+      const tagDecoratorOfRegDecorators = getInjectable2({
+        id: 'meta-tag-decorator',
+        injectionToken: registrationDecoratorToken.for('meta'),
+        instantiate: () => () => registerToBeDecorated => injectable => {
+          tagFired(injectable.id);
+          registerToBeDecorated(injectable);
+        },
+      });
+
+      const otherInjectable = getInjectable({
+        id: 'other',
+        instantiate: () => 'value',
+      });
+
+      const taggedRegDecorator = getInjectable2({
+        id: 'tagged-reg-decorator',
+        injectionToken: registrationDecoratorToken.for(otherInjectable),
+        tags: ['meta'],
+        instantiate: () => () => registerToBeDecorated => injectable => {
+          registerToBeDecorated(injectable);
+        },
+      });
+
+      di.register(tagDecoratorOfRegDecorators, taggedRegDecorator, otherInjectable);
+
+      // The 'meta' tag decorator did not fire for the registration-decorator
+      // because phase 1 (registration-decorator registration) bypasses the
+      // decoration pipeline by design.
+      expect(tagFired).not.toHaveBeenCalledWith('tagged-reg-decorator');
+    });
+  });
+
   describe('deregistration decorators', () => {
     describe('given a deregistration decorator that proceeds and an injectable is registered', () => {
       let someInjectable;

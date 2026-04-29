@@ -163,6 +163,46 @@ A way to override an `injectable` or a single registration of an `injectionToken
 1. Overriding an `injectable` causing **side-effects** with a **test-double** not causing side-effects.
 2. Normal mocking/stubbing/faking for unit-testing.
 
+`di.override` is *imperative*: when in place, it preempts any declarative `instantiationDecoratorToken`-based override (the imperative stub is returned raw, no decoration applied). Use it for ad-hoc test setup or runtime swaps.
+
+#### Override-as-injectable (declarative override)
+
+A package can publish a "test stub" as a regular injectable that takes effect whenever it's registered. The stub is just an `instantiationDecoratorToken.for(target)`-tagged injectable whose decorator function ignores its argument and returns the stub:
+
+```ts
+// console-log.injectable.ts — production
+export const consoleLogInjectable = getInjectable2({
+  id: 'console-log',
+  instantiate: () => (...args: unknown[]) => console.log(...args),
+});
+
+// console-log.override.test-injectable.ts — test stub
+export const consoleLogOverrideInjectable = getInjectable2({
+  id: 'override--console-log',
+  tags: ['override'],
+  injectionToken: instantiationDecoratorToken.for(consoleLogInjectable),
+  // Decorator ignores its argument and replaces with a no-op:
+  instantiate: () => () => _wrappedInstantiate => _di => () => {},
+});
+
+// Production opt-out — registered once in an early batch in production builds,
+// not in test builds:
+export const skipOverridesInProductionInjectable = getInjectable2({
+  id: 'skip-overrides-in-production',
+  injectionToken: registrationDecoratorToken.for('override'),  // tag-keyed
+  instantiate: () => () => _registerSingle => _injectable => {
+    /* drop the registration entirely */
+  },
+});
+```
+
+Key properties:
+
+- **Targets injectables or tokens.** `instantiationDecoratorToken.for(target)` accepts either form; targeting a token applies the override to every registered implementer.
+- **Phase 0 ordering.** Inside one `di.register(...)` call, `instantiationDecoratorToken`-tagged injectables register before `registrationDecoratorToken`-tagged ones, so a same-batch override can preempt a registration-decorator before it ever fires.
+- **Tag-keyed registration-decorator dispatch.** `registrationDecoratorToken.for(tag)` (where `tag` is a string) fires for every injectable carrying that tag — the basis of the production opt-out shown above. The same primitive works for any other cross-cutting registration concern.
+- **Imperative wins.** `di.override` always wins over a declarative override on the same target.
+
 #### Auto-registration
 When there's a lot of `injectables`, registering them manually with `di.register` can be a chore. As a solution, auto-registration can be used to register all exported injectables from files with eg. `.injectable.ts(x)` -naming.
 
