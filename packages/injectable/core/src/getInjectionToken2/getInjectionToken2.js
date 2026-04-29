@@ -1,8 +1,6 @@
 export const injectionTokenSymbol2 = 'injection-token2';
 
 export const getInjectionToken2 = ({
-  decorable = true,
-
   specificInjectionTokenFactory: specificTokenFactory = getSpecificToken2ById,
 
   target,
@@ -13,8 +11,6 @@ export const getInjectionToken2 = ({
 
   const generalToken = Object.assign(target ?? {}, {
     ...rest,
-
-    decorable,
 
     aliasType: injectionTokenSymbol2,
 
@@ -33,7 +29,6 @@ export const getInjectionToken2 = ({
 
       specificToken.id = `${generalToken.id}/${specificToken.id}`;
       specificToken.specificTokenOf = generalToken;
-      specificToken.decorable = generalToken.decorable;
       specificToken.maxCacheSize = generalToken.maxCacheSize;
 
       specificTokensBySpeciality.set(specificToken.speciality, specificToken);

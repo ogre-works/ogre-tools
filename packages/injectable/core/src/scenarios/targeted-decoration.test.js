@@ -19,8 +19,6 @@ describe('createContainer.targeted-decoration', () => {
     const decoratorInjectable = getInjectable2({
       id: 'some-child-decorator',
       injectionToken: injectionDecoratorToken.for(childInjectable),
-      decorable: false,
-
       instantiate:
         () =>
         () =>
@@ -79,7 +77,6 @@ describe('createContainer.targeted-decoration', () => {
           const decoratorInjectable = getInjectable2({
             id: 'spy-decorator',
             injectionToken: injectionDecoratorToken.for(someInjectable),
-            decorable: false,
             instantiate: () => () => decorateSpy,
           });
 
@@ -119,7 +116,6 @@ describe('createContainer.targeted-decoration', () => {
           const decoratorInjectable = getInjectable2({
             id: 'spy-decorator',
             injectionToken: injectionDecoratorToken.for(someInjectable),
-            decorable: false,
             instantiate: () => () => decorateSpy,
           });
 
@@ -159,7 +155,6 @@ describe('createContainer.targeted-decoration', () => {
           const decoratorInjectable = getInjectable2({
             id: 'spy-decorator',
             injectionToken: injectionDecoratorToken.for(someToken),
-            decorable: false,
             instantiate: () => () => decorateSpy,
           });
 
@@ -191,7 +186,6 @@ describe('createContainer.targeted-decoration', () => {
           const decoratorInjectable = getInjectable2({
             id: 'spy-decorator',
             injectionToken: injectionDecoratorToken.for(someToken),
-            decorable: false,
             instantiate: () => () => decorateSpy,
           });
 
@@ -243,7 +237,6 @@ describe('createContainer.targeted-decoration', () => {
           const decoratorInjectable = getInjectable2({
             id: 'spy-decorator',
             injectionToken: injectionDecoratorToken.for(someToken),
-            decorable: false,
             instantiate: () => () => decorateSpy,
           });
 
@@ -272,8 +265,6 @@ describe('createContainer.targeted-decoration', () => {
       injectionToken: injectionDecoratorToken.for(
         someInjectionTokenForTargetedDecoration,
       ),
-      decorable: false,
-
       instantiate:
         () =>
         () =>
