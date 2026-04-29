@@ -314,6 +314,38 @@ describe('createContainer.targeted-decoration', () => {
     );
   });
 
+  describe('parent-token chain walk for injection decorators', () => {
+    it('an injection decorator targeting the parent token fires when injecting a specialized child token', () => {
+      const someToken = getInjectionToken({ id: 'parent-inject-token' });
+
+      const childInjectable = getInjectable({
+        id: 'child-inject',
+        injectionToken: someToken.for('some-specifier'),
+        instantiate: () => 'value',
+
+        lifecycle: lifecycleEnum.transient,
+      });
+
+      const parentDecorator = getInjectable2({
+        id: 'parent-inject-decorator',
+        injectionToken: injectionDecoratorToken.for(someToken),
+        instantiate:
+          () =>
+          () =>
+          injectToBeDecorated =>
+          (...params) =>
+            `wrapped(${injectToBeDecorated(...params)})`,
+      });
+
+      const di = createContainer('some-container', {
+        injectionDecorators: true,
+      });
+      di.register(childInjectable, parentDecorator);
+
+      expect(di.inject(childInjectable)).toBe('wrapped(value)');
+    });
+  });
+
   describe('tag-keyed injection decorators', () => {
     it('given a decorator targeting a tag, when a tagged injectable is injected, the decorator wraps the inject path', () => {
       const taggedInjectable = getInjectable({

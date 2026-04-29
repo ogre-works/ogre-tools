@@ -251,6 +251,55 @@ describe('createContainer.registration-decoration', () => {
     });
   });
 
+  describe('parent-token chain walk for registration decorators', () => {
+    it('a decorator targeting the parent general token fires when an injectable is registered against `someToken.for(specifier)`', () => {
+      const seen = [];
+
+      const someToken = getInjectionToken({ id: 'parent-general-token' });
+
+      const childInjectable = getInjectable({
+        id: 'child-with-specific-token',
+        injectionToken: someToken.for('some-specifier'),
+        instantiate: () => 'child-value',
+      });
+
+      const parentDecorator = getInjectable2({
+        id: 'parent-decorator',
+        injectionToken: registrationDecoratorToken.for(someToken),
+        instantiate: () => () => registerToBeDecorated => injectable => {
+          seen.push(injectable.id);
+          registerToBeDecorated(injectable);
+        },
+      });
+
+      di.register(parentDecorator, childInjectable);
+
+      expect(seen).toEqual(['child-with-specific-token']);
+    });
+
+    it('the parent-token decorator can prevent registration of any specialized child', () => {
+      const someToken = getInjectionToken({ id: 'parent-token-blocker' });
+
+      const childInjectable = getInjectable({
+        id: 'blocked-child',
+        injectionToken: someToken.for('some-specifier'),
+        instantiate: () => 'never-injected',
+      });
+
+      const parentBlockingDecorator = getInjectable2({
+        id: 'parent-blocking-decorator',
+        injectionToken: registrationDecoratorToken.for(someToken),
+        instantiate: () => () => () => () => {
+          // Drop registration entirely.
+        },
+      });
+
+      di.register(parentBlockingDecorator, childInjectable);
+
+      expect(() => di.inject(childInjectable)).toThrow();
+    });
+  });
+
   describe('tag-keyed registration decorators', () => {
     it('given a decorator targeting a tag, when an injectable carrying that tag is registered, the decorator fires for it', () => {
       const seen = [];
@@ -588,6 +637,38 @@ describe('createContainer.registration-decoration', () => {
 
       it('the non-matching injectable is deregistered normally', () => {
         expect(() => di.inject(otherInjectable)).toThrow();
+      });
+    });
+
+    describe('parent-token chain walk for deregistration decorators', () => {
+      it('a deregistration decorator targeting the parent token fires when a child specialization is deregistered', () => {
+        const seen = [];
+
+        const someToken = getInjectionToken({ id: 'dereg-parent-token' });
+
+        const childInjectable = getInjectable({
+          id: 'dereg-child',
+          injectionToken: someToken.for('some-specifier'),
+          instantiate: () => 'value',
+        });
+
+        const parentDecorator = getInjectable2({
+          id: 'dereg-parent-decorator',
+          injectionToken: deregistrationDecoratorToken.for(someToken),
+          instantiate:
+            () =>
+            () =>
+            deregisterToBeDecorated =>
+            injectable => {
+              seen.push(injectable.id);
+              deregisterToBeDecorated(injectable);
+            },
+        });
+
+        di.register(parentDecorator, childInjectable);
+        di.deregister(childInjectable);
+
+        expect(seen).toEqual(['dereg-child']);
       });
     });
 

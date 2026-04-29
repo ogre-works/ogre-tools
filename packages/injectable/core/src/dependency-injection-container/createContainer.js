@@ -15,7 +15,7 @@ import { earlyOverrideFor, earlyOverride2For } from './early-override';
 import { injectionDecoratorToken } from './tokens';
 import { isRelatedToToken } from './getRelatedTokens';
 import { firePurgeCallbacksFor } from './firePurgeCallbacksFor';
-import { getTagKeyedDecoratorsFor } from './getTagKeyedDecoratorsFor';
+import { getApplicableDecoratorsFor } from './getApplicableDecoratorsFor';
 
 export default (containerId, { injectionDecorators = false } = {}) => {
   const injectableSet = new Set();
@@ -69,7 +69,7 @@ export default (containerId, { injectionDecorators = false } = {}) => {
       withMeta: true,
     });
 
-  const getTagKeyedDecorators = getTagKeyedDecoratorsFor({
+  const getApplicableDecorators = getApplicableDecoratorsFor({
     injectMany: nonDecoratedPrivateInjectMany,
   });
 
@@ -103,7 +103,7 @@ export default (containerId, { injectionDecorators = false } = {}) => {
     checkForAbstractToken,
     namespacedIdByInjectableMap,
     getNamespacedId,
-    getTagKeyedDecorators,
+    getApplicableDecorators,
   });
 
   const nonDecoratedPrivateInject = nonDecoratedPrivateInjectUnknownMeta({
@@ -117,9 +117,8 @@ export default (containerId, { injectionDecorators = false } = {}) => {
 
   const withInjectionDecorators = injectionDecorators
     ? withInjectionDecoratorsFor({
-        injectMany: nonDecoratedPrivateInjectMany,
         decoratorCache,
-        getTagKeyedDecorators,
+        getApplicableDecorators,
       })
     : null;
 
@@ -136,8 +135,7 @@ export default (containerId, { injectionDecorators = false } = {}) => {
     : nonDecoratedPrivateInjectWithMeta;
 
   const firePurgeCallbacks = firePurgeCallbacksFor({
-    injectMany: nonDecoratedPrivateInjectMany,
-    getTagKeyedDecorators,
+    getApplicableDecorators,
   });
 
   const rawRegisterSingle = registerSingleFor({
@@ -171,7 +169,7 @@ export default (containerId, { injectionDecorators = false } = {}) => {
 
   const deregister = deregisterFor({
     injectMany: nonDecoratedPrivateInjectMany,
-    getTagKeyedDecorators,
+    getApplicableDecorators,
     injectableSet,
     injectableAndRegistrationContext,
     injectablesByInjectionToken,
@@ -188,7 +186,7 @@ export default (containerId, { injectionDecorators = false } = {}) => {
   const privateRegister = registerFor({
     registerSingle,
     injectMany: nonDecoratedPrivateInjectMany,
-    getTagKeyedDecorators,
+    getApplicableDecorators,
   });
 
   const earlyOverride = earlyOverrideFor({

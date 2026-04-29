@@ -154,6 +154,36 @@ describe('createContainer.targeted-decoration-of-instantiation', () => {
     });
   });
 
+  describe('parent-token chain walk for instantiation decorators', () => {
+    it('a decorator targeting the parent token wraps instantiation of any child with `someToken.for(specifier)` as injectionToken', () => {
+      const someToken = getInjectionToken({ id: 'parent-instantiate-token' });
+
+      const childInjectable = getInjectable({
+        id: 'child-instantiate',
+        injectionToken: someToken.for('some-specifier'),
+        instantiate: () => 'core',
+
+        lifecycle: lifecycleEnum.transient,
+      });
+
+      const parentDecorator = getInjectable2({
+        id: 'parent-instantiate-decorator',
+        injectionToken: instantiationDecoratorToken.for(someToken),
+        instantiate:
+          () =>
+          () =>
+          instantiate =>
+          (di, ...params) =>
+            `wrapped(${instantiate(di, ...params)})`,
+      });
+
+      const di = createContainer('some-container');
+      di.register(childInjectable, parentDecorator);
+
+      expect(di.inject(childInjectable)).toBe('wrapped(core)');
+    });
+  });
+
   describe('tag-keyed instantiation decorators', () => {
     it('given a decorator targeting a tag, when a tagged injectable is instantiated, the decorator wraps it', () => {
       const targetInjectable = getInjectable({

@@ -1,33 +1,17 @@
 import { instancePurgeCallbackToken } from './tokens';
 
 export const firePurgeCallbacksFor =
-  ({ injectMany, getTagKeyedDecorators }) =>
+  ({ getApplicableDecorators }) =>
   (injectable, instance, keyArray) => {
     const payload = { instance };
 
-    for (const cb of injectMany({
-      alias: instancePurgeCallbackToken.for(injectable),
-      instantiationParameters: [],
+    const callbacks = getApplicableDecorators({
+      decoratorToken: instancePurgeCallbackToken,
+      target: injectable,
       injectingInjectable: injectable,
-    })) {
-      cb(payload)(...keyArray);
-    }
+    });
 
-    if (injectable.injectionToken) {
-      for (const cb of injectMany({
-        alias: instancePurgeCallbackToken.for(injectable.injectionToken),
-        instantiationParameters: [],
-        injectingInjectable: injectable,
-      })) {
-        cb(payload)(...keyArray);
-      }
-    }
-
-    for (const cb of getTagKeyedDecorators({
-      token: instancePurgeCallbackToken,
-      injectable,
-      injectingInjectable: injectable,
-    })) {
+    for (const cb of callbacks) {
       cb(payload)(...keyArray);
     }
   };
