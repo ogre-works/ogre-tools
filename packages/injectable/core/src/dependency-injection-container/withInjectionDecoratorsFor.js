@@ -1,8 +1,9 @@
 import flow from './fastFlow';
 import { injectionDecoratorToken } from './tokens';
+import isInjectionToken from '../getInjectionToken/isInjectionToken';
 
 export const withInjectionDecoratorsFor =
-  ({ injectMany, decoratorCache }) =>
+  ({ injectMany, decoratorCache, getTagKeyedDecorators }) =>
   toBeDecorated =>
   ({ alias, instantiationParameters, injectingInjectable }) => {
     // When decoratorCache.injection is null, a decorator was registered or
@@ -28,6 +29,16 @@ export const withInjectionDecoratorsFor =
               injectingInjectable,
             })
           : []),
+        // Tag-dispatch fires only when alias is a concrete injectable.
+        // Tokens don't have tags; resolving a token to its implementers and
+        // unioning their tags is a deliberate non-feature here.
+        ...(isInjectionToken(alias)
+          ? []
+          : getTagKeyedDecorators({
+              token: injectionDecoratorToken,
+              injectable: alias,
+              injectingInjectable,
+            })),
       ];
 
       if (decorators.length > 0) {

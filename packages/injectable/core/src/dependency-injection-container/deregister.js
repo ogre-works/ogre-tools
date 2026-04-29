@@ -12,6 +12,7 @@ import flow from './fastFlow';
 export const deregisterFor =
   ({
     injectMany,
+    getTagKeyedDecorators,
     injectableSet,
     injectableAndRegistrationContext,
     injectablesByInjectionToken,
@@ -77,6 +78,11 @@ export const deregisterFor =
               injectingInjectable: source,
             })
           : []),
+        ...getTagKeyedDecorators({
+          token: deregistrationDecoratorToken,
+          injectable,
+          injectingInjectable: source,
+        }),
       ];
 
       if (decorators.length === 0) {

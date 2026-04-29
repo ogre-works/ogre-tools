@@ -313,4 +313,102 @@ describe('createContainer.targeted-decoration', () => {
       'parent(parent-parameter) -> decorated-instance(child(decorated-parameter(child-parameter)))',
     );
   });
+
+  describe('tag-keyed injection decorators', () => {
+    it('given a decorator targeting a tag, when a tagged injectable is injected, the decorator wraps the inject path', () => {
+      const taggedInjectable = getInjectable({
+        id: 'tagged',
+        tags: ['traced'],
+        instantiate: () => 'value',
+      });
+
+      const tagDecorator = getInjectable2({
+        id: 'traced-decorator',
+        injectionToken: injectionDecoratorToken.for('traced'),
+        instantiate:
+          () =>
+          () =>
+          injectToBeDecorated =>
+          (...params) =>
+            `traced(${injectToBeDecorated(...params)})`,
+      });
+
+      const di = createContainer('some-container', {
+        injectionDecorators: true,
+      });
+      di.register(taggedInjectable, tagDecorator);
+
+      expect(di.inject(taggedInjectable)).toBe('traced(value)');
+    });
+
+    it('a tag-keyed injection decorator does NOT fire when the inject alias is a token, even if implementers carry the tag', () => {
+      const someToken = getInjectionToken({ id: 'some-token-for-tag-skip' });
+
+      const taggedImpl = getInjectable({
+        id: 'tagged-impl',
+        injectionToken: someToken,
+        tags: ['traced'],
+        instantiate: () => 'impl-value',
+      });
+
+      const decorateSpy = jest.fn(
+        injectToBeDecorated =>
+          (...params) =>
+            `traced(${injectToBeDecorated(...params)})`,
+      );
+
+      const tagDecorator = getInjectable2({
+        id: 'traced-decorator-skipped-for-token',
+        injectionToken: injectionDecoratorToken.for('traced'),
+        instantiate: () => () => decorateSpy,
+      });
+
+      const di = createContainer('some-container', {
+        injectionDecorators: true,
+      });
+      di.register(taggedImpl, tagDecorator);
+
+      // Direct injectable inject: tag fires.
+      expect(di.inject(taggedImpl)).toBe('traced(impl-value)');
+      expect(decorateSpy).toHaveBeenCalledTimes(1);
+
+      decorateSpy.mockClear();
+
+      // Token inject: tag does NOT fire (conservative rule).
+      expect(di.inject(someToken)).toBe('impl-value');
+      expect(decorateSpy).not.toHaveBeenCalled();
+    });
+
+    it('cache invalidation: registering a tag-keyed injection decorator after the first inject is reflected on the next inject', () => {
+      const taggedInjectable = getInjectable({
+        id: 'cache-test-tagged',
+        tags: ['traced-late'],
+        instantiate: () => 'value',
+      });
+
+      const di = createContainer('some-container', {
+        injectionDecorators: true,
+      });
+      di.register(taggedInjectable);
+
+      // First inject: no decorator yet.
+      expect(di.inject(taggedInjectable)).toBe('value');
+
+      const tagDecorator = getInjectable2({
+        id: 'traced-late-decorator',
+        injectionToken: injectionDecoratorToken.for('traced-late'),
+        instantiate:
+          () =>
+          () =>
+          injectToBeDecorated =>
+          (...params) =>
+            `late(${injectToBeDecorated(...params)})`,
+      });
+
+      di.register(tagDecorator);
+
+      // Second inject: decorator now applies (cache was invalidated).
+      expect(di.inject(taggedInjectable)).toBe('late(value)');
+    });
+  });
 });

@@ -590,5 +590,57 @@ describe('createContainer.registration-decoration', () => {
         expect(() => di.inject(otherInjectable)).toThrow();
       });
     });
+
+    describe('tag-keyed deregistration decorators', () => {
+      it('a decorator targeting a tag fires when a tagged injectable is deregistered', () => {
+        const seen = [];
+
+        const taggedInjectable = getInjectable({
+          id: 'tagged',
+          tags: ['observed'],
+          instantiate: () => 'value',
+        });
+
+        const tagDecorator = getInjectable2({
+          id: 'observed-tag-deregister-decorator',
+          injectionToken: deregistrationDecoratorToken.for('observed'),
+          instantiate:
+            () =>
+            () =>
+            deregisterToBeDecorated =>
+            injectable => {
+              seen.push(injectable.id);
+              deregisterToBeDecorated(injectable);
+            },
+        });
+
+        di.register(tagDecorator, taggedInjectable);
+        di.deregister(taggedInjectable);
+
+        expect(seen).toEqual(['tagged']);
+        expect(() => di.inject(taggedInjectable)).toThrow();
+      });
+
+      it('a tag-keyed deregistration decorator can prevent deregistration', () => {
+        const taggedInjectable = getInjectable({
+          id: 'protected',
+          tags: ['locked'],
+          instantiate: () => 'still-here',
+        });
+
+        const lockDecorator = getInjectable2({
+          id: 'locked-tag-decorator',
+          injectionToken: deregistrationDecoratorToken.for('locked'),
+          instantiate: () => () => () => () => {
+            // Don't call deregisterToBeDecorated — prevent deregistration.
+          },
+        });
+
+        di.register(lockDecorator, taggedInjectable);
+        di.deregister(taggedInjectable);
+
+        expect(di.inject(taggedInjectable)).toBe('still-here');
+      });
+    });
   });
 });
