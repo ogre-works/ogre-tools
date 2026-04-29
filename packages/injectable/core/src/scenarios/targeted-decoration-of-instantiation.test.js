@@ -114,7 +114,7 @@ describe('createContainer.targeted-decoration-of-instantiation', () => {
     );
   });
 
-  describe('given decorator targeting an injectable that is overridden', () => {
+  describe('given decorator targeting an injectable that is imperatively overridden', () => {
     let di;
     let someInjectable;
     let decorateSpy;
@@ -143,14 +143,14 @@ describe('createContainer.targeted-decoration-of-instantiation', () => {
       di.override(someInjectable, () => 'overridden');
     });
 
-    it('when injected, the decorator applies to the override', () => {
-      expect(di.inject(someInjectable)).toBe('decorated(overridden)');
+    it('when injected, the imperative override wins absolutely and the decorator does not apply', () => {
+      expect(di.inject(someInjectable)).toBe('overridden');
     });
 
-    it('when injected, the decorator fires exactly once', () => {
+    it('when injected, the decorator does not fire', () => {
       di.inject(someInjectable);
 
-      expect(decorateSpy).toHaveBeenCalledTimes(1);
+      expect(decorateSpy).not.toHaveBeenCalled();
     });
   });
 });

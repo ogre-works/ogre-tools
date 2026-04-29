@@ -462,6 +462,12 @@ export interface RegistrationDecoratorSpecificFactory {
   <InjectionInstance, InstantiationParam = void>(
     target: Injectable<InjectionInstance, any, InstantiationParam> | InjectionToken<InjectionInstance, InstantiationParam>,
   ): SpecificInjectionToken2<RegistrationDecorator>;
+
+  // Tag-keyed dispatch: a registration decorator targeting a string tag
+  // fires for every injectable whose `tags` array contains that tag.
+  // Weak typing is intentional — the tag is a documentation string, not a
+  // type witness.
+  (tag: string): SpecificInjectionToken2<RegistrationDecorator>;
 }
 
 export const registrationDecoratorToken: AbstractInjectionToken2<
