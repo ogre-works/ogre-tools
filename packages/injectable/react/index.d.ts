@@ -3,6 +3,7 @@ import {
   AbstractInjectionToken2,
   DiContainer,
   DiContainerForInjection,
+  Factory,
   Injectable,
   Injectable2,
   InjectionToken,
@@ -11,10 +12,8 @@ import {
   SpecificInjectionToken2,
 } from '@ogre-tools/injectable';
 
-export function useInject<F extends (...args: any[]) => any>(
-  injectable:
-    | Injectable2<F>
-    | (InjectionToken2<F> & { readonly __abstract?: never }),
+export function useInject<F extends Factory>(
+  injectable: Injectable2<F> | InjectionToken2<F>,
   ...params: Parameters<F>
 ): Awaited<ReturnType<F>>;
 
@@ -29,10 +28,8 @@ export function useInject<TReturnValue, TInstantiationParameter>(
   instantiationParameter: TInstantiationParameter,
 ): Awaited<TReturnValue>;
 
-export function useInjectDeferred<F extends (...args: any[]) => any>(
-  injectable:
-    | Injectable2<F>
-    | (InjectionToken2<F> & { readonly __abstract?: never }),
+export function useInjectDeferred<F extends Factory>(
+  injectable: Injectable2<F> | InjectionToken2<F>,
   ...params: Parameters<F>
 ): Awaited<ReturnType<F>>;
 
@@ -47,11 +44,9 @@ export function useInjectDeferred<TReturnValue, TInstantiationParameter>(
   instantiationParameter: TInstantiationParameter,
 ): Awaited<TReturnValue>;
 
-export function useInject2<F extends (...args: any[]) => any>(
-  alias: Injectable2<F>,
-): F;
-export function useInject2<F extends (...args: any[]) => any>(
-  alias: InjectionToken2<F> & { readonly __abstract?: never },
+export function useInject2<F extends Factory>(alias: Injectable2<F>): F;
+export function useInject2<F extends Factory>(
+  alias: InjectionToken2<F>,
 ): F;
 export function useInject2<TReturnValue>(
   alias: Injectable<TReturnValue, any> | InjectionToken<TReturnValue>,
@@ -97,7 +92,7 @@ export declare function getInjectableComponent2<
     id: string;
     Component: Component;
     PlaceholderComponent?: React.ComponentType<React.ComponentProps<Component>>;
-    injectionToken?: InjectionToken2<() => Component> & { readonly __abstract?: never };
+    injectionToken?: InjectionToken2<() => Component>;
   },
 ): InjectableComponent2<Component>;
 

@@ -490,11 +490,9 @@ describe('callbacks-for-instance-purge', () => {
     });
 
     describe('when calling injectMany on the base token directly', () => {
-      it('throws an abstract error', () => {
+      it('returns an empty array (no callbacks registered against the abstract base)', () => {
         const di = createContainer('some-container');
-        expect(() => di.injectMany(instancePurgeCallbackToken)).toThrow(
-          /abstract/,
-        );
+        expect(di.injectMany(instancePurgeCallbackToken)).toEqual([]);
       });
     });
 

@@ -1,5 +1,7 @@
 import {
+  AbstractInjectionToken2,
   DiContainer,
+  Factory,
   InjectionInstanceWithMeta,
   InjectionToken,
   InjectionToken2,
@@ -9,9 +11,9 @@ import { IComputedValue } from 'mobx';
 export function registerMobX(di: DiContainer): void;
 
 type ComputedInjectMany = {
-  // InjectionToken2: variadic, returns IComputedValue of instance array
-  <F extends (...args: any[]) => any>(
-    injectionToken: InjectionToken2<F> & { readonly __abstract?: never },
+  // InjectionToken2 / AbstractInjectionToken2: variadic, returns IComputedValue of instance array
+  <F extends Factory>(
+    injectionToken: InjectionToken2<F> | AbstractInjectionToken2<F>,
     ...params: Parameters<F>
   ): IComputedValue<ReturnType<F>[]>;
 
@@ -27,9 +29,9 @@ type ComputedInjectMany = {
 };
 
 type ComputedInjectManyWithMeta = {
-  // InjectionToken2: variadic, returns IComputedValue of instance-with-meta array
-  <F extends (...args: any[]) => any>(
-    injectionToken: InjectionToken2<F> & { readonly __abstract?: never },
+  // InjectionToken2 / AbstractInjectionToken2: variadic, returns IComputedValue of instance-with-meta array
+  <F extends Factory>(
+    injectionToken: InjectionToken2<F> | AbstractInjectionToken2<F>,
     ...params: Parameters<F>
   ): IComputedValue<InjectionInstanceWithMeta<ReturnType<F>>[]>;
 
@@ -50,8 +52,8 @@ export const computedInjectManyWithMetaInjectionToken: InjectionToken<ComputedIn
 
 type ComputedInjectMaybe = {
   // InjectionToken2: variadic, returns IComputedValue of instance or undefined
-  <F extends (...args: any[]) => any>(
-    injectionToken: InjectionToken2<F> & { readonly __abstract?: never },
+  <F extends Factory>(
+    injectionToken: InjectionToken2<F>,
     ...params: Parameters<F>
   ): IComputedValue<ReturnType<F> | undefined>;
 
@@ -95,10 +97,10 @@ type ComputedInjectMany2 = {
   ) => TInstance[];
 
   <
-    F extends (...args: any[]) => any,
+    F extends Factory,
     MF extends (...args: Parameters<F>) => ReturnType<F>[],
   >(
-    injectionToken: InjectionToken2<F, MF> & { readonly __abstract?: never },
+    injectionToken: InjectionToken2<F, MF> | AbstractInjectionToken2<F, MF>,
   ): MF;
 };
 
@@ -115,8 +117,8 @@ type ComputedInjectManyWithMeta2 = {
     ...param: TInjectionToken extends InjectionToken<any, infer T> ? [T] : []
   ) => TInstanceWithMeta[];
 
-  <F extends (...args: any[]) => any>(
-    injectionToken: InjectionToken2<F> & { readonly __abstract?: never },
+  <F extends Factory>(
+    injectionToken: InjectionToken2<F> | AbstractInjectionToken2<F>,
   ): (...params: Parameters<F>) => InjectionInstanceWithMeta<ReturnType<F>>[];
 };
 
@@ -133,8 +135,8 @@ type ComputedInjectMaybe2 = {
     ...param: TInjectionToken extends InjectionToken<any, infer T> ? [T] : []
   ) => TInstance | undefined;
 
-  <F extends (...args: any[]) => any>(
-    injectionToken: InjectionToken2<F> & { readonly __abstract?: never },
+  <F extends Factory>(
+    injectionToken: InjectionToken2<F>,
   ): (...params: Parameters<F>) => ReturnType<F> | undefined;
 };
 

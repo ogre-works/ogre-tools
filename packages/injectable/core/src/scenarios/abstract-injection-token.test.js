@@ -25,10 +25,8 @@ describe('getAbstractInjectionToken2', () => {
       );
     });
 
-    it('when injecting directly with di.injectMany, throws', () => {
-      expect(() => di.injectMany(abstractToken)).toThrow(
-        'Tried to inject injection token "some-abstract-token" from "test-container", but it is abstract. Use ".for(specifier)" for a concrete token.',
-      );
+    it('when injecting directly with di.injectMany, returns empty array (no injectables registered against the abstract token itself)', () => {
+      expect(di.injectMany(abstractToken)).toEqual([]);
     });
 
     it('when injecting directly with di.injectWithMeta, throws', () => {
@@ -37,10 +35,8 @@ describe('getAbstractInjectionToken2', () => {
       );
     });
 
-    it('when injecting directly with di.injectManyWithMeta, throws', () => {
-      expect(() => di.injectManyWithMeta(abstractToken)).toThrow(
-        'but it is abstract',
-      );
+    it('when injecting directly with di.injectManyWithMeta, returns empty array', () => {
+      expect(di.injectManyWithMeta(abstractToken)).toEqual([]);
     });
 
     describe('given a specific token derived via .for()', () => {
