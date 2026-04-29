@@ -50,7 +50,7 @@ if (isInjectionToken(foo)) {
 }
 
 if (isInjectableBunch(foo)) {
-  expectType<InjectableBunch<any>>(foo);
+  expectType<InjectableBunch>(foo);
 }
 
 const x1: boolean = isInjectable(foo);
@@ -1418,14 +1418,17 @@ di.inject(specificFromAbstract, 'test');
 // injecting abstract token directly is a TYPE ERROR
 expectError(di.inject(abstractHandlerToken, 'test'));
 
-// injectMany on abstract token is a TYPE ERROR
-expectError(di.injectMany(abstractHandlerToken, 'test'));
+// injectMany on abstract token is OK (returns empty array at runtime when no
+// injectables are registered against the abstract token itself)
+expectType<void[]>(di.injectMany(abstractHandlerToken, 'test'));
 
 // injectWithMeta on abstract token is a TYPE ERROR
 expectError(di.injectWithMeta(abstractHandlerToken, 'test'));
 
-// injectManyWithMeta on abstract token is a TYPE ERROR
-expectError(di.injectManyWithMeta(abstractHandlerToken, 'test'));
+// injectManyWithMeta on abstract token is OK
+expectType<InjectionInstanceWithMeta<void>[]>(
+  di.injectManyWithMeta(abstractHandlerToken, 'test'),
+);
 
 // implementing abstract token directly is a TYPE ERROR
 expectError(getInjectable2({
@@ -1440,3 +1443,116 @@ getInjectable2({
   injectionToken: specificFromAbstract,
   instantiate: () => (name: string) => {},
 });
+
+// ======================================================================
+// Disciplined type parameters: Factory alias, defaults, Alias union, exports
+// ======================================================================
+
+import {
+  Factory,
+  Alias,
+  Alias1,
+  Alias2,
+  ManyFactory,
+  InjectMany,
+  InjectMany2,
+  InjectWithMeta,
+  InjectWithMeta2,
+  InjectManyWithMeta,
+  InjectManyWithMeta2,
+  HasRegistrations2,
+  Meta,
+  ToWithMetaFactory,
+  ToWithMetaManyFactory,
+} from '.';
+
+// --- Defaults: bare types resolve to the Factory default ---
+
+const anyInjectable2: Injectable2 = nonParametricInjectable2;
+expectAssignable<Injectable2>(parametricInjectable2);
+expectAssignable<Injectable2>(transientInjectable2);
+
+expectAssignable<InjectionToken2>(handlerToken2);
+expectAssignable<InjectionToken2>(userServiceToken2);
+
+expectAssignable<AbstractInjectionToken2>(abstractHandlerToken);
+
+// Heterogeneous v2 collection — previously required Injectable2<any>
+const everyInjectable2: Injectable2[] = [
+  nonParametricInjectable2,
+  parametricInjectable2,
+  transientInjectable2,
+];
+
+// --- Factory alias ---
+
+expectAssignable<Factory>((x: number) => x);
+expectAssignable<Factory>(() => 'hi');
+expectAssignable<Factory>((name: string, age: number) => ({ name, age }));
+
+// --- ManyFactory<F> ---
+
+type _AutoManySimple = ManyFactory<(name: string) => number>;
+expectAssignable<_AutoManySimple>((name: string) => [1, 2]);
+
+type _AutoManyZeroArg = ManyFactory<() => string>;
+expectAssignable<_AutoManyZeroArg>(() => ['a', 'b']);
+
+// --- Meta ---
+
+const sampleMeta: Meta = { id: 'hello' };
+expectType<string>(sampleMeta.id);
+
+// --- Exported helper interfaces are nominally usable as types ---
+
+type _Im = InjectMany;
+type _Im2 = InjectMany2;
+type _Iwm = InjectWithMeta;
+type _Iwm2 = InjectWithMeta2;
+type _Imwm = InjectManyWithMeta;
+type _Imwm2 = InjectManyWithMeta2;
+type _Hr2 = HasRegistrations2;
+type _Twmf = ToWithMetaFactory<(x: number) => string>;
+type _Twmmf = ToWithMetaManyFactory<(x: number) => string>;
+
+// --- Alias / Alias1 / Alias2 ---
+
+const v1Aliases: Alias1[] = [
+  someInjectable,
+  someStringInjectionToken,
+  someInjectableWithInstantiationParameter,
+  someInjectableWithMatchingInstantiationParameters,
+];
+
+const v2Aliases: Alias2[] = [
+  nonParametricInjectable2,
+  handlerToken2,
+  abstractHandlerToken,
+];
+
+const everyAlias: Alias[] = [...v1Aliases, ...v2Aliases];
+
+// permitSideEffects accepts any Alias member:
+di.permitSideEffects(handlerToken2);
+di.permitSideEffects(someInjectable);
+di.permitSideEffects(abstractHandlerToken);
+
+// hasRegistrations accepts any Alias member:
+di.hasRegistrations(handlerToken2);
+di.hasRegistrations(someInjectable);
+
+// --- tags is now string[] ---
+
+getInjectable2({
+  id: 'tagged',
+  instantiate: () => () => 1,
+  tags: ['some-tag', 'another'],
+});
+
+expectError(
+  getInjectable2({
+    id: 'badly-tagged',
+    instantiate: () => () => 1,
+    tags: [42],
+  }),
+);

@@ -55,7 +55,6 @@ export default (containerId, { injectionDecorators = false } = {}) => {
     nonDecoratedPrivateInjectManyFor({
       getRelatedInjectables,
       getInject: () => decoratedPrivateInject,
-      checkForAbstractToken,
       namespacedIdByInjectableMap,
     });
 
