@@ -143,14 +143,14 @@ describe('createContainer.targeted-decoration-of-instantiation', () => {
       di.override(someInjectable, () => 'overridden');
     });
 
-    it('when injected, the imperative override wins absolutely and the decorator does not apply', () => {
-      expect(di.inject(someInjectable)).toBe('overridden');
+    it('when injected, the decorator wraps the imperative override', () => {
+      expect(di.inject(someInjectable)).toBe('decorated(overridden)');
     });
 
-    it('when injected, the decorator does not fire', () => {
+    it('when injected, the decorator fires', () => {
       di.inject(someInjectable);
 
-      expect(decorateSpy).not.toHaveBeenCalled();
+      expect(decorateSpy).toHaveBeenCalled();
     });
   });
 
@@ -279,7 +279,7 @@ describe('createContainer.targeted-decoration-of-instantiation', () => {
       expect(di.inject(untaggedInjectable)).toBe('untagged-value');
     });
 
-    it('imperative override still wins over a tag-keyed instantiation decorator', () => {
+    it('a tag-keyed instantiation decorator wraps an imperative override', () => {
       const targetInjectable = getInjectable({
         id: 'imperatively-overridden-tagged',
         tags: ['logged'],
@@ -303,8 +303,8 @@ describe('createContainer.targeted-decoration-of-instantiation', () => {
 
       di.override(targetInjectable, () => 'overridden');
 
-      expect(di.inject(targetInjectable)).toBe('overridden');
-      expect(decorateSpy).not.toHaveBeenCalled();
+      expect(di.inject(targetInjectable)).toBe('wrapped(overridden)');
+      expect(decorateSpy).toHaveBeenCalled();
     });
   });
 });

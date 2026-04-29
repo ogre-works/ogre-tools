@@ -238,7 +238,7 @@ describe('createContainer.override-pattern', () => {
     ]).toContain(result);
   });
 
-  it('imperative override wins absolutely over a declarative override', () => {
+  it('declarative decorator wraps the imperative override', () => {
     const targetInjectable = getInjectable({
       id: 'target-imperative',
       instantiate: () => 'real',
@@ -254,7 +254,7 @@ describe('createContainer.override-pattern', () => {
 
     di.override(targetInjectable, () => 'imperative');
 
-    expect(di.inject(targetInjectable)).toBe('imperative');
+    expect(di.inject(targetInjectable)).toBe('declarative');
   });
 
   it('without imperative override, declarative override is what wins', () => {
