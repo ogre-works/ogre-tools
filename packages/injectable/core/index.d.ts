@@ -401,6 +401,13 @@ export interface InjectionDecoratorSpecificFactory {
   <InjectionInstance, InstantiationParam = void>(
     target: Injectable<InjectionInstance, any, InstantiationParam> | InjectionToken<InjectionInstance, InstantiationParam>,
   ): SpecificInjectionToken2<() => (inject: (...params: any[]) => any) => (...params: any[]) => any>;
+
+  // Tag-keyed dispatch: an injection decorator targeting a string tag fires
+  // for every injectable whose `tags` array contains that tag — but ONLY when
+  // `di.inject` is called with a concrete injectable as the alias. Token-aliases
+  // (`di.inject(someToken)`) do NOT trigger tag-keyed injection-decorators.
+  // Weak typing is intentional — the tag is a documentation string.
+  (tag: string): SpecificInjectionToken2<() => (inject: (...params: any[]) => any) => (...params: any[]) => any>;
 }
 
 export const injectionDecoratorToken: AbstractInjectionToken2<
@@ -434,6 +441,11 @@ export interface InstantiationDecoratorSpecificFactory {
   <InjectionInstance, InstantiationParam = void>(
     target: Injectable<InjectionInstance, any, InstantiationParam> | InjectionToken<InjectionInstance, InstantiationParam>,
   ): SpecificInjectionToken2<() => (instantiate: Instantiate<any, any>) => Instantiate<any, any>>;
+
+  // Tag-keyed dispatch: an instantiation decorator targeting a string tag
+  // fires for every injectable whose `tags` array contains that tag.
+  // Weak typing is intentional — the tag is a documentation string.
+  (tag: string): SpecificInjectionToken2<() => (instantiate: Instantiate<any, any>) => Instantiate<any, any>>;
 }
 
 export const instantiationDecoratorToken: AbstractInjectionToken2<
@@ -511,6 +523,11 @@ export interface InstancePurgeCallbackSpecificFactory {
   <Factory extends (...args: any[]) => any>(
     target: Injectable2<Factory> | InjectionToken2<Factory>,
   ): SpecificInjectionToken2<InstancePurgeCallbackForInjectable2<Factory>>;
+
+  // Tag-keyed dispatch: a purge callback targeting a string tag fires for
+  // every injectable whose `tags` array contains that tag.
+  // Weak typing is intentional — the tag is a documentation string.
+  (tag: string): SpecificInjectionToken2<InstancePurgeCallbackForInjectable2<(...args: any[]) => any>>;
 }
 
 export const instancePurgeCallbackToken: AbstractInjectionToken2<

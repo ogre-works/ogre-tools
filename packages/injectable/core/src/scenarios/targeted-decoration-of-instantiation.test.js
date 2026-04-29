@@ -153,4 +153,128 @@ describe('createContainer.targeted-decoration-of-instantiation', () => {
       expect(decorateSpy).not.toHaveBeenCalled();
     });
   });
+
+  describe('tag-keyed instantiation decorators', () => {
+    it('given a decorator targeting a tag, when a tagged injectable is instantiated, the decorator wraps it', () => {
+      const targetInjectable = getInjectable({
+        id: 'tagged-target',
+        tags: ['logged'],
+        instantiate: () => 'value',
+      });
+
+      const tagDecorator = getInjectable2({
+        id: 'logged-tag-decorator',
+        injectionToken: instantiationDecoratorToken.for('logged'),
+        instantiate:
+          () =>
+          () =>
+          instantiationToBeDecorated =>
+          (di, ...params) =>
+            `wrapped(${instantiationToBeDecorated(di, ...params)})`,
+      });
+
+      const di = createContainer('some-container');
+      di.register(targetInjectable, tagDecorator);
+
+      expect(di.inject(targetInjectable)).toBe('wrapped(value)');
+    });
+
+    it('given an injectable with multiple tags, each tag-keyed decorator fires once and they compose', () => {
+      const targetInjectable = getInjectable({
+        id: 'multi-tagged',
+        tags: ['outer', 'inner'],
+        instantiate: () => 'core',
+      });
+
+      const outerDecorator = getInjectable2({
+        id: 'outer-decorator',
+        injectionToken: instantiationDecoratorToken.for('outer'),
+        instantiate:
+          () =>
+          () =>
+          instantiate =>
+          (di, ...params) =>
+            `outer(${instantiate(di, ...params)})`,
+      });
+
+      const innerDecorator = getInjectable2({
+        id: 'inner-decorator',
+        injectionToken: instantiationDecoratorToken.for('inner'),
+        instantiate:
+          () =>
+          () =>
+          instantiate =>
+          (di, ...params) =>
+            `inner(${instantiate(di, ...params)})`,
+      });
+
+      const di = createContainer('some-container');
+      di.register(targetInjectable, outerDecorator, innerDecorator);
+
+      // Both wrap; flow chains them. Either order is valid composition.
+      const result = di.inject(targetInjectable);
+      expect([
+        'outer(inner(core))',
+        'inner(outer(core))',
+      ]).toContain(result);
+    });
+
+    it('an untagged injectable is not affected by tag-keyed instantiation decorators', () => {
+      const taggedInjectable = getInjectable({
+        id: 'tagged',
+        tags: ['logged'],
+        instantiate: () => 'tagged-value',
+      });
+
+      const untaggedInjectable = getInjectable({
+        id: 'untagged',
+        instantiate: () => 'untagged-value',
+      });
+
+      const tagDecorator = getInjectable2({
+        id: 'logged-decorator',
+        injectionToken: instantiationDecoratorToken.for('logged'),
+        instantiate:
+          () =>
+          () =>
+          instantiate =>
+          (di, ...params) =>
+            `wrapped(${instantiate(di, ...params)})`,
+      });
+
+      const di = createContainer('some-container');
+      di.register(taggedInjectable, untaggedInjectable, tagDecorator);
+
+      expect(di.inject(taggedInjectable)).toBe('wrapped(tagged-value)');
+      expect(di.inject(untaggedInjectable)).toBe('untagged-value');
+    });
+
+    it('imperative override still wins over a tag-keyed instantiation decorator', () => {
+      const targetInjectable = getInjectable({
+        id: 'imperatively-overridden-tagged',
+        tags: ['logged'],
+        instantiate: () => 'real',
+      });
+
+      const decorateSpy = jest.fn(
+        instantiate =>
+          (di, ...params) =>
+            `wrapped(${instantiate(di, ...params)})`,
+      );
+
+      const tagDecorator = getInjectable2({
+        id: 'logged-decorator',
+        injectionToken: instantiationDecoratorToken.for('logged'),
+        instantiate: () => () => decorateSpy,
+      });
+
+      const di = createContainer('some-container');
+      di.register(targetInjectable, tagDecorator);
+
+      di.override(targetInjectable, () => 'overridden');
+
+      expect(di.inject(targetInjectable)).toBe('overridden');
+      expect(decorateSpy).not.toHaveBeenCalled();
+    });
+  });
 });

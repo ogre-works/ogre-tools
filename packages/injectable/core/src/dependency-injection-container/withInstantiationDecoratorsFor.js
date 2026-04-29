@@ -2,7 +2,7 @@ import flow from './fastFlow';
 import { instantiationDecoratorToken } from './tokens';
 
 export const withInstantiationDecoratorsFor =
-  ({ injectMany, injectable }) =>
+  ({ injectMany, injectable, getTagKeyedDecorators }) =>
   toBeDecorated => {
     // Imperative override (di.override / di.earlyOverride) wins absolutely:
     // no decoration applies to its stub instantiate.
@@ -23,6 +23,11 @@ export const withInstantiationDecoratorsFor =
             injectingInjectable: injectable,
           })
         : []),
+      ...getTagKeyedDecorators({
+        token: instantiationDecoratorToken,
+        injectable,
+        injectingInjectable: injectable,
+      }),
     ];
 
     if (decorators.length === 0) {

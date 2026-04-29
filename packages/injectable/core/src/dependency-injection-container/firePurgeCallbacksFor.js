@@ -1,7 +1,7 @@
 import { instancePurgeCallbackToken } from './tokens';
 
 export const firePurgeCallbacksFor =
-  ({ injectMany }) =>
+  ({ injectMany, getTagKeyedDecorators }) =>
   (injectable, instance, keyArray) => {
     const payload = { instance };
 
@@ -21,5 +21,13 @@ export const firePurgeCallbacksFor =
       })) {
         cb(payload)(...keyArray);
       }
+    }
+
+    for (const cb of getTagKeyedDecorators({
+      token: instancePurgeCallbackToken,
+      injectable,
+      injectingInjectable: injectable,
+    })) {
+      cb(payload)(...keyArray);
     }
   };
