@@ -4,15 +4,15 @@ import { instantiationDecoratorToken } from './tokens';
 export const withInstantiationDecoratorsFor =
   ({ injectable, getApplicableDecorators }) =>
   toBeDecorated => {
-    // Imperative override (di.override / di.earlyOverride) wins absolutely:
-    // no decoration applies to its stub instantiate.
-    if (injectable.overriddenInjectable) {
-      return toBeDecorated;
-    }
+    // Decorators always look up against the original injectable so that
+    // an imperative override (di.override / di.earlyOverride) is wrapped
+    // by any decorators registered against the original target — composing
+    // decorators rely on this.
+    const target = injectable.overriddenInjectable || injectable;
 
     const decorators = getApplicableDecorators({
       decoratorToken: instantiationDecoratorToken,
-      target: injectable,
+      target,
       injectingInjectable: injectable,
     });
 
