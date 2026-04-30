@@ -1,5 +1,6 @@
 import { nonStoredInstanceKey, storedInstanceKey } from './lifecycleEnum';
 import { isCompositeKey } from '../getCompositeKey/getCompositeKey';
+import { injectableSymbol } from '../getInjectable/getInjectable';
 import { injectableSymbol2 } from '../getInjectable2/getInjectable2';
 import { instantiationDecoratorToken } from './tokens';
 import { CompositeMap } from '../composite-map/composite-map';
@@ -18,6 +19,7 @@ export const isCompositeStorage = stored =>
 export const privateInjectFor =
   ({
     getRelatedInjectables,
+    injectableSet,
     alreadyInjected,
     overridingInjectables,
     instancesByInjectableMap,
@@ -32,16 +34,33 @@ export const privateInjectFor =
   }) =>
   ({ withMeta }) =>
   ({ alias, instantiationParameters, injectingInjectable }) => {
-    checkForAbstractToken(alias, injectingInjectable);
-
     const di = getDi();
 
-    const relatedInjectables = getRelatedInjectables(alias);
+    let originalInjectable;
 
-    checkForTooManyMatches(relatedInjectables, alias, injectingInjectable);
-    checkForNoMatches(relatedInjectables, alias, injectingInjectable);
+    // Fast path: alias is itself an injectable (the dominant case — every
+    // call from privateInjectMany lands here because it iterates resolved
+    // injectables). Skip getRelatedInjectables (which would allocate a
+    // single-element [alias] array), the single-match/no-match validators,
+    // and the abstract-token check (injectables are never abstract).
+    const aliasType = alias.aliasType;
 
-    const originalInjectable = relatedInjectables[0];
+    if (aliasType === injectableSymbol || aliasType === injectableSymbol2) {
+      if (!injectableSet.has(alias)) {
+        // Reuse the existing throw with the same wording as the token path.
+        checkForNoMatches([], alias, injectingInjectable);
+      }
+      originalInjectable = alias;
+    } else {
+      checkForAbstractToken(alias, injectingInjectable);
+
+      const relatedInjectables = getRelatedInjectables(alias);
+
+      checkForTooManyMatches(relatedInjectables, alias, injectingInjectable);
+      checkForNoMatches(relatedInjectables, alias, injectingInjectable);
+
+      originalInjectable = relatedInjectables[0];
+    }
 
     alreadyInjected.add(originalInjectable);
 

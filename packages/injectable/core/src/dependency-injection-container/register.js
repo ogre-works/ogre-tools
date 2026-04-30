@@ -104,6 +104,14 @@ export const registerFor =
       injectingInjectable: source,
     });
 
+    // Skip the per-injectable forEach loop entirely when no registration
+    // callbacks are wired up — this avoids 30k+ trivial function calls
+    // during a 30k-injectable bootstrap with no callbacks (the perf-test
+    // case and the common case).
+    if (callbacks.length === 0) {
+      return;
+    }
+
     const fireBatchCallbacks = injectable => {
       for (let j = 0; j < callbacks.length; j++) {
         callbacks[j](injectable);
@@ -133,8 +141,6 @@ export const registerSingleFor = ({
       throw new Error('Tried to register injectable without ID.');
     }
 
-    injectableAndRegistrationContext.set(injectable, injectionContext);
-
     // Build reverse index: for each parent in the context, record this injectable as a child.
     for (let i = 0; i < injectionContext.length; i++) {
       const parent = injectionContext[i].injectable;
@@ -150,17 +156,25 @@ export const registerSingleFor = ({
 
     // Fast path: container-level registration (the dominant case) yields a
     // namespaced id equal to the bare id — skip the Map roundtrip + parent
-    // walk inside getNamespacedId.
+    // walk inside getNamespacedId, and skip recording the registration
+    // context altogether (`getNamespacedIdFor` and `deregister` both treat
+    // a missing entry as "no nested context" already).
     const immediateParent =
       injectionContext.length > 0
         ? injectionContext[injectionContext.length - 1]
         : undefined;
 
-    const namespacedId =
+    const isContainerLevel =
       !immediateParent ||
-      immediateParent.injectable.aliasType === 'container'
-        ? injectableId
-        : getNamespacedId(injectable);
+      immediateParent.injectable.aliasType === 'container';
+
+    if (!isContainerLevel) {
+      injectableAndRegistrationContext.set(injectable, injectionContext);
+    }
+
+    const namespacedId = isContainerLevel
+      ? injectableId
+      : getNamespacedId(injectable);
 
     if (namespacedIdByInjectableMap.has(injectable)) {
       throw new Error(

@@ -94,6 +94,7 @@ export default (containerId, { injectionDecorators = false } = {}) => {
 
   const nonDecoratedPrivateInjectUnknownMeta = privateInjectFor({
     getRelatedInjectables,
+    injectableSet,
     alreadyInjected,
     overridingInjectables,
     instancesByInjectableMap,
