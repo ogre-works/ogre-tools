@@ -70,6 +70,7 @@ export default (containerId, { injectionDecorators = false } = {}) => {
 
   const getApplicableDecorators = getApplicableDecoratorsFor({
     injectMany: nonDecoratedPrivateInjectMany,
+    injectablesByInjectionToken,
   });
 
   const getSideEffectsArePrevented = injectable =>
@@ -269,14 +270,25 @@ export default (containerId, { injectionDecorators = false } = {}) => {
     purge: purgeInstances,
 
     scopedPurge: (scopeInjectable, alias, ...keyParts) => {
+      // Singleton lifecycle stores the instance directly in the map; other
+      // lifecycles store a CompositeMap. clearStoredFor encapsulates the
+      // dispatch.
+      const clearStoredFor = injectable => {
+        if (injectable.lifecycle.id === 'singleton') {
+          instancesByInjectableMap.delete(injectable);
+          return;
+        }
+        const stored = instancesByInjectableMap.get(injectable);
+        if (stored) stored.clear();
+      };
+
       if (alias === undefined) {
-        const selfMap = instancesByInjectableMap.get(scopeInjectable);
-        if (selfMap) selfMap.clear();
+        clearStoredFor(scopeInjectable);
 
         const children = childrenByParentMap.get(scopeInjectable);
         if (children) {
           for (const child of children) {
-            instancesByInjectableMap.get(child)?.clear();
+            clearStoredFor(child);
           }
         }
 
@@ -304,12 +316,24 @@ export default (containerId, { injectionDecorators = false } = {}) => {
       }
 
       for (let i = 0; i < injectables.length; i++) {
-        const instanceMap = instancesByInjectableMap.get(injectables[i]);
+        const injectable = injectables[i];
+
+        if (injectable.lifecycle.id === 'singleton') {
+          if (keyParts.length === 0) {
+            instancesByInjectableMap.delete(injectable);
+          }
+          // Non-empty keyParts on a singleton: cache key is implicit, nothing
+          // to delete by prefix.
+          continue;
+        }
+
+        const stored = instancesByInjectableMap.get(injectable);
+        if (!stored) continue;
 
         if (keyParts.length === 0) {
-          instanceMap.clear();
+          stored.clear();
         } else {
-          instanceMap.deleteByPrefix(keyParts);
+          stored.deleteByPrefix(keyParts);
         }
       }
     },
@@ -319,11 +343,16 @@ export default (containerId, { injectionDecorators = false } = {}) => {
 
     getNumberOfInstances: () => {
       const result = {};
-      for (const [injectable, instanceMap] of instancesByInjectableMap) {
+      for (const [injectable, stored] of instancesByInjectableMap) {
         const namespacedId = namespacedIdByInjectableMap.get(injectable);
         if (!namespacedId) continue;
+
         let count = 0;
-        for (const _ of instanceMap.values()) count++;
+        if (injectable.lifecycle.id === 'singleton') {
+          count = 1;
+        } else {
+          for (const _ of stored.values()) count++;
+        }
         if (count > 0) result[namespacedId] = count;
       }
       return result;

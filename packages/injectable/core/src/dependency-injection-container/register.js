@@ -5,7 +5,6 @@ import {
   registrationDecoratorToken,
 } from './tokens';
 import toFlatInjectables from './toFlatInjectables';
-import { CompositeMap } from '../composite-map/composite-map';
 import { LruCompositeMap } from '../composite-map/lru-composite-map';
 import { getRelatedTokens, isRelatedToToken } from './getRelatedTokens';
 import { invalidateRelatedInjectablesCache } from './getRelatedInjectablesFor';
@@ -149,7 +148,19 @@ export const registerSingleFor = ({
       children.add(injectable);
     }
 
-    const namespacedId = getNamespacedId(injectable);
+    // Fast path: container-level registration (the dominant case) yields a
+    // namespaced id equal to the bare id — skip the Map roundtrip + parent
+    // walk inside getNamespacedId.
+    const immediateParent =
+      injectionContext.length > 0
+        ? injectionContext[injectionContext.length - 1]
+        : undefined;
+
+    const namespacedId =
+      !immediateParent ||
+      immediateParent.injectable.aliasType === 'container'
+        ? injectableId
+        : getNamespacedId(injectable);
 
     if (namespacedIdByInjectableMap.has(injectable)) {
       throw new Error(
@@ -177,15 +188,20 @@ export const registerSingleFor = ({
     const maxCacheSize =
       injectable.maxCacheSize ?? injectable.injectionToken?.maxCacheSize;
 
-    const instanceMap =
-      maxCacheSize > 0
-        ? new LruCompositeMap(maxCacheSize, {
-            onEvict: (instance, keyArray) =>
-              firePurgeCallbacks(injectable, instance, keyArray),
-          })
-        : new CompositeMap();
+    // LRU is only meaningful for keyed lifecycles — singletons hold one
+    // instance and would never overflow. For keyed lifecycles with a size
+    // cap, allocate eagerly so the eviction callback is wired before any
+    // store. For everything else, the map is allocated lazily on first
+    // store (singletons store the instance directly; keyedSingleton stores
+    // a CompositeMap — see privateInjectFor.js).
+    if (maxCacheSize > 0 && injectable.lifecycle.id !== 'singleton') {
+      const instanceMap = new LruCompositeMap(maxCacheSize, {
+        onEvict: (instance, keyArray) =>
+          firePurgeCallbacks(injectable, instance, keyArray),
+      });
 
-    instancesByInjectableMap.set(injectable, instanceMap);
+      instancesByInjectableMap.set(injectable, instanceMap);
+    }
 
     const tokens = getRelatedTokens(injectable.injectionToken);
 
