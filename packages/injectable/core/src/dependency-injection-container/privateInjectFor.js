@@ -3,10 +3,17 @@ import { isCompositeKey } from '../getCompositeKey/getCompositeKey';
 import { injectableSymbol2 } from '../getInjectable2/getInjectable2';
 import { instantiationDecoratorToken } from './tokens';
 import { CompositeMap } from '../composite-map/composite-map';
+import { LruCompositeMap } from '../composite-map/lru-composite-map';
 import flow from './fastFlow';
 
 // Pre-allocated key for singleton instance lookup — avoids array creation per inject()
 const singletonCompositeKey = [storedInstanceKey];
+
+// Detects the keyedSingleton storage shape. Singletons (and v2-default
+// injectables that have only ever been called without args) store the
+// instance directly; keyedSingleton with-args storage uses a CompositeMap.
+export const isCompositeStorage = stored =>
+  stored instanceof CompositeMap || stored instanceof LruCompositeMap;
 
 export const privateInjectFor =
   ({
@@ -58,18 +65,30 @@ export const privateInjectFor =
     }
 
     // Fast path: singleton cache hit — avoid creating minimalDi entirely.
-    // For default singletons the map stores the instance directly (no
-    // CompositeMap wrapper); for keyedSingleton it stores a CompositeMap
-    // (eagerly via LRU, or lazily allocated on first store).
+    // The stored value is one of:
+    //   - undefined: nothing cached yet
+    //   - CompositeMap / LruCompositeMap: keyedSingleton cache, look up by
+    //     singletonCompositeKey for a no-args call
+    //   - any other value: instance directly (singleton lifecycle, or v2
+    //     default lifecycle that has only ever been called with no args)
+    //
+    // We dispatch on lifecycle.id first so plain singletons (the dominant
+    // case) skip the instanceof checks entirely; only keyedSingleton-shaped
+    // lifecycles fall through to the structural check.
     if (instantiationParameters.length === 0) {
       const stored = instancesByInjectableMap.get(
         injectable.overriddenInjectable || injectable,
       );
 
-      const existingInstance =
-        injectable.lifecycle.id === 'singleton'
-          ? stored
-          : stored?.get(singletonCompositeKey);
+      let existingInstance;
+
+      if (injectable.lifecycle.id === 'singleton') {
+        existingInstance = stored;
+      } else if (isCompositeStorage(stored)) {
+        existingInstance = stored.get(singletonCompositeKey);
+      } else {
+        existingInstance = stored;
+      }
 
       if (existingInstance) {
         if (!withMeta) {
@@ -110,6 +129,10 @@ const createMinimalDi = (
   injectingInjectable,
   namespacedIdByInjectableMap,
 ) => {
+  // Closure-captured methods are fixed up-front (`shared` plus inject*),
+  // so user code can detach them — `const { register } = di; register(...)`
+  // and similar patterns appear in tests. A class-with-prototype dispatcher
+  // would be cheaper to allocate but loses that detach-friendly behavior.
   const shared = {
     register: (...injectables) => {
       di.register({
@@ -141,10 +164,52 @@ const createMinimalDi = (
       di.scopedPurge(injectableToBeInstantiated, alias, ...keyParts),
   };
 
-  // Unified shape for both v1 and v2:
-  //   inject/injectMany return instances (variadic params passed inline).
-  //   inject2/injectMany2 return factories (for v2 aliases the native factory, generics preserved;
-  //   for v1 aliases a synthesized (...p) => instance wrapper).
+  if (injectableToBeInstantiated.aliasType === injectableSymbol2) {
+    // V2 minimalDi: inject/injectMany/etc are factory-returning. Each method
+    // is inlined directly against `di` (no minimalInject* intermediary) so
+    // we don't allocate four extra closures per minimalDi just to forward.
+    return {
+      ...shared,
+
+      inject:
+        alias =>
+        (...params) =>
+          di.inject({
+            alias,
+            instantiationParameters: params,
+            injectingInjectable: injectableToBeInstantiated,
+          }),
+
+      injectMany:
+        alias =>
+        (...params) =>
+          di.injectMany({
+            alias,
+            instantiationParameters: params,
+            injectingInjectable: injectableToBeInstantiated,
+          }),
+
+      injectWithMeta:
+        alias =>
+        (...params) =>
+          di.injectWithMeta({
+            alias,
+            instantiationParameters: params,
+            injectingInjectable: injectableToBeInstantiated,
+          }),
+
+      injectManyWithMeta:
+        alias =>
+        (...params) =>
+          di.injectManyWithMeta({
+            alias,
+            instantiationParameters: params,
+            injectingInjectable: injectableToBeInstantiated,
+          }),
+    };
+  }
+
+  // V1 minimalDi: inject/injectMany/etc return instances directly.
   const minimalInject = (alias, ...args) =>
     di.inject({
       alias,
@@ -173,34 +238,6 @@ const createMinimalDi = (
       injectingInjectable: injectableToBeInstantiated,
     });
 
-  if (injectableToBeInstantiated.aliasType === injectableSymbol2) {
-    // V2 minimalDi: inject/injectMany/etc are factory-returning
-    return {
-      ...shared,
-
-      inject:
-        alias =>
-        (...params) =>
-          minimalInject(alias, ...params),
-
-      injectMany:
-        alias =>
-        (...params) =>
-          minimalInjectMany(alias, ...params),
-
-      injectWithMeta:
-        alias =>
-        (...params) =>
-          minimalInjectWithMeta(alias, ...params),
-
-      injectManyWithMeta:
-        alias =>
-        (...params) =>
-          minimalInjectManyWithMeta(alias, ...params),
-    };
-  }
-
-  // V1 minimalDi: inject/injectMany/etc are instance-returning
   return {
     ...shared,
 
@@ -330,6 +367,41 @@ const getInstance = (
     );
   }
 
+  // V2-default + no-args fast path: behaves like a singleton. Skip
+  // getInstanceKey + key-array allocation + CompositeMap allocation. The
+  // instance is stored directly under cacheKey, matching the singleton
+  // shape. If the same v2 injectable is later called with args (rare mixed
+  // usage), the keyedSingleton path below migrates the existing instance
+  // into a CompositeMap under singletonCompositeKey before adding the new
+  // keyed entry.
+  if (
+    instantiationParameters.length === 0 &&
+    injectableToBeInstantiated.lifecycle._isV2DefaultLifecycle
+  ) {
+    const existing = instancesByInjectableMap.get(cacheKey);
+
+    if (!isCompositeStorage(existing)) {
+      const minimalDi = createMinimalDi(
+        di,
+        injectableToBeInstantiated,
+        injectingInjectable,
+        namespacedIdByInjectableMap,
+      );
+
+      const newInstance = instantiate(
+        di,
+        injectableToBeInstantiated,
+        minimalDi,
+        instantiationParameters,
+        getApplicableDecorators,
+      );
+
+      instancesByInjectableMap.set(cacheKey, newInstance);
+      return newInstance;
+    }
+    // existing is a CompositeMap (mixed usage path) — fall through.
+  }
+
   // keyedSingleton / custom lifecycle: full key resolution + cache check.
   const minimalDi = createMinimalDi(
     di,
@@ -347,7 +419,23 @@ const getInstance = (
     ? instanceKey.keys
     : [instanceKey];
 
-  const existingMap = instancesByInjectableMap.get(cacheKey);
+  let existingMap = instancesByInjectableMap.get(cacheKey);
+
+  // Mixed-usage migration: only v2-default injectables can have arrived
+  // here with an instance in the slot (from a prior no-args call). For
+  // every other keyedSingleton, the slot is either undefined or a
+  // CompositeMap, so skip the structural check.
+  if (
+    injectableToBeInstantiated.lifecycle._isV2DefaultLifecycle &&
+    existingMap !== undefined &&
+    !isCompositeStorage(existingMap)
+  ) {
+    const previousInstance = existingMap;
+    existingMap = new CompositeMap();
+    existingMap.set(singletonCompositeKey, previousInstance);
+    instancesByInjectableMap.set(cacheKey, existingMap);
+  }
+
   const existingInstance = existingMap?.get(instanceCompositeKey);
 
   if (existingInstance) {

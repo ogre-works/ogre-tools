@@ -16,6 +16,7 @@ import { injectionDecoratorToken } from './tokens';
 import { isRelatedToToken } from './getRelatedTokens';
 import { firePurgeCallbacksFor } from './firePurgeCallbacksFor';
 import { getApplicableDecoratorsFor } from './getApplicableDecoratorsFor';
+import { isCompositeStorage } from './privateInjectFor';
 
 export default (containerId, { injectionDecorators = false } = {}) => {
   const injectableSet = new Set();
@@ -270,16 +271,17 @@ export default (containerId, { injectionDecorators = false } = {}) => {
     purge: purgeInstances,
 
     scopedPurge: (scopeInjectable, alias, ...keyParts) => {
-      // Singleton lifecycle stores the instance directly in the map; other
-      // lifecycles store a CompositeMap. clearStoredFor encapsulates the
-      // dispatch.
+      // Storage shape is dispatched structurally: a CompositeMap holds
+      // keyed entries (keyedSingleton); anything else is a directly-stored
+      // instance (singleton or v2-default-no-args).
       const clearStoredFor = injectable => {
-        if (injectable.lifecycle.id === 'singleton') {
-          instancesByInjectableMap.delete(injectable);
+        const stored = instancesByInjectableMap.get(injectable);
+        if (stored === undefined) return;
+        if (isCompositeStorage(stored)) {
+          stored.clear();
           return;
         }
-        const stored = instancesByInjectableMap.get(injectable);
-        if (stored) stored.clear();
+        instancesByInjectableMap.delete(injectable);
       };
 
       if (alias === undefined) {
@@ -317,18 +319,17 @@ export default (containerId, { injectionDecorators = false } = {}) => {
 
       for (let i = 0; i < injectables.length; i++) {
         const injectable = injectables[i];
+        const stored = instancesByInjectableMap.get(injectable);
+        if (stored === undefined) continue;
 
-        if (injectable.lifecycle.id === 'singleton') {
+        if (!isCompositeStorage(stored)) {
           if (keyParts.length === 0) {
             instancesByInjectableMap.delete(injectable);
           }
-          // Non-empty keyParts on a singleton: cache key is implicit, nothing
-          // to delete by prefix.
+          // Non-empty keyParts on a directly-stored instance: cache key is
+          // implicit, nothing to delete by prefix.
           continue;
         }
-
-        const stored = instancesByInjectableMap.get(injectable);
-        if (!stored) continue;
 
         if (keyParts.length === 0) {
           stored.clear();
@@ -348,10 +349,10 @@ export default (containerId, { injectionDecorators = false } = {}) => {
         if (!namespacedId) continue;
 
         let count = 0;
-        if (injectable.lifecycle.id === 'singleton') {
-          count = 1;
-        } else {
+        if (isCompositeStorage(stored)) {
           for (const _ of stored.values()) count++;
+        } else {
+          count = 1;
         }
         if (count > 0) result[namespacedId] = count;
       }
