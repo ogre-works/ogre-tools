@@ -1,4 +1,5 @@
 import { storedInstanceKey } from './lifecycleEnum';
+import { isCompositeStorage } from './privateInjectFor';
 
 const singletonKeyArray = [storedInstanceKey];
 
@@ -10,9 +11,6 @@ const keyArrayStartsWith = (keyArray, prefix) => {
   return true;
 };
 
-const isSingletonStored = injectable =>
-  injectable.lifecycle.id === 'singleton';
-
 export const purgeInstancesFor =
   ({ getRelatedInjectables, instancesByInjectableMap, firePurgeCallbacks }) =>
   (alias, ...keyParts) => {
@@ -22,16 +20,17 @@ export const purgeInstancesFor =
         ? [...instancesByInjectableMap.keys()]
         : getRelatedInjectables(alias);
 
-    // Phase 1 — Gather snapshot tuples without mutating caches.
-    // For singleton lifecycle the map stores the instance directly; for
-    // keyedSingleton (and LRU keyedSingleton) it stores a CompositeMap.
+    // Phase 1 — Gather snapshot tuples without mutating caches. The stored
+    // value is dispatched structurally: a CompositeMap-shape stores keyed
+    // entries; anything else is a directly-stored instance (singleton or
+    // v2-default-no-args).
     const tuples = [];
 
     for (const injectable of injectablesInScope) {
       const stored = instancesByInjectableMap.get(injectable);
       if (stored === undefined) continue;
 
-      if (isSingletonStored(injectable)) {
+      if (!isCompositeStorage(stored)) {
         if (
           keyParts.length > 0 &&
           !keyArrayStartsWith(singletonKeyArray, keyParts)
@@ -66,7 +65,7 @@ export const purgeInstancesFor =
       const stored = instancesByInjectableMap.get(injectable);
       if (stored === undefined) continue;
 
-      if (isSingletonStored(injectable)) {
+      if (!isCompositeStorage(stored)) {
         if (
           keyParts.length === 0 ||
           keyArrayStartsWith(singletonKeyArray, keyParts)
