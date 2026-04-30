@@ -284,7 +284,8 @@ const instantiate = (
   // decorators registered against the original target — composing decorators
   // rely on this.
   const target =
-    injectableToBeInstantiated.overriddenInjectable || injectableToBeInstantiated;
+    injectableToBeInstantiated.overriddenInjectable ||
+    injectableToBeInstantiated;
 
   const decorators = getApplicableDecorators({
     decoratorToken: instantiationDecoratorToken,

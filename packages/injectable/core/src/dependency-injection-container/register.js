@@ -165,8 +165,7 @@ export const registerSingleFor = ({
         : undefined;
 
     const isContainerLevel =
-      !immediateParent ||
-      immediateParent.injectable.aliasType === 'container';
+      !immediateParent || immediateParent.injectable.aliasType === 'container';
 
     if (!isContainerLevel) {
       injectableAndRegistrationContext.set(injectable, injectionContext);

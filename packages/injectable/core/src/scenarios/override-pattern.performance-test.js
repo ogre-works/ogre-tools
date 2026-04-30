@@ -52,7 +52,9 @@ describe('override-pattern.performance', () => {
     });
 
     it('register: logs and asserts threshold', () => {
-      console.log(`[BENCH] override 1-of-30k register: ${(p2 - p1).toFixed(2)}ms`);
+      console.log(
+        `[BENCH] override 1-of-30k register: ${(p2 - p1).toFixed(2)}ms`,
+      );
       // TODO: align with createContainer.performance-test threshold once hardware-feasible
       expect(p2 - p1).toBeLessThan(40);
     });
@@ -69,7 +71,9 @@ describe('override-pattern.performance', () => {
       const overrides = range(0, 1000).map(x =>
         getInjectable2({
           id: `override--some-child-id-${x}`,
-          injectionToken: instantiationDecoratorToken.for(baseInjectables[x * 3 + 2]),
+          injectionToken: instantiationDecoratorToken.for(
+            baseInjectables[x * 3 + 2],
+          ),
           instantiate: () => () => () => () => 'overridden',
         }),
       );
@@ -80,7 +84,9 @@ describe('override-pattern.performance', () => {
     });
 
     it('register: logs (no hard budget)', () => {
-      console.log(`[BENCH] override 1k-of-30k register: ${(p2 - p1).toFixed(2)}ms`);
+      console.log(
+        `[BENCH] override 1k-of-30k register: ${(p2 - p1).toFixed(2)}ms`,
+      );
       expect(p2 - p1).toBeLessThan(200);
     });
   });

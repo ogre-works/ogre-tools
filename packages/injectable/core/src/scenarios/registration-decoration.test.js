@@ -25,7 +25,7 @@ describe('createContainer.registration-decoration', () => {
       const decoratorInjectable = getInjectable2({
         id: 'some-registration-decorator',
         injectionToken: registrationDecoratorToken.for(someInjectable),
-        instantiate: () => () =>registerToBeDecorated => injectable => {
+        instantiate: () => () => registerToBeDecorated => injectable => {
           registerToBeDecorated(injectable);
         },
       });
@@ -44,7 +44,7 @@ describe('createContainer.registration-decoration', () => {
       const decoratorInjectable = getInjectable2({
         id: 'some-registration-decorator',
         injectionToken: registrationDecoratorToken.for(someInjectable),
-        instantiate: () => () =>() => () => {
+        instantiate: () => () => () => () => {
           // Don't call registerToBeDecorated — prevent registration
         },
       });
@@ -63,7 +63,7 @@ describe('createContainer.registration-decoration', () => {
       const decoratorInjectable = getInjectable2({
         id: 'some-registration-decorator',
         injectionToken: registrationDecoratorToken.for(someInjectable),
-        instantiate: () => () =>() => () => {
+        instantiate: () => () => () => () => {
           // Prevent registration
         },
       });
@@ -120,7 +120,7 @@ describe('createContainer.registration-decoration', () => {
       const decoratorInjectable = getInjectable2({
         id: 'some-registration-decorator',
         injectionToken: registrationDecoratorToken.for(someToken),
-        instantiate: () => () =>() => () => {
+        instantiate: () => () => () => () => {
           // Prevent registration
         },
       });
@@ -171,7 +171,7 @@ describe('createContainer.registration-decoration', () => {
       const decoratorInjectable = getInjectable2({
         id: 'some-registration-decorator',
         injectionToken: registrationDecoratorToken.for(someInjectable),
-        instantiate: () => () =>() => () => {
+        instantiate: () => () => () => () => {
           // Prevent registration
         },
       });
@@ -195,7 +195,7 @@ describe('createContainer.registration-decoration', () => {
       const decoratorInjectable = getInjectable2({
         id: 'some-registration-decorator',
         injectionToken: registrationDecoratorToken.for(someToken),
-        instantiate: () => () =>registerToBeDecorated => injectable => {
+        instantiate: () => () => registerToBeDecorated => injectable => {
           decorateMock(injectable);
           registerToBeDecorated(injectable);
         },
@@ -541,7 +541,11 @@ describe('createContainer.registration-decoration', () => {
         },
       });
 
-      di.register(tagDecoratorOfRegDecorators, taggedRegDecorator, otherInjectable);
+      di.register(
+        tagDecoratorOfRegDecorators,
+        taggedRegDecorator,
+        otherInjectable,
+      );
 
       // The 'meta' tag decorator did not fire for the registration-decorator
       // because phase 1 (registration-decorator registration) bypasses the
@@ -591,7 +595,7 @@ describe('createContainer.registration-decoration', () => {
       const decoratorInjectable = getInjectable2({
         id: 'some-deregistration-decorator',
         injectionToken: deregistrationDecoratorToken.for(someInjectable),
-        instantiate: () => () =>() => () => {
+        instantiate: () => () => () => () => {
           // Don't call deregisterToBeDecorated — prevent deregistration
         },
       });
@@ -655,14 +659,10 @@ describe('createContainer.registration-decoration', () => {
         const parentDecorator = getInjectable2({
           id: 'dereg-parent-decorator',
           injectionToken: deregistrationDecoratorToken.for(someToken),
-          instantiate:
-            () =>
-            () =>
-            deregisterToBeDecorated =>
-            injectable => {
-              seen.push(injectable.id);
-              deregisterToBeDecorated(injectable);
-            },
+          instantiate: () => () => deregisterToBeDecorated => injectable => {
+            seen.push(injectable.id);
+            deregisterToBeDecorated(injectable);
+          },
         });
 
         di.register(parentDecorator, childInjectable);
@@ -685,14 +685,10 @@ describe('createContainer.registration-decoration', () => {
         const tagDecorator = getInjectable2({
           id: 'observed-tag-deregister-decorator',
           injectionToken: deregistrationDecoratorToken.for('observed'),
-          instantiate:
-            () =>
-            () =>
-            deregisterToBeDecorated =>
-            injectable => {
-              seen.push(injectable.id);
-              deregisterToBeDecorated(injectable);
-            },
+          instantiate: () => () => deregisterToBeDecorated => injectable => {
+            seen.push(injectable.id);
+            deregisterToBeDecorated(injectable);
+          },
         });
 
         di.register(tagDecorator, taggedInjectable);
