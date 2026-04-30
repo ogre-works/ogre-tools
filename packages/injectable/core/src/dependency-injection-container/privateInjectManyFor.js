@@ -17,14 +17,20 @@ export const privateInjectManyFor =
 
     const result = new Array(n);
 
+    // The arg object is reused across iterations — privateInjectFor
+    // destructures it on entry and never retains a reference, so mutating
+    // .alias between calls is safe.
+    const arg = {
+      alias: undefined,
+      instantiationParameters,
+      injectingInjectable: alias,
+    };
+
     if (withMeta) {
       for (let i = 0; i < n; i++) {
         const injectable = relatedInjectables[i];
-        const instance = inject({
-          alias: injectable,
-          instantiationParameters,
-          injectingInjectable: alias,
-        });
+        arg.alias = injectable;
+        const instance = inject(arg);
         result[i] = {
           instance,
           meta: { id: namespacedIdByInjectableMap.get(injectable) },
@@ -32,11 +38,8 @@ export const privateInjectManyFor =
       }
     } else {
       for (let i = 0; i < n; i++) {
-        result[i] = inject({
-          alias: relatedInjectables[i],
-          instantiationParameters,
-          injectingInjectable: alias,
-        });
+        arg.alias = relatedInjectables[i];
+        result[i] = inject(arg);
       }
     }
 
