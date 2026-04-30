@@ -243,10 +243,7 @@ describe('createContainer.targeted-decoration-of-instantiation', () => {
 
       // Both wrap; flow chains them. Either order is valid composition.
       const result = di.inject(targetInjectable);
-      expect([
-        'outer(inner(core))',
-        'inner(outer(core))',
-      ]).toContain(result);
+      expect(['outer(inner(core))', 'inner(outer(core))']).toContain(result);
     });
 
     it('an untagged injectable is not affected by tag-keyed instantiation decorators', () => {

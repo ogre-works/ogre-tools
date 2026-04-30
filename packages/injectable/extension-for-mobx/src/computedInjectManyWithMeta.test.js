@@ -64,7 +64,6 @@ describe('registerMobx', () => {
           (...params) =>
             toBeDecorated(...params),
 
-
         injectionToken: injectionDecoratorToken.for(someInjectable),
       });
 

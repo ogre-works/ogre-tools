@@ -510,7 +510,7 @@ describe('callbacks-for-instance-purge', () => {
   });
 
   describe('parent-token chain walk for purge callbacks', () => {
-    it('a callback targeting the parent token fires when a child specialization\'s instance is purged', () => {
+    it("a callback targeting the parent token fires when a child specialization's instance is purged", () => {
       const di = createContainer('some-container');
       const purgeSpy = jest.fn();
 

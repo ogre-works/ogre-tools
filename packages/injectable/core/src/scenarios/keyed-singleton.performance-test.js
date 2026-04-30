@@ -53,7 +53,9 @@ describe('keyed-singleton.performance', () => {
 
     it('logs and asserts threshold', () => {
       console.log(
-        `[BENCH] keyed-singleton 100k first-pass inject: ${elapsed.toFixed(2)}ms`,
+        `[BENCH] keyed-singleton 100k first-pass inject: ${elapsed.toFixed(
+          2,
+        )}ms`,
       );
       expect(elapsed).toBeLessThan(500);
     });
@@ -86,7 +88,9 @@ describe('keyed-singleton.performance', () => {
 
     it('logs and asserts threshold', () => {
       console.log(
-        `[BENCH] keyed-singleton 100k second-pass inject: ${elapsed.toFixed(2)}ms`,
+        `[BENCH] keyed-singleton 100k second-pass inject: ${elapsed.toFixed(
+          2,
+        )}ms`,
       );
       expect(elapsed).toBeLessThan(300);
     });

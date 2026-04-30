@@ -34,22 +34,13 @@ describe('createContainer.override-pattern', () => {
   it('v2 override with parameters: parameters reach the stub instantiate', () => {
     const targetInjectable = getInjectable2({
       id: 'target-v2',
-      instantiate:
-        () =>
-        (a, b) =>
-          `real(${a},${b})`,
+      instantiate: () => (a, b) => `real(${a},${b})`,
     });
 
     const overrideInjectable = getInjectable2({
       id: 'override--target-v2',
       injectionToken: instantiationDecoratorToken.for(targetInjectable),
-      instantiate:
-        () =>
-        () =>
-        () =>
-        () =>
-        (a, b) =>
-          `stub(${a},${b})`,
+      instantiate: () => () => () => () => (a, b) => `stub(${a},${b})`,
     });
 
     di.register(targetInjectable, overrideInjectable);
@@ -98,13 +89,7 @@ describe('createContainer.override-pattern', () => {
       id: 'override--recording-decorator',
       injectionToken: instantiationDecoratorToken.for(recordingDecorator),
       instantiate:
-        () =>
-        () =>
-        () =>
-        () =>
-        () =>
-        registerToBeDecorated =>
-        injectable => {
+        () => () => () => () => () => registerToBeDecorated => injectable => {
           // No side-effect; just register.
           registerToBeDecorated(injectable);
         },
@@ -136,13 +121,7 @@ describe('createContainer.override-pattern', () => {
       id: 'override--recording-decorator-cross',
       injectionToken: instantiationDecoratorToken.for(recordingDecorator),
       instantiate:
-        () =>
-        () =>
-        () =>
-        () =>
-        () =>
-        registerToBeDecorated =>
-        injectable => {
+        () => () => () => () => () => registerToBeDecorated => injectable => {
           registerToBeDecorated(injectable);
         },
     });
