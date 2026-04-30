@@ -1,7 +1,9 @@
 import { nonStoredInstanceKey, storedInstanceKey } from './lifecycleEnum';
-import { withInstantiationDecoratorsFor } from './withInstantiationDecoratorsFor';
 import { isCompositeKey } from '../getCompositeKey/getCompositeKey';
 import { injectableSymbol2 } from '../getInjectable2/getInjectable2';
+import { instantiationDecoratorToken } from './tokens';
+import { CompositeMap } from '../composite-map/composite-map';
+import flow from './fastFlow';
 
 // Pre-allocated key for singleton instance lookup — avoids array creation per inject()
 const singletonCompositeKey = [storedInstanceKey];
@@ -56,12 +58,18 @@ export const privateInjectFor =
     }
 
     // Fast path: singleton cache hit — avoid creating minimalDi entirely.
+    // For default singletons the map stores the instance directly (no
+    // CompositeMap wrapper); for keyedSingleton it stores a CompositeMap
+    // (eagerly via LRU, or lazily allocated on first store).
     if (instantiationParameters.length === 0) {
-      const instanceMap = instancesByInjectableMap.get(
+      const stored = instancesByInjectableMap.get(
         injectable.overriddenInjectable || injectable,
       );
 
-      const existingInstance = instanceMap.get(singletonCompositeKey);
+      const existingInstance =
+        injectable.lifecycle.id === 'singleton'
+          ? stored
+          : stored?.get(singletonCompositeKey);
 
       if (existingInstance) {
         if (!withMeta) {
@@ -215,14 +223,23 @@ const instantiate = (
   instantiationParameters,
   getApplicableDecorators,
 ) => {
-  const withInstantiationDecorators = withInstantiationDecoratorsFor({
-    injectable: injectableToBeInstantiated,
-    getApplicableDecorators,
+  // Decorators always look up against the original injectable so that an
+  // imperative override (di.override / di.earlyOverride) is wrapped by any
+  // decorators registered against the original target — composing decorators
+  // rely on this.
+  const target =
+    injectableToBeInstantiated.overriddenInjectable || injectableToBeInstantiated;
+
+  const decorators = getApplicableDecorators({
+    decoratorToken: instantiationDecoratorToken,
+    target,
+    injectingInjectable: injectableToBeInstantiated,
   });
 
-  const decorated = withInstantiationDecorators(
-    injectableToBeInstantiated.instantiate,
-  );
+  const decorated =
+    decorators.length === 0
+      ? injectableToBeInstantiated.instantiate
+      : flow(...decorators)(injectableToBeInstantiated.instantiate);
 
   // New-style injectable2: curried (di) => (...params) => instance
   if (injectableToBeInstantiated.aliasType === injectableSymbol2) {
@@ -231,6 +248,17 @@ const instantiate = (
 
   // Old-style: (di, ...params) => instance
   return decorated(minimalDi, ...instantiationParameters);
+};
+
+const ensureInstanceMap = (instancesByInjectableMap, key) => {
+  let instanceMap = instancesByInjectableMap.get(key);
+
+  if (!instanceMap) {
+    instanceMap = new CompositeMap();
+    instancesByInjectableMap.set(key, instanceMap);
+  }
+
+  return instanceMap;
 };
 
 const getInstance = (
@@ -243,10 +271,9 @@ const getInstance = (
   getNamespacedId,
   getApplicableDecorators,
 ) => {
-  const instanceMap = instancesByInjectableMap.get(
+  const cacheKey =
     injectableToBeInstantiated.overriddenInjectable ||
-      injectableToBeInstantiated,
-  );
+    injectableToBeInstantiated;
 
   const lifecycleId = injectableToBeInstantiated.lifecycle.id;
 
@@ -278,7 +305,9 @@ const getInstance = (
       getApplicableDecorators,
     );
 
-    instanceMap.set(singletonCompositeKey, newInstance);
+    // Singletons store the instance directly in the map — no per-injectable
+    // CompositeMap wrapper. Saves ~5 object allocations per first-inject.
+    instancesByInjectableMap.set(cacheKey, newInstance);
 
     return newInstance;
   }
@@ -318,7 +347,8 @@ const getInstance = (
     ? instanceKey.keys
     : [instanceKey];
 
-  const existingInstance = instanceMap.get(instanceCompositeKey);
+  const existingMap = instancesByInjectableMap.get(cacheKey);
+  const existingInstance = existingMap?.get(instanceCompositeKey);
 
   if (existingInstance) {
     return existingInstance;
@@ -333,7 +363,10 @@ const getInstance = (
   );
 
   if (instanceCompositeKey[0] !== nonStoredInstanceKey) {
-    instanceMap.set(instanceCompositeKey, newInstance);
+    ensureInstanceMap(instancesByInjectableMap, cacheKey).set(
+      instanceCompositeKey,
+      newInstance,
+    );
   }
 
   return newInstance;

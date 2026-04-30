@@ -18,9 +18,23 @@ import { getRelatedTokens } from './getRelatedTokens';
 //
 // Token targets naturally skip the tag dimension (tokens don't carry tags).
 // Injectables without an `injectionToken` skip the chain dimension.
+//
+// Fast path: if no injectable is registered under the abstract `decoratorToken`
+// itself, none of the three lookup dimensions can ever match. `register.js`
+// indexes every specific decorator by walking `getRelatedTokens(injectionToken)`,
+// which terminates at the abstract token — so the abstract set is non-empty
+// iff at least one decorator of this type is registered anywhere.
+const EMPTY = Object.freeze([]);
+
 export const getApplicableDecoratorsFor =
-  ({ injectMany }) =>
+  ({ injectMany, injectablesByInjectionToken }) =>
   ({ decoratorToken, target, injectingInjectable }) => {
+    const registered = injectablesByInjectionToken.get(decoratorToken);
+
+    if (!registered || registered.size === 0) {
+      return EMPTY;
+    }
+
     const out = [
       ...injectMany({
         alias: decoratorToken.for(target),
