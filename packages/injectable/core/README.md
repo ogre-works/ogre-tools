@@ -2,7 +2,6 @@
 
 ## What is it?
 - A lightweight and performant dependency injection library for TypeScript and JavaScript.
-- Customised to requirements of Lens.
 - Basically it's this: 
   1. Create a `di-container`
   2. Register an `injectable` to the `di-container`
@@ -38,7 +37,6 @@ Notable: the unit-tests of this library are a designed as comprehensive document
 - Plugin-architecture (enables 3rd party extensions/plugins, and Hot Feature Replacement during development)
 
 ## How is it different?
-- Maintained by original authors as Lens-team members -> ability to adapt to specific needs of Lens.
 - Special features:
   - Injection Token -> a representation of an "interface" or a "contract".
   - An injected instance can be anything, even a primitives or a promise.
@@ -96,7 +94,7 @@ See Injectable.
 
 `InjectionTokens` can have different names depending on perspective:
 ##### Contributable (injectionTokens)
-- `injectionTokens` that one can implement as new `injectable` to extend the abilities of a system, eg. create new `injectable` that implements `clusterSourceInjectionToken` to teach Lens display clusters from a new source, eg. AWS EKS.
+- `injectionTokens` that one can implement as new `injectable` to extend the abilities of a system, eg. create new `injectable` that implements `clusterSourceInjectionToken` to teach the system to display clusters from a new source, eg. AWS EKS.
 
 ##### Consumable (injectionTokens)
 - Also `injectionTokens`, but ones that can be injected as `di.inject()` to gain abilities such as `executeCliCommandInjectionToken`.
@@ -212,7 +210,7 @@ import modulesWithInjectables from "./**/*.injectable.(ts|tsx)";
 registerInjectablesFromModules(di, modulesWithInjectables);
 ```
 
-Note: the glob/wildcard import requires appropriate bundler extension, for Lens that means using `$ lens-package-build`.
+Note: the glob/wildcard import requires appropriate bundler extension.
 
 ### Advanced
 #### `injectableBunch`
@@ -327,10 +325,10 @@ const happyGeneralValidatorInjectionToken = getInjectionToken<
 });
 
 // A typed specifier for something that is (among other things) "validatable" as string.
-const lensDevNameSpecifier = getTypedSpecifier<{
+const devNameSpecifier = getTypedSpecifier<{
   validatable: string;
   otherThing: boolean;
-}>()("lens-dev-names");
+}>()("dev-names");
 
 const someValidatorInjectable = getInjectable({
   id: `some-happy-validator`,
@@ -339,12 +337,12 @@ const someValidatorInjectable = getInjectable({
   
   injectionToken: happyGeneralValidatorInjectionToken.for(
     // Note: a typed specifier with no definition for "validatable" would cause a type error here already.
-    lensDevNameSpecifier
+    devNameSpecifier
   ),
 });
 
 // Type of "validate" is inferred as (toBeValidated: string) => boolean
-const validate = di.inject(happyGeneralValidatorInjectionToken.for(lensDevNameSpecifier));
+const validate = di.inject(happyGeneralValidatorInjectionToken.for(devNameSpecifier));
 
 expect(validate("stevan")).toBe(true);
 expect(validate("torvalds")).toBe(false);
@@ -584,7 +582,7 @@ const rendered = render(<Suspense fallback={<Loading />}><SomeComponent /></Susp
 ```
 
 #### Feature
-See [Feature](https://github.com/lensapp/lens-desktop-monorepo/wiki/Terminology#feature) in the Lens Wiki.
+A grouping of related `injectables` representing a self-contained slice of functionality. A feature can be enabled or disabled as a unit.
 
 #### Global overrides
-See [Global Overrides](https://github.com/lensapp/lens-desktop-monorepo/wiki/Terminology#global-override) in the Lens Wiki.
+A mechanism for declaring overrides that apply across all `di-containers` (eg. shared test doubles), as opposed to per-container `di.override` calls.
