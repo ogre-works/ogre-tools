@@ -3,6 +3,20 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [23.1.0](https://github.com/ogre-works/ogre-tools/compare/v23.0.1...v23.1.0) (2026-05-07)
+
+### Features
+
+- **injectable:** Override-as-injectable via instantiationDecoratorToken ([635d0a0](https://github.com/ogre-works/ogre-tools/commit/635d0a07ab7a9a7c33b2f9209fd09d5c25bda15e))
+- **injectable:** Tag-keyed dispatch for every targeted decorator/callback ([65c3998](https://github.com/ogre-works/ogre-tools/commit/65c3998e026975cb498a0ab01780071e7bc0daef))
+- **injectable:** Walk specificTokenOf chain at decorator dispatch sites ([27534bd](https://github.com/ogre-works/ogre-tools/commit/27534bd16ee0177b3d5d5473ccbf7f4a8d185854))
+
+### Performance Improvements
+
+- **injectable:** Direct-store v2-default no-args injects, closing the v1/v2 gap ([cdb18b9](https://github.com/ogre-works/ogre-tools/commit/cdb18b9f5be1a13141dad2a3d8c1bf5ff46aedea))
+- **injectable:** Skip decorator dispatch and direct-store singletons in hot paths ([5c489c2](https://github.com/ogre-works/ogre-tools/commit/5c489c2efbef35435279ed015b21c1cb105400bb))
+- **injectable:** Trim per-call overhead in inject, injectMany and register hot loops ([f14a99c](https://github.com/ogre-works/ogre-tools/commit/f14a99c31794584f9b545dbfd71622cf1a81486b))
+
 ### [23.0.1](https://github.com/ogre-works/ogre-tools/compare/v23.0.0...v23.0.1) (2026-04-24)
 
 **Note:** Version bump only for package ogre-tools

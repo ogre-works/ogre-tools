@@ -1,7 +1,7 @@
 {
   "name": "@ogre-tools/mobx-utils",
   "private": false,
-  "version": "23.0.1",
+  "version": "23.1.0",
   "description": "A brutal component for injecting components that use injectable",
   "files": [
     "build",
@@ -57,9 +57,9 @@
     "code-style:fix": "ogre-tools-fix-code-style"
   },
   "devDependencies": {
-    "@ogre-tools/infrastructure-babel-for-js": "^23.0.1",
-    "@ogre-tools/infrastructure-jest": "^23.0.1",
-    "@ogre-tools/infrastructure-prettier": "^23.0.1",
-    "@ogre-tools/infrastructure-webpack-for-js": "^23.0.1"
+    "@ogre-tools/infrastructure-babel-for-js": "^23.1.0",
+    "@ogre-tools/infrastructure-jest": "^23.1.0",
+    "@ogre-tools/infrastructure-prettier": "^23.1.0",
+    "@ogre-tools/infrastructure-webpack-for-js": "^23.1.0"
   }
 }
