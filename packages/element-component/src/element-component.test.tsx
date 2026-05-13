@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { ComponentType } from 'react';
 import { getElementComponent } from './element-component';
 import { RenderResult } from '@testing-library/react';
 import { render } from '@testing-library/react';
@@ -6,6 +7,11 @@ import { render } from '@testing-library/react';
 import { Discover, discoverFor } from '@lensapp/discoverable';
 
 import { getPlugin, Plugin } from './plugin/plugin';
+import {
+  getPropsFromPlugins,
+  PluginsResult,
+  WrapperEntry,
+} from './get-props-from-plugins';
 import { useEffect, useRef } from 'react';
 
 describe('element', () => {
@@ -814,5 +820,108 @@ describe('element', () => {
         discover.getSingleElement('wrapper');
       }).not.toThrow();
     });
+  });
+});
+
+describe('getPropsFromPlugins', () => {
+  const assertType = <T,>(_value: T): void => undefined;
+
+  it('given no plugins, when called, runs the chain', () => {
+    const result = getPropsFromPlugins({ title: 'x' });
+
+    expect(result.props).toEqual({ title: 'x' });
+    expect(result.refs).toEqual([]);
+    expect(result.wrappers).toEqual([]);
+  });
+
+  it('given a prop-transforming plugin, when called, returns transformed props', () => {
+    const somePlugin = getPlugin<{ $somePluginProp: string }>(
+      ({ $somePluginProp }) => ({
+        className: $somePluginProp,
+        $somePluginProp: undefined,
+      }),
+    );
+
+    const result = getPropsFromPlugins(
+      { $somePluginProp: 'some-value' },
+      somePlugin,
+    );
+
+    expect(result.props).toEqual({ className: 'some-value' });
+  });
+
+  it('typing: no-plugins overload preserves TProps on result.props', () => {
+    const result = getPropsFromPlugins({ title: 'x', $foo: 1 });
+
+    assertType<PluginsResult<{ title: string; $foo: number }>>(result);
+    assertType<{ title: string; $foo: number }>(result.props);
+  });
+
+  it('typing: with-plugins overload accepts plugin-tuple-derived input shape', () => {
+    const somePlugin = getPlugin<{ $somePluginProp: string }>(
+      ({ $somePluginProp }) => ({
+        className: $somePluginProp,
+        $somePluginProp: undefined,
+      }),
+    );
+
+    const result = getPropsFromPlugins(
+      { $somePluginProp: 'some-value' },
+      somePlugin,
+    );
+
+    assertType<PluginsResult>(result);
+    assertType<WrapperEntry[]>(result.wrappers);
+  });
+
+  it('typing: with-plugins overload rejects input missing required plugin prop', () => {
+    const somePlugin = getPlugin<{ $somePluginProp: string }>(
+      ({ $somePluginProp }) => ({
+        className: $somePluginProp,
+        $somePluginProp: undefined,
+      }),
+    );
+
+    // @ts-expect-error — $somePluginProp is required
+    void getPropsFromPlugins({}, somePlugin);
+  });
+
+  it('typing: with-plugins overload rejects wrong-typed plugin-prop value', () => {
+    const somePlugin = getPlugin<{ $somePluginProp: number }>(() => ({
+      $somePluginProp: undefined,
+    }));
+
+    void getPropsFromPlugins(
+      // @ts-expect-error — value must be a number
+      { $somePluginProp: 'not-a-number' },
+      somePlugin,
+    );
+  });
+
+  it('typing: WrapperEntry is generic-friendly with default and narrowed variants', () => {
+    const defaultWrapper: WrapperEntry = {
+      Component: (() => null) as ComponentType<any>,
+      props: { foo: 'bar' },
+    };
+
+    assertType<WrapperEntry>(defaultWrapper);
+
+    const TypedWrapperComponent: ComponentType<{ label: string }> = ({
+      label,
+    }) => <span>{label}</span>;
+
+    const typedWrapper: WrapperEntry<{ label: string }> = {
+      Component: TypedWrapperComponent,
+      props: { label: 'x' },
+    };
+
+    assertType<WrapperEntry<{ label: string }>>(typedWrapper);
+
+    // @ts-expect-error — props.label must be a string
+    const _badWrapper: WrapperEntry<{ label: string }> = {
+      Component: TypedWrapperComponent,
+      props: { label: 1 },
+    };
+    void _badWrapper;
   });
 });

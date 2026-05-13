@@ -1,28 +1,37 @@
 import { ComponentType, MutableRefObject } from 'react';
-import { Plugin } from '../plugin/plugin';
+import { Plugin, PropsFromPluginTuple } from './plugin/plugin';
 
 type RefCallback<T> = (instance: T | null) => void;
 type Ref<T> = RefCallback<T> | MutableRefObject<T | null> | null;
 
-export type WrapperEntry = {
-  Component: ComponentType<any>;
-  props: Record<string, unknown>;
+export type WrapperEntry<
+  TProps extends Record<string, unknown> = Record<string, unknown>,
+> = {
+  Component: ComponentType<TProps>;
+  props: TProps;
 };
 
-interface PluginResult {
-  props: Record<string, unknown>;
+export interface PluginsResult<
+  TProps extends Record<string, unknown> = Record<string, unknown>,
+> {
+  props: TProps;
   refs: Ref<HTMLElement>[];
   wrappers: WrapperEntry[];
 }
 
-/**
- * Runs all plugins in a single pass, collecting refs, wrappers, and merging props.
- * Plugins can set props to undefined to remove them from the output.
- */
-export const runPlugins = (
+export function getPropsFromPlugins<TProps extends Record<string, unknown>>(
+  initialProps: TProps,
+): PluginsResult<TProps>;
+
+export function getPropsFromPlugins<PluginTuple extends readonly Plugin<any>[]>(
+  initialProps: PropsFromPluginTuple<PluginTuple>,
+  ...plugins: PluginTuple
+): PluginsResult;
+
+export function getPropsFromPlugins(
   initialProps: Record<string, unknown>,
-  plugins: Plugin<Record<string, unknown>, Record<string, unknown>>[],
-): PluginResult => {
+  ...plugins: Plugin<Record<string, unknown>, Record<string, unknown>>[]
+): PluginsResult {
   let currentProps = initialProps;
   const collectedRefs: Ref<HTMLElement>[] = [];
   const collectedWrappers: WrapperEntry[] = [];
@@ -30,7 +39,6 @@ export const runPlugins = (
   for (const plugin of plugins) {
     const output = plugin(currentProps) as Record<string, unknown>;
 
-    // Handle ref collection
     const ref = output.ref as Ref<HTMLElement> | undefined;
     if (ref !== undefined) {
       if (ref !== null) {
@@ -39,21 +47,18 @@ export const runPlugins = (
       output.ref = undefined;
     }
 
-    // Handle $wrapper collection
     const wrapper = output.$wrapper as WrapperEntry | undefined;
     if (wrapper !== undefined) {
       collectedWrappers.push(wrapper);
       output.$wrapper = undefined;
     }
 
-    // Merge input props into output (output takes precedence)
     for (const key in currentProps) {
       if (!(key in output)) {
         output[key] = currentProps[key];
       }
     }
 
-    // Remove undefined values (plugins set props to undefined to clean them up)
     for (const key in output) {
       if (output[key] === undefined) {
         delete output[key];
@@ -68,4 +73,4 @@ export const runPlugins = (
     refs: collectedRefs,
     wrappers: collectedWrappers,
   };
-};
+}
