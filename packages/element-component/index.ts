@@ -6,7 +6,11 @@ export {
 
 export { getPlugin, Plugin } from './src/plugin/plugin';
 
-export type { WrapperEntry } from './src/_private/run-plugins';
+export { getPropsFromPlugins } from './src/get-props-from-plugins';
+export type {
+  PluginsResult,
+  WrapperEntry,
+} from './src/get-props-from-plugins';
 
 export type ContributeRef = (
   refCallback: (node: HTMLElement | null) => void,

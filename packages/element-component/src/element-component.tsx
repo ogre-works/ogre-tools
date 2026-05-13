@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { forwardRef, JSX, MutableRefObject, Ref } from 'react';
 import { Plugin, PropsFromPluginTuple } from './plugin/plugin';
-import { runPlugins } from './_private/run-plugins';
+import { getPropsFromPlugins } from './get-props-from-plugins';
 
 export type TagNames = keyof JSX.IntrinsicElements;
 
@@ -34,7 +34,7 @@ export function getElementComponent<TagName extends TagNames>(
         props: processedProps,
         refs,
         wrappers,
-      } = runPlugins(unprocessedProps, plugins);
+      } = getPropsFromPlugins(unprocessedProps, ...plugins);
 
       const wrapperRefContributions = React.useRef<
         ((node: HTMLElement | null) => void)[]
