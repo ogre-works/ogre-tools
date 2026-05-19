@@ -888,6 +888,86 @@ const handlerImpl = getInjectable2({
   instantiate: () => () => 'hello',
 });
 
+// --- getInjectable2: injectionToken accepts a narrower implementation ---
+
+// Repro for the inference defect where TS used to reject a wider
+// injectionToken against an inline factory literal of narrower shape. The
+// implementation must keep its narrow F (so direct-injectable injection
+// returns the narrow factory) while the token's wider contract is enforced.
+
+interface BroadComponent {
+  (): unknown;
+}
+
+interface NarrowComponent extends BroadComponent {
+  readonly __narrow: 'narrow';
+}
+
+interface Item {
+  Component: BroadComponent;
+  orderNumber: number;
+}
+
+const itemToken2 = getInjectionToken2<() => Item>({ id: 'item' });
+
+declare const myNarrowComponent: NarrowComponent;
+
+const myItemImpl = getInjectable2({
+  id: 'my-item',
+  injectionToken: itemToken2,
+  instantiate: () => () => ({
+    Component: myNarrowComponent,
+    orderNumber: 50,
+  }),
+});
+
+// Direct-injectable injection preserves the narrower factory return shape.
+expectType<NarrowComponent>(di.inject2(myItemImpl)().Component);
+
+// Token injection returns the wider contract.
+expectType<BroadComponent>(di.inject2(itemToken2)().Component);
+
+// A factory genuinely incompatible with the token is still a type error.
+expectError(
+  getInjectable2({
+    id: 'wrong-shape',
+    injectionToken: itemToken2,
+    instantiate: () => () => ({ wrong: true }),
+  }),
+);
+
+// --- getInjectable (v1): same narrow-vs-wide behavior at inject sites ---
+
+// Same Item / NarrowComponent / BroadComponent fixtures, v1 API: the token's
+// generic is the instance type (not a factory) and `di.inject` returns the
+// instance directly.
+
+const itemToken1 = getInjectionToken<Item>({ id: 'item-1' });
+
+const myItemImpl1 = getInjectable({
+  id: 'my-item-1',
+  injectionToken: itemToken1,
+  instantiate: () => ({
+    Component: myNarrowComponent,
+    orderNumber: 50,
+  }),
+});
+
+// Direct-injectable injection preserves the narrower instance shape.
+expectType<NarrowComponent>(di.inject(myItemImpl1).Component);
+
+// Token injection returns the wider contract.
+expectType<BroadComponent>(di.inject(itemToken1).Component);
+
+// An instance genuinely incompatible with the token is still a type error.
+expectError(
+  getInjectable({
+    id: 'wrong-shape-1',
+    injectionToken: itemToken1,
+    instantiate: () => ({ wrong: true }),
+  }),
+);
+
 // --- DiContainerForInjection2: inject2 returns factories inside new-style instantiate ---
 
 const innerInjectable2 = getInjectable2({
@@ -1146,7 +1226,10 @@ expectError(di.override2(userServiceToken2, () => userId => ({ userId })));
 
 // earlyOverride2 carries the same injectable2 typing
 expectType<void>(
-  di.earlyOverride2(parametricInjectable2, () => (name, age) => ({ name, age })),
+  di.earlyOverride2(parametricInjectable2, () => (name, age) => ({
+    name,
+    age,
+  })),
 );
 expectError(
   di.earlyOverride2(parametricInjectable2, () => (name, age) => ({
@@ -1212,12 +1295,12 @@ const generalBrandedWrapperToken2 = getInjectionToken2<
   >
 >({ id: 'general-branded-wrapper' });
 
-const primaryBrandSpecifier = getTypedSpecifier<{ brand: 'primary' }>()(
-  'primary-brand',
-);
+const primaryBrandSpecifier =
+  getTypedSpecifier<{ brand: 'primary' }>()('primary-brand');
 
-const primaryWrapperToken =
-  generalBrandedWrapperToken2.for(primaryBrandSpecifier);
+const primaryWrapperToken = generalBrandedWrapperToken2.for(
+  primaryBrandSpecifier,
+);
 
 // `.for(specifier)` yields a token whose factory has `brand` pinned to 'primary'
 // while `T` remains free.
@@ -1254,26 +1337,18 @@ expectError(
 
 // Override of the specifier-produced token preserves both brand and `T`
 expectType<void>(
-  di.override2(
-    primaryWrapperToken,
-    () =>
-      <T>(value: T) => ({
-        wrapped: value,
-        brand: 'primary' as const,
-      }),
-  ),
+  di.override2(primaryWrapperToken, () => <T>(value: T) => ({
+    wrapped: value,
+    brand: 'primary' as const,
+  })),
 );
 
 // Override with the wrong brand fails the specifier-fixed type
 expectError(
-  di.override2(
-    primaryWrapperToken,
-    () =>
-      <T>(value: T) => ({
-        wrapped: value,
-        brand: 'secondary' as const,
-      }),
-  ),
+  di.override2(primaryWrapperToken, () => <T>(value: T) => ({
+    wrapped: value,
+    brand: 'secondary' as const,
+  })),
 );
 
 // unoverride accepts injectable2 and token2
@@ -1306,12 +1381,16 @@ expectError(instancePurgeCallbackToken.for(someOldStyleTokenForPurge));
 getInjectable2({
   id: 'purge-callback-for-parametric-2',
   injectionToken: instancePurgeCallbackToken.for(parametricInjectable2),
-  instantiate: () => () => ({ instance }) => (name, age) => {
-    expectType<{ name: string; age: number }>(instance);
-    expectType<string>(name);
-    expectType<number>(age);
-    return { name, age };
-  },
+  instantiate:
+    () =>
+    () =>
+    ({ instance }) =>
+    (name, age) => {
+      expectType<{ name: string; age: number }>(instance);
+      expectType<string>(name);
+      expectType<number>(age);
+      return { name, age };
+    },
 });
 
 // Wrong inner arrow arg type → type error
@@ -1320,7 +1399,8 @@ expectError(
     id: 'purge-callback-wrong-arg',
     injectionToken: instancePurgeCallbackToken.for(parametricInjectable2),
     instantiate:
-      () => () =>
+      () =>
+      () =>
       ({ instance }) =>
       (name: number, age) => ({
         name: String(name),
@@ -1334,10 +1414,14 @@ expectError(
   getInjectable2({
     id: 'purge-callback-wrong-return',
     injectionToken: instancePurgeCallbackToken.for(parametricInjectable2),
-    instantiate: () => () => ({ instance }) => (name, age) => ({
-      name,
-      age: String(age),
-    }),
+    instantiate:
+      () =>
+      () =>
+      ({ instance }) =>
+      (name, age) => ({
+        name,
+        age: String(age),
+      }),
   }),
 );
 
@@ -1345,10 +1429,14 @@ expectError(
 getInjectable2({
   id: 'purge-callback-for-nonparametric-2',
   injectionToken: instancePurgeCallbackToken.for(nonParametricInjectable2),
-  instantiate: () => () => ({ instance }) => () => {
-    expectType<number>(instance);
-    return 0;
-  },
+  instantiate:
+    () =>
+    () =>
+    ({ instance }) =>
+    () => {
+      expectType<number>(instance);
+      return 0;
+    },
 });
 
 // --- injectable2 target: injection token2 ---
@@ -1356,11 +1444,15 @@ getInjectable2({
 getInjectable2({
   id: 'purge-callback-for-user-service-token-2',
   injectionToken: instancePurgeCallbackToken.for(userServiceToken2),
-  instantiate: () => () => ({ instance }) => userId => {
-    expectType<{ id: string }>(instance);
-    expectType<string>(userId);
-    return { id: userId };
-  },
+  instantiate:
+    () =>
+    () =>
+    ({ instance }) =>
+    userId => {
+      expectType<{ id: string }>(instance);
+      expectType<string>(userId);
+      return { id: userId };
+    },
 });
 
 // --- generic factory target preserves T on the inner arrow ---
@@ -1369,7 +1461,8 @@ getInjectable2({
   id: 'purge-callback-for-wrapper-token',
   injectionToken: instancePurgeCallbackToken.for(wrapperToken2),
   instantiate:
-    () => () =>
+    () =>
+    () =>
     ({ instance }) =>
     <T>(value: T) => ({ wrapped: value }),
 });
@@ -1380,7 +1473,8 @@ expectError(
     id: 'purge-callback-wrapper-bad-t',
     injectionToken: instancePurgeCallbackToken.for(wrapperToken2),
     instantiate:
-      () => () =>
+      () =>
+      () =>
       ({ instance }) =>
       <T>(value: T) => ({ wrapped: value.toUpperCase() }),
   }),
@@ -1402,12 +1496,16 @@ expectError(
 
 // ---- AbstractInjectionToken2 ----
 
-const abstractHandlerToken = getAbstractInjectionToken2<(name: string) => void>({
-  id: 'abstract-handler',
-});
+const abstractHandlerToken = getAbstractInjectionToken2<(name: string) => void>(
+  {
+    id: 'abstract-handler',
+  },
+);
 
 // abstract token has correct type
-expectType<AbstractInjectionToken2<(name: string) => void>>(abstractHandlerToken);
+expectType<AbstractInjectionToken2<(name: string) => void>>(
+  abstractHandlerToken,
+);
 
 // .for() returns a non-abstract SpecificInjectionToken2
 const specificFromAbstract = abstractHandlerToken.for('click');
@@ -1431,11 +1529,13 @@ expectType<InjectionInstanceWithMeta<void>[]>(
 );
 
 // implementing abstract token directly is a TYPE ERROR
-expectError(getInjectable2({
-  id: 'bad-impl',
-  injectionToken: abstractHandlerToken,
-  instantiate: () => (name: string) => {},
-}));
+expectError(
+  getInjectable2({
+    id: 'bad-impl',
+    injectionToken: abstractHandlerToken,
+    instantiate: () => (name: string) => {},
+  }),
+);
 
 // implementing specific token from abstract is OK
 getInjectable2({
