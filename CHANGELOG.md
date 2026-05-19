@@ -3,6 +3,16 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [23.2.0](https://github.com/ogre-works/ogre-tools/compare/v23.1.0...v23.2.0) (2026-05-19)
+
+### Features
+
+- **element-component:** Expose getPropsFromPlugins so non-React callers can derive element props ([6fa9f44](https://github.com/ogre-works/ogre-tools/commit/6fa9f440a3b33a9ff1b87507ebed944e31b65933))
+
+### Bug Fixes
+
+- **injectable:** Let getInjectable2 implementation be narrower than its token ([4c6163a](https://github.com/ogre-works/ogre-tools/commit/4c6163af157c8d6f0f85317486e1d6eb43213ba2))
+
 ## [23.1.0](https://github.com/ogre-works/ogre-tools/compare/v23.0.1...v23.1.0) (2026-05-07)
 
 ### Features
