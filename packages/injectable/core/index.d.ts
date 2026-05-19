@@ -583,17 +583,37 @@ export interface Injectable2<F extends Factory = Factory> {
   readonly aliasType: 'injectable2';
   readonly id: string;
   readonly instantiate: (di: DiContainerForInjection2) => F;
-  readonly injectionToken?: InjectionToken2<F>;
+  // Stored at the wider Factory shape so an injectable's F can stay narrower
+  // than its token's F. The construction-time `F extends TF` constraint on
+  // `getInjectable2` keeps the relationship sound; precise per-injectable
+  // token typing isn't observably useful here (runtime reads only token-level
+  // fields like `.id`, `.abstract`, `.maxCacheSize`).
+  readonly injectionToken?: InjectionToken2<Factory>;
   readonly transient?: boolean;
   readonly causesSideEffects?: boolean;
   readonly tags?: string[];
   readonly maxCacheSize?: number;
 }
 
+// With injectionToken: F is the injectable's actual factory (kept narrow so
+// `di.inject2(injectable)` returns the narrow factory), TF is the token's
+// factory contract. The `F extends TF` constraint verifies the implementation
+// satisfies the contract.
+export function getInjectable2<F extends TF, TF extends Factory>(options: {
+  readonly id: string;
+  readonly instantiate: (di: DiContainerForInjection2) => F;
+  readonly injectionToken: InjectionToken2<TF>;
+  readonly transient?: boolean;
+  readonly causesSideEffects?: boolean;
+  readonly tags?: string[];
+  readonly maxCacheSize?: number;
+}): Injectable2<F>;
+
+// Without injectionToken: infer F from instantiate, so callers of di.inject /
+// useInject / useInject2 still get precise parameter and return types.
 export function getInjectable2<F extends Factory>(options: {
   readonly id: string;
   readonly instantiate: (di: DiContainerForInjection2) => F;
-  readonly injectionToken?: InjectionToken2<F>;
   readonly transient?: boolean;
   readonly causesSideEffects?: boolean;
   readonly tags?: string[];
