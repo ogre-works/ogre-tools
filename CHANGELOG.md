@@ -3,6 +3,16 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [22.3.0](https://github.com/lensapp/ogre-tools/compare/v22.2.0...v22.3.0) (2026-05-19)
+
+### Features
+
+- **element-component:** Expose getPropsFromPlugins so non-React callers can derive element props ([9635997](https://github.com/lensapp/ogre-tools/commit/9635997851722ea99c8876ff63c2369c0afcfa6b))
+
+### Bug Fixes
+
+- **injectable:** Let getInjectable2 implementation be narrower than its token ([3d610b1](https://github.com/lensapp/ogre-tools/commit/3d610b1dca2a6c40021166ef539b5448802abb9b))
+
 ## [22.2.0](https://github.com/lensapp/ogre-tools/compare/v22.1.0...v22.2.0) (2026-05-04)
 
 ### Features

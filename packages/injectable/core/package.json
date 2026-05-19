@@ -1,7 +1,7 @@
 {
   "name": "@lensapp/injectable",
   "private": false,
-  "version": "22.2.0",
+  "version": "22.3.0",
   "description": "A brutal dependency injection container",
   "files": [
     "build",
@@ -54,10 +54,10 @@
     "code-style:fix": "ogre-tools-fix-code-style"
   },
   "devDependencies": {
-    "@lensapp/infrastructure-babel-for-js": "^22.2.0",
-    "@lensapp/infrastructure-jest": "^22.2.0",
-    "@lensapp/infrastructure-prettier": "^22.2.0",
-    "@lensapp/infrastructure-webpack-for-js": "^22.2.0",
+    "@lensapp/infrastructure-babel-for-js": "^22.3.0",
+    "@lensapp/infrastructure-jest": "^22.3.0",
+    "@lensapp/infrastructure-prettier": "^22.3.0",
+    "@lensapp/infrastructure-webpack-for-js": "^22.3.0",
     "tsd": "^0.29.0"
   },
   "prettier": "@lensapp/infrastructure-prettier"
