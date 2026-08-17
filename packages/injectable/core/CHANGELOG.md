@@ -3,6 +3,14 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [23.3.0](https://github.com/ogre-works/ogre-tools/compare/v23.2.0...v23.3.0) (2026-08-17)
+
+### Features
+
+- **injectable:** Add getNumberOfRegistrations for counting registrations of an alias ([f1c0b86](https://github.com/ogre-works/ogre-tools/commit/f1c0b868dc5808e5a018a02bae3bc11028c06200))
+- **injectable:** Add registeredInLocalScope for detecting registrations of the current scope ([64656be](https://github.com/ogre-works/ogre-tools/commit/64656be96a433e121f17df3b6271f66878a57ca1))
+- **injectable:** Add registeredInLocalScopeSubtree for detecting subtree registrations ([4841ef9](https://github.com/ogre-works/ogre-tools/commit/4841ef9462fd738b5291bcb2e94f78d0bf3a26ba))
+
 ## [23.2.0](https://github.com/ogre-works/ogre-tools/compare/v23.1.0...v23.2.0) (2026-05-19)
 
 ### Bug Fixes
