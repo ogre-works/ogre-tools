@@ -182,6 +182,9 @@ const createMinimalDi = (
 
     purge: (alias, ...keyParts) =>
       di.scopedPurge(injectableToBeInstantiated, alias, ...keyParts),
+
+    registeredInLocalScope: alias =>
+      di.registeredInScopeOf(injectableToBeInstantiated, alias),
   };
 
   if (injectableToBeInstantiated.aliasType === injectableSymbol2) {
