@@ -3,6 +3,14 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [22.4.0](https://github.com/lensapp/ogre-tools/compare/v22.3.0...v22.4.0) (2026-08-17)
+
+### Features
+
+- **injectable:** Add getNumberOfRegistrations for counting registrations of an alias ([202dfc6](https://github.com/lensapp/ogre-tools/commit/202dfc622e99c7446f82ae0219dd48838e050073))
+- **injectable:** Add registeredInLocalScope for detecting registrations of the current scope ([98e39ef](https://github.com/lensapp/ogre-tools/commit/98e39eff69478f3a37fa0f45ffb2d5156330f2a0))
+- **injectable:** Add registeredInLocalScopeSubtree for detecting subtree registrations ([8f9c5d9](https://github.com/lensapp/ogre-tools/commit/8f9c5d9d591f7928e6b8dff50f81211e5431a9be))
+
 ## [22.3.0](https://github.com/lensapp/ogre-tools/compare/v22.2.0...v22.3.0) (2026-05-19)
 
 ### Features
