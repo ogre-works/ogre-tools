@@ -185,6 +185,9 @@ const createMinimalDi = (
 
     registeredInLocalScope: alias =>
       di.registeredInScopeOf(injectableToBeInstantiated, alias),
+
+    registeredInLocalScopeSubtree: alias =>
+      di.registeredInSubtreeOf(injectableToBeInstantiated, alias),
   };
 
   if (injectableToBeInstantiated.aliasType === injectableSymbol2) {
