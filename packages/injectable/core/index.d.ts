@@ -343,6 +343,8 @@ export interface DiContainerForInjection {
 
   hasRegistrations: (alias: Alias) => boolean;
 
+  getNumberOfRegistrations: (alias: Alias) => number;
+
   getNumberOfInstances: () => Record<string, number>;
 }
 
@@ -749,6 +751,8 @@ export interface DiContainerForInjection2 {
 
   hasRegistrations: HasRegistrations2;
 
+  getNumberOfRegistrations: GetNumberOfRegistrations2;
+
   getNumberOfInstances: () => Record<string, number>;
 }
 
@@ -759,6 +763,15 @@ export interface HasRegistrations2 {
   <I extends TI, TI, P>(
     alias: Injectable<I, TI, P> | InjectionToken<TI, P>,
   ): boolean;
+}
+
+export interface GetNumberOfRegistrations2 {
+  <F extends Factory, MF extends (...args: Parameters<F>) => ReturnType<F>[]>(
+    alias: Injectable2<F> | InjectionToken2<F, MF> | AbstractInjectionToken2<F, MF>,
+  ): number;
+  <I extends TI, TI, P>(
+    alias: Injectable<I, TI, P> | InjectionToken<TI, P>,
+  ): number;
 }
 
 // Factory-returning injectMany — v2 returns ManyFactory (generics preserved), v1 returns synthesized many-factory
