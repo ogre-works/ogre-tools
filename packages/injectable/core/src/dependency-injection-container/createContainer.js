@@ -361,6 +361,17 @@ export default (containerId, { injectionDecorators = false } = {}) => {
         injectable => getImmediateScopeOf(injectable) === scopeInjectable,
       ),
 
+    registeredInSubtreeOf: (scopeInjectable, alias) =>
+      getRelatedInjectables(alias).some(injectable => {
+        let scope = getImmediateScopeOf(injectable);
+
+        while (scope !== scopeInjectable && scope !== rootInjectable) {
+          scope = getImmediateScopeOf(scope);
+        }
+
+        return scope === scopeInjectable;
+      }),
+
     getNumberOfInstances: () => {
       const result = {};
       for (const [injectable, stored] of instancesByInjectableMap) {
@@ -453,6 +464,9 @@ export default (containerId, { injectionDecorators = false } = {}) => {
 
     registeredInLocalScope: alias =>
       privateDi.registeredInScopeOf(rootInjectable, alias),
+
+    registeredInLocalScopeSubtree: alias =>
+      privateDi.registeredInSubtreeOf(rootInjectable, alias),
   };
 
   return publicDi;
