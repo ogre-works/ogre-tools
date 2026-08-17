@@ -235,6 +235,18 @@ export default (containerId, { injectionDecorators = false } = {}) => {
     }
   };
 
+  // The immediate parent is the last registration context item; a missing
+  // entry or a container-level parent normalizes to rootInjectable so that
+  // scope comparisons work uniformly for root and nested scopes.
+  const getImmediateScopeOf = injectable => {
+    const context = injectableAndRegistrationContext.get(injectable);
+    const immediateParent = context?.[context.length - 1]?.injectable;
+
+    return !immediateParent || immediateParent.aliasType === 'container'
+      ? rootInjectable
+      : immediateParent;
+  };
+
   const privateDi = {
     inject: decoratedPrivateInject,
     injectWithMeta: decoratedPrivateInjectWithMeta,
@@ -344,6 +356,11 @@ export default (containerId, { injectionDecorators = false } = {}) => {
     hasRegistrations: alias => !!getRelatedInjectables(alias).length,
     getNumberOfRegistrations: alias => getRelatedInjectables(alias).length,
 
+    registeredInScopeOf: (scopeInjectable, alias) =>
+      getRelatedInjectables(alias).some(
+        injectable => getImmediateScopeOf(injectable) === scopeInjectable,
+      ),
+
     getNumberOfInstances: () => {
       const result = {};
       for (const [injectable, stored] of instancesByInjectableMap) {
@@ -433,6 +450,9 @@ export default (containerId, { injectionDecorators = false } = {}) => {
         source: rootInjectable,
       });
     },
+
+    registeredInLocalScope: alias =>
+      privateDi.registeredInScopeOf(rootInjectable, alias),
   };
 
   return publicDi;
