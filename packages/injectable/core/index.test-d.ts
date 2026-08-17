@@ -1059,6 +1059,7 @@ const innerWithGetNumberOfRegistrations = getInjectable2({
   instantiate: (di: DiContainerForInjection2) => {
     expectType<number>(di.getNumberOfRegistrations(parametricInjectable2));
     expectType<number>(di.getNumberOfRegistrations(handlerToken2));
+    expectType<number>(di.getNumberOfRegistrations(wrapperToken2));
     expectType<number>(di.getNumberOfRegistrations(someInjectable));
     expectType<number>(di.getNumberOfRegistrations(someInjectionToken));
 
@@ -1073,6 +1074,7 @@ const innerWithRegisteredInLocalScope = getInjectable2({
   instantiate: (di: DiContainerForInjection2) => {
     expectType<boolean>(di.registeredInLocalScope(parametricInjectable2));
     expectType<boolean>(di.registeredInLocalScope(handlerToken2));
+    expectType<boolean>(di.registeredInLocalScope(wrapperToken2));
     expectType<boolean>(di.registeredInLocalScope(someInjectable));
     expectType<boolean>(di.registeredInLocalScope(someInjectionToken));
 
@@ -1579,6 +1581,18 @@ expectError(di.inject(abstractHandlerToken, 'test'));
 // injectMany on abstract token is OK (returns empty array at runtime when no
 // injectables are registered against the abstract token itself)
 expectType<void[]>(di.injectMany(abstractHandlerToken, 'test'));
+
+// registration introspection accepts abstract, specific-from-abstract and
+// specifier-derived tokens as plain aliases
+expectType<number>(di.getNumberOfRegistrations(abstractHandlerToken));
+expectType<number>(di.getNumberOfRegistrations(specificFromAbstract));
+expectType<number>(di.getNumberOfRegistrations(specificToken2));
+expectType<boolean>(di.registeredInLocalScope(abstractHandlerToken));
+expectType<boolean>(di.registeredInLocalScope(specificFromAbstract));
+expectType<boolean>(di.registeredInLocalScope(specificToken2));
+expectType<boolean>(di.registeredInLocalScopeSubtree(abstractHandlerToken));
+expectType<boolean>(di.registeredInLocalScopeSubtree(specificFromAbstract));
+expectType<boolean>(di.registeredInLocalScopeSubtree(specificToken2));
 
 // injectWithMeta on abstract token is a TYPE ERROR
 expectError(di.injectWithMeta(abstractHandlerToken, 'test'));
