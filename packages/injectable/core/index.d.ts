@@ -345,6 +345,8 @@ export interface DiContainerForInjection {
 
   registeredInLocalScope: (alias: Alias) => boolean;
 
+  registeredInLocalScopeSubtree: (alias: Alias) => boolean;
+
   getNumberOfRegistrations: (alias: Alias) => number;
 
   getNumberOfInstances: () => Record<string, number>;
@@ -754,6 +756,8 @@ export interface DiContainerForInjection2 {
   hasRegistrations: HasRegistrations2;
 
   registeredInLocalScope: HasRegistrations2;
+
+  registeredInLocalScopeSubtree: HasRegistrations2;
 
   getNumberOfRegistrations: GetNumberOfRegistrations2;
 

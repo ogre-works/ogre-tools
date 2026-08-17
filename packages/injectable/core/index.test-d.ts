@@ -484,6 +484,12 @@ expectType<boolean>(di.registeredInLocalScope(someInjectable));
 // given token, typing for "alias registered in local scope" is ok
 expectType<boolean>(di.registeredInLocalScope(someInjectionToken));
 
+// given injectable, typing for "alias registered in local scope subtree" is ok
+expectType<boolean>(di.registeredInLocalScopeSubtree(someInjectable));
+
+// given token, typing for "alias registered in local scope subtree" is ok
+expectType<boolean>(di.registeredInLocalScopeSubtree(someInjectionToken));
+
 // given general injection token without generics, and a more specific token created by it, typing is ok
 const someGeneralInjectionTokenWithoutGenerics = getInjectionToken<number>({
   id: 'some-general-token-without-generics',
@@ -1069,6 +1075,20 @@ const innerWithRegisteredInLocalScope = getInjectable2({
     expectType<boolean>(di.registeredInLocalScope(handlerToken2));
     expectType<boolean>(di.registeredInLocalScope(someInjectable));
     expectType<boolean>(di.registeredInLocalScope(someInjectionToken));
+
+    return () => {};
+  },
+});
+
+// --- DiContainerForInjection2: registeredInLocalScopeSubtree ---
+
+const innerWithRegisteredInLocalScopeSubtree = getInjectable2({
+  id: 'inner-registered-in-local-scope-subtree',
+  instantiate: (di: DiContainerForInjection2) => {
+    expectType<boolean>(di.registeredInLocalScopeSubtree(parametricInjectable2));
+    expectType<boolean>(di.registeredInLocalScopeSubtree(handlerToken2));
+    expectType<boolean>(di.registeredInLocalScopeSubtree(someInjectable));
+    expectType<boolean>(di.registeredInLocalScopeSubtree(someInjectionToken));
 
     return () => {};
   },
