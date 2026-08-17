@@ -177,6 +177,7 @@ const createMinimalDi = (
     },
 
     hasRegistrations: di.hasRegistrations,
+    getNumberOfRegistrations: di.getNumberOfRegistrations,
     getNumberOfInstances: di.getNumberOfInstances,
 
     purge: (alias, ...keyParts) =>

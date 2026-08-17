@@ -472,6 +472,12 @@ expectType<boolean>(di.hasRegistrations(someInjectable));
 // given token, typing for "alias has registrations" is ok
 expectType<boolean>(di.hasRegistrations(someInjectionToken));
 
+// given injectable, typing for "number of registrations for alias" is ok
+expectType<number>(di.getNumberOfRegistrations(someInjectable));
+
+// given token, typing for "number of registrations for alias" is ok
+expectType<number>(di.getNumberOfRegistrations(someInjectionToken));
+
 // given general injection token without generics, and a more specific token created by it, typing is ok
 const someGeneralInjectionTokenWithoutGenerics = getInjectionToken<number>({
   id: 'some-general-token-without-generics',
@@ -1029,6 +1035,20 @@ const innerWithHasRegistrations = getInjectable2({
     expectType<boolean>(di.hasRegistrations(handlerToken2));
     expectType<boolean>(di.hasRegistrations(someInjectable));
     expectType<boolean>(di.hasRegistrations(someInjectionToken));
+
+    return () => {};
+  },
+});
+
+// --- DiContainerForInjection2: getNumberOfRegistrations ---
+
+const innerWithGetNumberOfRegistrations = getInjectable2({
+  id: 'inner-get-number-of-reg',
+  instantiate: (di: DiContainerForInjection2) => {
+    expectType<number>(di.getNumberOfRegistrations(parametricInjectable2));
+    expectType<number>(di.getNumberOfRegistrations(handlerToken2));
+    expectType<number>(di.getNumberOfRegistrations(someInjectable));
+    expectType<number>(di.getNumberOfRegistrations(someInjectionToken));
 
     return () => {};
   },

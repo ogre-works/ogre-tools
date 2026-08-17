@@ -342,6 +342,7 @@ export default (containerId, { injectionDecorators = false } = {}) => {
 
     purgeAllButOverrides,
     hasRegistrations: alias => !!getRelatedInjectables(alias).length,
+    getNumberOfRegistrations: alias => getRelatedInjectables(alias).length,
 
     getNumberOfInstances: () => {
       const result = {};
