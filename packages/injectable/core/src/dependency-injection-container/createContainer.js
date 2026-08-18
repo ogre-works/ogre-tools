@@ -18,13 +18,10 @@ import { firePurgeCallbacksFor } from './firePurgeCallbacksFor';
 import { getApplicableDecoratorsFor } from './getApplicableDecoratorsFor';
 import { isCompositeStorage } from './privateInjectFor';
 
-export default (containerId, { injectionDecorators = false } = {}) => {
+export default containerId => {
   const injectableSet = new Set();
 
-  // Cache for decorator lists — only used when injectionDecorators is enabled.
-  const decoratorCache = injectionDecorators
-    ? { injection: null, injectionByAlias: new Map() }
-    : null;
+  const decoratorCache = { injection: null, injectionByAlias: new Map() };
   const overridingInjectables = new Map();
   let sideEffectsArePrevented = true;
   const alreadyInjected = new Set();
@@ -55,7 +52,7 @@ export default (containerId, { injectionDecorators = false } = {}) => {
   const nonDecoratedPrivateInjectManyForUnknownMeta =
     nonDecoratedPrivateInjectManyFor({
       getRelatedInjectables,
-      getInject: () => decoratedPrivateInject,
+      getInject: () => privateDi.inject,
       namespacedIdByInjectableMap,
     });
 
@@ -117,24 +114,42 @@ export default (containerId, { injectionDecorators = false } = {}) => {
       withMeta: true,
     });
 
-  const withInjectionDecorators = injectionDecorators
-    ? withInjectionDecoratorsFor({
-        decoratorCache,
-        getApplicableDecorators,
-      })
-    : null;
+  const withInjectionDecorators = withInjectionDecoratorsFor({
+    decoratorCache,
+    getApplicableDecorators,
+  });
 
   // Injection decorators apply only on the per-injectable inject path.
   // injectMany resolves related injectables and calls the (decorated) inject
   // on each, so decorators still fire per element — but the token-level
   // injectMany is never wrapped.
-  const decoratedPrivateInject = injectionDecorators
-    ? withInjectionDecorators(nonDecoratedPrivateInject)
-    : nonDecoratedPrivateInject;
+  const decoratedPrivateInject = withInjectionDecorators(
+    nonDecoratedPrivateInject,
+  );
 
-  const decoratedPrivateInjectWithMeta = injectionDecorators
-    ? withInjectionDecorators(nonDecoratedPrivateInjectWithMeta)
-    : nonDecoratedPrivateInjectWithMeta;
+  const decoratedPrivateInjectWithMeta = withInjectionDecorators(
+    nonDecoratedPrivateInjectWithMeta,
+  );
+
+  // Wires the decorated inject variants in only while at least one injection
+  // decorator is registered, so the common no-decorator case pays no wrapper
+  // frame at all. Every reader of `privateDi.inject` reads it at call time.
+  const syncInjectionDecoration = () => {
+    const registeredDecorators = injectablesByInjectionToken.get(
+      injectionDecoratorToken,
+    );
+
+    const active =
+      registeredDecorators !== undefined && registeredDecorators.size > 0;
+
+    privateDi.inject = active
+      ? decoratedPrivateInject
+      : nonDecoratedPrivateInject;
+
+    privateDi.injectWithMeta = active
+      ? decoratedPrivateInjectWithMeta
+      : nonDecoratedPrivateInjectWithMeta;
+  };
 
   const firePurgeCallbacks = firePurgeCallbacksFor({
     getApplicableDecorators,
@@ -151,17 +166,14 @@ export default (containerId, { injectionDecorators = false } = {}) => {
     firePurgeCallbacks,
   });
 
-  const registerSingle = injectionDecorators
-    ? (injectable, context) => {
-        rawRegisterSingle(injectable, context);
+  const registerSingle = (injectable, context) => {
+    rawRegisterSingle(injectable, context);
 
-        if (
-          isRelatedToToken(injectable.injectionToken, injectionDecoratorToken)
-        ) {
-          decoratorCache.injection = null;
-        }
-      }
-    : rawRegisterSingle;
+    if (isRelatedToToken(injectable.injectionToken, injectionDecoratorToken)) {
+      decoratorCache.injection = null;
+      syncInjectionDecoration();
+    }
+  };
 
   const purgeInstances = purgeInstancesFor({
     getRelatedInjectables,
@@ -183,6 +195,7 @@ export default (containerId, { injectionDecorators = false } = {}) => {
     // Todo: get rid of function usage.
     getDi: () => privateDi,
     decoratorCache,
+    syncInjectionDecoration,
   });
 
   const privateRegister = registerFor({
@@ -230,9 +243,8 @@ export default (containerId, { injectionDecorators = false } = {}) => {
     injectablesByInjectionToken.clear();
     namespacedIdByInjectableMap.clear();
     childrenByParentMap.clear();
-    if (injectionDecorators) {
-      decoratorCache.injection = null;
-    }
+    decoratorCache.injection = null;
+    syncInjectionDecoration();
   };
 
   // The immediate parent is the last registration context item; a missing
@@ -248,8 +260,11 @@ export default (containerId, { injectionDecorators = false } = {}) => {
   };
 
   const privateDi = {
-    inject: decoratedPrivateInject,
-    injectWithMeta: decoratedPrivateInjectWithMeta,
+    // Swapped by syncInjectionDecoration: the decorated variants are wired
+    // in only while at least one injection decorator is registered, so the
+    // common no-decorator case pays no wrapper frame at all.
+    inject: nonDecoratedPrivateInject,
+    injectWithMeta: nonDecoratedPrivateInjectWithMeta,
     injectMany: nonDecoratedPrivateInjectMany,
     injectManyWithMeta: nonDecoratedPrivateInjectManyWithMeta,
 

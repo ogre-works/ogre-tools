@@ -1777,3 +1777,7 @@ expectError(
 );
 
 expectType<'injectionToken'>(injectionTokenTag);
+
+// --- createContainer takes no options bag; injection decorators are always available ---
+
+expectError(createContainer('some-container', { injectionDecorators: true }));

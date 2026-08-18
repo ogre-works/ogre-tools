@@ -46,7 +46,7 @@ describe('createContainer.targeted-decoration', () => {
       lifecycle: lifecycleEnum.transient,
     });
 
-    const di = createContainer('some-container', { injectionDecorators: true });
+    const di = createContainer('some-container');
 
     di.register(parentInjectable, childInjectable, decoratorInjectable);
 
@@ -80,9 +80,7 @@ describe('createContainer.targeted-decoration', () => {
             instantiate: () => () => decorateSpy,
           });
 
-          const di = createContainer('some-container', {
-            injectionDecorators: true,
-          });
+          const di = createContainer('some-container');
           di.register(decoratorInjectable, someInjectable);
 
           di.inject(someInjectable);
@@ -119,9 +117,7 @@ describe('createContainer.targeted-decoration', () => {
             instantiate: () => () => decorateSpy,
           });
 
-          const di = createContainer('some-container', {
-            injectionDecorators: true,
-          });
+          const di = createContainer('some-container');
           di.register(decoratorInjectable, someInjectable);
 
           di.inject(someInjectable);
@@ -158,9 +154,7 @@ describe('createContainer.targeted-decoration', () => {
             instantiate: () => () => decorateSpy,
           });
 
-          const di = createContainer('some-container', {
-            injectionDecorators: true,
-          });
+          const di = createContainer('some-container');
           di.register(decoratorInjectable, someInjectable);
 
           di.inject(someInjectable);
@@ -201,9 +195,7 @@ describe('createContainer.targeted-decoration', () => {
             injectionToken: someToken,
           });
 
-          const di = createContainer('some-container', {
-            injectionDecorators: true,
-          });
+          const di = createContainer('some-container');
           di.register(decoratorInjectable, implA, implB);
 
           di.injectMany(someToken);
@@ -240,9 +232,7 @@ describe('createContainer.targeted-decoration', () => {
             instantiate: () => () => decorateSpy,
           });
 
-          const di = createContainer('some-container', {
-            injectionDecorators: true,
-          });
+          const di = createContainer('some-container');
           di.register(decoratorInjectable, someInjectable);
 
           di.inject(someInjectable);
@@ -303,7 +293,7 @@ describe('createContainer.targeted-decoration', () => {
       lifecycle: lifecycleEnum.transient,
     });
 
-    const di = createContainer('some-container', { injectionDecorators: true });
+    const di = createContainer('some-container');
 
     di.register(parentInjectable, childInjectable, decoratorInjectable);
 
@@ -337,9 +327,7 @@ describe('createContainer.targeted-decoration', () => {
             `wrapped(${injectToBeDecorated(...params)})`,
       });
 
-      const di = createContainer('some-container', {
-        injectionDecorators: true,
-      });
+      const di = createContainer('some-container');
       di.register(childInjectable, parentDecorator);
 
       expect(di.inject(childInjectable)).toBe('wrapped(value)');
@@ -365,9 +353,7 @@ describe('createContainer.targeted-decoration', () => {
             `traced(${injectToBeDecorated(...params)})`,
       });
 
-      const di = createContainer('some-container', {
-        injectionDecorators: true,
-      });
+      const di = createContainer('some-container');
       di.register(taggedInjectable, tagDecorator);
 
       expect(di.inject(taggedInjectable)).toBe('traced(value)');
@@ -395,9 +381,7 @@ describe('createContainer.targeted-decoration', () => {
         instantiate: () => () => decorateSpy,
       });
 
-      const di = createContainer('some-container', {
-        injectionDecorators: true,
-      });
+      const di = createContainer('some-container');
       di.register(taggedImpl, tagDecorator);
 
       // Direct injectable inject: tag fires.
@@ -418,9 +402,7 @@ describe('createContainer.targeted-decoration', () => {
         instantiate: () => 'value',
       });
 
-      const di = createContainer('some-container', {
-        injectionDecorators: true,
-      });
+      const di = createContainer('some-container');
       di.register(taggedInjectable);
 
       // First inject: no decorator yet.
@@ -441,6 +423,35 @@ describe('createContainer.targeted-decoration', () => {
 
       // Second inject: decorator now applies (cache was invalidated).
       expect(di.inject(taggedInjectable)).toBe('late(value)');
+    });
+
+    it('deregistering the last injection decorator stops decoration on the next inject', () => {
+      const taggedInjectable = getInjectable({
+        id: 'deregister-test-tagged',
+        tags: ['traced'],
+        instantiate: () => 'value',
+        lifecycle: lifecycleEnum.transient,
+      });
+
+      const tagDecorator = getInjectable2({
+        id: 'traced-decorator',
+        injectionToken: injectionDecoratorToken.for('traced'),
+        instantiate:
+          () =>
+          () =>
+          injectToBeDecorated =>
+          (...params) =>
+            `traced(${injectToBeDecorated(...params)})`,
+      });
+
+      const di = createContainer('some-container');
+      di.register(taggedInjectable, tagDecorator);
+
+      expect(di.inject(taggedInjectable)).toBe('traced(value)');
+
+      di.deregister(tagDecorator);
+
+      expect(di.inject(taggedInjectable)).toBe('value');
     });
   });
 
@@ -468,9 +479,7 @@ describe('createContainer.targeted-decoration', () => {
             `traced(${injectToBeDecorated(...params)})`,
       });
 
-      const di = createContainer('some-container', {
-        injectionDecorators: true,
-      });
+      const di = createContainer('some-container');
       di.register(someInjectable, tagDecorator);
 
       expect(di.inject(someInjectable)).toBe('traced(value)');
@@ -502,9 +511,7 @@ describe('createContainer.targeted-decoration', () => {
         instantiate: () => () => decorateSpy,
       });
 
-      const di = createContainer('some-container', {
-        injectionDecorators: true,
-      });
+      const di = createContainer('some-container');
       di.register(someInjectable, tagDecorator);
 
       // Token alias: the tag occurs on the specific token and its general

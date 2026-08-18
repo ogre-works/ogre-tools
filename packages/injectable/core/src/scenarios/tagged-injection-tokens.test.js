@@ -134,9 +134,7 @@ describe('tagged-injection-tokens', () => {
             `decorated(${injectToBeDecorated(...params)})`,
       });
 
-      const di = createContainer('some-container', {
-        injectionDecorators: true,
-      });
+      const di = createContainer('some-container');
       di.register(someInjectable, tagDecorator);
 
       expect(di.inject(someToken)).toBe('decorated(some-instance)');
@@ -170,7 +168,7 @@ describe('tagged-injection-tokens', () => {
             `decorated(${injectToBeDecorated(...params)})`,
       });
 
-      di = createContainer('some-container', { injectionDecorators: true });
+      di = createContainer('some-container');
       di.register(someInjectable, tagDecorator);
     });
 
@@ -209,7 +207,7 @@ describe('tagged-injection-tokens', () => {
             `decorated(${injectToBeDecorated(...params)})`,
       });
 
-      di = createContainer('some-container', { injectionDecorators: true });
+      di = createContainer('some-container');
       di.register(someInjectable, someTokenlessInjectable, anyTokenDecorator);
     });
 
@@ -269,9 +267,7 @@ describe('tagged-injection-tokens', () => {
         },
       });
 
-      const di = createContainer('some-container', {
-        injectionDecorators: true,
-      });
+      const di = createContainer('some-container');
 
       di.register(
         anyTokenInstantiationDecorator,
@@ -314,9 +310,7 @@ describe('tagged-injection-tokens', () => {
             `decorated(${injectToBeDecorated(...params)})`,
       });
 
-      const di = createContainer('some-container', {
-        injectionDecorators: true,
-      });
+      const di = createContainer('some-container');
       di.register(someInjectable, tagDecorator);
 
       expect(di.inject(someToken.for('some-speciality'))).toBe(

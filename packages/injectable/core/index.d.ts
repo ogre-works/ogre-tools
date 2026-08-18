@@ -554,26 +554,7 @@ export const isInjectionToken: (
   thing: unknown,
 ) => thing is InjectionToken<unknown, unknown>;
 
-export function createContainer(
-  containerId: string,
-  options?: {
-    /**
-     * Enable per-inject injection decorators (injectables registered against
-     * `injectionDecoratorToken.for(...)`).
-     *
-     * Disabled by default because the decorator wrapper adds overhead to every
-     * `inject` call, even when no decorators are registered. Enable only when
-     * the container needs to intercept every inject (e.g. for logging,
-     * metrics, or cross-cutting concerns that must see cached-singleton reads).
-     *
-     * Instantiation decorators (`instantiationDecoratorToken`) are always
-     * available — they run per-instantiation and are unaffected by this flag.
-     *
-     * @default false
-     */
-    injectionDecorators?: boolean;
-  },
-): DiContainer;
+export function createContainer(containerId: string): DiContainer;
 
 export function getKeyedSingletonCompositeKey<T extends [...unknown[]]>(
   ...keys: T
