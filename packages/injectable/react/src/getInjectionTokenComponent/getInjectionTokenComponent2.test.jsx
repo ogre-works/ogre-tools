@@ -378,6 +378,15 @@ describe('getInjectionTokenComponent2', () => {
     );
   });
 
+  it('given a token component is created with tags, it carries the initial injectionToken tag followed by the custom tags', () => {
+    const SomeTokenComponent = getInjectionTokenComponent2({
+      id: 'some-token-component',
+      tags: ['some-tag'],
+    });
+
+    expect(SomeTokenComponent.tags).toEqual(['injectionToken', 'some-tag']);
+  });
+
   describe('.for() specific tokens', () => {
     it('given a token component, when .for() is called twice with the same specifier, returns the same object', () => {
       const SomeTokenComponent = getInjectionTokenComponent2({
