@@ -38,60 +38,64 @@ export const getApplicableDecoratorsFor =
       return EMPTY;
     }
 
-    const out = [
-      ...injectMany({
-        alias: decoratorToken.for(target),
-        instantiationParameters: [],
-        injectingInjectable,
-      }),
-    ];
+    const out = [];
+
+    // Most dispatch keys have no registrations — checking the registration
+    // index directly skips the injectMany machinery for them. `.for()` itself
+    // is cheap on repeat calls (memoized by specifier).
+    const dispatch = alias => {
+      const registeredForAlias = injectablesByInjectionToken.get(alias);
+
+      if (registeredForAlias && registeredForAlias.size > 0) {
+        out.push(
+          ...injectMany({
+            alias,
+            instantiationParameters: [],
+            injectingInjectable,
+          }),
+        );
+      }
+    };
+
+    dispatch(decoratorToken.for(target));
 
     const chain = getRelatedTokens(
       target.injectionToken ?? target.specificTokenOf,
     );
 
     for (const t of chain) {
-      out.push(
-        ...injectMany({
-          alias: decoratorToken.for(t),
-          instantiationParameters: [],
-          injectingInjectable,
-        }),
-      );
+      dispatch(decoratorToken.for(t));
     }
 
-    // Allocated lazily: targets without any tag source skip it entirely.
-    let seenTags = null;
+    const targetTags = target.tags;
 
-    const dispatchTag = tag => {
-      if (seenTags === null) {
-        seenTags = new Set();
-      } else if (seenTags.has(tag)) {
-        return;
-      }
-
-      seenTags.add(tag);
-
-      out.push(
-        ...injectMany({
-          alias: decoratorToken.for(tag),
-          instantiationParameters: [],
-          injectingInjectable,
-        }),
-      );
-    };
-
-    if (target.tags) {
-      for (const tag of target.tags) {
-        dispatchTag(tag);
+    if (targetTags) {
+      for (const tag of targetTags) {
+        dispatch(decoratorToken.for(tag));
       }
     }
+
+    // Dedup without allocations: `.for()` children share the general token's
+    // tags array, so a chain carries at most one distinct tags array — skip
+    // repeats by reference, and skip tags already dispatched via target.tags
+    // with indexOf (the arrays are tiny).
+    let processedChainTags = targetTags;
 
     for (const t of chain) {
-      if (t.tags) {
-        for (const tag of t.tags) {
-          dispatchTag(tag);
+      const chainTags = t.tags;
+
+      if (!chainTags || chainTags === processedChainTags) {
+        continue;
+      }
+
+      processedChainTags = chainTags;
+
+      for (const tag of chainTags) {
+        if (targetTags && targetTags.indexOf(tag) !== -1) {
+          continue;
         }
+
+        dispatch(decoratorToken.for(tag));
       }
     }
 

@@ -1,6 +1,9 @@
 import getInjectable2 from '../getInjectable2/getInjectable2';
 import createContainer from '../dependency-injection-container/createContainer';
-import { getInjectionToken2 } from '../getInjectionToken2/getInjectionToken2';
+import {
+  getInjectionToken2,
+  getSpecificInjectionToken2,
+} from '../getInjectionToken2/getInjectionToken2';
 import { getAbstractInjectionToken2 } from '../getInjectionToken2/getAbstractInjectionToken2';
 
 describe('getAbstractInjectionToken2', () => {
@@ -188,6 +191,27 @@ describe('getAbstractInjectionToken2', () => {
           expect(di.inject(level2Token)).toBe('deep-instance');
         });
       });
+    });
+  });
+
+  describe('given a specific injection token factory', () => {
+    it('when .for is called repeatedly with the same specifier, the factory is called only once', () => {
+      // The factory must be pure and deterministic — repeat .for() calls for
+      // a seen specifier are served from a memo without calling it again.
+      const specificTokenFactoryMock = jest.fn(specifier =>
+        getSpecificInjectionToken2({ id: specifier, speciality: specifier }),
+      );
+
+      const someAbstractToken = getAbstractInjectionToken2({
+        id: 'some-abstract-token',
+        specificInjectionTokenFactory: specificTokenFactoryMock,
+      });
+
+      const someSpecificToken = someAbstractToken.for('some-specifier');
+
+      expect(someAbstractToken.for('some-specifier')).toBe(someSpecificToken);
+
+      expect(specificTokenFactoryMock).toHaveBeenCalledTimes(1);
     });
   });
 });

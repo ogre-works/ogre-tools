@@ -1,6 +1,9 @@
 import createContainer from '../dependency-injection-container/createContainer';
 import getInjectable from '../getInjectable/getInjectable';
-import { getInjectionToken } from '../getInjectionToken/getInjectionToken';
+import {
+  getInjectionToken,
+  getSpecificInjectionToken,
+} from '../getInjectionToken/getInjectionToken';
 import lifecycleEnum from '../dependency-injection-container/lifecycleEnum';
 
 describe('injecting-a-specific-implementation-of-a-token', () => {
@@ -218,6 +221,27 @@ describe('injecting-a-specific-implementation-of-a-token', () => {
     );
 
     expect(actual).toBe('some-specific-instance-2');
+  });
+
+  it('given a specific injection token factory, when .for is called repeatedly with the same specifier, the factory is called only once', () => {
+    // The factory must be pure and deterministic — repeat .for() calls for a
+    // seen specifier are served from a memo without calling it again.
+    const specificTokenFactoryMock = jest.fn(specifier =>
+      getSpecificInjectionToken({ id: specifier, speciality: specifier }),
+    );
+
+    const someGeneralInjectionToken = getInjectionToken({
+      id: 'some-injection-token',
+      specificInjectionTokenFactory: specificTokenFactoryMock,
+    });
+
+    const someSpecificToken = someGeneralInjectionToken.for('some-specifier');
+
+    expect(someGeneralInjectionToken.for('some-specifier')).toBe(
+      someSpecificToken,
+    );
+
+    expect(specificTokenFactoryMock).toHaveBeenCalledTimes(1);
   });
 
   it('given general injection token without explicit specific injection token factory, and specific injectables, when injecting specific one using the defaulted factory for "id", does so', () => {

@@ -13,6 +13,11 @@ export const getInjectionToken = ({
 }) => {
   const specificTokensBySpeciality = new Map();
 
+  // The factory is assumed pure and deterministic: a specifier always maps
+  // to the same token, so single-specifier calls are memoized by specifier
+  // to skip constructing a throwaway candidate on repeat `.for()` calls.
+  const specificTokensBySpecifier = new Map();
+
   const generalToken = Object.assign(target ?? {}, {
     ...rest,
 
@@ -21,6 +26,15 @@ export const getInjectionToken = ({
     aliasType: injectionTokenSymbol,
 
     for: (...specifiers) => {
+      const memoizedToken =
+        specifiers.length === 1
+          ? specificTokensBySpecifier.get(specifiers[0])
+          : undefined;
+
+      if (memoizedToken) {
+        return memoizedToken;
+      }
+
       const specificTokenCandidate = specificTokenFactory(...specifiers);
 
       const existingSpecificToken = specificTokensBySpeciality.get(
@@ -28,6 +42,10 @@ export const getInjectionToken = ({
       );
 
       if (existingSpecificToken) {
+        if (specifiers.length === 1) {
+          specificTokensBySpecifier.set(specifiers[0], existingSpecificToken);
+        }
+
         return existingSpecificToken;
       }
 
@@ -39,6 +57,10 @@ export const getInjectionToken = ({
       specificToken.tags = generalToken.tags;
 
       specificTokensBySpeciality.set(specificToken.speciality, specificToken);
+
+      if (specifiers.length === 1) {
+        specificTokensBySpecifier.set(specifiers[0], specificToken);
+      }
 
       return specificToken;
     },
