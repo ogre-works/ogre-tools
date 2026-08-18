@@ -24,6 +24,7 @@ export const deregisterFor =
     // Todo: get rid of function usage.
     getDi,
     decoratorCache,
+    syncInjectionDecoration,
   }) =>
   ({ injectables, context, source }) => {
     // Collect callbacks first (while all injectables are still registered)
@@ -56,11 +57,14 @@ export const deregisterFor =
       di,
     });
 
+    let injectionDecoratorsChanged = false;
+
     flatInjectables.forEach(injectable => {
       if (
         isRelatedToToken(injectable.injectionToken, injectionDecoratorToken)
       ) {
         decoratorCache.injection = null;
+        injectionDecoratorsChanged = true;
       }
 
       const decorators = getApplicableDecorators({
@@ -78,6 +82,12 @@ export const deregisterFor =
 
       decoratedDeregister(injectable);
     });
+
+    // Recomputed from the registration index after the removals, so a
+    // deregistration decorator that prevented the removal is handled too.
+    if (injectionDecoratorsChanged) {
+      syncInjectionDecoration();
+    }
   };
 
 export const deregisterSingleFor =

@@ -143,12 +143,12 @@ describe('targeted-decoration.performance', () => {
     });
   });
 
-  describe('30k injectables + 1 tag-keyed injection decorator (injectionDecorators enabled)', () => {
+  describe('30k injectables + 1 tag-keyed injection decorator', () => {
     let di;
     let injectables;
 
     beforeEach(() => {
-      di = createContainer('some-container-id', { injectionDecorators: true });
+      di = createContainer('some-container-id');
       injectables = buildBaseInjectables();
 
       const tagDecorator = getInjectable2({
