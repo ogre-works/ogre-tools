@@ -304,4 +304,67 @@ describe('createContainer.targeted-decoration-of-instantiation', () => {
       expect(decorateSpy).toHaveBeenCalled();
     });
   });
+
+  describe('tag-keyed instantiation decorators via token tags', () => {
+    it('given a decorator targeting a tag carried by a token, when an implementer is instantiated, the decorator wraps it', () => {
+      const someToken = getInjectionToken({
+        id: 'some-token',
+        tags: ['logged'],
+      });
+
+      const someInjectable = getInjectable({
+        id: 'some-injectable',
+        injectionToken: someToken,
+        instantiate: () => 'value',
+      });
+
+      const tagDecorator = getInjectable2({
+        id: 'logged-decorator',
+        injectionToken: instantiationDecoratorToken.for('logged'),
+        instantiate:
+          () =>
+          () =>
+          instantiate =>
+          (di, ...params) =>
+            `wrapped(${instantiate(di, ...params)})`,
+      });
+
+      const di = createContainer('some-container');
+      di.register(someInjectable, tagDecorator);
+
+      expect(di.inject(someToken)).toBe('wrapped(value)');
+    });
+
+    it('given a decorator targeting the injectionToken tag, it wraps instantiation of token-having injectables and not token-less ones', () => {
+      const someToken = getInjectionToken({ id: 'some-token' });
+
+      const someInjectable = getInjectable({
+        id: 'some-injectable',
+        injectionToken: someToken,
+        instantiate: () => 'value',
+      });
+
+      const someTokenlessInjectable = getInjectable({
+        id: 'some-tokenless-injectable',
+        instantiate: () => 'tokenless-value',
+      });
+
+      const anyTokenDecorator = getInjectable2({
+        id: 'any-token-decorator',
+        injectionToken: instantiationDecoratorToken.for('injectionToken'),
+        instantiate:
+          () =>
+          () =>
+          instantiate =>
+          (di, ...params) =>
+            `wrapped(${instantiate(di, ...params)})`,
+      });
+
+      const di = createContainer('some-container');
+      di.register(someInjectable, someTokenlessInjectable, anyTokenDecorator);
+
+      expect(di.inject(someInjectable)).toBe('wrapped(value)');
+      expect(di.inject(someTokenlessInjectable)).toBe('tokenless-value');
+    });
+  });
 });
