@@ -229,3 +229,29 @@ expectError(
     id: 'irrelevant',
   }),
 );
+
+// given tags, typing is ok
+getInjectionTokenComponent2({
+  id: 'irrelevant',
+  tags: ['some-tag'],
+});
+
+getAbstractInjectionTokenComponent2({
+  id: 'irrelevant',
+  tags: ['some-tag'],
+});
+
+// given non-string tags, typing is not ok
+expectError(
+  getInjectionTokenComponent2({
+    id: 'irrelevant',
+    tags: [42],
+  }),
+);
+
+expectError(
+  getAbstractInjectionTokenComponent2({
+    id: 'irrelevant',
+    tags: [42],
+  }),
+);
