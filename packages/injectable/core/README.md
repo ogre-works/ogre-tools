@@ -201,6 +201,34 @@ Key properties:
 - **Tag-keyed registration-decorator dispatch.** `registrationDecoratorToken.for(tag)` (where `tag` is a string) fires for every injectable carrying that tag — the basis of the production opt-out shown above. The same primitive works for any other cross-cutting registration concern.
 - **Imperative wins.** `di.override` always wins over a declarative override on the same target.
 
+#### Tagging of injection tokens
+
+Injection tokens (both `getInjectionToken` and `getInjectionToken2`/`getAbstractInjectionToken2`) accept `tags` just like injectables do, and a tag on a token fires tag-keyed decorators everywhere targeting the token itself with `.for(token)` would: registering, deregistering, instantiating or purging an implementer of the token, and injecting via the token as an alias.
+
+```ts
+const messageHandlerToken = getInjectionToken2<() => void>({
+  id: 'message-handler',
+  tags: ['message-bus'],
+});
+
+// Fires when any implementer of messageHandlerToken is registered:
+export const auditRegistrationsInjectable = getInjectable2({
+  id: 'audit-message-bus-registrations',
+  injectionToken: registrationDecoratorToken.for('message-bus'),
+  instantiate: () => () => registerToBeDecorated => injectable => {
+    audit(injectable.id);
+    registerToBeDecorated(injectable);
+  },
+});
+```
+
+Key properties:
+
+- **Initial `injectionToken` tag.** Every token automatically carries the tag `'injectionToken'` (exported as the constant `injectionTokenTag`) before any custom tags, so any token can be targeted for decoration, e.g. `injectionDecoratorToken.for(injectionTokenTag)` decorates every token-based injection.
+- **`.for()` children inherit tags.** A specific token created with `someToken.for(specifier)` carries the general token's tags, the same way it inherits `maxCacheSize`. Tags are deduped at dispatch, so a tag occurring on several chain levels fires its decorator once.
+- **Built-in machinery tokens are untagged.** The exported decorator/callback tokens (`instantiationDecoratorToken`, `injectionDecoratorToken`, `registrationDecoratorToken`, `deregistrationDecoratorToken`, `instancePurgeCallbackToken`, `registrationCallbackToken`, `deregistrationCallbackToken`) carry no tags — otherwise a decorator targeting `'injectionToken'` would decorate the decoration machinery itself and recurse.
+- **Footgun.** Tagging a decorator injectable itself with a tag its own decorator type targets (e.g. an injection decorator carrying the very tag it decorates) recurses; don't do that.
+
 #### Auto-registration
 When there's a lot of `injectables`, registering them manually with `di.register` can be a chore. As a solution, auto-registration can be used to register all exported injectables from files with eg. `.injectable.ts(x)` -naming.
 
