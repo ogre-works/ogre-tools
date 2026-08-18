@@ -4,7 +4,15 @@ import getInjectable2 from '../getInjectable2/getInjectable2';
 import { getInjectionToken } from '../getInjectionToken/getInjectionToken';
 import { getInjectionToken2 } from '../getInjectionToken2/getInjectionToken2';
 import { getAbstractInjectionToken2 } from '../getInjectionToken2/getAbstractInjectionToken2';
-import { injectionDecoratorToken } from '../dependency-injection-container/tokens';
+import {
+  deregistrationCallbackToken,
+  deregistrationDecoratorToken,
+  injectionDecoratorToken,
+  instancePurgeCallbackToken,
+  instantiationDecoratorToken,
+  registrationCallbackToken,
+  registrationDecoratorToken,
+} from '../dependency-injection-container/tokens';
 
 describe('tagged-injection-tokens', () => {
   describe('given a v1 injection token', () => {
@@ -37,6 +45,24 @@ describe('tagged-injection-tokens', () => {
         'injectionToken',
         'some-tag',
       ]);
+    });
+  });
+
+  describe('given the built-in machinery tokens', () => {
+    it.each([
+      ['registrationCallbackToken', registrationCallbackToken],
+      ['deregistrationCallbackToken', deregistrationCallbackToken],
+      ['instantiationDecoratorToken', instantiationDecoratorToken],
+      ['injectionDecoratorToken', injectionDecoratorToken],
+      ['instancePurgeCallbackToken', instancePurgeCallbackToken],
+      ['registrationDecoratorToken', registrationDecoratorToken],
+      ['deregistrationDecoratorToken', deregistrationDecoratorToken],
+    ])('%s carries no tags', (name, token) => {
+      expect(token.tags).toBeUndefined();
+    });
+
+    it('a specific token created from a machinery token carries no tags either', () => {
+      expect(instantiationDecoratorToken.for('some-tag').tags).toBeUndefined();
     });
   });
 
