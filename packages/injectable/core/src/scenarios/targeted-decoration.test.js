@@ -443,4 +443,80 @@ describe('createContainer.targeted-decoration', () => {
       expect(di.inject(taggedInjectable)).toBe('late(value)');
     });
   });
+
+  describe('tag-keyed injection decorators via token tags', () => {
+    it('given a decorator targeting a tag carried by a token, when an implementer is injected directly, the decorator fires', () => {
+      const someToken = getInjectionToken({
+        id: 'some-token',
+        tags: ['traced'],
+      });
+
+      const someInjectable = getInjectable({
+        id: 'some-injectable',
+        injectionToken: someToken,
+        instantiate: () => 'value',
+      });
+
+      const tagDecorator = getInjectable2({
+        id: 'traced-decorator',
+        injectionToken: injectionDecoratorToken.for('traced'),
+        instantiate:
+          () =>
+          () =>
+          injectToBeDecorated =>
+          (...params) =>
+            `traced(${injectToBeDecorated(...params)})`,
+      });
+
+      const di = createContainer('some-container', {
+        injectionDecorators: true,
+      });
+      di.register(someInjectable, tagDecorator);
+
+      expect(di.inject(someInjectable)).toBe('traced(value)');
+    });
+
+    it('given a tag on the general token, the decorator fires exactly once despite the tag occurring on both the specific and the general token', () => {
+      const someToken = getInjectionToken({
+        id: 'some-token',
+        tags: ['traced'],
+      });
+
+      const someSpecificToken = someToken.for('some-speciality');
+
+      const someInjectable = getInjectable({
+        id: 'some-injectable',
+        injectionToken: someSpecificToken,
+        instantiate: () => 'value',
+      });
+
+      const decorateSpy = jest.fn(
+        injectToBeDecorated =>
+          (...params) =>
+            `traced(${injectToBeDecorated(...params)})`,
+      );
+
+      const tagDecorator = getInjectable2({
+        id: 'traced-decorator',
+        injectionToken: injectionDecoratorToken.for('traced'),
+        instantiate: () => () => decorateSpy,
+      });
+
+      const di = createContainer('some-container', {
+        injectionDecorators: true,
+      });
+      di.register(someInjectable, tagDecorator);
+
+      // Token alias: the tag occurs on the specific token and its general
+      // ancestor.
+      expect(di.inject(someSpecificToken)).toBe('traced(value)');
+      expect(decorateSpy).toHaveBeenCalledTimes(1);
+
+      decorateSpy.mockClear();
+
+      // Injectable alias: the tag occurs on both chain levels.
+      expect(di.inject(someInjectable)).toBe('traced(value)');
+      expect(decorateSpy).toHaveBeenCalledTimes(1);
+    });
+  });
 });

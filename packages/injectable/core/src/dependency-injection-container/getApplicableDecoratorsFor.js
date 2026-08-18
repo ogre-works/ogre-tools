@@ -13,10 +13,13 @@ import { getRelatedTokens } from './getRelatedTokens';
 //                `someToken.for(specifier)` is already retrievable via
 //                `injectMany(someToken)`, and a decorator targeting the
 //                parent contract should fire for the child specialization.
-//   3. Tags:     for every string in `target.tags`, look up
-//                `decoratorToken.for(tag)`.
+//   3. Tags:     for every tag of the target and of every token in its
+//                chain, look up `decoratorToken.for(tag)`. Tags are deduped
+//                across these sources: `.for()` children inherit the general
+//                token's tags, so the same tag typically occurs on every
+//                chain level. This makes a tag on a token fire everywhere
+//                `.for(token)` would.
 //
-// Token targets naturally skip the tag dimension (tokens don't carry tags).
 // Injectables without an `injectionToken` skip the chain dimension.
 //
 // Fast path: if no injectable is registered under the abstract `decoratorToken`
@@ -43,9 +46,11 @@ export const getApplicableDecoratorsFor =
       }),
     ];
 
-    for (const t of getRelatedTokens(
+    const chain = getRelatedTokens(
       target.injectionToken ?? target.specificTokenOf,
-    )) {
+    );
+
+    for (const t of chain) {
       out.push(
         ...injectMany({
           alias: decoratorToken.for(t),
@@ -55,15 +60,38 @@ export const getApplicableDecoratorsFor =
       );
     }
 
+    // Allocated lazily: targets without any tag source skip it entirely.
+    let seenTags = null;
+
+    const dispatchTag = tag => {
+      if (seenTags === null) {
+        seenTags = new Set();
+      } else if (seenTags.has(tag)) {
+        return;
+      }
+
+      seenTags.add(tag);
+
+      out.push(
+        ...injectMany({
+          alias: decoratorToken.for(tag),
+          instantiationParameters: [],
+          injectingInjectable,
+        }),
+      );
+    };
+
     if (target.tags) {
       for (const tag of target.tags) {
-        out.push(
-          ...injectMany({
-            alias: decoratorToken.for(tag),
-            instantiationParameters: [],
-            injectingInjectable,
-          }),
-        );
+        dispatchTag(tag);
+      }
+    }
+
+    for (const t of chain) {
+      if (t.tags) {
+        for (const tag of t.tags) {
+          dispatchTag(tag);
+        }
       }
     }
 

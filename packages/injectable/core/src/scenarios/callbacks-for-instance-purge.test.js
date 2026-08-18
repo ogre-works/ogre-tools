@@ -621,5 +621,41 @@ describe('callbacks-for-instance-purge', () => {
       expect(bSpy).toHaveBeenCalledTimes(1);
       expect(bSpy).toHaveBeenCalledWith(instance);
     });
+
+    it('a callback targeting a tag carried by a token fires when an implementer is purged', () => {
+      const di = createContainer('some-container');
+      const purgeSpy = jest.fn();
+
+      const someToken = getInjectionToken2({
+        id: 'some-token',
+        tags: ['resource'],
+      });
+
+      const someInjectable = getInjectable2({
+        id: 'some-injectable',
+        injectionToken: someToken,
+        instantiate: () => () => ({ value: 'instance' }),
+      });
+
+      const tagCallback = getInjectable2({
+        id: 'resource-tag-purge-callback',
+        injectionToken: instancePurgeCallbackToken.for('resource'),
+        instantiate:
+          () =>
+          () =>
+          ({ instance }) =>
+          () => {
+            purgeSpy(instance);
+          },
+      });
+
+      di.register(someInjectable, tagCallback);
+
+      const instance = di.inject(someToken);
+      di.purge(someToken);
+
+      expect(purgeSpy).toHaveBeenCalledTimes(1);
+      expect(purgeSpy).toHaveBeenCalledWith(instance);
+    });
   });
 });
