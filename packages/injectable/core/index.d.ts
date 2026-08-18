@@ -94,6 +94,10 @@ export interface InjectionToken<
   id: string;
   for: SpecificInjectionTokenFactory;
   maxCacheSize?: number;
+  // Every token carries the initial tag 'injectionToken' plus any tags given
+  // at creation; `.for()` children inherit the general token's tags. Optional
+  // because the built-in machinery tokens are untagged.
+  tags?: string[];
 }
 
 export interface SpecificInjectionToken<
@@ -164,6 +168,7 @@ export function getInjectionToken<
   specificInjectionTokenFactory?: SpecificInjectionTokenFactory;
   target?: object;
   maxCacheSize?: number;
+  tags?: string[];
 }): InjectionToken<
   InjectionInstance,
   InstantiationParam,
@@ -181,11 +186,16 @@ export function getSpecificInjectionToken<
 >(options: {
   id: string;
   speciality: any;
+  tags?: string[];
 }): SpecificInjectionToken<
   InjectionInstance,
   InstantiationParam,
   SpecificInjectionTokenFactory
 >;
+
+// The initial tag carried by every injection token (v1 and v2), permitting
+// tag-keyed decorators to target any token.
+export const injectionTokenTag: 'injectionToken';
 
 export type InjectWithoutParameter = <InjectionInstance>(
   alias:
