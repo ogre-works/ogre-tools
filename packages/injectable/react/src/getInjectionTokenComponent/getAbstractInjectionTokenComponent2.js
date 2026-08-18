@@ -5,9 +5,11 @@ export const getAbstractInjectionTokenComponent2 = ({
   PlaceholderComponent,
   id,
   specificInjectionTokenFactory,
+  tags,
 }) =>
   getAbstractInjectionToken2({
     id,
+    tags,
 
     specificInjectionTokenFactory:
       specificInjectionTokenFactory ??

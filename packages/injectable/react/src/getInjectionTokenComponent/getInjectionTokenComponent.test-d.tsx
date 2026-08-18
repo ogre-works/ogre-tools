@@ -213,3 +213,17 @@ getInjectableComponent({
   Component: NarrowFunctionComponentWithProps,
   injectionToken: SomeSpecificToken,
 });
+
+// given tags, typing is ok
+getInjectionTokenComponent({
+  id: 'irrelevant',
+  tags: ['some-tag'],
+});
+
+// given non-string tags, typing is not ok
+expectError(
+  getInjectionTokenComponent({
+    id: 'irrelevant',
+    tags: [42],
+  }),
+);

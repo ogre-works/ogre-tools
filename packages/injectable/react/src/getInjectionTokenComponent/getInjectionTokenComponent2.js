@@ -7,6 +7,7 @@ export const getInjectionTokenComponent2 = ({
   id,
   specificInjectionTokenFactory,
   speciality,
+  tags,
 }) => {
   let TokenComponent;
 
@@ -26,6 +27,7 @@ export const getInjectionTokenComponent2 = ({
     id,
     target: ComponentForReact,
     speciality,
+    tags,
 
     specificInjectionTokenFactory:
       specificInjectionTokenFactory ??
