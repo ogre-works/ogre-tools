@@ -1748,4 +1748,32 @@ expectError(
   }),
 );
 
+const taggedV2Token = getInjectionToken2<() => string>({
+  id: 'tagged-v2-token',
+  tags: ['some-tag'],
+});
+
+expectType<string[] | undefined>(taggedV2Token.tags);
+
+expectError(
+  getInjectionToken2<() => string>({
+    id: 'badly-tagged-v2-token',
+    tags: [42],
+  }),
+);
+
+const taggedAbstractToken = getAbstractInjectionToken2<() => string>({
+  id: 'tagged-abstract-token',
+  tags: ['some-tag'],
+});
+
+expectType<string[] | undefined>(taggedAbstractToken.tags);
+
+expectError(
+  getAbstractInjectionToken2<() => string>({
+    id: 'badly-tagged-abstract-token',
+    tags: [42],
+  }),
+);
+
 expectType<'injectionToken'>(injectionTokenTag);
