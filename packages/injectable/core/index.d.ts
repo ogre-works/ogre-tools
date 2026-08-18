@@ -165,6 +165,8 @@ export function getInjectionToken<
   ) => SpecificInjectionToken<InjectionInstance, InstantiationParam>,
 >(options: {
   id: string;
+  // Must be pure and deterministic: `.for()` memoizes by specifier and skips
+  // calling the factory again for a specifier it has already seen.
   specificInjectionTokenFactory?: SpecificInjectionTokenFactory;
   target?: object;
   maxCacheSize?: number;
@@ -687,6 +689,8 @@ export function getInjectionToken2<
   ) => SpecificInjectionToken2<F, MF>,
 >(options: {
   id: string;
+  // Must be pure and deterministic: `.for()` memoizes by specifier and skips
+  // calling the factory again for a specifier it has already seen.
   specificInjectionTokenFactory?: SpecificFactory;
   target?: object;
   maxCacheSize?: number;
@@ -736,6 +740,8 @@ export function getAbstractInjectionToken2<
   ) => SpecificInjectionToken2<F, MF>,
 >(options: {
   id: string;
+  // Must be pure and deterministic: `.for()` memoizes by specifier and skips
+  // calling the factory again for a specifier it has already seen.
   specificInjectionTokenFactory?: SpecificFactory;
   target?: object;
   maxCacheSize?: number;
