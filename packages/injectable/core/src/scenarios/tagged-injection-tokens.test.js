@@ -224,6 +224,72 @@ describe('tagged-injection-tokens', () => {
     });
   });
 
+  describe('given decorators targeting the injectionToken tag for several decorator types at once', () => {
+    it('when registering and injecting a token-implementing injectable, terminates and does not decorate the machinery', () => {
+      const someToken = getInjectionToken2({ id: 'some-token' });
+
+      const someInjectable = getInjectable2({
+        id: 'some-injectable',
+        injectionToken: someToken,
+        instantiate: () => () => 'some-instance',
+      });
+
+      const instantiationSpy = jest.fn(
+        instantiate =>
+          (someDi, ...params) =>
+            instantiate(someDi, ...params),
+      );
+
+      const anyTokenInstantiationDecorator = getInjectable2({
+        id: 'any-token-instantiation-decorator',
+        injectionToken: instantiationDecoratorToken.for('injectionToken'),
+        instantiate: () => () => instantiationSpy,
+      });
+
+      const injectionSpy = jest.fn(
+        injectToBeDecorated =>
+          (...params) =>
+            injectToBeDecorated(...params),
+      );
+
+      const anyTokenInjectionDecorator = getInjectable2({
+        id: 'any-token-injection-decorator',
+        injectionToken: injectionDecoratorToken.for('injectionToken'),
+        instantiate: () => () => injectionSpy,
+      });
+
+      const registrationSpy = jest.fn();
+
+      const anyTokenRegistrationDecorator = getInjectable2({
+        id: 'any-token-registration-decorator',
+        injectionToken: registrationDecoratorToken.for('injectionToken'),
+        instantiate: () => () => registerToBeDecorated => injectable => {
+          registrationSpy(injectable.id);
+          registerToBeDecorated(injectable);
+        },
+      });
+
+      const di = createContainer('some-container', {
+        injectionDecorators: true,
+      });
+
+      di.register(
+        anyTokenInstantiationDecorator,
+        anyTokenInjectionDecorator,
+        anyTokenRegistrationDecorator,
+        someInjectable,
+      );
+
+      expect(di.inject(someToken)).toBe('some-instance');
+
+      // Only the token-implementing user injectable is seen — the decorator
+      // injectables register under untagged machinery tokens.
+      expect(registrationSpy.mock.calls).toEqual([['some-injectable']]);
+      expect(instantiationSpy).toHaveBeenCalledTimes(1);
+      expect(injectionSpy).toHaveBeenCalledTimes(1);
+    });
+  });
+
   describe('given a v1 token with a custom tag and an injectable registered under a .for-specific token', () => {
     it('when injecting via the specific token, a decorator targeting the tag fires due to tag inheritance', () => {
       const someToken = getInjectionToken({

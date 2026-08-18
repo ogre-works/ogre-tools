@@ -719,5 +719,97 @@ describe('createContainer.registration-decoration', () => {
         expect(di.inject(taggedInjectable)).toBe('still-here');
       });
     });
+
+    describe('tag-keyed registration decorators via token tags', () => {
+      it('given a decorator targeting a tag carried by a token, when an implementer is registered, the decorator fires for it', () => {
+        const seen = [];
+
+        const someToken = getInjectionToken({
+          id: 'some-token',
+          tags: ['some-tag'],
+        });
+
+        const someInjectable = getInjectable({
+          id: 'some-injectable',
+          injectionToken: someToken,
+          instantiate: () => 'value',
+        });
+
+        const tagDecorator = getInjectable2({
+          id: 'some-tag-decorator',
+          injectionToken: registrationDecoratorToken.for('some-tag'),
+          instantiate: () => () => registerToBeDecorated => injectable => {
+            seen.push(injectable.id);
+            registerToBeDecorated(injectable);
+          },
+        });
+
+        di.register(tagDecorator, someInjectable);
+
+        expect(seen).toEqual(['some-injectable']);
+      });
+
+      it('given a decorator targeting the injectionToken tag, it fires for registrations of token-having injectables and not for token-less ones', () => {
+        const seen = [];
+
+        const someToken = getInjectionToken({ id: 'some-token' });
+
+        const someInjectable = getInjectable({
+          id: 'some-injectable',
+          injectionToken: someToken,
+          instantiate: () => 'value',
+        });
+
+        const someTokenlessInjectable = getInjectable({
+          id: 'some-tokenless-injectable',
+          instantiate: () => 'tokenless-value',
+        });
+
+        const anyTokenDecorator = getInjectable2({
+          id: 'any-token-decorator',
+          injectionToken: registrationDecoratorToken.for('injectionToken'),
+          instantiate: () => () => registerToBeDecorated => injectable => {
+            seen.push(injectable.id);
+            registerToBeDecorated(injectable);
+          },
+        });
+
+        di.register(anyTokenDecorator, someInjectable, someTokenlessInjectable);
+
+        expect(seen).toEqual(['some-injectable']);
+      });
+    });
+
+    describe('tag-keyed deregistration decorators via token tags', () => {
+      it('given a decorator targeting a tag carried by a token, when an implementer is deregistered, the decorator fires', () => {
+        const seen = [];
+
+        const someToken = getInjectionToken({
+          id: 'some-token',
+          tags: ['some-tag'],
+        });
+
+        const someInjectable = getInjectable({
+          id: 'some-injectable',
+          injectionToken: someToken,
+          instantiate: () => 'value',
+        });
+
+        const tagDecorator = getInjectable2({
+          id: 'some-tag-deregister-decorator',
+          injectionToken: deregistrationDecoratorToken.for('some-tag'),
+          instantiate: () => () => deregisterToBeDecorated => injectable => {
+            seen.push(injectable.id);
+            deregisterToBeDecorated(injectable);
+          },
+        });
+
+        di.register(tagDecorator, someInjectable);
+        di.deregister(someInjectable);
+
+        expect(seen).toEqual(['some-injectable']);
+        expect(() => di.inject(someInjectable)).toThrow();
+      });
+    });
   });
 });
