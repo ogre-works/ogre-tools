@@ -8,6 +8,7 @@ import {
   getInjectableBunch,
   getInjectionToken,
   getKeyedSingletonCompositeKey,
+  injectionTokenTag,
   getSpecificInjectionToken,
   getTypedSpecifier,
   instancePurgeCallbackToken,
@@ -1730,3 +1731,21 @@ expectError(
     tags: [42],
   }),
 );
+
+// --- injection tokens carry tags ---
+
+const taggedV1Token = getInjectionToken<string>({
+  id: 'tagged-v1-token',
+  tags: ['some-tag'],
+});
+
+expectType<string[] | undefined>(taggedV1Token.tags);
+
+expectError(
+  getInjectionToken<string>({
+    id: 'badly-tagged-v1-token',
+    tags: [42],
+  }),
+);
+
+expectType<'injectionToken'>(injectionTokenTag);

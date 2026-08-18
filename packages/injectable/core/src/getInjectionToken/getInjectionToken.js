@@ -1,3 +1,5 @@
+import { injectionTokenTag } from './injectionTokenTag';
+
 export const injectionTokenSymbol = 'injection-token';
 
 export const getInjectionToken = ({
@@ -5,12 +7,16 @@ export const getInjectionToken = ({
 
   target,
 
+  tags,
+
   ...rest
 }) => {
   const specificTokensBySpeciality = new Map();
 
   const generalToken = Object.assign(target ?? {}, {
     ...rest,
+
+    tags: [injectionTokenTag, ...(tags ?? [])],
 
     aliasType: injectionTokenSymbol,
 
@@ -30,6 +36,7 @@ export const getInjectionToken = ({
       specificToken.id = `${generalToken.id}/${specificToken.id}`;
       specificToken.specificTokenOf = generalToken;
       specificToken.maxCacheSize = generalToken.maxCacheSize;
+      specificToken.tags = generalToken.tags;
 
       specificTokensBySpeciality.set(specificToken.speciality, specificToken);
 

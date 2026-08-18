@@ -25,6 +25,7 @@ import toFlatInjectables from './src/dependency-injection-container/toFlatInject
 import { getCompositeKey } from './src/getCompositeKey/getCompositeKey';
 
 export { getTypedSpecifier } from './src/getInjectionToken/getTypedSpecifier';
+export { injectionTokenTag } from './src/getInjectionToken/injectionTokenTag';
 
 export const getKeyedSingletonCompositeKey = getCompositeKey;
 
