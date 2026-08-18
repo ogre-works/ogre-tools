@@ -659,6 +659,10 @@ export interface InjectionToken2<
   id: string;
   for: SpecificFactory;
   maxCacheSize?: number;
+  // Every token carries the initial tag 'injectionToken' plus any tags given
+  // at creation; `.for()` children inherit the general token's tags. Optional
+  // because the built-in machinery tokens are untagged.
+  tags?: string[];
 }
 
 export interface SpecificInjectionToken2<
@@ -686,6 +690,7 @@ export function getInjectionToken2<
   specificInjectionTokenFactory?: SpecificFactory;
   target?: object;
   maxCacheSize?: number;
+  tags?: string[];
 }): InjectionToken2<F, MF, SpecificFactory>;
 
 export function getSpecificInjectionToken2<
@@ -699,6 +704,7 @@ export function getSpecificInjectionToken2<
 >(options: {
   id: string;
   speciality: any;
+  tags?: string[];
 }): SpecificInjectionToken2<F, MF, SpecificFactory>;
 
 export interface AbstractInjectionToken2<
@@ -717,6 +723,7 @@ export interface AbstractInjectionToken2<
   id: string;
   for: SpecificFactory;
   maxCacheSize?: number;
+  tags?: string[];
 }
 
 export function getAbstractInjectionToken2<
@@ -732,6 +739,7 @@ export function getAbstractInjectionToken2<
   specificInjectionTokenFactory?: SpecificFactory;
   target?: object;
   maxCacheSize?: number;
+  tags?: string[];
 }): AbstractInjectionToken2<F, MF, SpecificFactory>;
 
 // "Any DI alias" — any injectable or any token (v1 or v2). InjectableBunch

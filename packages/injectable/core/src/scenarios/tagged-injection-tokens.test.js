@@ -2,6 +2,8 @@ import createContainer from '../dependency-injection-container/createContainer';
 import getInjectable from '../getInjectable/getInjectable';
 import getInjectable2 from '../getInjectable2/getInjectable2';
 import { getInjectionToken } from '../getInjectionToken/getInjectionToken';
+import { getInjectionToken2 } from '../getInjectionToken2/getInjectionToken2';
+import { getAbstractInjectionToken2 } from '../getInjectionToken2/getAbstractInjectionToken2';
 import { injectionDecoratorToken } from '../dependency-injection-container/tokens';
 
 describe('tagged-injection-tokens', () => {
@@ -35,6 +37,83 @@ describe('tagged-injection-tokens', () => {
         'injectionToken',
         'some-tag',
       ]);
+    });
+  });
+
+  describe('given a v2 injection token', () => {
+    it('carries the initial injectionToken tag', () => {
+      const someToken = getInjectionToken2({ id: 'some-token' });
+
+      expect(someToken.tags).toEqual(['injectionToken']);
+    });
+
+    it('given custom tags, carries the initial tag followed by the custom tags', () => {
+      const someToken = getInjectionToken2({
+        id: 'some-token',
+        tags: ['some-tag', 'some-other-tag'],
+      });
+
+      expect(someToken.tags).toEqual([
+        'injectionToken',
+        'some-tag',
+        'some-other-tag',
+      ]);
+    });
+
+    it('when creating a specific token using .for, the specific token inherits the tags of the general token', () => {
+      const someToken = getInjectionToken2({
+        id: 'some-token',
+        tags: ['some-tag'],
+      });
+
+      expect(someToken.for('some-speciality').tags).toEqual([
+        'injectionToken',
+        'some-tag',
+      ]);
+    });
+  });
+
+  describe('given an abstract v2 injection token', () => {
+    it('carries the initial injectionToken tag and custom tags', () => {
+      const someAbstractToken = getAbstractInjectionToken2({
+        id: 'some-abstract-token',
+        tags: ['some-tag'],
+      });
+
+      expect(someAbstractToken.tags).toEqual(['injectionToken', 'some-tag']);
+    });
+  });
+
+  describe('given a v2 token with a custom tag and an injection decorator targeting the tag', () => {
+    it('when injecting via the token, the decorator fires', () => {
+      const someToken = getInjectionToken2({
+        id: 'some-token',
+        tags: ['some-tag'],
+      });
+
+      const someInjectable = getInjectable2({
+        id: 'some-injectable',
+        injectionToken: someToken,
+        instantiate: () => () => 'some-instance',
+      });
+
+      const tagDecorator = getInjectable2({
+        id: 'some-tag-decorator',
+        injectionToken: injectionDecoratorToken.for('some-tag'),
+        instantiate:
+          () =>
+          () =>
+          injectToBeDecorated =>
+          (...params) =>
+            `decorated(${injectToBeDecorated(...params)})`,
+      });
+
+      const di = createContainer('some-container', {
+        injectionDecorators: true,
+      });
+      di.register(someInjectable, tagDecorator);
+
+      expect(di.inject(someToken)).toBe('decorated(some-instance)');
     });
   });
 
