@@ -10,6 +10,7 @@ import {
   injectionDecoratorToken,
   instancePurgeCallbackToken,
   instantiationDecoratorToken,
+  preInjectCallbackToken,
   registrationCallbackToken,
   registrationDecoratorToken,
 } from '../dependency-injection-container/tokens';
@@ -55,6 +56,7 @@ describe('tagged-injection-tokens', () => {
       ['instantiationDecoratorToken', instantiationDecoratorToken],
       ['injectionDecoratorToken', injectionDecoratorToken],
       ['instancePurgeCallbackToken', instancePurgeCallbackToken],
+      ['preInjectCallbackToken', preInjectCallbackToken],
       ['registrationDecoratorToken', registrationDecoratorToken],
       ['deregistrationDecoratorToken', deregistrationDecoratorToken],
     ])('%s carries no tags', (name, token) => {

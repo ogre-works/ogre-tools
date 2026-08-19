@@ -65,3 +65,11 @@ export const deregistrationDecoratorToken = untagged(
       getSpecificInjectionToken2({ id: target.id, speciality: target }),
   }),
 );
+
+export const preInjectCallbackToken = untagged(
+  getAbstractInjectionToken2({
+    id: 'pre-inject-callback-token',
+    specificInjectionTokenFactory: target =>
+      getSpecificInjectionToken2({ id: target.id, speciality: target }),
+  }),
+);
