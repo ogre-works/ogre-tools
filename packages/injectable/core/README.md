@@ -228,8 +228,36 @@ Key properties:
 
 - **Initial `injectionToken` tag.** Every token automatically carries the tag `'injectionToken'` (exported as the constant `injectionTokenTag`) before any custom tags, so any token can be targeted for decoration, e.g. `injectionDecoratorToken.for(injectionTokenTag)` decorates every token-based injection.
 - **`.for()` children inherit tags.** A specific token created with `someToken.for(specifier)` carries the general token's tags, the same way it inherits `maxCacheSize`. Tags are deduped at dispatch, so a tag occurring on several chain levels fires its decorator once.
-- **Built-in machinery tokens are untagged.** The exported decorator/callback tokens (`instantiationDecoratorToken`, `injectionDecoratorToken`, `registrationDecoratorToken`, `deregistrationDecoratorToken`, `instancePurgeCallbackToken`, `registrationCallbackToken`, `deregistrationCallbackToken`) carry no tags — otherwise a decorator targeting `'injectionToken'` would decorate the decoration machinery itself and recurse.
+- **Built-in machinery tokens are untagged.** The exported decorator/callback tokens (`instantiationDecoratorToken`, `injectionDecoratorToken`, `registrationDecoratorToken`, `deregistrationDecoratorToken`, `instancePurgeCallbackToken`, `preInjectCallbackToken`, `registrationCallbackToken`, `deregistrationCallbackToken`) carry no tags — otherwise a decorator targeting `'injectionToken'` would decorate the decoration machinery itself and recurse.
 - **Footgun.** Tagging a decorator injectable itself with a tag its own decorator type targets (e.g. an injection decorator carrying the very tag it decorates) recurses; don't do that.
+
+#### Pre-inject callbacks
+
+A pre-inject callback registers under `preInjectCallbackToken.for(target)` — targeting an injectable, a token, or a tag, with the same three dispatch dimensions as the decorator tokens — and fires **before** every matching inject operation with `(alias, kind)`, where `kind` is `'inject'` or `'injectMany'`. Unlike an injection decorator, it does not wrap anything and its return value is ignored.
+
+Key properties:
+
+- **Fires before resolution and before any failure check.** The callback fires even when nothing is registered for the alias, so it can register implementations on demand that the very same operation then observes — lazy registration:
+
+```ts
+const someFeatureToken = getInjectionToken2<() => Feature>({ id: 'some-feature' });
+
+export const registerFeatureOnDemandInjectable = getInjectable2({
+  id: 'register-feature-on-demand',
+  injectionToken: preInjectCallbackToken.for(someFeatureToken),
+  instantiate: () => () => () => {
+    di.register(...featureInjectables);
+  },
+});
+
+// Elsewhere, without registering the feature up front:
+di.inject(someFeatureToken); // the callback registers just in time; this succeeds
+```
+
+- **Once per operation.** `di.inject` fires it once per call — including nested `di.inject` inside an `instantiate` and singleton cache hits (it is pre-*inject*, not pre-instantiation). `di.injectMany` fires it once for the whole call with the token alias; resolving the elements does not fire it again, and an `injectMany` of a token with zero registrations fires the callback and returns `[]` without throwing.
+- **Ordering.** Pre-inject callbacks fire before injection decorators compose, so a callback may even register decorators the same operation picks up.
+- **Free when unused.** Like injection decorators, the wiring is swapped in only while at least one pre-inject callback is registered; containers without any pay no overhead.
+- **Footgun.** A callback whose own injectable matches keys its callback type targets would recurse — the machinery tokens are exempt (untagged), user injectables are not. Also note the callback fires on *every* matching operation: a register-on-demand callback must be idempotent or deregister itself.
 
 #### Auto-registration
 When there's a lot of `injectables`, registering them manually with `di.register` can be a chore. As a solution, auto-registration can be used to register all exported injectables from files with eg. `.injectable.ts(x)` -naming.
