@@ -52,7 +52,10 @@ export default containerId => {
   const nonDecoratedPrivateInjectManyForUnknownMeta =
     nonDecoratedPrivateInjectManyFor({
       getRelatedInjectables,
-      getInject: () => privateDi.inject,
+      // Elements go through the element slot, not `privateDi.inject`: entry
+      // wrappers (once-per-operation hooks) must not re-fire per element,
+      // while injection decorators still apply per element.
+      getInject: () => elementInject,
       namespacedIdByInjectableMap,
     });
 
@@ -131,22 +134,29 @@ export default containerId => {
     nonDecoratedPrivateInjectWithMeta,
   );
 
+  // The inject used for injectMany elements: decorated per element when
+  // injection decorators exist, but never wrapped by entry-level hooks.
+  let elementInject = nonDecoratedPrivateInject;
+
   // Wires the decorated inject variants in only while at least one injection
   // decorator is registered, so the common no-decorator case pays no wrapper
-  // frame at all. Every reader of `privateDi.inject` reads it at call time.
-  const syncInjectionDecoration = () => {
+  // frame at all. Every reader of `privateDi.inject` (and `elementInject`,
+  // via the getInject thunk) reads it at call time.
+  const syncInjectWiring = () => {
     const registeredDecorators = injectablesByInjectionToken.get(
       injectionDecoratorToken,
     );
 
-    const active =
+    const decoratorsActive =
       registeredDecorators !== undefined && registeredDecorators.size > 0;
 
-    privateDi.inject = active
+    elementInject = decoratorsActive
       ? decoratedPrivateInject
       : nonDecoratedPrivateInject;
 
-    privateDi.injectWithMeta = active
+    privateDi.inject = elementInject;
+
+    privateDi.injectWithMeta = decoratorsActive
       ? decoratedPrivateInjectWithMeta
       : nonDecoratedPrivateInjectWithMeta;
   };
@@ -171,7 +181,7 @@ export default containerId => {
 
     if (isRelatedToToken(injectable.injectionToken, injectionDecoratorToken)) {
       decoratorCache.injection = null;
-      syncInjectionDecoration();
+      syncInjectWiring();
     }
   };
 
@@ -195,7 +205,7 @@ export default containerId => {
     // Todo: get rid of function usage.
     getDi: () => privateDi,
     decoratorCache,
-    syncInjectionDecoration,
+    syncInjectWiring,
   });
 
   const privateRegister = registerFor({
@@ -244,7 +254,7 @@ export default containerId => {
     namespacedIdByInjectableMap.clear();
     childrenByParentMap.clear();
     decoratorCache.injection = null;
-    syncInjectionDecoration();
+    syncInjectWiring();
   };
 
   // The immediate parent is the last registration context item; a missing
@@ -260,7 +270,7 @@ export default containerId => {
   };
 
   const privateDi = {
-    // Swapped by syncInjectionDecoration: the decorated variants are wired
+    // Swapped by syncInjectWiring: the decorated variants are wired
     // in only while at least one injection decorator is registered, so the
     // common no-decorator case pays no wrapper frame at all.
     inject: nonDecoratedPrivateInject,
