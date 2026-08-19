@@ -12,7 +12,8 @@ import { checkForSideEffectsFor } from './checkForSideEffectsFor';
 import { checkForAbstractTokenFor } from './checkForAbstractTokenFor';
 import { getRelatedInjectablesFor } from './getRelatedInjectablesFor';
 import { earlyOverrideFor, earlyOverride2For } from './early-override';
-import { injectionDecoratorToken } from './tokens';
+import { injectionDecoratorToken, preInjectCallbackToken } from './tokens';
+import { withPreInjectCallbacksFor } from './withPreInjectCallbacksFor';
 import { isRelatedToToken } from './getRelatedTokens';
 import { firePurgeCallbacksFor } from './firePurgeCallbacksFor';
 import { getApplicableDecoratorsFor } from './getApplicableDecoratorsFor';
@@ -21,7 +22,12 @@ import { isCompositeStorage } from './privateInjectFor';
 export default containerId => {
   const injectableSet = new Set();
 
-  const decoratorCache = { injection: null, injectionByAlias: new Map() };
+  const decoratorCache = {
+    injection: null,
+    injectionByAlias: new Map(),
+    preInject: null,
+    preInjectByAlias: new Map(),
+  };
   const overridingInjectables = new Map();
   let sideEffectsArePrevented = true;
   const alreadyInjected = new Set();
@@ -134,14 +140,49 @@ export default containerId => {
     nonDecoratedPrivateInjectWithMeta,
   );
 
+  const withPreInjectCallbacks = withPreInjectCallbacksFor({
+    decoratorCache,
+    getApplicableDecorators,
+  });
+
+  const withPreInjectCallbacksForInject = withPreInjectCallbacks('inject');
+
+  const withPreInjectCallbacksForInjectMany =
+    withPreInjectCallbacks('injectMany');
+
+  const preInjectNonDecoratedInject = withPreInjectCallbacksForInject(
+    nonDecoratedPrivateInject,
+  );
+
+  const preInjectDecoratedInject = withPreInjectCallbacksForInject(
+    decoratedPrivateInject,
+  );
+
+  const preInjectNonDecoratedInjectWithMeta = withPreInjectCallbacksForInject(
+    nonDecoratedPrivateInjectWithMeta,
+  );
+
+  const preInjectDecoratedInjectWithMeta = withPreInjectCallbacksForInject(
+    decoratedPrivateInjectWithMeta,
+  );
+
+  const preInjectInjectMany = withPreInjectCallbacksForInjectMany(
+    nonDecoratedPrivateInjectMany,
+  );
+
+  const preInjectInjectManyWithMeta = withPreInjectCallbacksForInjectMany(
+    nonDecoratedPrivateInjectManyWithMeta,
+  );
+
   // The inject used for injectMany elements: decorated per element when
-  // injection decorators exist, but never wrapped by entry-level hooks.
+  // injection decorators exist, but never wrapped by entry-level hooks
+  // (pre-inject callbacks fire once per operation, not per element).
   let elementInject = nonDecoratedPrivateInject;
 
-  // Wires the decorated inject variants in only while at least one injection
-  // decorator is registered, so the common no-decorator case pays no wrapper
-  // frame at all. Every reader of `privateDi.inject` (and `elementInject`,
-  // via the getInject thunk) reads it at call time.
+  // Wires the decorated and pre-inject-hooked variants in only while at
+  // least one matching contributor is registered, so the common bare case
+  // pays no wrapper frame at all. Every reader of the privateDi slots (and
+  // `elementInject`, via the getInject thunk) reads them at call time.
   const syncInjectWiring = () => {
     const registeredDecorators = injectablesByInjectionToken.get(
       injectionDecoratorToken,
@@ -150,15 +191,39 @@ export default containerId => {
     const decoratorsActive =
       registeredDecorators !== undefined && registeredDecorators.size > 0;
 
+    const registeredPreInjectCallbacks = injectablesByInjectionToken.get(
+      preInjectCallbackToken,
+    );
+
+    const preInjectActive =
+      registeredPreInjectCallbacks !== undefined &&
+      registeredPreInjectCallbacks.size > 0;
+
     elementInject = decoratorsActive
       ? decoratedPrivateInject
       : nonDecoratedPrivateInject;
 
-    privateDi.inject = elementInject;
+    privateDi.inject = preInjectActive
+      ? decoratorsActive
+        ? preInjectDecoratedInject
+        : preInjectNonDecoratedInject
+      : elementInject;
 
-    privateDi.injectWithMeta = decoratorsActive
+    privateDi.injectWithMeta = preInjectActive
+      ? decoratorsActive
+        ? preInjectDecoratedInjectWithMeta
+        : preInjectNonDecoratedInjectWithMeta
+      : decoratorsActive
       ? decoratedPrivateInjectWithMeta
       : nonDecoratedPrivateInjectWithMeta;
+
+    privateDi.injectMany = preInjectActive
+      ? preInjectInjectMany
+      : nonDecoratedPrivateInjectMany;
+
+    privateDi.injectManyWithMeta = preInjectActive
+      ? preInjectInjectManyWithMeta
+      : nonDecoratedPrivateInjectManyWithMeta;
   };
 
   const firePurgeCallbacks = firePurgeCallbacksFor({
@@ -179,8 +244,19 @@ export default containerId => {
   const registerSingle = (injectable, context) => {
     rawRegisterSingle(injectable, context);
 
+    let wiringChanged = false;
+
     if (isRelatedToToken(injectable.injectionToken, injectionDecoratorToken)) {
       decoratorCache.injection = null;
+      wiringChanged = true;
+    }
+
+    if (isRelatedToToken(injectable.injectionToken, preInjectCallbackToken)) {
+      decoratorCache.preInject = null;
+      wiringChanged = true;
+    }
+
+    if (wiringChanged) {
       syncInjectWiring();
     }
   };
@@ -254,6 +330,7 @@ export default containerId => {
     namespacedIdByInjectableMap.clear();
     childrenByParentMap.clear();
     decoratorCache.injection = null;
+    decoratorCache.preInject = null;
     syncInjectWiring();
   };
 

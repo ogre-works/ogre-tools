@@ -37,6 +37,7 @@ export {
   injectionDecoratorToken,
   instancePurgeCallbackToken,
   instantiationDecoratorToken,
+  preInjectCallbackToken,
   registrationCallbackToken,
   registrationDecoratorToken,
 } from './src/dependency-injection-container/tokens';

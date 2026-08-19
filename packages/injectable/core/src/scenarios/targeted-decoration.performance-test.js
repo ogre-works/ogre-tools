@@ -6,6 +6,7 @@ import { getInjectionToken } from '../getInjectionToken/getInjectionToken';
 import {
   injectionDecoratorToken,
   instantiationDecoratorToken,
+  preInjectCallbackToken,
   registrationDecoratorToken,
 } from '../dependency-injection-container/tokens';
 
@@ -140,6 +141,64 @@ describe('targeted-decoration.performance', () => {
         ).toFixed(2)}ms`,
       );
       expect(p2 - p1).toBeLessThan(500);
+    });
+  });
+
+  describe('30k injectables + 1 tag-keyed pre-inject callback', () => {
+    let di;
+    let injectables;
+
+    beforeEach(() => {
+      di = createContainer('some-container-id');
+      injectables = buildBaseInjectables();
+
+      const tagCallback = getInjectable2({
+        id: 'some-tag-pre-inject-callback',
+        injectionToken: preInjectCallbackToken.for('some-tag'),
+        instantiate: () => () => () => {},
+      });
+
+      di.register(tagCallback, ...injectables);
+    });
+
+    it('inject each injectable once (cold), then again (warm), then one injectMany: logs and asserts thresholds', () => {
+      const p1 = performance.now();
+      for (const injectable of injectables) {
+        di.inject(injectable);
+      }
+      const p2 = performance.now();
+
+      console.log(
+        `[BENCH] tag-keyed pre-inject callback 30k inject (cold): ${(
+          p2 - p1
+        ).toFixed(2)}ms`,
+      );
+
+      const p3 = performance.now();
+      for (const injectable of injectables) {
+        di.inject(injectable);
+      }
+      const p4 = performance.now();
+
+      console.log(
+        `[BENCH] tag-keyed pre-inject callback 30k inject (warm): ${(
+          p4 - p3
+        ).toFixed(2)}ms`,
+      );
+
+      const p5 = performance.now();
+      di.injectMany(someInjectionToken);
+      const p6 = performance.now();
+
+      console.log(
+        `[BENCH] tag-keyed pre-inject callback 20k injectMany: ${(
+          p6 - p5
+        ).toFixed(2)}ms`,
+      );
+
+      expect(p2 - p1).toBeLessThan(1000);
+      expect(p4 - p3).toBeLessThan(500);
+      expect(p6 - p5).toBeLessThan(500);
     });
   });
 
