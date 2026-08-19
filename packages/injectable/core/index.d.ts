@@ -544,6 +544,43 @@ export const instancePurgeCallbackToken: AbstractInjectionToken2<
   InstancePurgeCallbackSpecificFactory
 >;
 
+// --- preInjectCallbackToken ---
+//
+// Abstract base token. Callbacks must be registered against a specifier-
+// scoped token produced by `.for(target)` — targets are any alias
+// (injectable or token, v1 or v2) or a string tag. The callback fires once
+// before every matching inject operation — before alias resolution and
+// before any failure check, so a callback may register implementations that
+// the same operation then observes, and it fires even when nothing is
+// registered for the alias. `di.injectMany` fires it once for the whole
+// call with the token alias; resolving the elements does not fire it again.
+//
+// The scoped token's Factory is `() => PreInjectCallback` — parameterless
+// so it resolves as a singleton per callback injectable.
+
+export type PreInjectCallbackKind = 'inject' | 'injectMany';
+
+export type PreInjectCallback = (
+  alias: Alias,
+  kind: PreInjectCallbackKind,
+) => void;
+
+export interface PreInjectCallbackSpecificFactory {
+  (target: Alias): SpecificInjectionToken2<() => PreInjectCallback>;
+
+  // Tag-keyed dispatch: a pre-inject callback targeting a string tag fires
+  // for every inject operation whose alias (or a token in its chain)
+  // carries the tag. Weak typing is intentional — the tag is a
+  // documentation string.
+  (tag: string): SpecificInjectionToken2<() => PreInjectCallback>;
+}
+
+export const preInjectCallbackToken: AbstractInjectionToken2<
+  Factory,
+  ManyFactory,
+  PreInjectCallbackSpecificFactory
+>;
+
 export const isInjectable: (
   thing: unknown,
 ) => thing is Injectable<unknown, unknown, unknown>;

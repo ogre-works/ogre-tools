@@ -1781,3 +1781,56 @@ expectType<'injectionToken'>(injectionTokenTag);
 // --- createContainer takes no options bag; injection decorators are always available ---
 
 expectError(createContainer('some-container', { injectionDecorators: true }));
+
+// --- preInjectCallbackToken ---
+
+import {
+  preInjectCallbackToken,
+  PreInjectCallback,
+  PreInjectCallbackKind,
+  PreInjectCallbackSpecificFactory,
+} from '.';
+
+expectAssignable<
+  AbstractInjectionToken2<
+    Factory,
+    ManyFactory,
+    PreInjectCallbackSpecificFactory
+  >
+>(preInjectCallbackToken);
+
+const somePreInjectCallback: PreInjectCallback = (alias, kind) => {
+  expectType<Alias>(alias);
+  expectType<PreInjectCallbackKind>(kind);
+};
+
+expectType<'inject' | 'injectMany'>(null as unknown as PreInjectCallbackKind);
+
+// A callback registers against a .for-scoped token; the factory is curried.
+getInjectable2({
+  id: 'some-pre-inject-callback',
+  injectionToken: preInjectCallbackToken.for(someStringInjectionToken),
+  instantiate: () => () => somePreInjectCallback,
+});
+
+// .for accepts an injectable, tokens (v1 and v2), and a string tag.
+preInjectCallbackToken.for(someInjectable);
+preInjectCallbackToken.for(handlerToken2);
+preInjectCallbackToken.for('some-tag');
+
+// Mis-typed callbacks are rejected.
+expectError(
+  getInjectable2({
+    id: 'badly-typed-pre-inject-callback',
+    injectionToken: preInjectCallbackToken.for('some-tag'),
+    instantiate: () => () => (alias: string, kind: number) => {},
+  }),
+);
+
+expectError(
+  getInjectable2({
+    id: 'not-a-callback',
+    injectionToken: preInjectCallbackToken.for('some-tag'),
+    instantiate: () => () => 42,
+  }),
+);

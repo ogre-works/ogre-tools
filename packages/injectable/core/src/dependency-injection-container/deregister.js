@@ -2,6 +2,7 @@ import {
   deregistrationCallbackToken,
   deregistrationDecoratorToken,
   injectionDecoratorToken,
+  preInjectCallbackToken,
 } from './tokens';
 import toFlatInjectables from './toFlatInjectables';
 import isInjectionToken from '../getInjectionToken/isInjectionToken';
@@ -57,14 +58,19 @@ export const deregisterFor =
       di,
     });
 
-    let injectionDecoratorsChanged = false;
+    let injectWiringChanged = false;
 
     flatInjectables.forEach(injectable => {
       if (
         isRelatedToToken(injectable.injectionToken, injectionDecoratorToken)
       ) {
         decoratorCache.injection = null;
-        injectionDecoratorsChanged = true;
+        injectWiringChanged = true;
+      }
+
+      if (isRelatedToToken(injectable.injectionToken, preInjectCallbackToken)) {
+        decoratorCache.preInject = null;
+        injectWiringChanged = true;
       }
 
       const decorators = getApplicableDecorators({
@@ -85,7 +91,7 @@ export const deregisterFor =
 
     // Recomputed from the registration index after the removals, so a
     // deregistration decorator that prevented the removal is handled too.
-    if (injectionDecoratorsChanged) {
+    if (injectWiringChanged) {
       syncInjectWiring();
     }
   };
