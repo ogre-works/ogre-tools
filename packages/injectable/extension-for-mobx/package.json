@@ -32,8 +32,8 @@
   "author": "Ogre Works",
   "license": "MIT",
   "peerDependencies": {
-    "@ogre-tools/fp": "^18 || ^19 || ^20 || ^21 || ^22 || ^23",
-    "@ogre-tools/injectable": "^18 || ^19 || ^20 || ^21 || ^22 || ^23",
+    "@ogre-tools/fp": "^18 || ^19 || ^20 || ^21 || ^22 || ^23 || ^24",
+    "@ogre-tools/injectable": "^18 || ^19 || ^20 || ^21 || ^22 || ^23 || ^24",
     "mobx": "^6.12.4"
   },
   "bugs": {
