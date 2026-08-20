@@ -3,6 +3,10 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [24.0.0](https://github.com/ogre-works/ogre-tools/compare/v23.3.2...v24.0.0) (2026-08-20)
+
+**Note:** Version bump only for package @ogre-tools/injectable-extension-for-auto-registration
+
 ### [23.3.2](https://github.com/ogre-works/ogre-tools/compare/v23.3.1...v23.3.2) (2026-08-17)
 
 **Note:** Version bump only for package @ogre-tools/injectable-extension-for-auto-registration

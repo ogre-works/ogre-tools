@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [24.0.0](https://github.com/ogre-works/ogre-tools/compare/v23.3.2...v24.0.0) (2026-08-20)
+
+### Features
+
+- **injectable-react:** Thread tags through injection token components ([1b194a8](https://github.com/ogre-works/ogre-tools/commit/1b194a8a232d6751acf2ca2eba3d0592299b9bc2))
+
 ### [23.3.2](https://github.com/ogre-works/ogre-tools/compare/v23.3.1...v23.3.2) (2026-08-17)
 
 **Note:** Version bump only for package @ogre-tools/injectable-react

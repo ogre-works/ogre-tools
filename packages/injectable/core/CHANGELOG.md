@@ -3,6 +3,28 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [24.0.0](https://github.com/ogre-works/ogre-tools/compare/v23.3.2...v24.0.0) (2026-08-20)
+
+### ⚠ BREAKING CHANGES
+
+- **injectable:** createContainer no longer accepts an options bag.
+  Injection decorators fire without { injectionDecorators: true };
+  passing it is now a type error (ignored at runtime).
+
+### Features
+
+- **injectable:** Add preInjectCallbackToken fired once per inject and injectMany ([cdd6ef7](https://github.com/ogre-works/ogre-tools/commit/cdd6ef7316a360a0b5c8d007bdbfaedecc27804b))
+- **injectable:** Add tags with initial injectionToken tag to getInjectionToken ([c0688ed](https://github.com/ogre-works/ogre-tools/commit/c0688edf35194eba0eb28eb864d6be62bf3a42d8))
+- **injectable:** Add tags with initial injectionToken tag to getInjectionToken2 ([fc3295c](https://github.com/ogre-works/ogre-tools/commit/fc3295c186f0c54e542ec388f768668f64d05d2c))
+- **injectable:** Dispatch tag-keyed decorators for tags of the target's token chain ([a76276c](https://github.com/ogre-works/ogre-tools/commit/a76276c40c55fe91d5e4f8a956f4b381e76789a0))
+- **injectable:** Exempt built-in machinery tokens from tags ([6c08a5c](https://github.com/ogre-works/ogre-tools/commit/6c08a5cf85fb8ca521bd1e3cea413cd5e00347aa))
+- **injectable:** Pass the injecting injectable to pre-inject callbacks ([c8d5f5c](https://github.com/ogre-works/ogre-tools/commit/c8d5f5c4e6419835f35685dede6172ad0a6ba310))
+- **injectable:** Remove the injectionDecorators container option ([e7594c4](https://github.com/ogre-works/ogre-tools/commit/e7594c424f2e473db205b4f463ac99c0e73892d7))
+
+### Performance Improvements
+
+- **injectable:** Memoize .for() by specifier and skip empty decorator lookups ([8a66870](https://github.com/ogre-works/ogre-tools/commit/8a66870da6e97871d4cdbad1b7e21345c7036c4b))
+
 ### [23.3.2](https://github.com/ogre-works/ogre-tools/compare/v23.3.1...v23.3.2) (2026-08-17)
 
 **Note:** Version bump only for package @ogre-tools/injectable
