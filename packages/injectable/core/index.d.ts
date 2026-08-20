@@ -88,6 +88,7 @@ export interface InjectionToken<
     id: string,
   ) => SpecificInjectionToken<InjectionInstance, InstantiationParam>,
 > {
+  readonly aliasType: "injection-token";
   template: InjectionInstance;
   instantiationParameter: InstantiationParam;
   key: Symbol;
@@ -121,6 +122,7 @@ export interface Injectable<
   InjectionTokenInstance = InjectionInstance,
   InstantiationParam = void,
 > {
+  readonly aliasType: "injectable";
   readonly id: string;
   readonly causesSideEffects?: boolean;
   readonly injectionToken?: InjectionToken<
@@ -133,12 +135,12 @@ export interface Injectable<
   readonly maxCacheSize?: number;
 }
 
-export type GetInjectableOptionsWithoutInstantiationParameter<I extends TI, TI> = Omit<Injectable<I, TI>, "lifecycle" | "instantiate"> & {
+export type GetInjectableOptionsWithoutInstantiationParameter<I extends TI, TI> = Omit<Injectable<I, TI>, "lifecycle" | "instantiate" | "aliasType"> & {
   readonly instantiate: (di: DiContainerForInjection, param: void) => I;
   readonly lifecycle?: Lifecycle;
 }
 
-export type GetInjectableOptionsWithInstantiationParameter<I extends TI, TI, P> = Omit<Injectable<I, TI, P>, "instantiate"> & {
+export type GetInjectableOptionsWithInstantiationParameter<I extends TI, TI, P> = Omit<Injectable<I, TI, P>, "instantiate" | "aliasType"> & {
   readonly instantiate: (di: DiContainerForInjection, param: P) => I;
 };
 
@@ -681,6 +683,7 @@ export interface InjectionToken2<
     id: string,
   ) => SpecificInjectionToken2<F, MF>,
 > {
+  readonly aliasType: 'injection-token2';
   // Brand that excludes AbstractInjectionToken2 (which has `readonly __abstract: true`).
   // Sites that need to accept both must spell out the union explicitly:
   // `InjectionToken2<F> | AbstractInjectionToken2<F>`.
