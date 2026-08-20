@@ -555,14 +555,26 @@ export const instancePurgeCallbackToken: AbstractInjectionToken2<
 // registered for the alias. `di.injectMany` fires it once for the whole
 // call with the token alias; resolving the elements does not fire it again.
 //
+// The callback also receives the injecting party — the injectable whose
+// `instantiate` made the call, or the container root for injects made
+// directly on `di`.
+//
 // The scoped token's Factory is `() => PreInjectCallback` — parameterless
 // so it resolves as a singleton per callback injectable.
 
 export type PreInjectCallbackKind = 'inject' | 'injectMany';
 
+// The container itself, which stands in as the injecting party for injects
+// made directly on `di` rather than from within an `instantiate`.
+export interface ContainerRoot {
+  id: string;
+  aliasType: 'container';
+}
+
 export type PreInjectCallback = (
   alias: Alias,
   kind: PreInjectCallbackKind,
+  injectingInjectable: Alias | ContainerRoot,
 ) => void;
 
 export interface PreInjectCallbackSpecificFactory {
