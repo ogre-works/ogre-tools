@@ -65,7 +65,7 @@ export function useInject2<TReturnValue, TInstantiationParameter>(
 export type InjectableComponent<Component extends React.ComponentType<any>> =
   Component & Injectable<Component>;
 
-type ExcludedKeys = 'instantiate' | 'lifecycle' | 'scope' | 'injectionToken';
+type ExcludedKeys = 'instantiate' | 'lifecycle' | 'scope' | 'injectionToken' | "aliasType";
 
 export declare function getInjectableComponent<
   Component extends React.ComponentType<any>
