@@ -5,7 +5,9 @@ import { preInjectCallbackToken } from './tokens';
 // so a callback can register implementations that the same operation then
 // observes. `kind` is baked in at wrap time: 'inject' for the inject
 // variants, 'injectMany' for the injectMany variants (withMeta variants
-// report their base kind).
+// report their base kind). The third argument is the injecting party: the
+// injectable whose instantiate made the call, or the container root for
+// injects made directly on `di`.
 export const withPreInjectCallbacksFor =
   ({ decoratorCache, getApplicableDecorators }) =>
   kind =>
@@ -34,7 +36,7 @@ export const withPreInjectCallbacksFor =
 
     if (callbacks !== null) {
       for (const callback of callbacks) {
-        callback(args.alias, kind);
+        callback(args.alias, kind, args.injectingInjectable);
       }
     }
 

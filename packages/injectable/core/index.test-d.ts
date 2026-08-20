@@ -1786,6 +1786,7 @@ expectError(createContainer('some-container', { injectionDecorators: true }));
 
 import {
   preInjectCallbackToken,
+  ContainerRoot,
   PreInjectCallback,
   PreInjectCallbackKind,
   PreInjectCallbackSpecificFactory,
@@ -1799,7 +1800,12 @@ expectAssignable<
   >
 >(preInjectCallbackToken);
 
-const somePreInjectCallback: PreInjectCallback = (alias, kind) => {
+const somePreInjectCallback: PreInjectCallback = (
+  alias,
+  kind,
+  injectingInjectable,
+) => {
+  expectType<Alias | ContainerRoot>(injectingInjectable);
   expectType<Alias>(alias);
   expectType<PreInjectCallbackKind>(kind);
 };

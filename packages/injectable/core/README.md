@@ -231,7 +231,7 @@ Key properties:
 
 #### Pre-inject callbacks
 
-A pre-inject callback registers under `preInjectCallbackToken.for(target)` — targeting an injectable, a token, or a tag, with the same three dispatch dimensions as the decorator tokens — and fires **before** every matching inject operation with `(alias, kind)`, where `kind` is `'inject'` or `'injectMany'`. Unlike an injection decorator, it does not wrap anything and its return value is ignored.
+A pre-inject callback registers under `preInjectCallbackToken.for(target)` — targeting an injectable, a token, or a tag, with the same three dispatch dimensions as the decorator tokens — and fires **before** every matching inject operation with `(alias, kind, injectingInjectable)`, where `kind` is `'inject'` or `'injectMany'` and `injectingInjectable` is the injecting party: the injectable whose `instantiate` made the call, or the container root (`{ id, aliasType: 'container' }`) for injects made directly on `di`. Unlike an injection decorator, it does not wrap anything and its return value is ignored.
 
 Key properties:
 

@@ -8,6 +8,10 @@ import {
   preInjectCallbackToken,
 } from '../dependency-injection-container/tokens';
 
+// The container stands in as the injecting party for injects made directly
+// on `di`, as opposed to injects made from within an instantiate.
+const containerRoot = { id: 'some-container', aliasType: 'container' };
+
 describe('createContainer.pre-inject-callbacks', () => {
   let di;
 
@@ -42,7 +46,9 @@ describe('createContainer.pre-inject-callbacks', () => {
     it('when injecting via the token, the callback fires once with the alias and kind "inject"', () => {
       di.inject(someToken);
 
-      expect(callbackMock.mock.calls).toEqual([[someToken, 'inject']]);
+      expect(callbackMock.mock.calls).toEqual([
+        [someToken, 'inject', containerRoot],
+      ]);
     });
 
     it('when injecting twice, the callback fires for the singleton cache hit too', () => {
@@ -55,19 +61,25 @@ describe('createContainer.pre-inject-callbacks', () => {
     it('when injecting many via the token, the callback fires exactly once with kind "injectMany"', () => {
       di.injectMany(someToken);
 
-      expect(callbackMock.mock.calls).toEqual([[someToken, 'injectMany']]);
+      expect(callbackMock.mock.calls).toEqual([
+        [someToken, 'injectMany', containerRoot],
+      ]);
     });
 
     it('when injecting many with meta, the callback fires once with kind "injectMany"', () => {
       di.injectManyWithMeta(someToken);
 
-      expect(callbackMock.mock.calls).toEqual([[someToken, 'injectMany']]);
+      expect(callbackMock.mock.calls).toEqual([
+        [someToken, 'injectMany', containerRoot],
+      ]);
     });
 
     it('when injecting with meta, the callback fires once with kind "inject"', () => {
       di.injectWithMeta(someToken);
 
-      expect(callbackMock.mock.calls).toEqual([[someToken, 'inject']]);
+      expect(callbackMock.mock.calls).toEqual([
+        [someToken, 'inject', containerRoot],
+      ]);
     });
   });
 
@@ -94,7 +106,9 @@ describe('createContainer.pre-inject-callbacks', () => {
       di.register(...implementations, callbackInjectable);
 
       expect(di.injectMany(someToken)).toEqual(['a', 'b', 'c']);
-      expect(callbackMock.mock.calls).toEqual([[someToken, 'injectMany']]);
+      expect(callbackMock.mock.calls).toEqual([
+        [someToken, 'injectMany', containerRoot],
+      ]);
     });
   });
 
@@ -141,7 +155,9 @@ describe('createContainer.pre-inject-callbacks', () => {
       di.register(callbackInjectable);
 
       expect(di.injectMany(someToken)).toEqual([]);
-      expect(callbackMock.mock.calls).toEqual([[someToken, 'injectMany']]);
+      expect(callbackMock.mock.calls).toEqual([
+        [someToken, 'injectMany', containerRoot],
+      ]);
     });
   });
 
@@ -170,7 +186,9 @@ describe('createContainer.pre-inject-callbacks', () => {
 
       di.inject(someToken);
 
-      expect(callbackMock.mock.calls).toEqual([[someToken, 'inject']]);
+      expect(callbackMock.mock.calls).toEqual([
+        [someToken, 'inject', containerRoot],
+      ]);
     });
 
     it('a callback targeting the injectionToken tag fires for token injects and not for token-less injectable injects', () => {
@@ -204,7 +222,9 @@ describe('createContainer.pre-inject-callbacks', () => {
       di.inject(someToken);
       di.inject(someTokenlessInjectable);
 
-      expect(callbackMock.mock.calls).toEqual([[someToken, 'inject']]);
+      expect(callbackMock.mock.calls).toEqual([
+        [someToken, 'inject', containerRoot],
+      ]);
     });
   });
 
@@ -227,7 +247,9 @@ describe('createContainer.pre-inject-callbacks', () => {
 
       di.inject(someInjectable);
 
-      expect(callbackMock.mock.calls).toEqual([[someInjectable, 'inject']]);
+      expect(callbackMock.mock.calls).toEqual([
+        [someInjectable, 'inject', containerRoot],
+      ]);
     });
   });
 
@@ -261,8 +283,43 @@ describe('createContainer.pre-inject-callbacks', () => {
         'parent(some-child-instance)',
       );
 
+      // The injecting party is the parent, not the container root.
       expect(callbackMock.mock.calls).toEqual([
-        [someChildInjectable, 'inject'],
+        [someChildInjectable, 'inject', someParentInjectable],
+      ]);
+    });
+
+    it('given the same alias injected both from an instantiate and from the container, the callback reports each injecting party', () => {
+      const someChildInjectable = getInjectable({
+        id: 'some-child-injectable',
+        instantiate: () => 'some-child-instance',
+      });
+
+      const someParentInjectable = getInjectable({
+        id: 'some-parent-injectable',
+        instantiate: someDi => `parent(${someDi.inject(someChildInjectable)})`,
+      });
+
+      const callbackMock = jest.fn();
+
+      const callbackInjectable = getInjectable2({
+        id: 'some-pre-inject-callback',
+        injectionToken: preInjectCallbackToken.for(someChildInjectable),
+        instantiate: () => () => callbackMock,
+      });
+
+      di.register(
+        someParentInjectable,
+        someChildInjectable,
+        callbackInjectable,
+      );
+
+      di.inject(someParentInjectable);
+      di.inject(someChildInjectable);
+
+      expect(callbackMock.mock.calls).toEqual([
+        [someChildInjectable, 'inject', someParentInjectable],
+        [someChildInjectable, 'inject', containerRoot],
       ]);
     });
   });
@@ -315,7 +372,9 @@ describe('createContainer.pre-inject-callbacks', () => {
       di.register(callbackInjectable);
 
       di.inject(someInjectable);
-      expect(callbackMock.mock.calls).toEqual([[someInjectable, 'inject']]);
+      expect(callbackMock.mock.calls).toEqual([
+        [someInjectable, 'inject', containerRoot],
+      ]);
     });
   });
 
@@ -343,7 +402,9 @@ describe('createContainer.pre-inject-callbacks', () => {
 
       // Exactly one call: only the user token — resolving the callback
       // itself, under the untagged machinery token, does not fire.
-      expect(callbackMock.mock.calls).toEqual([[someToken, 'inject']]);
+      expect(callbackMock.mock.calls).toEqual([
+        [someToken, 'inject', containerRoot],
+      ]);
     });
   });
 
