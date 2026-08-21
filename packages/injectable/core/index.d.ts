@@ -984,8 +984,13 @@ export interface InjectionToken2CreatorWithConsumptionFactory<
       DefaultSpecificFactory2<F, DefaultConsumptionFactory<'zero-or-one', F>, 'zero-or-one'>,
   >(
     options: GetInjectionToken2Options<SF> & {
+      // Requiring `undefined` in the result, not merely permitting it: the
+      // factory is handed back verbatim, and a 'zero-or-one' token yields
+      // nothing when no implementation is registered.
       cardinality: MF extends (...args: Parameters<F>) => ReturnType<F> | undefined
-        ? 'zero-or-one'
+        ? undefined extends ReturnType<MF>
+          ? 'zero-or-one'
+          : never
         : never;
     },
   ): InjectionToken2<F, MF, SF, 'zero-or-one'>;
@@ -1028,8 +1033,13 @@ export interface InjectionToken2CreatorWithSpecificFactory<
 
   (
     options: GetInjectionToken2Options<SF> & {
+      // Requiring `undefined` in the result, not merely permitting it: the
+      // factory is handed back verbatim, and a 'zero-or-one' token yields
+      // nothing when no implementation is registered.
       cardinality: MF extends (...args: Parameters<F>) => ReturnType<F> | undefined
-        ? 'zero-or-one'
+        ? undefined extends ReturnType<MF>
+          ? 'zero-or-one'
+          : never
         : never;
     },
   ): InjectionToken2<F, MF, SF, 'zero-or-one'>;
