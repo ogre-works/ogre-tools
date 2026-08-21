@@ -661,4 +661,81 @@ describe('callbacks-for-instance-purge', () => {
       expect(purgeSpy).toHaveBeenCalledWith(instance);
     });
   });
+  describe('scope-restricted purge', () => {
+    let di;
+    let purgeSpy;
+    let someChild;
+    let someScopeOwner;
+
+    beforeEach(() => {
+      purgeSpy = jest.fn();
+
+      someChild = getInjectable({
+        id: 'some-child',
+        instantiate: () => 'some-child-instance',
+      });
+
+      someScopeOwner = getInjectable({
+        id: 'some-scope-owner',
+
+        instantiate: scopedDi => {
+          scopedDi.register(someChild);
+          scopedDi.inject(someChild);
+
+          return {
+            purgeChild: () => scopedDi.purge(someChild),
+            purgeEverythingInScope: () => scopedDi.purge(),
+          };
+        },
+      });
+
+      di = createContainer('some-container');
+
+      di.register(
+        someScopeOwner,
+
+        asPurgeCallbackInjectable(
+          'some-purge-callback',
+          someChild,
+          ({ instance }) =>
+            () =>
+              purgeSpy(instance),
+        ),
+      );
+    });
+
+    it('given a scope purging one of its own registrations, fires its purge callbacks', () => {
+      di.inject(someScopeOwner).purgeChild();
+
+      expect(purgeSpy.mock.calls).toEqual([['some-child-instance']]);
+    });
+
+    it('given a scope purging everything it registered, fires their purge callbacks', () => {
+      di.inject(someScopeOwner).purgeEverythingInScope();
+
+      expect(purgeSpy.mock.calls).toEqual([['some-child-instance']]);
+    });
+
+    it('given the container purges the same injectable, fires them the same way', () => {
+      di.inject(someScopeOwner);
+
+      di.purge(someChild);
+
+      expect(purgeSpy.mock.calls).toEqual([['some-child-instance']]);
+    });
+
+    it('given a scope purging one of its own registrations, the instance is gone afterwards', () => {
+      const scope = di.inject(someScopeOwner);
+
+      expect(di.getNumberOfInstances()).toHaveProperty(
+        'some-scope-owner:some-child',
+      );
+
+      scope.purgeChild();
+
+      expect(di.getNumberOfInstances()).not.toHaveProperty(
+        'some-scope-owner:some-child',
+      );
+    });
+  });
 });

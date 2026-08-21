@@ -11,15 +11,12 @@ const keyArrayStartsWith = (keyArray, prefix) => {
   return true;
 };
 
-export const purgeInstancesFor =
-  ({ getRelatedInjectables, instancesByInjectableMap, firePurgeCallbacks }) =>
-  (alias, ...keyParts) => {
-    // Resolve which injectables are in scope
-    const injectablesInScope =
-      alias === undefined
-        ? [...instancesByInjectableMap.keys()]
-        : getRelatedInjectables(alias);
-
+// Purges the stored instances of a given set of injectables. Shared by the
+// container-wide purge and the scope-restricted one, so that both fire
+// instance-purge callbacks the same way.
+export const purgeStoredInstancesFor =
+  ({ instancesByInjectableMap, firePurgeCallbacks }) =>
+  (injectablesInScope, keyParts) => {
     // Phase 1 — Gather snapshot tuples without mutating caches. The stored
     // value is dispatched structurally: a CompositeMap-shape stores keyed
     // entries; anything else is a directly-stored instance (singleton or
@@ -82,3 +79,22 @@ export const purgeInstancesFor =
       }
     }
   };
+
+export const purgeInstancesFor = ({
+  getRelatedInjectables,
+  instancesByInjectableMap,
+  firePurgeCallbacks,
+}) => {
+  const purgeStoredInstances = purgeStoredInstancesFor({
+    instancesByInjectableMap,
+    firePurgeCallbacks,
+  });
+
+  return (alias, ...keyParts) =>
+    purgeStoredInstances(
+      alias === undefined
+        ? [...instancesByInjectableMap.keys()]
+        : getRelatedInjectables(alias),
+      keyParts,
+    );
+};
