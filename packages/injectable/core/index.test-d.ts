@@ -2196,18 +2196,130 @@ expectType<[{ wrapped: string }, ...{ wrapped: string }[]]>(
   getWrappedNonEmptyMany('some-string' as string),
 );
 
-// a many-factory whose shape contradicts the declared cardinality is not OK
+// --- an explicit consumption factory must have the shape its cardinality
+// --- implies, generics included
+
+type WrappedManyFactory = <T>(value: T) => { wrapped: T }[];
+type WrappedMaybeFactory = <T>(value: T) => { wrapped: T } | undefined;
+type WrappedNonEmptyManyFactory = <T>(value: T) => [
+  { wrapped: T },
+  ...{ wrapped: T }[],
+];
+// Yields a value and never nothing — the shape a maybe-token must not have.
+type WrappedBareFactory = <T>(value: T) => { wrapped: T };
+
+// given cardinality 'one', a many-shaped slot is OK and the others are not
+getInjectionToken2<GetWrapped, WrappedManyFactory>()({
+  id: 'one-with-many-shape',
+  cardinality: 'one',
+});
+getInjectionToken2<GetWrapped, WrappedNonEmptyManyFactory>()({
+  id: 'one-with-non-empty-many-shape',
+  cardinality: 'one',
+});
 expectError(
-  getInjectionToken2<GetWrapped, <T>(value: T) => { wrapped: T } | undefined>()({
-    id: 'maybe-shape-for-many-cardinality',
+  getInjectionToken2<GetWrapped, WrappedMaybeFactory>()({
+    id: 'one-with-maybe-shape',
+    cardinality: 'one',
+  }),
+);
+expectError(
+  getInjectionToken2<GetWrapped, WrappedBareFactory>()({
+    id: 'one-with-bare-shape',
+    cardinality: 'one',
+  }),
+);
+
+// given cardinality 'zero-or-one', only a shape that admits undefined is OK —
+// the factory is handed back verbatim, so one that always yields a value would
+// deny the very absence the cardinality is about
+getInjectionToken2<GetWrapped, WrappedMaybeFactory>()({
+  id: 'maybe-with-maybe-shape',
+  cardinality: 'zero-or-one',
+});
+expectError(
+  getInjectionToken2<GetWrapped, WrappedBareFactory>()({
+    id: 'maybe-with-bare-shape',
+    cardinality: 'zero-or-one',
+  }),
+);
+expectError(
+  getInjectionToken2<GetWrapped, WrappedManyFactory>()({
+    id: 'maybe-with-many-shape',
+    cardinality: 'zero-or-one',
+  }),
+);
+expectError(
+  getInjectionToken2<GetWrapped, WrappedNonEmptyManyFactory>()({
+    id: 'maybe-with-non-empty-many-shape',
+    cardinality: 'zero-or-one',
+  }),
+);
+
+// given cardinality 'zero-or-many', array-yielding shapes are OK
+getInjectionToken2<GetWrapped, WrappedManyFactory>()({
+  id: 'many-with-many-shape',
+  cardinality: 'zero-or-many',
+});
+getInjectionToken2<GetWrapped, WrappedNonEmptyManyFactory>()({
+  id: 'many-with-non-empty-many-shape',
+  cardinality: 'zero-or-many',
+});
+expectError(
+  getInjectionToken2<GetWrapped, WrappedMaybeFactory>()({
+    id: 'many-with-maybe-shape',
+    cardinality: 'zero-or-many',
+  }),
+);
+expectError(
+  getInjectionToken2<GetWrapped, WrappedBareFactory>()({
+    id: 'many-with-bare-shape',
     cardinality: 'zero-or-many',
   }),
 );
 
+// given cardinality 'one-or-many', only a non-empty tuple is OK — a plain
+// array would deny the guarantee that indexing the first element is safe
+getInjectionToken2<GetWrapped, WrappedNonEmptyManyFactory>()({
+  id: 'non-empty-many-with-non-empty-many-shape',
+  cardinality: 'one-or-many',
+});
 expectError(
-  getInjectionToken2<GetWrapped, <T>(value: T) => { wrapped: T }[]>()({
-    id: 'many-shape-for-maybe-cardinality',
+  getInjectionToken2<GetWrapped, WrappedManyFactory>()({
+    id: 'non-empty-many-with-many-shape',
+    cardinality: 'one-or-many',
+  }),
+);
+expectError(
+  getInjectionToken2<GetWrapped, WrappedMaybeFactory>()({
+    id: 'non-empty-many-with-maybe-shape',
+    cardinality: 'one-or-many',
+  }),
+);
+expectError(
+  getInjectionToken2<GetWrapped, WrappedBareFactory>()({
+    id: 'non-empty-many-with-bare-shape',
+    cardinality: 'one-or-many',
+  }),
+);
+
+// the same holds when the `.for()` factory's type is given too
+expectError(
+  getInjectionToken2<
+    GetWrapped,
+    WrappedBareFactory,
+    (id: string) => SpecificInjectionToken2<GetWrapped, WrappedBareFactory, any, 'zero-or-one'>
+  >()({
+    id: 'maybe-with-bare-shape-and-specific-factory',
     cardinality: 'zero-or-one',
+  }),
+);
+
+// and a mismatch in the parameters, not just the result, is still caught
+expectError(
+  getInjectionToken2<(x: string) => number, (x: number) => number[]>()({
+    id: 'mismatched-parameters',
+    cardinality: 'zero-or-many',
   }),
 );
 
