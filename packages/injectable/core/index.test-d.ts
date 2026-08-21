@@ -1859,4 +1859,35 @@ const someFunctionDecoration = getInjectable2({
     expectType<boolean>(arg2);
   },
   injectionToken: instantiationDecoratorToken.for(someFunctionInjectableToBeDecorated),
-})
+});
+
+// instantiationDecoratorToken is typed correctly when decorating based on tags
+
+// expect single params to be an error since it could be an arbitrary number of params
+const someTagDecoration = expectError(getInjectable2({
+  id: "some-tag-decoration",
+  instantiate: (di) => () => (instantiate) => (di, param) => instantiate(di, param),
+  injectionToken: instantiationDecoratorToken.for("some-tag"),
+}));
+
+// works as expected with spreading of arguments
+const someTagDecoration2 = getInjectable2({
+  id: "some-tag-decoration2",
+  instantiate: (di) => () => (instantiate) => (di, ...param) => instantiate(di, ...param),
+  injectionToken: instantiationDecoratorToken.for("some-tag"),
+});
+
+// Trying to map the collected from spread args as a single argument is wrong
+const someTagDecoration3 = expectError(getInjectable2({
+  id: "some-tag-decoration3",
+  instantiate: (di) => () => (instantiate) => (di, ...param) => instantiate(di, param),
+  injectionToken: instantiationDecoratorToken.for("some-tag"),
+}));
+
+// returning a wrong type in the decorator is considered an error
+const someTagDecoration4 = expectError(getInjectable2({
+  id: "some-tag-decoration4",
+  instantiate: (di) => () => (instantiate) => (di, ...param) => 10,
+  injectionToken: instantiationDecoratorToken.for("some-tag"),
+}));
+
