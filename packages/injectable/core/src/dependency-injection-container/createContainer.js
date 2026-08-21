@@ -18,7 +18,11 @@ import { checkForUndeclaredConsumptionFor } from './checkForUndeclaredConsumptio
 import { validateFor } from './validate';
 import { getRelatedInjectablesFor } from './getRelatedInjectablesFor';
 import { earlyOverrideFor, earlyOverride2For } from './early-override';
-import { injectionDecoratorToken, preInjectCallbackToken } from './tokens';
+import {
+  injectionDecoratorToken,
+  instancePurgeCallbackToken,
+  preInjectCallbackToken,
+} from './tokens';
 import { withPreInjectCallbacksFor } from './withPreInjectCallbacksFor';
 import { isRelatedToToken } from './getRelatedTokens';
 import { firePurgeCallbacksFor } from './firePurgeCallbacksFor';
@@ -298,15 +302,27 @@ export default containerId => {
     }
   };
 
+  // Callbacks registered against a specific target also land under the
+  // abstract token, so an empty set here means no purge callback can apply.
+  const anyPurgeCallbacksRegistered = () => {
+    const registered = injectablesByInjectionToken.get(
+      instancePurgeCallbackToken,
+    );
+
+    return registered !== undefined && registered.size > 0;
+  };
+
   const purgeInstances = purgeInstancesFor({
     getRelatedInjectables,
     instancesByInjectableMap,
     firePurgeCallbacks,
+    anyPurgeCallbacksRegistered,
   });
 
   const purgeStoredInstances = purgeStoredInstancesFor({
     instancesByInjectableMap,
     firePurgeCallbacks,
+    anyPurgeCallbacksRegistered,
   });
 
   const deregister = deregisterFor({
