@@ -18,7 +18,7 @@ describe('getAbstractInjectionToken2', () => {
 
     beforeEach(() => {
       abstractToken = getAbstractInjectionToken2()({
-  cardinality: 'zero-or-many',
+        cardinality: 'zero-or-many',
         id: 'some-abstract-token',
       });
     });
@@ -146,7 +146,7 @@ describe('getAbstractInjectionToken2', () => {
 
     beforeEach(() => {
       rootAbstractToken = getAbstractInjectionToken2()({
-  cardinality: 'zero-or-many',
+        cardinality: 'zero-or-many',
         id: 'root-abstract',
         specificInjectionTokenFactory: specifier =>
           getAbstractInjectionToken2()({
@@ -206,7 +206,7 @@ describe('getAbstractInjectionToken2', () => {
       );
 
       const someAbstractToken = getAbstractInjectionToken2()({
-  cardinality: 'zero-or-many',
+        cardinality: 'zero-or-many',
         id: 'some-abstract-token',
         specificInjectionTokenFactory: specificTokenFactoryMock,
       });

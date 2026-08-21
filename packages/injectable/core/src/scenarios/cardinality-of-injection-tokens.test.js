@@ -305,7 +305,7 @@ describe('cardinality-of-injection-tokens', () => {
       );
     });
 
-    it('when creating a specific token without a cardinality, does not throw — it inherits its family\'s', () => {
+    it("when creating a specific token without a cardinality, does not throw — it inherits its family's", () => {
       expect(() => {
         getSpecificInjectionToken2()({
           id: 'some-token',
