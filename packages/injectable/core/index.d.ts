@@ -87,7 +87,7 @@ export interface DiContainer extends DiContainerForInjection {
   validate: () => ValidationReport;
   inject2: Inject2;
   injectMany2: InjectMany2;
-  injectMaybe: InjectMaybe2;
+  injectMaybe2: InjectMaybe2;
   injectWithMeta2: InjectWithMeta2;
   injectManyWithMeta2: InjectManyWithMeta2;
 
@@ -1243,8 +1243,9 @@ export interface HasRegistrations2 {
 
 // Factory-returning injectMaybe — accepts only tokens declared 'zero-or-one'
 // and returns the token's maybe-factory verbatim, so a generic factory keeps
-// its generic. Note this is factory-returning even on the root container,
-// where `injectMany` is eager: presence has to be resolved per call.
+// its generic. On the root container this is `injectMaybe2`, alongside the
+// other factory-returning members; inside an `instantiate` it is `injectMaybe`,
+// where every member is factory-returning.
 export interface InjectMaybe2 {
   <F extends Factory, MF extends (...args: Parameters<F>) => ReturnType<F> | undefined>(
     alias: InjectionToken2<F, MF, any, 'zero-or-one'>,

@@ -2356,27 +2356,53 @@ expectError(
 // given a token declared 'zero-or-one', injecting maybe yields the token's
 // maybe-factory, whose result is the instance or undefined
 expectType<MaybeResultFactory<GetGreeting>>(
-  di.injectMaybe(cardinalityMaybeToken),
+  di.injectMaybe2(cardinalityMaybeToken),
 );
-expectType<string | undefined>(di.injectMaybe(cardinalityMaybeToken)('a-name'));
+expectType<string | undefined>(di.injectMaybe2(cardinalityMaybeToken)('a-name'));
 
 // no tuple and no destructuring at the call site
-const maybeGreeting = di.injectMaybe(cardinalityMaybeToken)('a-name');
+const maybeGreeting = di.injectMaybe2(cardinalityMaybeToken)('a-name');
 expectAssignable<string | undefined>(maybeGreeting);
 expectNotType<string>(maybeGreeting);
 
 // given any other cardinality, injecting maybe is not OK
-expectError(di.injectMaybe(cardinalityOneToken));
-expectError(di.injectMaybe(cardinalityManyToken));
-expectError(di.injectMaybe(cardinalityNonEmptyManyToken));
-expectError(di.injectMaybe(tokenOfUnknownCardinality));
+expectError(di.injectMaybe2(cardinalityOneToken));
+expectError(di.injectMaybe2(cardinalityManyToken));
+expectError(di.injectMaybe2(cardinalityNonEmptyManyToken));
+expectError(di.injectMaybe2(tokenOfUnknownCardinality));
 
 // injectables carry no cardinality, so they are not injectable maybe either
-expectError(di.injectMaybe(nonParametricInjectable2));
+expectError(di.injectMaybe2(nonParametricInjectable2));
+
+// The root container suffixes its factory-returning members, and only those,
+// so the unsuffixed name is not one of them there.
+type RootHasUnsuffixedInjectMaybe = 'injectMaybe' extends keyof DiContainer
+  ? true
+  : false;
+expectType<false>(false as RootHasUnsuffixedInjectMaybe);
+
+// Inside an `instantiate` every member is factory-returning, so none carries
+// the suffix.
+type ScopedHasSuffixedInjectMaybe =
+  'injectMaybe2' extends keyof DiContainerForInjection2 ? true : false;
+expectType<false>(false as ScopedHasSuffixedInjectMaybe);
+
+getInjectable2({
+  id: 'maybe-member-naming',
+  consumptions: [cardinalityMaybeToken],
+
+  instantiate: di => {
+    expectType<MaybeResultFactory<GetGreeting>>(
+      di.injectMaybe(cardinalityMaybeToken),
+    );
+
+    return () => 'irrelevant';
+  },
+});
 
 // `.for()` children of a 'zero-or-one' token are injectable maybe
 expectType<string | undefined>(
-  di.injectMaybe(cardinalityMaybeToken.for('a'))('a-name'),
+  di.injectMaybe2(cardinalityMaybeToken.for('a'))('a-name'),
 );
 
 // a generic factory keeps its generic through injectMaybe, given the maybe
@@ -2389,7 +2415,7 @@ const genericMaybeToken = getInjectionToken2<
   cardinality: 'zero-or-one',
 });
 
-const getWrappedMaybe = di.injectMaybe(genericMaybeToken);
+const getWrappedMaybe = di.injectMaybe2(genericMaybeToken);
 expectType<{ wrapped: string } | undefined>(
   getWrappedMaybe('some-string' as string),
 );

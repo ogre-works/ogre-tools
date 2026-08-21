@@ -544,10 +544,12 @@ const currencyFormatter = getInjectable2({
 
 Every v2 token declares how many implementations it expects, and that decides the one way it can be consumed:
 
+The table names the members of the root container. `inject` and `injectMany` there are eager — they hand back instances — while the factory-returning forms carry a `2` suffix: `inject2`, `injectMany2`, `injectMaybe2`. A `zero-or-one` token has only the factory-returning form, since presence has to be resolved when the factory is called. Inside an `instantiate` every member is factory-returning, so there the names are plain: `inject`, `injectMany`, `injectMaybe`.
+
 | Cardinality | Consumed with | Yields |
 | --- | --- | --- |
 | `one` | `di.inject` | the instance |
-| `zero-or-one` | `di.injectMaybe` | the instance, or `undefined` |
+| `zero-or-one` | `di.injectMaybe2` | the instance, or `undefined` |
 | `zero-or-many` | `di.injectMany` | every instance |
 | `one-or-many` | `di.injectMany` | every instance, at least one |
 
@@ -557,10 +559,10 @@ const themeToken = getInjectionToken2<() => Theme>()({
   cardinality: "zero-or-one",
 });
 
-const getTheme = di.injectMaybe(themeToken);
+const getTheme = di.injectMaybe2(themeToken);
 
 getTheme();                  // Theme | undefined
-di.inject(themeToken);       // type error — use injectMaybe
+di.inject(themeToken);       // type error — use injectMaybe2
 ```
 
 Key properties:
@@ -588,8 +590,8 @@ di.inject(handlerToken.for("click"));   // the click handler
 
   A specific token that declares nothing inherits its general token's cardinality, which is what the default `.for()` gives you.
 
-- **Resolved per call.** The factories returned by `injectMany` and `injectMaybe` re-resolve on every invocation, so an implementation registered later starts being returned, and one deregistered stops being.
-- **Footgun.** `injectMaybe` cannot distinguish "nothing registered" from "the implementation returned `undefined`". If that difference matters, return a wrapper the implementation can fill.
+- **Resolved per call.** The factories returned by `injectMany2` and `injectMaybe2` re-resolve on every invocation, so an implementation registered later starts being returned, and one deregistered stops being.
+- **Footgun.** `injectMaybe2` cannot distinguish "nothing registered" from "the implementation returned `undefined`". If that difference matters, return a wrapper the implementation can fill.
 
 #### Consumptions — declaring what an injectable may inject
 
