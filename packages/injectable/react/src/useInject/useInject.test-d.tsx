@@ -43,7 +43,7 @@ expectType<string>(useInject(asyncInjectable));
 expectType<string>(useInjectDeferred(asyncInjectable));
 
 const someInjectionToken = getInjectionToken2<(name: string) => number>()({
-  cardinality: 'zero-or-many',
+  cardinality: 'one',
   id: 'some-token',
 });
 
@@ -54,7 +54,7 @@ expectError(useInject(someInjectionToken));
 expectError(useInject(someInjectionToken, 42));
 
 const someAbstractInjectionToken = getAbstractInjectionToken2<() => string>()({
-  cardinality: 'zero-or-many',
+  cardinality: 'one',
   id: 'some-abstract-token',
 });
 
@@ -66,9 +66,16 @@ const someTypedSpecifierInjectionToken = getInjectionToken2<
   () => unknown[],
   <T extends TypedSpecifierWithType<'some-specifier'>>(
     specifier: T,
-  ) => SpecificInjectionToken2<() => TypedSpecifierType<'some-specifier', T>>
+  ) => SpecificInjectionToken2<
+    () => TypedSpecifierType<'some-specifier', T>,
+    () => TypedSpecifierType<'some-specifier', T>[],
+    any,
+    'one'
+  >
 >()({
-  cardinality: 'zero-or-many', id: 'some-typed-specifier-token' });
+  id: 'some-typed-specifier-token',
+  cardinality: 'one',
+});
 
 const someTypedSpecifier = getTypedSpecifier<{
   'some-specifier': { someProp: 'some-type' };
