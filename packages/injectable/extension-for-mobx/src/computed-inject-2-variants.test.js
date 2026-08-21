@@ -78,7 +78,7 @@ describe('factory-shape computed-inject-2 variants', () => {
     });
 
     it('given v2 token with a param, fn(token) returns a factory that accepts the param', () => {
-      const someToken2 = getInjectionToken2({ id: 'many-2-v2-token' });
+      const someToken2 = getInjectionToken2()({ id: 'many-2-v2-token', cardinality: 'zero-or-many' });
 
       const impl = getInjectable2({
         id: 'v2-impl',
@@ -107,7 +107,7 @@ describe('factory-shape computed-inject-2 variants', () => {
       let stop;
 
       beforeEach(() => {
-        tupleToken2 = getInjectionToken2({ id: 'many-2-tuple-token' });
+        tupleToken2 = getInjectionToken2()({ id: 'many-2-tuple-token', cardinality: 'zero-or-many' });
 
         const firstTupleImpl = getInjectable2({
           id: 'first-tuple-impl',
@@ -246,7 +246,7 @@ describe('factory-shape computed-inject-2 variants', () => {
     });
 
     it('given v2 token with a param, fn(token) returns a factory that accepts the param', () => {
-      const someToken2 = getInjectionToken2({ id: 'maybe-2-v2-token' });
+      const someToken2 = getInjectionToken2()({ id: 'maybe-2-v2-token', cardinality: 'zero-or-one' });
 
       const impl = getInjectable2({
         id: 'maybe-v2-impl',

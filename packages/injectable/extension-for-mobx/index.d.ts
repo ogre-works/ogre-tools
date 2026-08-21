@@ -5,6 +5,7 @@ import {
   InjectionInstanceWithMeta,
   InjectionToken,
   InjectionToken2,
+  SingleInjectionToken2,
 } from '@ogre-tools/injectable';
 import { IComputedValue } from 'mobx';
 
@@ -104,7 +105,7 @@ type ComputedInjectMany2 = {
   ): MF;
 };
 
-export const computedInjectMany2InjectionToken: InjectionToken2<ComputedInjectMany2>;
+export const computedInjectMany2InjectionToken: SingleInjectionToken2<ComputedInjectMany2>;
 
 type ComputedInjectManyWithMeta2 = {
   <TInjectionToken extends InjectionToken<any, any>,
@@ -122,7 +123,7 @@ type ComputedInjectManyWithMeta2 = {
   ): (...params: Parameters<F>) => InjectionInstanceWithMeta<ReturnType<F>>[];
 };
 
-export const computedInjectManyWithMeta2InjectionToken: InjectionToken2<ComputedInjectManyWithMeta2>;
+export const computedInjectManyWithMeta2InjectionToken: SingleInjectionToken2<ComputedInjectManyWithMeta2>;
 
 type ComputedInjectMaybe2 = {
   <TInjectionToken extends InjectionToken<any, any>,
@@ -140,4 +141,4 @@ type ComputedInjectMaybe2 = {
   ): (...params: Parameters<F>) => ReturnType<F> | undefined;
 };
 
-export const computedInjectMaybe2InjectionToken: InjectionToken2<ComputedInjectMaybe2>;
+export const computedInjectMaybe2InjectionToken: SingleInjectionToken2<ComputedInjectMaybe2>;

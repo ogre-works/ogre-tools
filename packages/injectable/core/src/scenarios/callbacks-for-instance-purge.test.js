@@ -111,7 +111,8 @@ describe('callbacks-for-instance-purge', () => {
         const di = createContainer('some-container');
         innerArgs = jest.fn();
 
-        const handlerToken2 = getInjectionToken2({ id: 'handler-token-2' });
+        const handlerToken2 = getInjectionToken2()({
+  cardinality: 'zero-or-many', id: 'handler-token-2' });
 
         const implA = getInjectable2({
           id: 'impl-a',
@@ -514,7 +515,8 @@ describe('callbacks-for-instance-purge', () => {
       const di = createContainer('some-container');
       const purgeSpy = jest.fn();
 
-      const someToken = getInjectionToken2({ id: 'parent-purge-token' });
+      const someToken = getInjectionToken2()({
+  cardinality: 'zero-or-many', id: 'parent-purge-token' });
 
       const childInjectable = getInjectable2({
         id: 'child-purge',
@@ -626,7 +628,8 @@ describe('callbacks-for-instance-purge', () => {
       const di = createContainer('some-container');
       const purgeSpy = jest.fn();
 
-      const someToken = getInjectionToken2({
+      const someToken = getInjectionToken2()({
+  cardinality: 'zero-or-many',
         id: 'some-token',
         tags: ['resource'],
       });

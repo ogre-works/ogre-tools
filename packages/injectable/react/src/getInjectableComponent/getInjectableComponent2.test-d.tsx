@@ -15,7 +15,8 @@ import {
 
 const someInjectionTokenUsingProps = getInjectionToken2<
   () => React.ComponentType<{ someProp: string }>
->({
+>()({
+  cardinality: 'zero-or-many',
   id: 'irrelevant',
 });
 
@@ -62,7 +63,8 @@ expectAssignable<Injectable2<() => React.ComponentType>>(
 // given injection token, and functional component not using props, typing is ok
 const someInjectionTokenNotUsingProps = getInjectionToken2<
   () => React.ComponentType
->({
+>()({
+  cardinality: 'zero-or-many',
   id: 'irrelevant',
 });
 
@@ -167,7 +169,8 @@ expectError(
 // given injection token, and contradictory functional component using props, typing is not ok
 const someInjectionTokenUsingContradictoryProps = getInjectionToken2<
   () => React.ComponentType<{ someProp: number }>
->({
+>()({
+  cardinality: 'zero-or-many',
   id: 'irrelevant',
 });
 
@@ -182,7 +185,8 @@ expectError(
 // given non-sensical injection token, and functional component, typing is not ok
 const someNonSensicalInjectionToken = getInjectionToken2<
   () => 'some-non-component'
->({
+>()({
+  cardinality: 'zero-or-many',
   id: 'irrelevant',
 });
 
@@ -279,9 +283,16 @@ const someInjectionTokenWithTypedSpecifier = getInjectionToken2<
   <T extends TypedSpecifierWithType<'someSpecifier'>>(
     specifier: T,
   ) => SpecificInjectionToken2<
-    () => React.ComponentType<TypedSpecifierType<'someSpecifier', T>>
+    () => React.ComponentType<TypedSpecifierType<'someSpecifier', T>>,
+    () => React.ComponentType<TypedSpecifierType<'someSpecifier', T>>[],
+    any,
+    // each specific component token is implemented by one component
+    'one'
   >
->({ id: 'irrelevant' });
+>()({
+  id: 'irrelevant',
+  cardinality: 'zero-or-many',
+});
 
 const someTypedSpecifier = getTypedSpecifier<{
   someSpecifier: { someProp: 'some-type' };

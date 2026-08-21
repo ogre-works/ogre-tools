@@ -23,11 +23,15 @@ export const getInjectionTokenComponent2 = ({
     );
   });
 
-  TokenComponent = getInjectionToken2({
+  TokenComponent = getInjectionToken2()({
     id,
     target: ComponentForReact,
     speciality,
     tags,
+
+    // A component token is implemented by exactly one component; its
+    // `.for()` children inherit that.
+    cardinality: 'one',
 
     specificInjectionTokenFactory:
       specificInjectionTokenFactory ??

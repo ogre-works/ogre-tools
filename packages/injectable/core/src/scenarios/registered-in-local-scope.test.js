@@ -115,7 +115,8 @@ describe('registeredInLocalScope', () => {
   it('given an injectable2 registering an implementation, when asked from within it, is true', () => {
     let registeredInLocalScope;
 
-    const someInjectionToken2 = getInjectionToken2({
+    const someInjectionToken2 = getInjectionToken2()({
+  cardinality: 'zero-or-many',
       id: 'some-injection-token-2',
     });
 

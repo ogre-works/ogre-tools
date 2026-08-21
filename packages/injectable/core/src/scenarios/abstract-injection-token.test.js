@@ -17,7 +17,8 @@ describe('getAbstractInjectionToken2', () => {
     let abstractToken;
 
     beforeEach(() => {
-      abstractToken = getAbstractInjectionToken2({
+      abstractToken = getAbstractInjectionToken2()({
+  cardinality: 'zero-or-many',
         id: 'some-abstract-token',
       });
     });
@@ -143,10 +144,11 @@ describe('getAbstractInjectionToken2', () => {
     let rootAbstractToken;
 
     beforeEach(() => {
-      rootAbstractToken = getAbstractInjectionToken2({
+      rootAbstractToken = getAbstractInjectionToken2()({
+  cardinality: 'zero-or-many',
         id: 'root-abstract',
         specificInjectionTokenFactory: specifier =>
-          getAbstractInjectionToken2({
+          getAbstractInjectionToken2()({
             id: specifier,
             speciality: specifier,
           }),
@@ -199,10 +201,11 @@ describe('getAbstractInjectionToken2', () => {
       // The factory must be pure and deterministic — repeat .for() calls for
       // a seen specifier are served from a memo without calling it again.
       const specificTokenFactoryMock = jest.fn(specifier =>
-        getSpecificInjectionToken2({ id: specifier, speciality: specifier }),
+        getSpecificInjectionToken2()({ id: specifier, speciality: specifier }),
       );
 
-      const someAbstractToken = getAbstractInjectionToken2({
+      const someAbstractToken = getAbstractInjectionToken2()({
+  cardinality: 'zero-or-many',
         id: 'some-abstract-token',
         specificInjectionTokenFactory: specificTokenFactoryMock,
       });

@@ -13,8 +13,9 @@ export const computedInjectMaybeInjectionToken = getInjectionToken({
   id: 'computed-inject-maybe',
 });
 
-export const computedInjectMaybe2InjectionToken = getInjectionToken2({
+export const computedInjectMaybe2InjectionToken = getInjectionToken2()({
   id: 'computed-inject-maybe-2',
+  cardinality: 'one',
 });
 
 export const _computedInjectMaybeInjectable = getInjectable({

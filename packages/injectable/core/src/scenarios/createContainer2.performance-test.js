@@ -5,7 +5,8 @@ import { getInjectionToken2 } from '../getInjectionToken2/getInjectionToken2';
 
 const performance = require('perf_hooks').performance;
 
-const someInjectionToken2 = getInjectionToken2({
+const someInjectionToken2 = getInjectionToken2()({
+  cardinality: 'zero-or-many',
   id: 'some-injection-token-2',
 });
 

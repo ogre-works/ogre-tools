@@ -30,10 +30,12 @@ export const someInjectionTokenWithParameter = getInjectionToken<string, number>
 });
 
 // v2 InjectionToken2 for a non-parametric factory
-const someToken2 = getInjectionToken2<() => string>({ id: "some-token2" });
+const someToken2 = getInjectionToken2<() => string>()({
+  cardinality: 'zero-or-many', id: "some-token2" });
 
 // v2 InjectionToken2 for a parametric factory
-const someParamToken2 = getInjectionToken2<(key: string) => number>({
+const someParamToken2 = getInjectionToken2<(key: string) => number>()({
+  cardinality: 'zero-or-many',
   id: "some-param-token2",
 });
 
@@ -43,7 +45,8 @@ const someParamToken2 = getInjectionToken2<(key: string) => number>({
 const someGenericToken2 = getInjectionToken2<
   <T>(value: T) => T,
   <T>(value: T) => T[]
->({
+>()({
+  cardinality: 'zero-or-many',
   id: "some-generic-token2",
 });
 
@@ -270,7 +273,8 @@ expectType<number[]>(computedInjectMany2(someGenericToken2)(42));
 
 type WrapFactory = <T>(value: T) => { wrapped: T };
 type WrapManyFactory = <T>(value: T) => { wrapped: T }[];
-const wrapToken2 = getInjectionToken2<WrapFactory, WrapManyFactory>({ id: "wrap-2" });
+const wrapToken2 = getInjectionToken2<WrapFactory, WrapManyFactory>()({
+  cardinality: 'zero-or-many', id: "wrap-2" });
 
 const wrapMany = computedInjectMany2(wrapToken2);
 expectType<WrapManyFactory>(wrapMany);
@@ -282,7 +286,8 @@ expectType<{ wrapped: "lit" }[]>(wrapMany("lit"));
 
 // Non-generic tuple token — the user's motivating example:
 // `instances` types as `[string, string][]` matching both params being strings
-const tupleToken2 = getInjectionToken2<(a: string, b: string) => [string, string]>({
+const tupleToken2 = getInjectionToken2<(a: string, b: string) => [string, string]>()({
+  cardinality: 'zero-or-many',
   id: "tuple-2",
 });
 expectType<(a: string, b: string) => [string, string][]>(
