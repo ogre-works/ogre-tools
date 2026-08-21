@@ -22,29 +22,19 @@ export const getInjectionToken2 = (...unexpectedArgs) => {
 
     ...rest
   }) => {
-    // Specific tokens (marked by a speciality) get their cardinality assigned
-    // by the parent's `.for()`; only general tokens must declare one.
-    if (rest.speciality === undefined) {
-      if (rest.cardinality === undefined) {
+    // A specific token may declare its own cardinality — its family's general
+    // token often has a different one — and inherits when it does not, which
+    // is why only general tokens are required to declare.
+    if (rest.cardinality === undefined) {
+      if (rest.speciality === undefined) {
         throw new Error(
           `Tried to create injection token "${rest.id}" without cardinality.`,
         );
       }
-
-      if (!cardinalities.includes(rest.cardinality)) {
-        throw new Error(
-          `Tried to create injection token "${rest.id}" with unknown cardinality "${rest.cardinality}".`,
-        );
-      }
-
-      if (
-        rest.specificCardinality !== undefined &&
-        !cardinalities.includes(rest.specificCardinality)
-      ) {
-        throw new Error(
-          `Tried to create injection token "${rest.id}" with unknown specific cardinality "${rest.specificCardinality}".`,
-        );
-      }
+    } else if (!cardinalities.includes(rest.cardinality)) {
+      throw new Error(
+        `Tried to create injection token "${rest.id}" with unknown cardinality "${rest.cardinality}".`,
+      );
     }
 
     const specificTokensBySpeciality = new Map();
@@ -92,7 +82,7 @@ export const getInjectionToken2 = (...unexpectedArgs) => {
         specificToken.maxCacheSize = generalToken.maxCacheSize;
         specificToken.tags = generalToken.tags;
         specificToken.cardinality =
-          generalToken.specificCardinality ?? generalToken.cardinality;
+          specificToken.cardinality ?? generalToken.cardinality;
 
         specificTokensBySpeciality.set(specificToken.speciality, specificToken);
 

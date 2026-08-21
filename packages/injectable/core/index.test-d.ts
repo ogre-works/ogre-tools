@@ -1625,7 +1625,15 @@ const abstractHandlerToken = getAbstractInjectionToken2<
 >()({
   id: 'abstract-handler',
   cardinality: 'zero-or-many',
-  specificCardinality: 'one',
+
+  // Each specific token of this family is implemented once, which the factory
+  // that builds those tokens declares.
+  specificInjectionTokenFactory: (specifier: string) =>
+    getSpecificInjectionToken2<(name: string) => void>()({
+      id: specifier,
+      speciality: specifier,
+      cardinality: 'one',
+    }),
 });
 
 // abstract token has correct type
@@ -1996,13 +2004,21 @@ expectError(
   }),
 );
 
-// given an unknown specific cardinality, creating a token is not OK
+// given a specific token built with an unknown cardinality, it is not OK
 expectError(
-  getInjectionToken2<GetGreeting>()({
+  getSpecificInjectionToken2<GetGreeting>()({
     id: 'unknown-specific-cardinality',
-    cardinality: 'zero-or-many',
-    specificCardinality: 'sometimes',
+    speciality: 'some-speciality',
+    cardinality: 'sometimes',
   }),
+);
+
+// a specific token may omit the cardinality, inheriting its family's
+expectType<Cardinality | undefined>(
+  getSpecificInjectionToken2<GetGreeting>()({
+    id: 'inheriting-specific',
+    speciality: 'some-speciality',
+  }).cardinality,
 );
 
 // given options built up separately, whose cardinality widened to `string`,
@@ -2098,11 +2114,18 @@ expectType<'one' | undefined>(cardinalityOneToken.for('a').for('b').cardinality)
 expectType<string>(di.inject(cardinalityOneToken.for('a'), 'some-name'));
 expectError(di.injectMany(cardinalityOneToken.for('a'), 'some-name'));
 
-// given a specific cardinality, `.for()` children carry that one instead
+// given a factory that declares a cardinality for the tokens it builds,
+// `.for()` children carry that one instead of the general token's
 const heteroCardinalityToken = getInjectionToken2<GetGreeting>()({
   id: 'hetero-cardinality',
   cardinality: 'zero-or-many',
-  specificCardinality: 'one',
+
+  specificInjectionTokenFactory: (specifier: string) =>
+    getSpecificInjectionToken2<GetGreeting>()({
+      id: specifier,
+      speciality: specifier,
+      cardinality: 'one',
+    }),
 });
 
 expectType<'zero-or-many' | undefined>(heteroCardinalityToken.cardinality);
@@ -2379,7 +2402,13 @@ getInjectable2({
 const familyToken = getInjectionToken2<GetGreeting>()({
   id: 'family',
   cardinality: 'zero-or-many',
-  specificCardinality: 'one',
+
+  specificInjectionTokenFactory: (specifier: string) =>
+    getSpecificInjectionToken2<GetGreeting>()({
+      id: specifier,
+      speciality: specifier,
+      cardinality: 'one',
+    }),
 });
 
 getInjectable2({

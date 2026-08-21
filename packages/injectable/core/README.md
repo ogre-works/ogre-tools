@@ -567,18 +567,26 @@ Key properties:
 
 - **Enforced from both ends.** Upper bounds are enforced when registering: a second implementation of a `one` or `zero-or-one` token is rejected there, so it cannot be violated later. Lower bounds are checked by [`di.validate()`](#divalidate), since registration order must not matter.
 - **Counted per token, not per family.** The bound counts implementations registered against that exact token, so `someToken.for("a")` and `someToken.for("b")` each get their own — specialization is never outlawed by the general token's bound.
-- **Inherited by `.for()` children, unless told otherwise.** Give `specificCardinality` when a family's specific tokens have a different arity than its general one, which is common: many implementations under the general token, exactly one per specifier.
+- **Declared per token, and inherited by `.for()` children.** A family whose specific tokens have a different arity than its general one is common — many implementations under the general token, exactly one per specifier — and the factory that builds the specific tokens declares their cardinality, the same way any token declares its own:
 
 ```ts
 const handlerToken = getInjectionToken2<(event: Event) => void>()({
   id: "handler",
   cardinality: "zero-or-many",   // all handlers
-  specificCardinality: "one",    // one handler per event kind
+
+  specificInjectionTokenFactory: (specifier) =>
+    getSpecificInjectionToken2<(event: Event) => void>()({
+      id: specifier,
+      speciality: specifier,
+      cardinality: "one",        // one handler per event kind
+    }),
 });
 
 di.injectMany(handlerToken);            // every handler
 di.inject(handlerToken.for("click"));   // the click handler
 ```
+
+  A specific token that declares nothing inherits its general token's cardinality, which is what the default `.for()` gives you.
 
 - **Resolved per call.** The factories returned by `injectMany` and `injectMaybe` re-resolve on every invocation, so an implementation registered later starts being returned, and one deregistered stops being.
 - **Footgun.** `injectMaybe` cannot distinguish "nothing registered" from "the implementation returned `undefined`". If that difference matters, return a wrapper the implementation can fill.
