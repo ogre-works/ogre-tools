@@ -307,33 +307,39 @@ export const getVocalistAndDrummerBandBunch("metal");
 
 #### Scopes
 
-An injectable can register other injectables during its own instantiation, by calling `register` on the `di` its `instantiate` was given. Those registrations form a **scope** owned by the injectable being instantiated:
+The `di` handed to an injectable's `instantiate` registers into a **scope** owned by that injectable. Anything registered through it belongs to the scope — what decides membership is *which* `register` was called, never when:
 
 ```ts
 const someFeatureInjectable = getInjectable({
   id: "some-feature",
 
   instantiate: (di) => {
-    di.register(someServiceInjectable, someOtherServiceInjectable);
+    // Registering right away, if the feature knows what it needs up front.
+    di.register(someServiceInjectable);
 
-    return { started: true };
+    // Or handing its own registration out, to be called whenever.
+    return { register: di.register };
   },
 });
 
 di.register(someFeatureInjectable);
-di.inject(someFeatureInjectable);
+
+const someFeature = di.inject(someFeatureInjectable);
+
+// Long after the instantiation returned, and from outside the injectable —
+// still the same scope.
+someFeature.register(someOtherServiceInjectable);
 
 di.injectManyWithMeta(someServiceToken)[0].meta.id; // "some-feature:some-service"
 ```
 
-There is no scope object and no scope API — the `di` handed to an `instantiate` *is* the scope. (Older code sometimes carries a `scope: true` property on such an injectable; nothing reads it, and it has no effect.)
+Instantiating the owner is only how its `di` is obtained; the scope keeps working for as long as something holds that `di`. There is no scope object and no scope API beyond it. (Older code sometimes carries a `scope: true` property on such an injectable; nothing reads it, and it has no effect.)
 
 Key properties:
 
 - **The namespaced id.** A scoped registration's id becomes `<owner-id>:<own-id>`, nesting one segment per level — an injectable registered by a scope that was itself registered by a scope reads `outer:inner:own-id`. The container's id is not part of it. That namespaced id is what appears in `meta.id` from `injectManyWithMeta`, in `di.getNumberOfInstances()` keys, in `di.validate()` reports, and in error messages naming the injecting party.
 - **No isolation of resolution.** This is the part worth being precise about: a scope affects identity, the registration tree and the `registeredInLocalScope*` queries — nothing else. Registrations are container-global, so a scoped injectable is injectable from the root container and from sibling scopes, `injectMany` on a token picks up implementations registered in any scope, and code inside a scope injects container-level things normally. The crispest statement of this is that `di.hasRegistrations(someToken)` is `true` for a scope-registered implementation while `di.registeredInLocalScope(someToken)` is `false`.
 - **Uniqueness is per namespaced id.** Two different scopes may each register an injectable with the same bare id. Registering the same id twice *within* one scope throws `Tried to register multiple injectables for ID "some-scope:some-id"`.
-- **Registering is not limited to instantiation time.** The `di` given to `instantiate` keeps working after `instantiate` returns, so an injectable can expose its own `register` and have things registered into its scope later. Scope membership follows the `register` function you call, never when you call it.
 - **Deregistration cascades.** Deregistering the owner deregisters everything its scope registered, to any depth, purging their instances on the way. Afterwards the same injectable objects can be registered again, in the same scope or elsewhere, and take a freshly computed namespaced id.
 - **Querying a scope.** `di.registeredInLocalScope(alias)` asks whether something matching `alias` was registered *directly* by this scope; `di.registeredInLocalScopeSubtree(alias)` asks whether it was registered anywhere below it, at any depth. Both exist on the container, where the scope in question is the container itself — note that `registeredInLocalScopeSubtree` on the container is therefore equivalent to `hasRegistrations`, everything being in the container's subtree.
 - **`di.sourceNamespace`** is the namespace of whatever is injecting you, not your own — the namespaced id of the consuming injectable with its last segment removed, or `undefined` when the consumer is at container level. Its intended use is as a `keyedSingleton` key, giving one instance per consuming namespace:
