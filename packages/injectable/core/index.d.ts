@@ -444,6 +444,8 @@ export type InstantiationDecoratorForInjectable2<F extends Factory = Factory> =
   () => (instantiate: (di: DiContainerForInjection) => F)
        => (di: DiContainerForInjection) => F;
 
+export type InstantiationDecoratorForTags<InjectionInstance, InstantiationParams extends any[]> = (di: DiContainerForInjection, ...params: InstantiationParams) => InjectionInstance;
+
 export interface InstantiationDecoratorSpecificFactory {
   <F extends Factory>(
     target: Alias2<F>,
@@ -455,8 +457,9 @@ export interface InstantiationDecoratorSpecificFactory {
 
   // Tag-keyed dispatch: an instantiation decorator targeting a string tag
   // fires for every injectable whose `tags` array contains that tag.
-  // Weak typing is intentional — the tag is a documentation string.
-  (tag: string): SpecificInjectionToken2<() => (instantiate: Instantiate<any, any>) => Instantiate<any, any>>;
+  (tag: string): SpecificInjectionToken2<<InjectionInstance, InstantiationParams extends any[]>() => 
+    (instantiate: InstantiationDecoratorForTags<InjectionInstance, InstantiationParams>) => 
+      InstantiationDecoratorForTags<InjectionInstance, InstantiationParams>>;
 }
 
 export const instantiationDecoratorToken: AbstractInjectionToken2<
