@@ -656,20 +656,112 @@ export interface Injectable2<F extends Factory = Factory> {
   // token typing isn't observably useful here (runtime reads only token-level
   // fields like `.id`, `.abstract`, `.maxCacheSize`).
   readonly injectionToken?: InjectionToken2<Factory>;
+  readonly consumptions?: ReadonlyArray<Consumption>;
   readonly transient?: boolean;
   readonly causesSideEffects?: boolean;
   readonly tags?: string[];
   readonly maxCacheSize?: number;
 }
 
+// ---- Consumptions ----
+//
+// An injectable2 declares the injection tokens it may inject. The declaration
+// is enforced twice over: `instantiate`'s `di` only accepts what was declared,
+// and the container checks every inject at runtime — which is what catches
+// plain-JS callers and tokens that merely have the same shape as a declared
+// one. Injecting another injectable by reference needs no declaration: that
+// already implies a dependency on wherever the injectable lives.
+//
+// Absence means "injects no tokens": with nothing declared, `Cons` is `never`
+// and no token is injectable.
+
+export type Consumption =
+  | InjectionToken2<any, any, any, any>
+  | AbstractInjectionToken2<any, any, any, any>
+  | InjectionToken<any, any, any>;
+
+// The `.for()` derivatives of a declared token are covered by declaring the
+// token itself — otherwise a specifier only known at runtime could not be
+// declared at all. One level suffices: the default `.for()` factory is
+// self-similar, so a child's own `for` yields the same shape again.
+type NotAny<T> = 0 extends 1 & T ? never : T;
+
+export type ConsumptionChildOf<C> = C extends {
+  for: (...args: any[]) => infer Child;
+}
+  ? NotAny<Child> extends { speciality: any }
+    ? NotAny<Child>
+    : never
+  : never;
+
+type Consumable<Cons extends Consumption> =
+  | Cons
+  | ConsumptionChildOf<Cons>;
+
+// The injection surface of `instantiate`'s `di`: the same cardinality gating as
+// the container's, narrowed to what the injectable declared. Injectables pass
+// freely, matching the runtime exemption.
+export interface ScopedInject2<Cons extends Consumption> {
+  <F extends Factory>(alias: Injectable2<F>): F;
+  <F extends Factory>(
+    alias: Consumable<Cons> & InjectionToken2<F, any, any, 'one'>,
+  ): F;
+  <I>(alias: Injectable<I, any> | (Consumable<Cons> & InjectionToken<I>)): () => I;
+  <I, P>(
+    alias:
+      | Injectable<I, any, P>
+      | (Consumable<Cons> & InjectionToken<I, P>),
+  ): (...params: [P]) => I;
+}
+
+export interface ScopedInjectMany2<Cons extends Consumption> {
+  <F extends Factory, MF extends AnyConsumptionFactory<F>>(
+    alias: Consumable<Cons> &
+      (
+        | InjectionToken2<F, MF, any, 'zero-or-many' | 'one-or-many'>
+        | AbstractInjectionToken2<F, MF, any, 'zero-or-many' | 'one-or-many'>
+      ),
+  ): MF;
+  <I>(alias: Consumable<Cons> & InjectionToken<I>): () => I[];
+  <I, P>(
+    alias: Consumable<Cons> & InjectionToken<I, P>,
+  ): (...params: P extends any[] ? P : [P]) => I[];
+}
+
+export interface ScopedInjectMaybe2<Cons extends Consumption> {
+  <F extends Factory, MF extends (...args: Parameters<F>) => ReturnType<F> | undefined>(
+    alias: Consumable<Cons> & InjectionToken2<F, MF, any, 'zero-or-one'>,
+  ): MF;
+}
+
+// `instantiate`'s di. Leave the parameter unannotated so it is typed
+// contextually from the `consumptions` array; annotate it with this when
+// `instantiate` is written as a named function elsewhere.
+export interface ConsumptionDi<Cons extends Consumption = never>
+  extends Omit<
+    DiContainerForInjection2,
+    'inject' | 'injectMany' | 'injectMaybe' | 'injectWithMeta' | 'injectManyWithMeta'
+  > {
+  inject: ScopedInject2<Cons>;
+  injectMany: ScopedInjectMany2<Cons>;
+  injectMaybe: ScopedInjectMaybe2<Cons>;
+  injectWithMeta: InjectWithMeta2;
+  injectManyWithMeta: InjectManyWithMeta2;
+}
+
 // With injectionToken: F is the injectable's actual factory (kept narrow so
 // `di.inject2(injectable)` returns the narrow factory), TF is the token's
 // factory contract. The `F extends TF` constraint verifies the implementation
 // satisfies the contract.
-export function getInjectable2<F extends TF, TF extends Factory>(options: {
+export function getInjectable2<
+  F extends TF,
+  TF extends Factory,
+  const Cons extends Consumption = never,
+>(options: {
   readonly id: string;
-  readonly instantiate: (di: DiContainerForInjection2) => F;
-  readonly injectionToken: InjectionToken2<TF>;
+  readonly consumptions?: ReadonlyArray<Cons>;
+  readonly instantiate: (di: ConsumptionDi<Cons>) => F;
+  readonly injectionToken: InjectionToken2<TF, any, any, any>;
   readonly transient?: boolean;
   readonly causesSideEffects?: boolean;
   readonly tags?: string[];
@@ -678,9 +770,13 @@ export function getInjectable2<F extends TF, TF extends Factory>(options: {
 
 // Without injectionToken: infer F from instantiate, so callers of di.inject /
 // useInject / useInject2 still get precise parameter and return types.
-export function getInjectable2<F extends Factory>(options: {
+export function getInjectable2<
+  F extends Factory,
+  const Cons extends Consumption = never,
+>(options: {
   readonly id: string;
-  readonly instantiate: (di: DiContainerForInjection2) => F;
+  readonly consumptions?: ReadonlyArray<Cons>;
+  readonly instantiate: (di: ConsumptionDi<Cons>) => F;
   readonly transient?: boolean;
   readonly causesSideEffects?: boolean;
   readonly tags?: string[];

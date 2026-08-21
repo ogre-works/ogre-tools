@@ -116,6 +116,7 @@ describe('getAbstractInjectionToken2', () => {
     it('when injecting the abstract token from inside an injectable2 instantiate, throws', () => {
       const outerInjectable = getInjectable2({
         id: 'outer',
+        consumptions: [abstractToken],
         instantiate: di => {
           const getAbstract = di.inject(abstractToken);
           return () => getAbstract();

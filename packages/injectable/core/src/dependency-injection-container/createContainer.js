@@ -11,6 +11,7 @@ import { checkForTooManyMatchesFor } from './checkForTooManyMatches';
 import { checkForSideEffectsFor } from './checkForSideEffectsFor';
 import { checkForAbstractTokenFor } from './checkForAbstractTokenFor';
 import { checkForNonMaybeCardinalityFor } from './checkForNonMaybeCardinalityFor';
+import { checkForUndeclaredConsumptionFor } from './checkForUndeclaredConsumptionFor';
 import { getRelatedInjectablesFor } from './getRelatedInjectablesFor';
 import { earlyOverrideFor, earlyOverride2For } from './early-override';
 import { injectionDecoratorToken, preInjectCallbackToken } from './tokens';
@@ -102,6 +103,20 @@ export default containerId => {
   const checkForNonMaybeCardinality = checkForNonMaybeCardinalityFor({
     getNamespacedId,
   });
+
+  const checkForUndeclaredConsumption = checkForUndeclaredConsumptionFor({
+    getNamespacedId,
+  });
+
+  // Enforcement wraps the slots rather than living inside the operation
+  // functions, so that the machinery — decorator and callback dispatch, purge
+  // callbacks — stays exempt: it holds the raw operations captured at
+  // construction and never reads these slots.
+  const withConsumptionEnforcement = toBeCalled => args => {
+    checkForUndeclaredConsumption(args);
+
+    return toBeCalled(args);
+  };
 
   const nonDecoratedPrivateInjectUnknownMeta = privateInjectFor({
     getRelatedInjectables,
@@ -230,6 +245,18 @@ export default containerId => {
     privateDi.injectManyWithMeta = preInjectActive
       ? preInjectInjectManyWithMeta
       : nonDecoratedPrivateInjectManyWithMeta;
+
+    // `elementInject` is deliberately left unwrapped: enforcement is per
+    // inject operation, and an injectMany's elements were already covered by
+    // the check on the operation itself.
+    privateDi.inject = withConsumptionEnforcement(privateDi.inject);
+    privateDi.injectWithMeta = withConsumptionEnforcement(
+      privateDi.injectWithMeta,
+    );
+    privateDi.injectMany = withConsumptionEnforcement(privateDi.injectMany);
+    privateDi.injectManyWithMeta = withConsumptionEnforcement(
+      privateDi.injectManyWithMeta,
+    );
   };
 
   const firePurgeCallbacks = firePurgeCallbacksFor({
@@ -497,6 +524,10 @@ export default containerId => {
       return result;
     },
   };
+
+  // The slots start out holding the bare operations; wire them once up-front
+  // so enforcement applies even in a container where nothing is registered.
+  syncInjectWiring();
 
   const publicInject = (alias, ...args) =>
     privateDi.inject({

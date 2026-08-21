@@ -786,6 +786,8 @@ import {
   getInjectionToken2,
   getSpecificInjectionToken2,
   SingleInjectionToken2,
+  Consumption,
+  ConsumptionDi,
   MaybeInjectionToken2,
   ManyInjectionToken2,
   NonEmptyManyInjectionToken2,
@@ -1033,7 +1035,8 @@ expectError(
 
 const innerInjectable2 = getInjectable2({
   id: 'inner',
-  instantiate: (di: DiContainerForInjection2) => {
+  consumptions: [handlerToken2, someGetNumberInjectionToken],
+  instantiate: di => {
     // new-style injectable2 → returns factory directly
     const getParametric = di.inject(parametricInjectable2);
     expectType<(name: string, age: number) => { name: string; age: number }>(
@@ -1064,7 +1067,8 @@ const innerInjectable2 = getInjectable2({
 
 const innerWithInjectMany = getInjectable2({
   id: 'inner-many',
-  instantiate: (di: DiContainerForInjection2) => {
+  consumptions: [handlerManyToken2, wrapperToken2, someGetNumberInjectionToken],
+  instantiate: di => {
     // token2 → returns ManyFactory
     const getHandlers = di.injectMany(handlerManyToken2);
     expectType<() => string[]>(getHandlers);
@@ -1085,7 +1089,7 @@ const innerWithInjectMany = getInjectable2({
 
 const innerWithHasRegistrations = getInjectable2({
   id: 'inner-has-reg',
-  instantiate: (di: DiContainerForInjection2) => {
+  instantiate: di => {
     expectType<boolean>(di.hasRegistrations(parametricInjectable2));
     expectType<boolean>(di.hasRegistrations(handlerToken2));
     expectType<boolean>(di.hasRegistrations(someInjectable));
@@ -1099,7 +1103,7 @@ const innerWithHasRegistrations = getInjectable2({
 
 const innerWithGetNumberOfRegistrations = getInjectable2({
   id: 'inner-get-number-of-reg',
-  instantiate: (di: DiContainerForInjection2) => {
+  instantiate: di => {
     expectType<number>(di.getNumberOfRegistrations(parametricInjectable2));
     expectType<number>(di.getNumberOfRegistrations(handlerToken2));
     expectType<number>(di.getNumberOfRegistrations(wrapperToken2));
@@ -1114,7 +1118,7 @@ const innerWithGetNumberOfRegistrations = getInjectable2({
 
 const innerWithRegisteredInLocalScope = getInjectable2({
   id: 'inner-registered-in-local-scope',
-  instantiate: (di: DiContainerForInjection2) => {
+  instantiate: di => {
     expectType<boolean>(di.registeredInLocalScope(parametricInjectable2));
     expectType<boolean>(di.registeredInLocalScope(handlerToken2));
     expectType<boolean>(di.registeredInLocalScope(wrapperToken2));
@@ -1129,7 +1133,7 @@ const innerWithRegisteredInLocalScope = getInjectable2({
 
 const innerWithRegisteredInLocalScopeSubtree = getInjectable2({
   id: 'inner-registered-in-local-scope-subtree',
-  instantiate: (di: DiContainerForInjection2) => {
+  instantiate: di => {
     expectType<boolean>(di.registeredInLocalScopeSubtree(parametricInjectable2));
     expectType<boolean>(di.registeredInLocalScopeSubtree(handlerToken2));
     expectType<boolean>(di.registeredInLocalScopeSubtree(someInjectable));
@@ -1208,7 +1212,7 @@ expectType<InjectionInstanceWithMeta<{ id: string }>[]>(
 // Inside new-style: injectWithMeta for non-generic returns factory for meta wrapper
 const innerWithMeta = getInjectable2({
   id: 'inner-with-meta',
-  instantiate: (di: DiContainerForInjection2) => {
+  instantiate: di => {
     const getHandlerMeta = di.injectWithMeta(handlerToken2);
     expectType<() => InjectionInstanceWithMeta<string>>(getHandlerMeta);
 
@@ -2257,12 +2261,227 @@ expectType<{ wrapped: number } | undefined>(getWrappedMaybe(42));
 // inside an instantiate, the same gating applies
 getInjectable2({
   id: 'maybe-consumer',
+  consumptions: [cardinalityMaybeToken, cardinalityManyToken],
 
   instantiate: di => {
     expectType<MaybeResultFactory<GetGreeting>>(
       di.injectMaybe(cardinalityMaybeToken),
     );
+    // declared, but its cardinality still decides the API
     expectError(di.injectMaybe(cardinalityManyToken));
+
+    return () => 'irrelevant';
+  },
+});
+
+// ==== Consumption declarations ====
+
+const consumedOneToken = getInjectionToken2<GetGreeting>()({
+  id: 'consumed-one',
+  cardinality: 'one',
+});
+
+const consumedManyToken = getInjectionToken2<GetGreeting>()({
+  id: 'consumed-many',
+  cardinality: 'zero-or-many',
+});
+
+const consumedMaybeToken = getInjectionToken2<GetGreeting>()({
+  id: 'consumed-maybe',
+  cardinality: 'zero-or-one',
+});
+
+const undeclaredToken = getInjectionToken2<(count: number) => boolean>()({
+  id: 'undeclared',
+  cardinality: 'one',
+});
+
+const undeclaredManyToken = getInjectionToken2<(count: number) => boolean>()({
+  id: 'undeclared-many',
+  cardinality: 'zero-or-many',
+});
+
+const undeclaredMaybeToken = getInjectionToken2<(count: number) => boolean>()({
+  id: 'undeclared-maybe',
+  cardinality: 'zero-or-one',
+});
+
+declare const someConsumedInjectable: Injectable2<(n: number) => string>;
+
+// --- what was declared is injectable, through the API its cardinality picks ---
+
+const declaringInjectable = getInjectable2({
+  id: 'declaring',
+  consumptions: [consumedOneToken, consumedManyToken, consumedMaybeToken],
+
+  instantiate: di => {
+    expectType<GetGreeting>(di.inject(consumedOneToken));
+    expectType<ManyFactory<GetGreeting>>(di.injectMany(consumedManyToken));
+    expectType<MaybeResultFactory<GetGreeting>>(
+      di.injectMaybe(consumedMaybeToken),
+    );
+
+    // a declared token is still bound to its own consumption API
+    expectError(di.injectMany(consumedOneToken));
+    expectError(di.inject(consumedManyToken));
+    expectError(di.injectMaybe(consumedOneToken));
+
+    // an undeclared token is rejected outright
+    expectError(di.inject(undeclaredToken));
+    expectError(di.injectMany(undeclaredManyToken));
+    expectError(di.injectMaybe(undeclaredMaybeToken));
+
+    // injectables need no declaration
+    expectType<(n: number) => string>(di.inject(someConsumedInjectable));
+
+    return () => 'irrelevant';
+  },
+});
+
+expectType<Injectable2<() => string>>(declaringInjectable);
+expectType<readonly Consumption[] | undefined>(
+  declaringInjectable.consumptions,
+);
+
+// --- declaring nothing means injecting no tokens ---
+
+getInjectable2({
+  id: 'declaring-nothing',
+
+  instantiate: di => {
+    expectError(di.inject(undeclaredToken));
+    expectError(di.injectMany(undeclaredManyToken));
+    expectError(di.injectMaybe(undeclaredMaybeToken));
+
+    // injectables are still injectable
+    expectType<(n: number) => string>(di.inject(someConsumedInjectable));
+
+    return () => 'irrelevant';
+  },
+});
+
+// an explicitly empty declaration is the same thing
+getInjectable2({
+  id: 'declaring-empty',
+  consumptions: [],
+
+  instantiate: di => {
+    expectError(di.inject(undeclaredToken));
+
+    return () => 'irrelevant';
+  },
+});
+
+// --- declaring a token covers its `.for()` derivatives ---
+
+const familyToken = getInjectionToken2<GetGreeting>()({
+  id: 'family',
+  cardinality: 'zero-or-many',
+  specificCardinality: 'one',
+});
+
+getInjectable2({
+  id: 'declaring-family',
+  consumptions: [familyToken],
+
+  instantiate: di => {
+    // the general token, as declared
+    expectType<ManyFactory<GetGreeting>>(di.injectMany(familyToken));
+
+    // and any of its children, including specifiers computed at runtime
+    expectType<GetGreeting>(di.inject(familyToken.for('a')));
+    expectType<GetGreeting>(di.inject(familyToken.for(['a', 'b'].join('-'))));
+
+    return () => 'irrelevant';
+  },
+});
+
+// declaring only a child does not cover the general token
+getInjectable2({
+  id: 'declaring-child-only',
+  consumptions: [familyToken.for('a')],
+
+  instantiate: di => {
+    expectType<GetGreeting>(di.inject(familyToken.for('a')));
+    expectError(di.injectMany(familyToken));
+
+    return () => 'irrelevant';
+  },
+});
+
+// --- declarations accept every kind of token ---
+
+getInjectable2({
+  id: 'declaring-mixed',
+
+  consumptions: [
+    consumedOneToken,
+    consumedManyToken,
+    consumedMaybeToken,
+    cardinalityNonEmptyManyToken,
+    abstractHandlerToken,
+    someGetNumberInjectionToken,
+  ],
+
+  instantiate: di => {
+    expectType<GetGreeting>(di.inject(consumedOneToken));
+    expectType<NonEmptyManyFactory<GetGreeting>>(
+      di.injectMany(cardinalityNonEmptyManyToken),
+    );
+    expectType<() => GetNumber[]>(di.injectMany(someGetNumberInjectionToken));
+
+    return () => 'irrelevant';
+  },
+});
+
+// what is not an alias at all is rejected
+expectError(
+  getInjectable2({
+    id: 'declaring-a-string',
+    consumptions: ['some-token'],
+    instantiate: () => () => 'irrelevant',
+  }),
+);
+
+expectError(
+  getInjectable2({
+    id: 'declaring-an-injectable',
+    consumptions: [someConsumedInjectable],
+    instantiate: () => () => 'irrelevant',
+  }),
+);
+
+// --- an instantiate written as a named function annotates its di ---
+
+const namedInstantiate = (
+  di: ConsumptionDi<typeof consumedOneToken>,
+): GetGreeting => {
+  const getGreeting = di.inject(consumedOneToken);
+
+  return name => getGreeting(name);
+};
+
+getInjectable2({
+  id: 'declaring-with-named-instantiate',
+  consumptions: [consumedOneToken],
+  instantiate: namedInstantiate,
+});
+
+// --- the scope is structural, so a token of identical shape slips through ---
+
+// This is why the container enforces declarations at runtime too: nothing at
+// the type level separates two tokens with the same factory and cardinality.
+const identicallyShapedToken = getInjectionToken2<GetGreeting>()({
+  id: 'identically-shaped',
+  cardinality: 'one',
+});
+
+getInjectable2({
+  id: 'declaring-shape',
+  consumptions: [consumedOneToken],
+
+  instantiate: di => {
+    expectType<GetGreeting>(di.inject(identicallyShapedToken));
 
     return () => 'irrelevant';
   },
