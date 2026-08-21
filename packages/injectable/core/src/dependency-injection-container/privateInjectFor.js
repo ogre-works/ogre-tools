@@ -28,6 +28,7 @@ export const privateInjectFor =
     checkForTooManyMatches,
     checkForSideEffects,
     checkForAbstractToken,
+    checkForNonMaybeCardinality,
     namespacedIdByInjectableMap,
     getNamespacedId,
     getApplicableDecorators,
@@ -130,6 +131,7 @@ export const privateInjectFor =
       namespacedIdByInjectableMap,
       getNamespacedId,
       getApplicableDecorators,
+      checkForNonMaybeCardinality,
     );
 
     if (!withMeta) {
@@ -147,6 +149,7 @@ const createMinimalDi = (
   injectableToBeInstantiated,
   injectingInjectable,
   namespacedIdByInjectableMap,
+  checkForNonMaybeCardinality,
 ) => {
   // Closure-captured methods are fixed up-front (`shared` plus inject*),
   // so user code can detach them — `const { register } = di; register(...)`
@@ -214,6 +217,17 @@ const createMinimalDi = (
             instantiationParameters: params,
             injectingInjectable: injectableToBeInstantiated,
           }),
+
+      injectMaybe: alias => {
+        checkForNonMaybeCardinality(alias, injectableToBeInstantiated);
+
+        return (...params) =>
+          di.injectMany({
+            alias,
+            instantiationParameters: params,
+            injectingInjectable: injectableToBeInstantiated,
+          })[0];
+      },
 
       injectWithMeta:
         alias =>
@@ -334,6 +348,7 @@ const getInstance = (
   namespacedIdByInjectableMap,
   getNamespacedId,
   getApplicableDecorators,
+  checkForNonMaybeCardinality,
 ) => {
   const cacheKey =
     injectableToBeInstantiated.overriddenInjectable ||
@@ -359,6 +374,7 @@ const getInstance = (
       injectableToBeInstantiated,
       injectingInjectable,
       namespacedIdByInjectableMap,
+      checkForNonMaybeCardinality,
     );
 
     const newInstance = instantiate(
@@ -383,6 +399,7 @@ const getInstance = (
       injectableToBeInstantiated,
       injectingInjectable,
       namespacedIdByInjectableMap,
+      checkForNonMaybeCardinality,
     );
 
     return instantiate(
@@ -413,6 +430,7 @@ const getInstance = (
         injectableToBeInstantiated,
         injectingInjectable,
         namespacedIdByInjectableMap,
+        checkForNonMaybeCardinality,
       );
 
       const newInstance = instantiate(
@@ -435,6 +453,7 @@ const getInstance = (
     injectableToBeInstantiated,
     injectingInjectable,
     namespacedIdByInjectableMap,
+    checkForNonMaybeCardinality,
   );
 
   const instanceKey = injectableToBeInstantiated.lifecycle.getInstanceKey(

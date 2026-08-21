@@ -10,6 +10,7 @@ import { checkForNoMatchesFor } from './checkForNoMatchesFor';
 import { checkForTooManyMatchesFor } from './checkForTooManyMatches';
 import { checkForSideEffectsFor } from './checkForSideEffectsFor';
 import { checkForAbstractTokenFor } from './checkForAbstractTokenFor';
+import { checkForNonMaybeCardinalityFor } from './checkForNonMaybeCardinalityFor';
 import { getRelatedInjectablesFor } from './getRelatedInjectablesFor';
 import { earlyOverrideFor, earlyOverride2For } from './early-override';
 import { injectionDecoratorToken, preInjectCallbackToken } from './tokens';
@@ -98,6 +99,10 @@ export default containerId => {
     getNamespacedId,
   });
 
+  const checkForNonMaybeCardinality = checkForNonMaybeCardinalityFor({
+    getNamespacedId,
+  });
+
   const nonDecoratedPrivateInjectUnknownMeta = privateInjectFor({
     getRelatedInjectables,
     injectableSet,
@@ -109,6 +114,7 @@ export default containerId => {
     checkForTooManyMatches,
     checkForSideEffects,
     checkForAbstractToken,
+    checkForNonMaybeCardinality,
     namespacedIdByInjectableMap,
     getNamespacedId,
     getApplicableDecorators,
@@ -537,6 +543,14 @@ export default containerId => {
       alias =>
       (...params) =>
         publicInjectMany(alias, ...params),
+
+    // Resolves per call like injectMany, but unwraps to the single instance or
+    // undefined — the 'zero-or-one' upper bound guarantees at most one.
+    injectMaybe: alias => {
+      checkForNonMaybeCardinality(alias, rootInjectable);
+
+      return (...params) => publicInjectMany(alias, ...params)[0];
+    },
 
     injectWithMeta2:
       alias =>

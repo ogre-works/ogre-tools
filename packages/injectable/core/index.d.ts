@@ -55,6 +55,7 @@ export type Override2 = OverrideInjectable2 & Override2V2ShapeForOldStyle;
 export interface DiContainer extends DiContainerForInjection {
   inject2: Inject2;
   injectMany2: InjectMany2;
+  injectMaybe: InjectMaybe2;
   injectWithMeta2: InjectWithMeta2;
   injectManyWithMeta2: InjectManyWithMeta2;
 
@@ -1110,6 +1111,7 @@ export type Alias = Alias1 | Alias2;
 export interface DiContainerForInjection2 {
   inject: Inject2;
   injectMany: InjectMany2;
+  injectMaybe: InjectMaybe2;
   injectWithMeta: InjectWithMeta2;
   injectManyWithMeta: InjectManyWithMeta2;
 
@@ -1142,6 +1144,16 @@ export interface HasRegistrations2 {
   <I extends TI, TI, P>(
     alias: Injectable<I, TI, P> | InjectionToken<TI, P>,
   ): boolean;
+}
+
+// Factory-returning injectMaybe — accepts only tokens declared 'zero-or-one'
+// and returns the token's maybe-factory verbatim, so a generic factory keeps
+// its generic. Note this is factory-returning even on the root container,
+// where `injectMany` is eager: presence has to be resolved per call.
+export interface InjectMaybe2 {
+  <F extends Factory, MF extends (...args: Parameters<F>) => ReturnType<F> | undefined>(
+    alias: InjectionToken2<F, MF, any, 'zero-or-one'>,
+  ): MF;
 }
 
 // Factory-returning injectMany — v2 returns the token's many-factory (generics

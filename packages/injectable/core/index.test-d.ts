@@ -2209,3 +2209,61 @@ expectError(
     instantiate: () => (wrong: number) => wrong,
   }),
 );
+
+// ==== injectMaybe ====
+
+// given a token declared 'zero-or-one', injecting maybe yields the token's
+// maybe-factory, whose result is the instance or undefined
+expectType<MaybeResultFactory<GetGreeting>>(
+  di.injectMaybe(cardinalityMaybeToken),
+);
+expectType<string | undefined>(di.injectMaybe(cardinalityMaybeToken)('a-name'));
+
+// no tuple and no destructuring at the call site
+const maybeGreeting = di.injectMaybe(cardinalityMaybeToken)('a-name');
+expectAssignable<string | undefined>(maybeGreeting);
+expectNotType<string>(maybeGreeting);
+
+// given any other cardinality, injecting maybe is not OK
+expectError(di.injectMaybe(cardinalityOneToken));
+expectError(di.injectMaybe(cardinalityManyToken));
+expectError(di.injectMaybe(cardinalityNonEmptyManyToken));
+expectError(di.injectMaybe(tokenOfUnknownCardinality));
+
+// injectables carry no cardinality, so they are not injectable maybe either
+expectError(di.injectMaybe(nonParametricInjectable2));
+
+// `.for()` children of a 'zero-or-one' token are injectable maybe
+expectType<string | undefined>(
+  di.injectMaybe(cardinalityMaybeToken.for('a'))('a-name'),
+);
+
+// a generic factory keeps its generic through injectMaybe, given the maybe
+// shape was supplied explicitly
+const genericMaybeToken = getInjectionToken2<
+  GetWrapped,
+  <T>(value: T) => { wrapped: T } | undefined
+>()({
+  id: 'generic-maybe',
+  cardinality: 'zero-or-one',
+});
+
+const getWrappedMaybe = di.injectMaybe(genericMaybeToken);
+expectType<{ wrapped: string } | undefined>(
+  getWrappedMaybe('some-string' as string),
+);
+expectType<{ wrapped: number } | undefined>(getWrappedMaybe(42));
+
+// inside an instantiate, the same gating applies
+getInjectable2({
+  id: 'maybe-consumer',
+
+  instantiate: di => {
+    expectType<MaybeResultFactory<GetGreeting>>(
+      di.injectMaybe(cardinalityMaybeToken),
+    );
+    expectError(di.injectMaybe(cardinalityManyToken));
+
+    return () => 'irrelevant';
+  },
+});
