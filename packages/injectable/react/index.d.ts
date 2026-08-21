@@ -12,8 +12,10 @@ import {
   SpecificInjectionToken2,
 } from '@ogre-tools/injectable';
 
+// A hook injects a single implementation, so a token it is given must be
+// declared 'one'; the many-cardinalities go through `di.injectMany`.
 export function useInject<F extends Factory>(
-  injectable: Injectable2<F> | InjectionToken2<F>,
+  injectable: Injectable2<F> | InjectionToken2<F, any, any, 'one'>,
   ...params: Parameters<F>
 ): Awaited<ReturnType<F>>;
 
@@ -29,7 +31,7 @@ export function useInject<TReturnValue, TInstantiationParameter>(
 ): Awaited<TReturnValue>;
 
 export function useInjectDeferred<F extends Factory>(
-  injectable: Injectable2<F> | InjectionToken2<F>,
+  injectable: Injectable2<F> | InjectionToken2<F, any, any, 'one'>,
   ...params: Parameters<F>
 ): Awaited<ReturnType<F>>;
 
@@ -46,7 +48,7 @@ export function useInjectDeferred<TReturnValue, TInstantiationParameter>(
 
 export function useInject2<F extends Factory>(alias: Injectable2<F>): F;
 export function useInject2<F extends Factory>(
-  alias: InjectionToken2<F>,
+  alias: InjectionToken2<F, any, any, 'one'>,
 ): F;
 export function useInject2<TReturnValue>(
   alias: Injectable<TReturnValue, any> | InjectionToken<TReturnValue>,
