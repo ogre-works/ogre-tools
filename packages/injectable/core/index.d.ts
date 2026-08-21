@@ -451,7 +451,7 @@ export interface InstantiationDecoratorSpecificFactory {
 
   <InjectionInstance, InstantiationParam = void>(
     target: Injectable<InjectionInstance, any, InstantiationParam> | InjectionToken<InjectionInstance, InstantiationParam>,
-  ): SpecificInjectionToken2<() => (instantiate: Instantiate<any, any>) => Instantiate<any, any>>;
+  ): SpecificInjectionToken2<() => (instantiate: Instantiate<InjectionInstance, InstantiationParam>) => Instantiate<InjectionInstance, InstantiationParam>>;
 
   // Tag-keyed dispatch: an instantiation decorator targeting a string tag
   // fires for every injectable whose `tags` array contains that tag.

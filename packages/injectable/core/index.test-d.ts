@@ -1,5 +1,4 @@
 import { expectAssignable, expectError, expectNotType, expectType } from 'tsd';
-
 import {
   createContainer,
   DiContainer,
@@ -1840,3 +1839,24 @@ expectError(
     instantiate: () => () => 42,
   }),
 );
+
+// instantiationDecoratorToken is typed correctly for v1 injectables and injection tokens
+
+const someFunctionInjectableToBeDecorated = getInjectable({
+  id: "some-function-injectable-to-be-decorated",
+  instantiate: (di, param) => (arg1: string, arg2: boolean) => {},
+  lifecycle: lifecycleEnum.keyedSingleton({
+    getInstanceKey: (di, param: number) => param,
+  })
+});
+
+const someFunctionDecoration = getInjectable2({
+  id: "some-function-injectable-to-be-decorated",
+  instantiate: (di) => () => (instantiate) => (di, param) => (arg1, arg2) => {
+    expectType<Instantiate<(arg1: string, arg2: boolean) => void, number>>(instantiate);
+    expectType<number>(param);
+    expectType<string>(arg1);
+    expectType<boolean>(arg2);
+  },
+  injectionToken: instantiationDecoratorToken.for(someFunctionInjectableToBeDecorated),
+})
