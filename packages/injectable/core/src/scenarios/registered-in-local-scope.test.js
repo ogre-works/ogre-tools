@@ -116,7 +116,7 @@ describe('registeredInLocalScope', () => {
     let registeredInLocalScope;
 
     const someInjectionToken2 = getInjectionToken2()({
-  cardinality: 'zero-or-many',
+      cardinality: 'zero-or-many',
       id: 'some-injection-token-2',
     });
 

@@ -40,7 +40,9 @@ describe('purge.performance', () => {
 
       const p2 = performance.now();
 
-      console.log(`[BENCH] purge of ${count} keyed instances: ${(p2 - p1).toFixed(2)}ms`);
+      console.log(
+        `[BENCH] purge of ${count} keyed instances: ${(p2 - p1).toFixed(2)}ms`,
+      );
 
       expect(p2 - p1).toBeLessThan(2.5);
     });
@@ -61,7 +63,9 @@ describe('purge.performance', () => {
 
       const p2 = performance.now();
 
-      console.log(`[BENCH] purge of ${count} injectables: ${(p2 - p1).toFixed(2)}ms`);
+      console.log(
+        `[BENCH] purge of ${count} injectables: ${(p2 - p1).toFixed(2)}ms`,
+      );
 
       expect(p2 - p1).toBeLessThan(30);
     });
@@ -92,7 +96,11 @@ describe('purge.performance', () => {
 
       const p2 = performance.now();
 
-      console.log(`[BENCH] scoped purge of ${count} keyed instances: ${(p2 - p1).toFixed(2)}ms`);
+      console.log(
+        `[BENCH] scoped purge of ${count} keyed instances: ${(p2 - p1).toFixed(
+          2,
+        )}ms`,
+      );
 
       expect(p2 - p1).toBeLessThan(1.5);
     });
@@ -122,7 +130,9 @@ describe('purge.performance', () => {
       const p2 = performance.now();
 
       console.log(
-        `[BENCH] purge of ${count} keyed instances with a callback: ${(p2 - p1).toFixed(2)}ms`,
+        `[BENCH] purge of ${count} keyed instances with a callback: ${(
+          p2 - p1
+        ).toFixed(2)}ms`,
       );
 
       expect(p2 - p1).toBeLessThan(60);

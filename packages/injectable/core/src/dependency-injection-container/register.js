@@ -206,7 +206,9 @@ export const registerSingleFor = ({
           // outlawed by the base token's bound.
           if (member.injectionToken === token) {
             throw new Error(
-              `Tried to register injectable "${namespacedId}" with injection token "${token.id}", but its cardinality "${upperBoundedCardinality}" allows at most one registration and "${namespacedIdByInjectableMap.get(
+              `Tried to register injectable "${namespacedId}" with injection token "${
+                token.id
+              }", but its cardinality "${upperBoundedCardinality}" allows at most one registration and "${namespacedIdByInjectableMap.get(
                 member,
               )}" is already registered.`,
             );

@@ -2,10 +2,7 @@ import { privateInjectFor } from './privateInjectFor';
 import { withInjectionDecoratorsFor } from './withInjectionDecoratorsFor';
 import { privateInjectManyFor as nonDecoratedPrivateInjectManyFor } from './privateInjectManyFor';
 import { registerFor, registerSingleFor } from './register';
-import {
-  purgeInstancesFor,
-  purgeStoredInstancesFor,
-} from './purgeInstances';
+import { purgeInstancesFor, purgeStoredInstancesFor } from './purgeInstances';
 import { deregisterFor } from './deregister';
 import { overrideFor, unoverrideFor } from './override';
 import { getNamespacedIdFor } from './getNamespacedIdFor';

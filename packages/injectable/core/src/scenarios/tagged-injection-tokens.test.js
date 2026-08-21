@@ -71,14 +71,16 @@ describe('tagged-injection-tokens', () => {
   describe('given a v2 injection token', () => {
     it('carries the initial injectionToken tag', () => {
       const someToken = getInjectionToken2()({
-  cardinality: 'zero-or-many', id: 'some-token' });
+        cardinality: 'zero-or-many',
+        id: 'some-token',
+      });
 
       expect(someToken.tags).toEqual(['injectionToken']);
     });
 
     it('given custom tags, carries the initial tag followed by the custom tags', () => {
       const someToken = getInjectionToken2()({
-  cardinality: 'zero-or-many',
+        cardinality: 'zero-or-many',
         id: 'some-token',
         tags: ['some-tag', 'some-other-tag'],
       });
@@ -92,7 +94,7 @@ describe('tagged-injection-tokens', () => {
 
     it('when creating a specific token using .for, the specific token inherits the tags of the general token', () => {
       const someToken = getInjectionToken2()({
-  cardinality: 'zero-or-many',
+        cardinality: 'zero-or-many',
         id: 'some-token',
         tags: ['some-tag'],
       });
@@ -107,7 +109,7 @@ describe('tagged-injection-tokens', () => {
   describe('given an abstract v2 injection token', () => {
     it('carries the initial injectionToken tag and custom tags', () => {
       const someAbstractToken = getAbstractInjectionToken2()({
-  cardinality: 'zero-or-many',
+        cardinality: 'zero-or-many',
         id: 'some-abstract-token',
         tags: ['some-tag'],
       });
@@ -119,7 +121,7 @@ describe('tagged-injection-tokens', () => {
   describe('given a v2 token with a custom tag and an injection decorator targeting the tag', () => {
     it('when injecting via the token, the decorator fires', () => {
       const someToken = getInjectionToken2()({
-  cardinality: 'zero-or-many',
+        cardinality: 'zero-or-many',
         id: 'some-token',
         tags: ['some-tag'],
       });
@@ -232,7 +234,9 @@ describe('tagged-injection-tokens', () => {
   describe('given decorators targeting the injectionToken tag for several decorator types at once', () => {
     it('when registering and injecting a token-implementing injectable, terminates and does not decorate the machinery', () => {
       const someToken = getInjectionToken2()({
-  cardinality: 'zero-or-many', id: 'some-token' });
+        cardinality: 'zero-or-many',
+        id: 'some-token',
+      });
 
       const someInjectable = getInjectable2({
         id: 'some-injectable',
