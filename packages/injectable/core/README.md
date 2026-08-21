@@ -58,7 +58,7 @@ Notable: the unit-tests of this library are a designed as comprehensive document
 
 #### Injectable
 - An instruction for what to **instantiate** when a `registered` `injectable` is `injected` from a `di-container`.
-- Guarantees unique and namespaced id within `Feature` (or more technically `scope`). The id is mostly used for error messages and debugging, but production code can access it too using `di.injectManyWithMeta`, which provides the id as meta-data, along with the usual instance.
+- Guarantees unique and namespaced id within `Feature` (or more technically `scope` — see [Scopes](#scopes)). The id is mostly used for error messages and debugging, but production code can access it too using `di.injectManyWithMeta`, which provides the id as meta-data, along with the usual instance.
 - Has `lifecycle` of `singleton` as default.
 - Can have an `instantiationParameter` to permit other `lifecycles`:
   - `singleton`: repeated injections of same `injectable` result in same instance. No `instantiationParameter` is permitted.
@@ -304,6 +304,55 @@ const getVocalistAndDrummerBandBunch = (bandKind) => getInjectableBunch({
 // See, no chore :D
 export const getVocalistAndDrummerBandBunch("metal");
 ```
+
+#### Scopes
+
+An injectable can register other injectables during its own instantiation, by calling `register` on the `di` its `instantiate` was given. Those registrations form a **scope** owned by the injectable being instantiated:
+
+```ts
+const someFeatureInjectable = getInjectable({
+  id: "some-feature",
+
+  instantiate: (di) => {
+    di.register(someServiceInjectable, someOtherServiceInjectable);
+
+    return { started: true };
+  },
+});
+
+di.register(someFeatureInjectable);
+di.inject(someFeatureInjectable);
+
+di.injectManyWithMeta(someServiceToken)[0].meta.id; // "some-feature:some-service"
+```
+
+There is no scope object and no scope API — the `di` handed to an `instantiate` *is* the scope. (Older code sometimes carries a `scope: true` property on such an injectable; nothing reads it, and it has no effect.)
+
+Key properties:
+
+- **The namespaced id.** A scoped registration's id becomes `<owner-id>:<own-id>`, nesting one segment per level — an injectable registered by a scope that was itself registered by a scope reads `outer:inner:own-id`. The container's id is not part of it. That namespaced id is what appears in `meta.id` from `injectManyWithMeta`, in `di.getNumberOfInstances()` keys, in `di.validate()` reports, and in error messages naming the injecting party.
+- **No isolation of resolution.** This is the part worth being precise about: a scope affects identity, the registration tree and the `registeredInLocalScope*` queries — nothing else. Registrations are container-global, so a scoped injectable is injectable from the root container and from sibling scopes, `injectMany` on a token picks up implementations registered in any scope, and code inside a scope injects container-level things normally. The crispest statement of this is that `di.hasRegistrations(someToken)` is `true` for a scope-registered implementation while `di.registeredInLocalScope(someToken)` is `false`.
+- **Uniqueness is per namespaced id.** Two different scopes may each register an injectable with the same bare id. Registering the same id twice *within* one scope throws `Tried to register multiple injectables for ID "some-scope:some-id"`.
+- **Registering is not limited to instantiation time.** The `di` given to `instantiate` keeps working after `instantiate` returns, so an injectable can expose its own `register` and have things registered into its scope later. Scope membership follows the `register` function you call, never when you call it.
+- **Deregistration cascades.** Deregistering the owner deregisters everything its scope registered, to any depth, purging their instances on the way. Afterwards the same injectable objects can be registered again, in the same scope or elsewhere, and take a freshly computed namespaced id.
+- **Querying a scope.** `di.registeredInLocalScope(alias)` asks whether something matching `alias` was registered *directly* by this scope; `di.registeredInLocalScopeSubtree(alias)` asks whether it was registered anywhere below it, at any depth. Both exist on the container, where the scope in question is the container itself — note that `registeredInLocalScopeSubtree` on the container is therefore equivalent to `hasRegistrations`, everything being in the container's subtree.
+- **`di.sourceNamespace`** is the namespace of whatever is injecting you, not your own — the namespaced id of the consuming injectable with its last segment removed, or `undefined` when the consumer is at container level. Its intended use is as a `keyedSingleton` key, giving one instance per consuming namespace:
+
+```ts
+const someLoggerInjectable = getInjectable({
+  id: "some-logger",
+  instantiate: (di) => createLogger({ prefix: di.sourceNamespace }),
+  lifecycle: lifecycleEnum.keyedSingleton({
+    getInstanceKey: (di) => di.sourceNamespace,
+  }),
+});
+```
+
+  Be aware it is `undefined` for anything resolved through `injectMany`, where the token stands in as the injecting party rather than the consumer.
+
+- **`di.purge` means two different things.** On the container it purges instances globally. On the `di` inside an `instantiate` it is restricted to the scope: the owner's own instances and those of the injectables it registered directly, and it throws `Tried to purge "some-id" from "some-owner", but it is not within its registration context tree.` for anything else. Neither form removes registrations — only instances.
+- **Footgun: a scope belongs to the injectable, not to the instance.** The owner's identity is the injectable object, so a `transient` or `keyedSingleton` owner does not get a fresh scope per instantiation. Its second instantiation re-runs the same `di.register` calls and throws `Tried to register same injectable multiple times: "some-owner:some-id"`. The same happens after `di.purge` of a singleton owner, since purging drops the instance but keeps the registrations, so re-injecting re-runs `instantiate`. Scopes are a structural mechanism for features, not a per-instance one.
+- **Footgun: cardinality bounds are container-wide.** Two scopes cannot each register their own implementation of a token declared `one` or `zero-or-one`; the second registration is rejected regardless of which scope it is in.
 
 #### Composite keys of keyed singletons
 Sometimes a single parameter is not enough to uniquely identify an instance of a `keyedSingleton` injectable. For that, a composite key can be used.
