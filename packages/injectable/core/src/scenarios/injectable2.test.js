@@ -167,6 +167,7 @@ describe('getInjectable2', () => {
 
       const service = getInjectable2({
         id: 'service',
+        consumptions: [token],
         instantiate: di => {
           const getHandlers = di.injectMany(token);
 

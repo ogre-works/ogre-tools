@@ -107,6 +107,7 @@ describe('createContainer.injectMaybe', () => {
 
       const someConsumer = getInjectable2({
         id: 'some-consumer',
+        consumptions: [someMaybeToken],
 
         instantiate: di => {
           const getMaybeInstance = di.injectMaybe(someMaybeToken);
@@ -160,6 +161,7 @@ describe('createContainer.injectMaybe', () => {
 
     const someConsumer = getInjectable2({
       id: 'some-consumer',
+      consumptions: [someOtherToken],
 
       instantiate: di => {
         di.injectMaybe(someOtherToken);
