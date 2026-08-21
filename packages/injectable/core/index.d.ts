@@ -52,7 +52,39 @@ export type Override = OverrideV1ShapeOldStyle & OverrideV1ShapeForInjectable2;
 // Cross-compat override2: v2-shape stub works on any target.
 export type Override2 = OverrideInjectable2 & Override2V2ShapeForOldStyle;
 
+// ---- validate ----
+//
+// Checks every registered injectable2's declared consumptions against what is
+// actually registered, without instantiating anything: a token declared 'one'
+// or 'one-or-many' must have at least one implementation, counting those
+// registered against any of its `.for()` derivatives. Upper bounds need no
+// check here, registering having already rejected a second implementation.
+//
+// All violations are reported in one thrown error, so a composition root is
+// fixed in one pass rather than one registration at a time.
+
+export interface ValidationReportInjectables {
+  count: number;
+  ids: string[];
+}
+
+export interface UnverifiableConsumption {
+  injectableId: string;
+  consumptionId: string;
+}
+
+export interface ValidationReport {
+  // Injectables whose consumptions were checked — every injectable2.
+  verifiedInjectables: ValidationReportInjectables;
+  // v1 injectables, which declare nothing and so cannot be checked.
+  unverifiedInjectables: ValidationReportInjectables;
+  // Declared v1 tokens: carrying no cardinality, they have no arity to check,
+  // and remain a runtime concern.
+  unverifiableConsumptions: UnverifiableConsumption[];
+}
+
 export interface DiContainer extends DiContainerForInjection {
+  validate: () => ValidationReport;
   inject2: Inject2;
   injectMany2: InjectMany2;
   injectMaybe: InjectMaybe2;

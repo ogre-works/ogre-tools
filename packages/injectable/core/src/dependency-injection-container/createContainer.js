@@ -12,6 +12,7 @@ import { checkForSideEffectsFor } from './checkForSideEffectsFor';
 import { checkForAbstractTokenFor } from './checkForAbstractTokenFor';
 import { checkForNonMaybeCardinalityFor } from './checkForNonMaybeCardinalityFor';
 import { checkForUndeclaredConsumptionFor } from './checkForUndeclaredConsumptionFor';
+import { validateFor } from './validate';
 import { getRelatedInjectablesFor } from './getRelatedInjectablesFor';
 import { earlyOverrideFor, earlyOverride2For } from './early-override';
 import { injectionDecoratorToken, preInjectCallbackToken } from './tokens';
@@ -611,6 +612,14 @@ export default containerId => {
 
     registeredInLocalScope: alias =>
       privateDi.registeredInScopeOf(rootInjectable, alias),
+
+    validate: validateFor({
+      containerId,
+      injectableSet,
+      injectablesByInjectionToken,
+      namespacedIdByInjectableMap,
+      overridingInjectables,
+    }),
 
     registeredInLocalScopeSubtree: alias =>
       privateDi.registeredInSubtreeOf(rootInjectable, alias),
