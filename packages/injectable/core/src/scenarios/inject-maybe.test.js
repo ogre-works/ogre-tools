@@ -18,7 +18,7 @@ describe('createContainer.injectMaybe', () => {
 
   describe('given a token with cardinality "zero-or-one"', () => {
     it('when no implementation is registered, injecting maybe returns undefined', () => {
-      expect(di.injectMaybe(someMaybeToken)()).toBe(undefined);
+      expect(di.injectMaybe2(someMaybeToken)()).toBe(undefined);
     });
 
     it('when an implementation is registered, injecting maybe returns the instance', () => {
@@ -30,11 +30,11 @@ describe('createContainer.injectMaybe', () => {
         }),
       );
 
-      expect(di.injectMaybe(someMaybeToken)()).toBe('some-instance');
+      expect(di.injectMaybe2(someMaybeToken)()).toBe('some-instance');
     });
 
     it('when the factory is obtained before the implementation is registered, invoking it afterwards returns the instance', () => {
-      const getMaybeInstance = di.injectMaybe(someMaybeToken);
+      const getMaybeInstance = di.injectMaybe2(someMaybeToken);
 
       expect(getMaybeInstance()).toBe(undefined);
 
@@ -58,7 +58,7 @@ describe('createContainer.injectMaybe', () => {
 
       di.register(someInjectable);
 
-      const getMaybeInstance = di.injectMaybe(someMaybeToken);
+      const getMaybeInstance = di.injectMaybe2(someMaybeToken);
 
       expect(getMaybeInstance()).toBe('some-instance');
 
@@ -77,7 +77,7 @@ describe('createContainer.injectMaybe', () => {
         }),
       );
 
-      expect(di.injectMaybe(someMaybeToken)('a', 'b')).toBe(
+      expect(di.injectMaybe2(someMaybeToken)('a', 'b')).toBe(
         'some-instance: a, b',
       );
     });
@@ -91,7 +91,7 @@ describe('createContainer.injectMaybe', () => {
         }),
       );
 
-      expect(di.injectMaybe(someMaybeToken.for('some-specifier'))()).toBe(
+      expect(di.injectMaybe2(someMaybeToken.for('some-specifier'))()).toBe(
         'some-instance',
       );
     });
@@ -132,7 +132,7 @@ describe('createContainer.injectMaybe', () => {
         });
 
         expect(() => {
-          di.injectMaybe(someToken);
+          di.injectMaybe2(someToken);
         }).toThrow(
           `Tried to injectMaybe "some-token" from "some-container", but its cardinality is "${cardinality}" instead of "zero-or-one".`,
         );
@@ -147,7 +147,7 @@ describe('createContainer.injectMaybe', () => {
     });
 
     expect(() => {
-      di.injectMaybe(someInjectable);
+      di.injectMaybe2(someInjectable);
     }).toThrow(
       'Tried to injectMaybe "some-injectable" from "some-container", but its cardinality is "undefined" instead of "zero-or-one".',
     );
@@ -201,7 +201,7 @@ describe('createContainer.injectMaybe', () => {
     });
 
     it('when the factory is invoked, the callback fires once, as an injectMany operation', () => {
-      di.injectMaybe(someMaybeToken)();
+      di.injectMaybe2(someMaybeToken)();
 
       expect(preInjectCallbackMock.mock.calls).toEqual([
         [
@@ -213,7 +213,7 @@ describe('createContainer.injectMaybe', () => {
     });
 
     it('when the factory is invoked twice, the callback fires per invocation', () => {
-      const getMaybeInstance = di.injectMaybe(someMaybeToken);
+      const getMaybeInstance = di.injectMaybe2(someMaybeToken);
 
       getMaybeInstance();
       getMaybeInstance();

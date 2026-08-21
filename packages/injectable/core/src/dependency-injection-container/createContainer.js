@@ -578,7 +578,7 @@ export default containerId => {
 
     // Resolves per call like injectMany, but unwraps to the single instance or
     // undefined — the 'zero-or-one' upper bound guarantees at most one.
-    injectMaybe: alias => {
+    injectMaybe2: alias => {
       checkForNonMaybeCardinality(alias, rootInjectable);
 
       return (...params) => publicInjectMany(alias, ...params)[0];
