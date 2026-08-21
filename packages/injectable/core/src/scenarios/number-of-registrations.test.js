@@ -124,7 +124,8 @@ describe('getNumberOfRegistrations', () => {
   it('given implementations for a token, when an injectable2 calls getNumberOfRegistrations during instantiation, returns their count', () => {
     let capturedCount;
 
-    const someInjectionToken2 = getInjectionToken2({
+    const someInjectionToken2 = getInjectionToken2()({
+  cardinality: 'zero-or-many',
       id: 'some-injection-token-2',
     });
 

@@ -125,7 +125,8 @@ export declare function getInjectionTokenComponent<
 
 export type SpecificInjectionTokenComponent2<
   Component extends React.ComponentType<any>,
-> = Component & SpecificInjectionToken2<() => Component>;
+> = Component &
+  SpecificInjectionToken2<() => Component, () => Component[], any, 'one'>;
 
 export type InjectionTokenComponent2<
   Component extends React.ComponentType<any>,
@@ -134,7 +135,8 @@ export type InjectionTokenComponent2<
   ) => SpecificInjectionTokenComponent2<Component> = (
     id: string,
   ) => SpecificInjectionTokenComponent2<Component>,
-> = Component & InjectionToken2<() => Component, () => Component[], SpecificFactory>;
+> = Component &
+  InjectionToken2<() => Component, () => Component[], SpecificFactory, 'one'>;
 
 export declare function getInjectionTokenComponent2<
   Component extends React.ComponentType<any>,
@@ -157,7 +159,12 @@ export type AbstractInjectionTokenComponent2<
   ) => SpecificInjectionTokenComponent2<Component> = (
     id: string,
   ) => SpecificInjectionTokenComponent2<Component>,
-> = AbstractInjectionToken2<() => Component, () => Component[], SpecificFactory>;
+> = AbstractInjectionToken2<
+  () => Component,
+  () => Component[],
+  SpecificFactory,
+  'one'
+>;
 
 export declare function getAbstractInjectionTokenComponent2<
   Component extends React.ComponentType<any>,

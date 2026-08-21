@@ -98,7 +98,8 @@ describe('useInject2', () => {
   });
 
   it('given a non-abstract injectionToken2, returns a factory resolving to the registered implementation', () => {
-    const someInjectionToken2 = getInjectionToken2({
+    const someInjectionToken2 = getInjectionToken2()({
+      cardinality: 'one',
       id: 'some-token-2',
     });
 

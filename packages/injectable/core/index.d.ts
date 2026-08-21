@@ -214,8 +214,11 @@ export type InjectWithParameter = <InjectionInstance, InstantiationParam>(
   param: InstantiationParam,
 ) => InjectionInstance;
 
+// Only tokens declared 'one' are injectable singly; 'zero-or-one' goes through
+// `injectMaybe`, the many-cardinalities through `injectMany`. Injectables carry
+// no cardinality and are always injectable directly.
 export type InjectInjectable2 = <F extends Factory>(
-  alias: Injectable2<F> | InjectionToken2<F>,
+  alias: Injectable2<F> | InjectionToken2<F, any, any, 'one'>,
   ...params: Parameters<F>
 ) => ReturnType<F>;
 
@@ -225,7 +228,7 @@ export type Inject = InjectWithoutParameter & InjectWithParameter & InjectInject
 // v2 aliases return the native factory F; v1 aliases return a synthesized factory.
 export interface Inject2 {
   <F extends Factory>(alias: Injectable2<F>): F;
-  <F extends Factory>(alias: InjectionToken2<F>): F;
+  <F extends Factory>(alias: InjectionToken2<F, any, any, 'one'>): F;
   <I>(alias: Injectable<I, any> | InjectionToken<I>): () => I;
   <I, P>(alias: Injectable<I, any, P> | InjectionToken<I, P>): (...params: [P]) => I;
 }
@@ -273,7 +276,9 @@ export type SpecificInject<InjectionInstance, InstantiationParam> =
 
 export interface InjectMany {
   <F extends Factory>(
-    alias: InjectionToken2<F> | AbstractInjectionToken2<F>,
+    alias:
+      | InjectionToken2<F, any, any, 'zero-or-many' | 'one-or-many'>
+      | AbstractInjectionToken2<F, any, any, 'zero-or-many' | 'one-or-many'>,
     ...params: Parameters<F>
   ): ReturnType<F>[];
 
@@ -302,7 +307,9 @@ export type InjectionInstanceWithMeta<InjectionInstance> = {
 
 export interface InjectManyWithMeta {
   <F extends Factory>(
-    alias: InjectionToken2<F> | AbstractInjectionToken2<F>,
+    alias:
+      | InjectionToken2<F, any, any, 'zero-or-many' | 'one-or-many'>
+      | AbstractInjectionToken2<F, any, any, 'zero-or-many' | 'one-or-many'>,
     ...params: Parameters<F>
   ): InjectionInstanceWithMeta<ReturnType<F>>[];
 
@@ -322,7 +329,7 @@ export interface InjectManyWithMeta {
 
 export interface InjectWithMeta {
   <F extends Factory>(
-    alias: Injectable2<F> | InjectionToken2<F>,
+    alias: Injectable2<F> | InjectionToken2<F, any, any, 'one'>,
     ...params: Parameters<F>
   ): InjectionInstanceWithMeta<ReturnType<F>>;
 
@@ -425,7 +432,8 @@ export interface InjectionDecoratorSpecificFactory {
 export const injectionDecoratorToken: AbstractInjectionToken2<
   Factory,
   ManyFactory,
-  InjectionDecoratorSpecificFactory
+  InjectionDecoratorSpecificFactory,
+  'zero-or-many'
 >;
 
 // --- instantiationDecoratorToken ---
@@ -465,7 +473,8 @@ export interface InstantiationDecoratorSpecificFactory {
 export const instantiationDecoratorToken: AbstractInjectionToken2<
   Factory,
   ManyFactory,
-  InstantiationDecoratorSpecificFactory
+  InstantiationDecoratorSpecificFactory,
+  'zero-or-many'
 >;
 
 // --- registrationDecoratorToken ---
@@ -499,13 +508,15 @@ export interface RegistrationDecoratorSpecificFactory {
 export const registrationDecoratorToken: AbstractInjectionToken2<
   Factory,
   ManyFactory,
-  RegistrationDecoratorSpecificFactory
+  RegistrationDecoratorSpecificFactory,
+  'zero-or-many'
 >;
 
 export const deregistrationDecoratorToken: AbstractInjectionToken2<
   Factory,
   ManyFactory,
-  RegistrationDecoratorSpecificFactory
+  RegistrationDecoratorSpecificFactory,
+  'zero-or-many'
 >;
 
 export const registrationCallbackToken: RegistrationCallback;
@@ -546,7 +557,8 @@ export interface InstancePurgeCallbackSpecificFactory {
 export const instancePurgeCallbackToken: AbstractInjectionToken2<
   Factory,
   ManyFactory,
-  InstancePurgeCallbackSpecificFactory
+  InstancePurgeCallbackSpecificFactory,
+  'zero-or-many'
 >;
 
 // --- preInjectCallbackToken ---
@@ -595,7 +607,8 @@ export interface PreInjectCallbackSpecificFactory {
 export const preInjectCallbackToken: AbstractInjectionToken2<
   Factory,
   ManyFactory,
-  PreInjectCallbackSpecificFactory
+  PreInjectCallbackSpecificFactory,
+  'zero-or-many'
 >;
 
 export const isInjectable: (
@@ -677,14 +690,61 @@ export type ManyFactory<F extends Factory = Factory> = F extends (...args: infer
   ? (...args: P) => R[]
   : never;
 
+// ---- Cardinality ----
+//
+// Every v2 injection token declares how many implementations it expects, which
+// decides the one consumption API that accepts it: `inject` for 'one',
+// `injectMaybe` for 'zero-or-one', `injectMany` for the two many-cardinalities.
+// Upper bounds ('one', 'zero-or-one' permit at most one implementation) are
+// enforced when registering; lower bounds ('one', 'one-or-many' require at
+// least one) by `di.validate()`.
+
+export type Cardinality = 'one' | 'zero-or-one' | 'zero-or-many' | 'one-or-many';
+
+// The consumption shape of a 'zero-or-one' token: the instance, or undefined
+// when nothing is registered. Presence is resolved per call, so a token whose
+// implementation is registered later starts yielding it. Note this cannot
+// distinguish "nothing registered" from "the factory returned undefined".
+export type MaybeResultFactory<F extends Factory = Factory> = F extends (...args: infer P) => infer R
+  ? (...args: P) => R | undefined
+  : never;
+
+// The consumption shape of a 'one-or-many' token: a non-empty array, so
+// indexing the first element needs no defensive check.
+export type NonEmptyManyFactory<F extends Factory = Factory> = F extends (...args: infer P) => infer R
+  ? (...args: P) => [R, ...R[]]
+  : never;
+
+// Constraint for the many-factory slot on the token interfaces: wide enough to
+// hold every cardinality's consumption shape. Each creator overload narrows it
+// to the shape its cardinality actually permits, so a token can never be built
+// carrying a shape its cardinality disallows.
+export type AnyConsumptionFactory<F extends Factory> = (
+  ...args: Parameters<F>
+) => ReturnType<F>[] | ReturnType<F> | undefined;
+
+export type DefaultConsumptionFactory<C extends Cardinality, F extends Factory> =
+  C extends 'zero-or-one'
+    ? MaybeResultFactory<F>
+    : C extends 'one-or-many'
+    ? NonEmptyManyFactory<F>
+    : ManyFactory<F>;
+
+// The `.for()` factory of a token that did not supply its own. Recursive, so
+// cardinality survives arbitrarily deep `.for(…).for(…)` chains.
+export type DefaultSpecificFactory2<
+  F extends Factory,
+  MF extends AnyConsumptionFactory<F>,
+  C extends Cardinality,
+> = (id: string) => SpecificInjectionToken2<F, MF, DefaultSpecificFactory2<F, MF, C>, C>;
+
 export interface InjectionToken2<
   F extends Factory = Factory,
-  MF extends (...args: Parameters<F>) => ReturnType<F>[] = ManyFactory<F>,
+  MF extends AnyConsumptionFactory<F> = ManyFactory<F> | MaybeResultFactory<F>,
   SpecificFactory extends (
     ...args: any[]
-  ) => SpecificInjectionToken2<F, MF> = (
-    id: string,
-  ) => SpecificInjectionToken2<F, MF>,
+  ) => SpecificInjectionToken2<F, any, any, any> = DefaultSpecificFactory2<F, MF, Cardinality>,
+  C extends Cardinality = Cardinality,
 > {
   readonly aliasType: 'injection-token2';
   // Brand that excludes AbstractInjectionToken2 (which has `readonly __abstract: true`).
@@ -696,6 +756,15 @@ export interface InjectionToken2<
   key: Symbol;
   id: string;
   for: SpecificFactory;
+  // Declared arity. The creators always stamp a literal, so a token annotated
+  // without one (`InjectionToken2<F>`, C = the whole union) means "a token of
+  // some cardinality" — it is accepted by wide positions like `register` but
+  // cannot be consumed until narrowed. The property is optional because the
+  // runtime is plain JS and nothing type-level should assume its presence.
+  cardinality?: C;
+  // Cardinality carried by `.for()` children instead of this token's own, for
+  // families whose specific tokens have a different arity than the base.
+  specificCardinality?: Cardinality;
   maxCacheSize?: number;
   // Every token carries the initial tag 'injectionToken' plus any tags given
   // at creation; `.for()` children inherit the general token's tags. Optional
@@ -705,25 +774,16 @@ export interface InjectionToken2<
 
 export interface SpecificInjectionToken2<
   F extends Factory = Factory,
-  MF extends (...args: Parameters<F>) => ReturnType<F>[] = ManyFactory<F>,
+  MF extends AnyConsumptionFactory<F> = ManyFactory<F> | MaybeResultFactory<F>,
   SpecificFactory extends (
     ...args: any[]
-  ) => SpecificInjectionToken2<F, MF> = (
-    id: string,
-  ) => SpecificInjectionToken2<F, MF>,
-> extends InjectionToken2<F, MF, SpecificFactory> {
+  ) => SpecificInjectionToken2<F, any, any, any> = DefaultSpecificFactory2<F, MF, Cardinality>,
+  C extends Cardinality = Cardinality,
+> extends InjectionToken2<F, MF, SpecificFactory, C> {
   speciality: any;
 }
 
-export function getInjectionToken2<
-  F extends Factory,
-  MF extends (...args: Parameters<F>) => ReturnType<F>[] = ManyFactory<F>,
-  SpecificFactory extends (
-    ...args: any[]
-  ) => SpecificInjectionToken2<F, MF> = (
-    id: string,
-  ) => SpecificInjectionToken2<F, MF>,
->(options: {
+export interface GetInjectionToken2Options<SpecificFactory> {
   id: string;
   // Must be pure and deterministic: `.for()` memoizes by specifier and skips
   // calling the factory again for a specifier it has already seen.
@@ -731,30 +791,193 @@ export function getInjectionToken2<
   target?: object;
   maxCacheSize?: number;
   tags?: string[];
-}): InjectionToken2<F, MF, SpecificFactory>;
+}
 
+// The inner creator of `getInjectionToken2<F>()(…)`. Currying is what lets the
+// options value drive inference: F is fixed by the outer call, then the
+// cardinality literal, the `.for()` factory and the specific cardinality are
+// all inferred here (a type argument passed alongside them would force the
+// rest to their defaults instead).
+export interface InjectionToken2Creator<F extends Factory> {
+  <
+    SC extends Cardinality = 'one',
+    SF extends (...args: any[]) => SpecificInjectionToken2<F, any, any, any> =
+      DefaultSpecificFactory2<F, DefaultConsumptionFactory<SC, F>, SC>,
+  >(
+    options: GetInjectionToken2Options<SF> & {
+      cardinality: 'one';
+      specificCardinality?: SC;
+    },
+  ): InjectionToken2<F, ManyFactory<F>, SF, 'one'>;
+
+  <
+    SC extends Cardinality = 'zero-or-one',
+    SF extends (...args: any[]) => SpecificInjectionToken2<F, any, any, any> =
+      DefaultSpecificFactory2<F, DefaultConsumptionFactory<SC, F>, SC>,
+  >(
+    options: GetInjectionToken2Options<SF> & {
+      cardinality: 'zero-or-one';
+      specificCardinality?: SC;
+    },
+  ): InjectionToken2<F, MaybeResultFactory<F>, SF, 'zero-or-one'>;
+
+  <
+    SC extends Cardinality = 'zero-or-many',
+    SF extends (...args: any[]) => SpecificInjectionToken2<F, any, any, any> =
+      DefaultSpecificFactory2<F, DefaultConsumptionFactory<SC, F>, SC>,
+  >(
+    options: GetInjectionToken2Options<SF> & {
+      cardinality: 'zero-or-many';
+      specificCardinality?: SC;
+    },
+  ): InjectionToken2<F, ManyFactory<F>, SF, 'zero-or-many'>;
+
+  <
+    SC extends Cardinality = 'one-or-many',
+    SF extends (...args: any[]) => SpecificInjectionToken2<F, any, any, any> =
+      DefaultSpecificFactory2<F, DefaultConsumptionFactory<SC, F>, SC>,
+  >(
+    options: GetInjectionToken2Options<SF> & {
+      cardinality: 'one-or-many';
+      specificCardinality?: SC;
+    },
+  ): InjectionToken2<F, NonEmptyManyFactory<F>, SF, 'one-or-many'>;
+}
+
+// The inner creator when a many-factory was supplied explicitly at the outer
+// call — the escape hatch that keeps generics alive, since `ManyFactory<F>` and
+// friends collapse a generic F. Each arm admits only the cardinality whose
+// consumption shape the given MF actually has.
+export interface InjectionToken2CreatorWithConsumptionFactory<
+  F extends Factory,
+  MF extends AnyConsumptionFactory<F>,
+> {
+  <
+    SC extends Cardinality = 'one',
+    SF extends (...args: any[]) => SpecificInjectionToken2<F, any, any, any> =
+      DefaultSpecificFactory2<F, MF, SC>,
+  >(
+    options: GetInjectionToken2Options<SF> & {
+      cardinality: MF extends (...args: Parameters<F>) => ReturnType<F>[] ? 'one' : never;
+      specificCardinality?: SC;
+    },
+  ): InjectionToken2<F, MF, SF, 'one'>;
+
+  <
+    SC extends Cardinality = 'zero-or-one',
+    SF extends (...args: any[]) => SpecificInjectionToken2<F, any, any, any> =
+      DefaultSpecificFactory2<F, MF, SC>,
+  >(
+    options: GetInjectionToken2Options<SF> & {
+      cardinality: MF extends (...args: Parameters<F>) => ReturnType<F> | undefined
+        ? 'zero-or-one'
+        : never;
+      specificCardinality?: SC;
+    },
+  ): InjectionToken2<F, MF, SF, 'zero-or-one'>;
+
+  <
+    SC extends Cardinality = 'zero-or-many',
+    SF extends (...args: any[]) => SpecificInjectionToken2<F, any, any, any> =
+      DefaultSpecificFactory2<F, MF, SC>,
+  >(
+    options: GetInjectionToken2Options<SF> & {
+      cardinality: MF extends (...args: Parameters<F>) => ReturnType<F>[] ? 'zero-or-many' : never;
+      specificCardinality?: SC;
+    },
+  ): InjectionToken2<F, MF, SF, 'zero-or-many'>;
+
+  <
+    SC extends Cardinality = 'one-or-many',
+    SF extends (...args: any[]) => SpecificInjectionToken2<F, any, any, any> =
+      DefaultSpecificFactory2<F, MF, SC>,
+  >(
+    options: GetInjectionToken2Options<SF> & {
+      cardinality: MF extends (...args: Parameters<F>) => [ReturnType<F>, ...ReturnType<F>[]]
+        ? 'one-or-many'
+        : never;
+      specificCardinality?: SC;
+    },
+  ): InjectionToken2<F, MF, SF, 'one-or-many'>;
+}
+
+// The inner creator when the `.for()` factory's type was also given at the
+// outer call. Needed for factories that narrow the general contract per
+// specifier: their return type mentions the specifier's type parameter, which
+// inference from the value cannot reconstruct.
+export interface InjectionToken2CreatorWithSpecificFactory<
+  F extends Factory,
+  MF extends AnyConsumptionFactory<F>,
+  SF extends (...args: any[]) => SpecificInjectionToken2<F, any, any, any>,
+> {
+  <SC extends Cardinality = 'one'>(
+    options: GetInjectionToken2Options<SF> & {
+      cardinality: MF extends (...args: Parameters<F>) => ReturnType<F>[] ? 'one' : never;
+      specificCardinality?: SC;
+    },
+  ): InjectionToken2<F, MF, SF, 'one'>;
+
+  <SC extends Cardinality = 'zero-or-one'>(
+    options: GetInjectionToken2Options<SF> & {
+      cardinality: MF extends (...args: Parameters<F>) => ReturnType<F> | undefined
+        ? 'zero-or-one'
+        : never;
+      specificCardinality?: SC;
+    },
+  ): InjectionToken2<F, MF, SF, 'zero-or-one'>;
+
+  <SC extends Cardinality = 'zero-or-many'>(
+    options: GetInjectionToken2Options<SF> & {
+      cardinality: MF extends (...args: Parameters<F>) => ReturnType<F>[] ? 'zero-or-many' : never;
+      specificCardinality?: SC;
+    },
+  ): InjectionToken2<F, MF, SF, 'zero-or-many'>;
+
+  <SC extends Cardinality = 'one-or-many'>(
+    options: GetInjectionToken2Options<SF> & {
+      cardinality: MF extends (...args: Parameters<F>) => [ReturnType<F>, ...ReturnType<F>[]]
+        ? 'one-or-many'
+        : never;
+      specificCardinality?: SC;
+    },
+  ): InjectionToken2<F, MF, SF, 'one-or-many'>;
+}
+
+export function getInjectionToken2<F extends Factory>(): InjectionToken2Creator<F>;
+export function getInjectionToken2<
+  F extends Factory,
+  MF extends AnyConsumptionFactory<F>,
+>(): InjectionToken2CreatorWithConsumptionFactory<F, MF>;
+export function getInjectionToken2<
+  F extends Factory,
+  MF extends AnyConsumptionFactory<F>,
+  SF extends (...args: any[]) => SpecificInjectionToken2<F, any, any, any>,
+>(): InjectionToken2CreatorWithSpecificFactory<F, MF, SF>;
+
+// Specific tokens take their cardinality from the `.for()` of the general
+// token that produced them, so they declare none of their own.
 export function getSpecificInjectionToken2<
   F extends Factory,
-  MF extends (...args: Parameters<F>) => ReturnType<F>[] = ManyFactory<F>,
+  MF extends AnyConsumptionFactory<F> = ManyFactory<F> | MaybeResultFactory<F>,
   SpecificFactory extends (
     ...args: any[]
-  ) => SpecificInjectionToken2<F, MF> = (
-    id: string,
-  ) => SpecificInjectionToken2<F, MF>,
->(options: {
+  ) => SpecificInjectionToken2<F, any, any, any> = DefaultSpecificFactory2<F, MF, Cardinality>,
+  C extends Cardinality = Cardinality,
+>(): (options: {
   id: string;
   speciality: any;
   tags?: string[];
-}): SpecificInjectionToken2<F, MF, SpecificFactory>;
+}) => SpecificInjectionToken2<F, MF, SpecificFactory, C>;
 
 export interface AbstractInjectionToken2<
   F extends Factory = Factory,
-  MF extends (...args: Parameters<F>) => ReturnType<F>[] = ManyFactory<F>,
+  MF extends AnyConsumptionFactory<F> = ManyFactory<F> | MaybeResultFactory<F>,
   SpecificFactory extends (
     ...args: any[]
-  ) => SpecificInjectionToken2<F, MF> | AbstractInjectionToken2<F, MF> = (
-    id: string,
-  ) => SpecificInjectionToken2<F, MF>,
+  ) =>
+    | SpecificInjectionToken2<F, any, any, any>
+    | AbstractInjectionToken2<F, any, any, any> = DefaultSpecificFactory2<F, MF, Cardinality>,
+  C extends Cardinality = Cardinality,
 > {
   readonly __abstract: true;
   template: F;
@@ -762,27 +985,112 @@ export interface AbstractInjectionToken2<
   key: Symbol;
   id: string;
   for: SpecificFactory;
+  cardinality?: C;
+  specificCardinality?: Cardinality;
   maxCacheSize?: number;
   tags?: string[];
 }
 
-export function getAbstractInjectionToken2<
+export interface AbstractInjectionToken2Creator<F extends Factory> {
+  <
+    SC extends Cardinality = 'one',
+    SF extends (
+      ...args: any[]
+    ) =>
+      | SpecificInjectionToken2<F, any, any, any>
+      | AbstractInjectionToken2<F, any, any, any> = DefaultSpecificFactory2<
+      F,
+      DefaultConsumptionFactory<SC, F>,
+      SC
+    >,
+  >(
+    options: GetInjectionToken2Options<SF> & {
+      cardinality: 'one';
+      specificCardinality?: SC;
+    },
+  ): AbstractInjectionToken2<F, ManyFactory<F>, SF, 'one'>;
+
+  <
+    SC extends Cardinality = 'zero-or-one',
+    SF extends (
+      ...args: any[]
+    ) =>
+      | SpecificInjectionToken2<F, any, any, any>
+      | AbstractInjectionToken2<F, any, any, any> = DefaultSpecificFactory2<
+      F,
+      DefaultConsumptionFactory<SC, F>,
+      SC
+    >,
+  >(
+    options: GetInjectionToken2Options<SF> & {
+      cardinality: 'zero-or-one';
+      specificCardinality?: SC;
+    },
+  ): AbstractInjectionToken2<F, MaybeResultFactory<F>, SF, 'zero-or-one'>;
+
+  <
+    SC extends Cardinality = 'zero-or-many',
+    SF extends (
+      ...args: any[]
+    ) =>
+      | SpecificInjectionToken2<F, any, any, any>
+      | AbstractInjectionToken2<F, any, any, any> = DefaultSpecificFactory2<
+      F,
+      DefaultConsumptionFactory<SC, F>,
+      SC
+    >,
+  >(
+    options: GetInjectionToken2Options<SF> & {
+      cardinality: 'zero-or-many';
+      specificCardinality?: SC;
+    },
+  ): AbstractInjectionToken2<F, ManyFactory<F>, SF, 'zero-or-many'>;
+
+  <
+    SC extends Cardinality = 'one-or-many',
+    SF extends (
+      ...args: any[]
+    ) =>
+      | SpecificInjectionToken2<F, any, any, any>
+      | AbstractInjectionToken2<F, any, any, any> = DefaultSpecificFactory2<
+      F,
+      DefaultConsumptionFactory<SC, F>,
+      SC
+    >,
+  >(
+    options: GetInjectionToken2Options<SF> & {
+      cardinality: 'one-or-many';
+      specificCardinality?: SC;
+    },
+  ): AbstractInjectionToken2<F, NonEmptyManyFactory<F>, SF, 'one-or-many'>;
+}
+
+export function getAbstractInjectionToken2<F extends Factory>(): AbstractInjectionToken2Creator<F>;
+
+// ---- Per-cardinality annotation aliases ----
+//
+// Hand-written annotations would otherwise have to spell the middle slots to
+// reach the trailing cardinality (`InjectionToken2<F, any, any, 'one'>`).
+
+export type SingleInjectionToken2<
   F extends Factory,
-  MF extends (...args: Parameters<F>) => ReturnType<F>[] = ManyFactory<F>,
-  SpecificFactory extends (
-    ...args: any[]
-  ) => SpecificInjectionToken2<F, MF> | AbstractInjectionToken2<F, MF> = (
-    id: string,
-  ) => SpecificInjectionToken2<F, MF>,
->(options: {
-  id: string;
-  // Must be pure and deterministic: `.for()` memoizes by specifier and skips
-  // calling the factory again for a specifier it has already seen.
-  specificInjectionTokenFactory?: SpecificFactory;
-  target?: object;
-  maxCacheSize?: number;
-  tags?: string[];
-}): AbstractInjectionToken2<F, MF, SpecificFactory>;
+  MF extends AnyConsumptionFactory<F> = ManyFactory<F>,
+> = InjectionToken2<F, MF, DefaultSpecificFactory2<F, MF, 'one'>, 'one'>;
+
+export type MaybeInjectionToken2<
+  F extends Factory,
+  MF extends AnyConsumptionFactory<F> = MaybeResultFactory<F>,
+> = InjectionToken2<F, MF, DefaultSpecificFactory2<F, MF, 'zero-or-one'>, 'zero-or-one'>;
+
+export type ManyInjectionToken2<
+  F extends Factory,
+  MF extends AnyConsumptionFactory<F> = ManyFactory<F>,
+> = InjectionToken2<F, MF, DefaultSpecificFactory2<F, MF, 'zero-or-many'>, 'zero-or-many'>;
+
+export type NonEmptyManyInjectionToken2<
+  F extends Factory,
+  MF extends AnyConsumptionFactory<F> = NonEmptyManyFactory<F>,
+> = InjectionToken2<F, MF, DefaultSpecificFactory2<F, MF, 'one-or-many'>, 'one-or-many'>;
 
 // "Any DI alias" — any injectable or any token (v1 or v2). InjectableBunch
 // is excluded because it's a registration bundle, not a single alias.
@@ -825,17 +1133,26 @@ export interface DiContainerForInjection2 {
 }
 
 export interface HasRegistrations2 {
-  <F extends Factory, MF extends (...args: Parameters<F>) => ReturnType<F>[]>(
-    alias: Injectable2<F> | InjectionToken2<F, MF> | AbstractInjectionToken2<F, MF>,
+  <F extends Factory>(
+    alias:
+      | Injectable2<F>
+      | InjectionToken2<F, any, any, any>
+      | AbstractInjectionToken2<F, any, any, any>,
   ): boolean;
   <I extends TI, TI, P>(
     alias: Injectable<I, TI, P> | InjectionToken<TI, P>,
   ): boolean;
 }
 
-// Factory-returning injectMany — v2 returns ManyFactory (generics preserved), v1 returns synthesized many-factory
+// Factory-returning injectMany — v2 returns the token's many-factory (generics
+// preserved), v1 returns a synthesized many-factory. Only the two
+// many-cardinalities are accepted.
 export interface InjectMany2 {
-  <F extends Factory, MF extends (...args: Parameters<F>) => ReturnType<F>[]>(alias: InjectionToken2<F, MF> | AbstractInjectionToken2<F, MF>): MF;
+  <F extends Factory, MF extends AnyConsumptionFactory<F>>(
+    alias:
+      | InjectionToken2<F, MF, any, 'zero-or-many' | 'one-or-many'>
+      | AbstractInjectionToken2<F, MF, any, 'zero-or-many' | 'one-or-many'>,
+  ): MF;
   <I>(alias: InjectionToken<I>): () => I[];
   <I, P>(alias: InjectionToken<I, P>): (...params: P extends any[] ? P : [P]) => I[];
 }
@@ -854,13 +1171,17 @@ export type ToWithMetaManyFactory<F> = F extends (...args: infer P) => infer R
 
 export interface InjectWithMeta2 {
   <F extends Factory>(alias: Injectable2<F>): ToWithMetaFactory<F>;
-  <F extends Factory>(alias: InjectionToken2<F>): ToWithMetaFactory<F>;
+  <F extends Factory>(alias: InjectionToken2<F, any, any, 'one'>): ToWithMetaFactory<F>;
   <I>(alias: Injectable<I, any> | InjectionToken<I>): () => InjectionInstanceWithMeta<I>;
   <I, P>(alias: Injectable<I, any, P> | InjectionToken<I, P>): (...params: P extends any[] ? P : [P]) => InjectionInstanceWithMeta<I>;
 }
 
 export interface InjectManyWithMeta2 {
-  <F extends Factory>(alias: InjectionToken2<F> | AbstractInjectionToken2<F>): ToWithMetaManyFactory<F>;
+  <F extends Factory>(
+    alias:
+      | InjectionToken2<F, any, any, 'zero-or-many' | 'one-or-many'>
+      | AbstractInjectionToken2<F, any, any, 'zero-or-many' | 'one-or-many'>,
+  ): ToWithMetaManyFactory<F>;
   <I>(alias: InjectionToken<I>): () => InjectionInstanceWithMeta<I>[];
   <I, P>(alias: InjectionToken<I, P>): (...params: P extends any[] ? P : [P]) => InjectionInstanceWithMeta<I>[];
 }

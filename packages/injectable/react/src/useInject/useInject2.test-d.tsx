@@ -30,21 +30,24 @@ expectType<string>(useInject2(withParamsInjectable2)('x', 1));
 expectError(useInject2(withParamsInjectable2)());
 expectError(useInject2(withParamsInjectable2)(1, 'x'));
 
-const someInjectionToken2 = getInjectionToken2<(name: string) => number>({
+const someInjectionToken2 = getInjectionToken2<(name: string) => number>()({
+  cardinality: 'zero-or-many',
   id: 'some-token-2',
 });
 
 expectType<(name: string) => number>(useInject2(someInjectionToken2));
 expectType<number>(useInject2(someInjectionToken2)('x'));
 
-const someAbstractInjectionToken2 = getAbstractInjectionToken2<() => string>({
+const someAbstractInjectionToken2 = getAbstractInjectionToken2<() => string>()({
+  cardinality: 'zero-or-many',
   id: 'some-abstract-token-2',
 });
 
 expectError(useInject2(someAbstractInjectionToken2));
 
 // Generic factory: proves T flows at invocation time
-const genericInjectionToken2 = getInjectionToken2<<T>(value: T) => T>({
+const genericInjectionToken2 = getInjectionToken2<<T>(value: T) => T>()({
+  cardinality: 'zero-or-many',
   id: 'generic-identity',
 });
 

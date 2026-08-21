@@ -186,7 +186,8 @@ describe('getInjectable2', () => {
     let token;
 
     beforeEach(() => {
-      token = getInjectionToken2({ id: 'service' });
+      token = getInjectionToken2()({
+  cardinality: 'zero-or-many', id: 'service' });
 
       const impl = getInjectable2({
         id: 'impl',
@@ -294,7 +295,8 @@ describe('getInjectable2', () => {
 
   describe('given injectManyWithMeta is used', () => {
     it('when a token2 with implementations is injected, returns instances with meta', () => {
-      const token = getInjectionToken2({ id: 'meta-token' });
+      const token = getInjectionToken2()({
+  cardinality: 'zero-or-many', id: 'meta-token' });
 
       const impl1 = getInjectable2({
         id: 'meta-impl-1',
@@ -319,7 +321,8 @@ describe('getInjectable2', () => {
     });
 
     it('when a parametric token2 is injected with a key, returns instances with meta', () => {
-      const token = getInjectionToken2({ id: 'param-meta-token' });
+      const token = getInjectionToken2()({
+  cardinality: 'zero-or-many', id: 'param-meta-token' });
 
       const impl = getInjectable2({
         id: 'param-meta-impl',
@@ -447,7 +450,8 @@ describe('getInjectable2', () => {
       let impl;
 
       beforeEach(() => {
-        const token = getInjectionToken2({
+        const token = getInjectionToken2()({
+  cardinality: 'zero-or-many',
           id: 'lru-token2',
           maxCacheSize: 2,
         });
@@ -476,7 +480,8 @@ describe('getInjectable2', () => {
       let impl;
 
       beforeEach(() => {
-        const token = getInjectionToken2({
+        const token = getInjectionToken2()({
+  cardinality: 'zero-or-many',
           id: 'lru-token2-override',
           maxCacheSize: 10,
         });
@@ -506,7 +511,8 @@ describe('getInjectable2', () => {
       let impl;
 
       beforeEach(() => {
-        const generalToken = getInjectionToken2({
+        const generalToken = getInjectionToken2()({
+  cardinality: 'zero-or-many',
           id: 'lru-general-token2',
           maxCacheSize: 2,
         });
@@ -662,7 +668,8 @@ describe('getInjectable2', () => {
       let i2;
 
       beforeEach(() => {
-        token = getInjectionToken2({ id: 'purge-token2' });
+        token = getInjectionToken2()({
+  cardinality: 'zero-or-many', id: 'purge-token2' });
 
         impl1 = getInjectable2({
           id: 'purge-token2-impl-1',
@@ -707,7 +714,8 @@ describe('getInjectable2', () => {
       let i2b;
 
       beforeEach(() => {
-        token = getInjectionToken2({ id: 'purge-token2-key' });
+        token = getInjectionToken2()({
+  cardinality: 'zero-or-many', id: 'purge-token2-key' });
 
         impl1 = getInjectable2({
           id: 'purge-token2-key-impl-1',

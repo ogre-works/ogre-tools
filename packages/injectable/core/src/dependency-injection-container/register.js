@@ -189,6 +189,32 @@ export const registerSingleFor = ({
       );
     }
 
+    const upperBoundedCardinality =
+      injectable.injectionToken?.cardinality === 'one' ||
+      injectable.injectionToken?.cardinality === 'zero-or-one'
+        ? injectable.injectionToken.cardinality
+        : undefined;
+
+    if (upperBoundedCardinality) {
+      const token = injectable.injectionToken;
+      const registered = injectablesByInjectionToken.get(token);
+
+      if (registered) {
+        for (const member of registered) {
+          // Exact registrations only: the index also holds `.for()`
+          // descendants of the token, and specialization must not be
+          // outlawed by the base token's bound.
+          if (member.injectionToken === token) {
+            throw new Error(
+              `Tried to register injectable "${namespacedId}" with injection token "${token.id}", but its cardinality "${upperBoundedCardinality}" allows at most one registration and "${namespacedIdByInjectableMap.get(
+                member,
+              )}" is already registered.`,
+            );
+          }
+        }
+      }
+    }
+
     injectableIdSet.add(namespacedId);
     injectableSet.add(injectable);
     namespacedIdByInjectableMap.set(injectable, namespacedId);
