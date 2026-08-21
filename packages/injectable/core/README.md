@@ -467,7 +467,7 @@ di.inject(greetInjectable, "Alice", "Hello"); // "Hello, Alice!"
 
 #### Injecting dependencies inside `instantiate`
 
-Inside the `instantiate` of `getInjectable2`, `di.inject` and `di.injectMany` return **factory functions** (not raw instances). Call the factory to get the value:
+Inside the `instantiate` of `getInjectable2`, `di.inject` and `di.injectMany` return **factory functions** (not raw instances). Call the factory to get the value. Injecting another injectable by reference, as below, needs nothing declared; injecting an *injection token* does — see [Consumptions](#consumptions--declaring-what-an-injectable-may-inject):
 
 ```ts
 const depInjectable = getInjectable2({
@@ -507,8 +507,9 @@ const newService = getInjectable2({
 #### `getInjectionToken2` — Contracts for factories
 
 ```ts
-const serviceToken = getInjectionToken2<(id: string) => ServiceResult>({
+const serviceToken = getInjectionToken2<(id: string) => ServiceResult>()({
   id: "service",
+  cardinality: "one",
 });
 
 const implInjectable = getInjectable2({
@@ -520,14 +521,16 @@ const implInjectable = getInjectable2({
 di.register(implInjectable);
 
 di.inject(serviceToken, "abc");       // { id: "abc", status: "ok" }
-di.injectMany(serviceToken, "abc");   // [{ id: "abc", status: "ok" }]
 ```
+
+Note the extra `()`: the creator is curried, which is what lets the options value drive inference — the type of a `specificInjectionTokenFactory` is inferred from the factory itself instead of being spelled out as a type argument.
 
 `getAbstractInjectionToken2` defines tokens that cannot be injected directly — they must be targeted via `.for()`:
 
 ```ts
-const abstractToken = getAbstractInjectionToken2<(x: number) => string>({
+const abstractToken = getAbstractInjectionToken2<(x: number) => string>()({
   id: "formatter",
+  cardinality: "one",
 });
 
 const currencyFormatter = getInjectable2({
@@ -536,6 +539,96 @@ const currencyFormatter = getInjectable2({
   instantiate: (di) => (amount) => `$${amount.toFixed(2)}`,
 });
 ```
+
+#### Cardinality of injection tokens
+
+Every v2 token declares how many implementations it expects, and that decides the one way it can be consumed:
+
+| Cardinality | Consumed with | Yields |
+| --- | --- | --- |
+| `one` | `di.inject` | the instance |
+| `zero-or-one` | `di.injectMaybe` | the instance, or `undefined` |
+| `zero-or-many` | `di.injectMany` | every instance |
+| `one-or-many` | `di.injectMany` | every instance, at least one |
+
+```ts
+const themeToken = getInjectionToken2<() => Theme>()({
+  id: "theme",
+  cardinality: "zero-or-one",
+});
+
+const getTheme = di.injectMaybe(themeToken);
+
+getTheme();                  // Theme | undefined
+di.inject(themeToken);       // type error — use injectMaybe
+```
+
+Key properties:
+
+- **Enforced from both ends.** Upper bounds are enforced when registering: a second implementation of a `one` or `zero-or-one` token is rejected there, so it cannot be violated later. Lower bounds are checked by [`di.validate()`](#divalidate), since registration order must not matter.
+- **Counted per token, not per family.** The bound counts implementations registered against that exact token, so `someToken.for("a")` and `someToken.for("b")` each get their own — specialization is never outlawed by the general token's bound.
+- **Inherited by `.for()` children, unless told otherwise.** Give `specificCardinality` when a family's specific tokens have a different arity than its general one, which is common: many implementations under the general token, exactly one per specifier.
+
+```ts
+const handlerToken = getInjectionToken2<(event: Event) => void>()({
+  id: "handler",
+  cardinality: "zero-or-many",   // all handlers
+  specificCardinality: "one",    // one handler per event kind
+});
+
+di.injectMany(handlerToken);            // every handler
+di.inject(handlerToken.for("click"));   // the click handler
+```
+
+- **Resolved per call.** The factories returned by `injectMany` and `injectMaybe` re-resolve on every invocation, so an implementation registered later starts being returned, and one deregistered stops being.
+- **Footgun.** `injectMaybe` cannot distinguish "nothing registered" from "the implementation returned `undefined`". If that difference matters, return a wrapper the implementation can fill.
+
+#### Consumptions — declaring what an injectable may inject
+
+An injectable2 declares the injection tokens it injects. This is what makes it safe to keep tokens and implementations in separate packages: the contract a package depends on is written down, so a composition root that forgot to register an implementation can be caught before anything runs.
+
+```ts
+const someConsumer = getInjectable2({
+  id: "some-consumer",
+  consumptions: [serviceToken, themeToken],
+
+  instantiate: (di) => {
+    const getService = di.inject(serviceToken);
+    const getTheme = di.injectMaybe(themeToken);
+
+    return () => render(getService("abc"), getTheme());
+  },
+});
+```
+
+Key properties:
+
+- **Declaring nothing means injecting no tokens.** An injectable with no `consumptions` can still inject other *injectables* — passing an injectable by reference already implies a dependency on wherever it lives. A token is the case where the implementation may come from a package this one does not depend on, which is the whole point of declaring.
+- **Enforced twice over.** `instantiate`'s `di` only accepts what was declared, so an undeclared inject does not compile. The container also checks at runtime, which catches plain-JS callers and — since the compile-time layer is structural — a token that merely has the same shape as a declared one.
+- **Declaring a token covers its `.for()` derivatives.** That is what makes a specifier only known at runtime declarable at all. The walk is upwards only: declaring `someToken.for("a")` does not permit injecting `someToken`.
+- **Leave `di` unannotated.** Its type comes from the `consumptions` array, contextually. For an `instantiate` written as a named function elsewhere, annotate it `ConsumptionDi<typeof someToken>`.
+- **Footgun.** The array is evaluated when the injectable is created, so two injectables in one module that consume each other need declaration-order care — put a token between them, or keep the reference lazy inside `instantiate`.
+
+#### `di.validate()`
+
+Checks every registered injectable2's declared consumptions against what is actually registered, without instantiating anything:
+
+```ts
+di.register(...tokenPackage, ...implementationPackage);
+
+di.validate();
+// throws if, say, nothing implements a token declared "one":
+// Tried to validate container "some-container", but found violations:
+//  - Injectable "some-consumer" consumes injection token "some-service-token" with cardinality "one", but it has no registrations.
+```
+
+Key properties:
+
+- **One error for the whole container.** Every violation is listed at once, so a composition root is fixed in one pass rather than one failed inject at a time. A cheap test per composition root — register everything, validate — is the intended use.
+- **Nothing is instantiated.** Side effects do not fire and parametric factories are never called, unlike a smoke test that injects everything.
+- **Says what it could not check.** The returned report separates injectables whose consumptions were checked from v1 injectables, which declare nothing, and lists declared v1 tokens as unverifiable — they carry no cardinality, so there is no arity to check. Residual runtime risk stays visible instead of counting as verified.
+- **Holds no state.** Registering afterwards works, and validating again reflects it.
+- **Footgun.** A token whose `.for(specifier)` is built from a runtime value can only be validated at the general token's granularity: validation confirms the family has an implementation, not that one exists for every specifier the code will ask for.
 
 #### Overriding
 
