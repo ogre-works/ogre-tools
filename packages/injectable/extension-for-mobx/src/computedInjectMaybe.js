@@ -50,21 +50,42 @@ export const _computedInjectMaybeInjectable = getInjectable({
   }),
 });
 
+// v2 tokens declare their arity, so a token given here must be
+// 'zero-or-one'; v1 tokens have no cardinality and stay accepted.
+const checkForNonMaybeCardinality = token => {
+  if (
+    token.aliasType === 'injection-token2' &&
+    token.cardinality !== 'zero-or-one'
+  ) {
+    throw new Error(
+      `Tried to computedInjectMaybe "${token.id}", but its cardinality is "${token.cardinality}" instead of "zero-or-one".`,
+    );
+  }
+};
+
 export const computedInjectMaybeInjectable = getInjectable({
   id: 'computed-inject-maybe',
+
   instantiate:
     di =>
-    (token, ...args) =>
-      di.inject(_computedInjectMaybeInjectable, { token, args }),
+    (token, ...args) => {
+      checkForNonMaybeCardinality(token);
+
+      return di.inject(_computedInjectMaybeInjectable, { token, args });
+    },
+
   injectionToken: computedInjectMaybeInjectionToken,
 });
 
 export const computedInjectMaybe2Injectable = getInjectable2({
   id: 'computed-inject-maybe-2',
-  instantiate:
-    di =>
-    token =>
-    (...args) =>
-      di.inject(_computedInjectMaybeInjectable)({ token, args }).get(),
+
+  instantiate: di => token => {
+    checkForNonMaybeCardinality(token);
+
+    return (...args) =>
+      di.inject(_computedInjectMaybeInjectable)({ token, args }).get();
+  },
+
   injectionToken: computedInjectMaybe2InjectionToken,
 });

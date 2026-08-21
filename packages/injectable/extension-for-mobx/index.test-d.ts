@@ -39,6 +39,18 @@ const someParamToken2 = getInjectionToken2<(key: string) => number>()({
   id: "some-param-token2",
 });
 
+// The maybe-helpers take a token declared 'zero-or-one', so each many-token
+// above has a maybe-sibling here.
+const someMaybeToken2 = getInjectionToken2<() => string>()({
+  id: "some-maybe-token2",
+  cardinality: 'zero-or-one',
+});
+
+const someParamMaybeToken2 = getInjectionToken2<(key: string) => number>()({
+  id: "some-param-maybe-token2",
+  cardinality: 'zero-or-one',
+});
+
 // v2 InjectionToken2 for a GENERIC factory — its T is decided at invocation time.
 // Explicit ManyFactory carries <T> through the many-shape, so helpers that
 // return ManyFactory preserve the generic at call time.
@@ -48,6 +60,16 @@ const someGenericToken2 = getInjectionToken2<
 >()({
   cardinality: 'zero-or-many',
   id: "some-generic-token2",
+});
+
+// Its maybe-sibling carries the maybe-shape explicitly, which is what lets the
+// generic survive computedInjectMaybe2.
+const someGenericMaybeToken2 = getInjectionToken2<
+  <T>(value: T) => T,
+  <T>(value: T) => T | undefined
+>()({
+  id: "some-generic-maybe-token2",
+  cardinality: 'zero-or-one',
 });
 
 // ===========================================================================
@@ -116,7 +138,7 @@ expectType<IComputedValue<string[]>>(computedInjectMany(someToken2));
 expectType<IComputedValue<InjectionInstanceWithMeta<string>[]>>(
   computedInjectManyWithMeta(someToken2),
 );
-expectType<IComputedValue<string | undefined>>(computedInjectMaybe(someToken2));
+expectType<IComputedValue<string | undefined>>(computedInjectMaybe(someMaybeToken2));
 
 // --- v2 parametric token --------------------------------------------------
 
@@ -125,18 +147,18 @@ expectType<IComputedValue<InjectionInstanceWithMeta<number>[]>>(
   computedInjectManyWithMeta(someParamToken2, "some-key"),
 );
 expectType<IComputedValue<number | undefined>>(
-  computedInjectMaybe(someParamToken2, "some-key"),
+  computedInjectMaybe(someParamMaybeToken2, "some-key"),
 );
 
 // Wrong param type at the trailing arg is a type error
 expectError(computedInjectMany(someParamToken2, 42));
 expectError(computedInjectManyWithMeta(someParamToken2, 42));
-expectError(computedInjectMaybe(someParamToken2, 42));
+expectError(computedInjectMaybe(someParamMaybeToken2, 42));
 
 // Missing required param is a type error
 expectError(computedInjectMany(someParamToken2));
 expectError(computedInjectManyWithMeta(someParamToken2));
-expectError(computedInjectMaybe(someParamToken2));
+expectError(computedInjectMaybe(someParamMaybeToken2));
 
 // ===========================================================================
 // SECTION 3
@@ -159,14 +181,14 @@ expectType<IComputedValue<InjectionInstanceWithMeta<unknown>[]>>(
   computedInjectManyWithMeta(someGenericToken2, 123),
 );
 expectType<IComputedValue<unknown | undefined>>(
-  computedInjectMaybe(someGenericToken2, { anything: true }),
+  computedInjectMaybe(someGenericMaybeToken2, { anything: true }),
 );
 
 // Because the trailing arg is typed `unknown`, no literal type can be
 // "wrong" — TS accepts any value. Missing the arg is still a type error.
 expectError(computedInjectMany(someGenericToken2));
 expectError(computedInjectManyWithMeta(someGenericToken2));
-expectError(computedInjectMaybe(someGenericToken2));
+expectError(computedInjectMaybe(someGenericMaybeToken2));
 
 // ===========================================================================
 // SECTION 4
@@ -234,7 +256,7 @@ expectType<() => string[]>(computedInjectMany2(someToken2));
 expectType<() => InjectionInstanceWithMeta<string>[]>(
   computedInjectManyWithMeta2(someToken2),
 );
-expectType<() => string | undefined>(computedInjectMaybe2(someToken2));
+expectType<() => string | undefined>(computedInjectMaybe2(someMaybeToken2));
 
 // --- v2 parametric token --------------------------------------------------
 
@@ -245,13 +267,13 @@ expectType<(key: string) => InjectionInstanceWithMeta<number>[]>(
   computedInjectManyWithMeta2(someParamToken2),
 );
 expectType<(key: string) => number | undefined>(
-  computedInjectMaybe2(someParamToken2),
+  computedInjectMaybe2(someParamMaybeToken2),
 );
 
 // Wrong arg type at factory invocation is a type error
 expectError(computedInjectMany2(someParamToken2)(42));
 expectError(computedInjectManyWithMeta2(someParamToken2)(42));
-expectError(computedInjectMaybe2(someParamToken2)(42));
+expectError(computedInjectMaybe2(someParamMaybeToken2)(42));
 
 // ===========================================================================
 // SECTION 6
@@ -295,15 +317,25 @@ expectType<(a: string, b: string) => [string, string][]>(
 );
 expectError(computedInjectMany2(tupleToken2)("x", 123));
 
-// --- WithMeta2 / Maybe2: generic T still collapses to unknown -------------
+// --- WithMeta2: generic T still collapses to unknown ----------------------
 
-// Factory collapses to `(value: unknown) => ...unknown...`
+// There is no meta-shaped factory on the token to key on, so the shape is
+// recomputed from Parameters<F> / ReturnType<F> and the generic is lost.
 expectType<(value: unknown) => InjectionInstanceWithMeta<unknown>[]>(
   computedInjectManyWithMeta2(someGenericToken2),
 );
-expectType<(value: unknown) => unknown | undefined>(
-  computedInjectMaybe2(someGenericToken2),
+
+// --- Maybe2: the generic survives ----------------------------------------
+
+// A 'zero-or-one' token carries its own maybe-factory, which is returned
+// verbatim — so `T` is still decided at invocation time.
+expectType<<T>(value: T) => T | undefined>(
+  computedInjectMaybe2(someGenericMaybeToken2),
 );
+
+const maybeGeneric = computedInjectMaybe2(someGenericMaybeToken2);
+expectType<string | undefined>(maybeGeneric("some-string" as string));
+expectType<42 | undefined>(maybeGeneric(42));
 
 // ===========================================================================
 // SECTION 7

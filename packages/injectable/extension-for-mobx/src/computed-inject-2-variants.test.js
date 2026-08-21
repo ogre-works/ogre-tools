@@ -270,5 +270,57 @@ describe('factory-shape computed-inject-2 variants', () => {
 
       stop();
     });
+
+    it('given a v2 token whose cardinality is not "zero-or-one", fn(token) throws', () => {
+      const someManyToken2 = getInjectionToken2()({
+        id: 'maybe-2-many-token',
+        cardinality: 'zero-or-many',
+      });
+
+      const computedInjectMaybe2 = di.inject2(
+        computedInjectMaybe2InjectionToken,
+      );
+
+      expect(() => {
+        computedInjectMaybe2(someManyToken2);
+      }).toThrow(
+        'Tried to computedInjectMaybe "maybe-2-many-token", but its cardinality is "zero-or-many" instead of "zero-or-one".',
+      );
+    });
+
+    it('given a v2 zero-or-one token, registering and deregistering the implementation flips the observed value reactively', () => {
+      const someToken2 = getInjectionToken2()({
+        id: 'maybe-2-reactive-token',
+        cardinality: 'zero-or-one',
+      });
+
+      const impl = getInjectable2({
+        id: 'maybe-2-reactive-impl',
+        injectionToken: someToken2,
+        instantiate: () => () => 'some-instance',
+      });
+
+      const computedInjectMaybe2 = di.inject2(
+        computedInjectMaybe2InjectionToken,
+      );
+      const factoryForToken = computedInjectMaybe2(someToken2);
+
+      const observed = [];
+      const stop = autorun(() => {
+        observed.push(factoryForToken());
+      });
+
+      runInAction(() => {
+        di.register(impl);
+      });
+
+      runInAction(() => {
+        di.deregister(impl);
+      });
+
+      expect(observed).toEqual([undefined, 'some-instance', undefined]);
+
+      stop();
+    });
   });
 });
