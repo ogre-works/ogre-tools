@@ -19,6 +19,19 @@ import { useInjectDeferred, useInject } from './useInject';
 import { flushPromises } from '@ogre-tools/test-utils';
 import { isPromise } from '@ogre-tools/fp';
 
+// Which parameters an injectable was injected with, each listed once. How many
+// times React re-rendered to get there is React's business, and it changes
+// between versions — a suspending component renders once more on React 19 than
+// on 18 — so these tests assert what was asked for, never how often.
+const parametersInjectedWith = (di, injectable) =>
+  [
+    ...new Set(
+      di.inject.mock.calls
+        .filter(([someInjectable]) => someInjectable === injectable)
+        .map(([, ...parameters]) => JSON.stringify(parameters)),
+    ),
+  ].map(serialized => JSON.parse(serialized));
+
 describe('useInject', () => {
   let di;
   let mount;
@@ -278,12 +291,10 @@ describe('useInject', () => {
       expect(onMountMock).not.toHaveBeenCalled();
     });
 
-    it.skip('calls to inject the async injectable', () => {
-      expect(
-        di.inject.mock.calls.filter(
-          ([injectable]) => injectable === someAsyncInjectable,
-        ),
-      ).toEqual([[someAsyncInjectable, 'some-initial-prop-value']]);
+    it('injects the async injectable with the current prop, and nothing else', () => {
+      expect(parametersInjectedWith(di, someAsyncInjectable)).toEqual([
+        ['some-initial-prop-value'],
+      ]);
     });
 
     it('renders as suspended', async () => {
@@ -608,12 +619,10 @@ describe('useInject', () => {
           });
         });
 
-        it.skip('calls to inject the "fast" async instance', () => {
-          expect(
-            di.inject.mock.calls.filter(
-              ([injectable]) => injectable === someAsyncInjectable,
-            ),
-          ).toEqual([[someAsyncInjectable, 'some-fast-prop-value']]);
+        it('injects the async injectable with the fast prop, and nothing else', () => {
+          expect(parametersInjectedWith(di, someAsyncInjectable)).toEqual([
+            ['some-fast-prop-value'],
+          ]);
         });
 
         it('remains suspended, as the new injection is still pending', () => {
@@ -734,12 +743,10 @@ describe('useInject', () => {
       expect(onMountMock).not.toHaveBeenCalled();
     });
 
-    it.skip('calls to inject the async injectable', () => {
-      expect(
-        di.inject.mock.calls.filter(
-          ([injectable]) => injectable === someAsyncInjectable,
-        ),
-      ).toEqual([[someAsyncInjectable, 'some-initial-prop-value']]);
+    it('injects the async injectable with the current prop, and nothing else', () => {
+      expect(parametersInjectedWith(di, someAsyncInjectable)).toEqual([
+        ['some-initial-prop-value'],
+      ]);
     });
 
     it('renders as suspended', async () => {
@@ -917,12 +924,10 @@ describe('useInject', () => {
             expect(actuallySuspended).toBe(true);
           });
 
-          it.skip('calls to inject the new async injectable', () => {
-            expect(
-              di.inject.mock.calls.filter(
-                ([injectable]) => injectable === someAsyncInjectable,
-              ),
-            ).toEqual([[someAsyncInjectable, 'some-fast-prop-value']]);
+          it('injects the async injectable with the new prop, and nothing else', () => {
+            expect(parametersInjectedWith(di, someAsyncInjectable)).toEqual([
+              ['some-fast-prop-value'],
+            ]);
           });
 
           it('still renders as suspended', () => {
@@ -1085,12 +1090,10 @@ describe('useInject', () => {
           });
         });
 
-        it.skip('calls to inject the "fast" async instance', () => {
-          expect(
-            di.inject.mock.calls.filter(
-              ([injectable]) => injectable === someAsyncInjectable,
-            ),
-          ).toEqual([[someAsyncInjectable, 'some-fast-prop-value']]);
+        it('injects the async injectable with the fast prop, and nothing else', () => {
+          expect(parametersInjectedWith(di, someAsyncInjectable)).toEqual([
+            ['some-fast-prop-value'],
+          ]);
         });
 
         it('remains suspended, as the new injection is still pending', () => {
@@ -1196,16 +1199,14 @@ describe('useInject', () => {
       expect(actuallySuspended).toBe(true);
     });
 
-    it.skip('calls to inject the async injectable for each component', () => {
-      expect(
-        di.inject.mock.calls.filter(
-          ([injectable]) => injectable === someAsyncInjectable,
-        ),
-      ).toEqual([
-        [someAsyncInjectable, 'some-initial-prop-value'],
-        [someAsyncInjectable, 'some-initial-prop-value'],
-        [someAsyncInjectable, 'some-initial-prop-value'],
+    it('injects the async injectable with the same prop from every component', () => {
+      expect(parametersInjectedWith(di, someAsyncInjectable)).toEqual([
+        ['some-initial-prop-value'],
       ]);
+    });
+
+    it('instantiates it once, the components sharing the keyed instance', () => {
+      expect(someAsyncInstantiateMock.mock.calls.length).toBe(1);
     });
 
     it('renders as suspended', async () => {
@@ -1391,18 +1392,11 @@ describe('useInject', () => {
       expect(actuallySuspended).toBe(true);
     });
 
-    it.skip('calls to inject the async injectable', () => {
+    it('injects the async injectable with the current composite key, and nothing else', () => {
       expect(
-        di.inject.mock.calls.filter(
-          ([injectable]) => injectable === someAsyncInjectableWithCompositeKey,
-        ),
+        parametersInjectedWith(di, someAsyncInjectableWithCompositeKey),
       ).toEqual([
-        [
-          someAsyncInjectableWithCompositeKey,
-          {
-            somePartOfCompositeKey: 'some-initial-part-of-composite-key',
-          },
-        ],
+        [{ somePartOfCompositeKey: 'some-initial-part-of-composite-key' }],
       ]);
     });
 
@@ -1637,10 +1631,6 @@ describe('useInject', () => {
       withSuppressedConsoleError(() => {
         rendered = mount(<SomeComponentUsingInject />);
       });
-    });
-
-    it.skip('does inject the bad injectable 4 times (why? Unknown. Maybe for throwing inside useState or something.)', () => {
-      expect(di.inject).toHaveBeenCalledTimes(4);
     });
 
     it('throws while rendering', () => {
