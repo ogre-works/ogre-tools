@@ -1,7 +1,7 @@
 {
   "name": "@ogre-tools/injectable-react",
   "private": false,
-  "version": "24.0.0",
+  "version": "25.0.0",
   "description": "A brutal component for injecting components that use injectable",
   "files": [
     "build",
@@ -59,11 +59,11 @@
     "code-style:fix": "ogre-tools-fix-code-style"
   },
   "devDependencies": {
-    "@ogre-tools/discoverable": "^24.0.0",
-    "@ogre-tools/infrastructure-babel-for-js": "^24.0.0",
-    "@ogre-tools/infrastructure-jest": "^24.0.0",
-    "@ogre-tools/infrastructure-prettier": "^24.0.0",
-    "@ogre-tools/infrastructure-webpack-for-js": "^24.0.0",
+    "@ogre-tools/discoverable": "^25.0.0",
+    "@ogre-tools/infrastructure-babel-for-js": "^25.0.0",
+    "@ogre-tools/infrastructure-jest": "^25.0.0",
+    "@ogre-tools/infrastructure-prettier": "^25.0.0",
+    "@ogre-tools/infrastructure-webpack-for-js": "^25.0.0",
     "@testing-library/react": "^16.0.1"
   }
 }

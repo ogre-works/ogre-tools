@@ -3,6 +3,50 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [25.0.0](https://github.com/ogre-works/ogre-tools/compare/v24.0.0...v25.0.0) (2026-08-24)
+
+### ⚠ BREAKING CHANGES
+
+- **injectable:** di.injectMaybe on the root container is now
+  di.injectMaybe2. The member of the same name inside an `instantiate` is
+  unchanged.
+- **injectable:** the `specificCardinality` option is gone; declare the
+  cardinality in the specificInjectionTokenFactory instead.
+- **injectable:** an injectable2 that injects injection tokens must
+  declare them in `consumptions`, and `instantiate` must not annotate its
+  `di` parameter as DiContainerForInjection2 — use the contextual type, or
+  ConsumptionDi<typeof someToken> for an instantiate defined elsewhere.
+- **injectable:** `getInjectionToken2`, `getAbstractInjectionToken2` and
+  `getSpecificInjectionToken2` are curried and require a cardinality:
+  `getInjectionToken2<F>()({ id, cardinality })`. Currying is what lets
+  the options value drive inference — the `.for()` factory's type is now
+  inferred from the factory itself instead of being spelled out as a type
+  argument. Tokens consumed both singly and as a group are two tokens.
+
+### Features
+
+- **injectable:** Add consumption declarations to injectable2 ([bc25873](https://github.com/ogre-works/ogre-tools/commit/bc2587364cdcaa96a68411a1f90c2b3015ad6d76))
+- **injectable:** Add container validate() ([cb1865d](https://github.com/ogre-works/ogre-tools/commit/cb1865d4683944e8ab950874dc5994a9e1a66586))
+- **injectable:** Add injectMaybe for zero-or-one injection tokens ([6b07426](https://github.com/ogre-works/ogre-tools/commit/6b074262ab14761e52198ac13bd708d4760e1c18))
+- **injectable:** Require cardinality on injection tokens ([5811c5e](https://github.com/ogre-works/ogre-tools/commit/5811c5e2d7008d229dba600588fb0ab24726e73f))
+
+### Bug Fixes
+
+- Correctly types for decorating instantiation based on tags ([df4ca59](https://github.com/ogre-works/ogre-tools/commit/df4ca59d6ed2f2df362635317d5f92c12146e04d))
+- Expose remaining aliasTypes fields ([14a44cd](https://github.com/ogre-works/ogre-tools/commit/14a44cd6891d06c18ff0bf7c9f2c133ff8baa493))
+- **injectable:** Fire instance-purge callbacks on scope-restricted purge ([479b40b](https://github.com/ogre-works/ogre-tools/commit/479b40bd0b5fd0b5111e2f15e7db5f363e53d14c))
+- **injectable:** Let the specific token factory declare its cardinality ([d1558a1](https://github.com/ogre-works/ogre-tools/commit/d1558a1eb2ec929808cb3de0bf101d03e4f492ca))
+- **injectable:** Require a maybe factory to admit undefined ([0cf225d](https://github.com/ogre-works/ogre-tools/commit/0cf225d4081d379473b80ff01997471d169db7bf))
+- Instantiation decorating of v1 injectables and tokens should be typed correctly ([877b36c](https://github.com/ogre-works/ogre-tools/commit/877b36c252784a525c178044910baa097cd957e1))
+
+### Performance Improvements
+
+- **injectable:** Skip the purge snapshot when nothing observes it ([9d5cf8d](https://github.com/ogre-works/ogre-tools/commit/9d5cf8d0d61fa9b6e6a69083f65e715768ad86be))
+
+### Code Refactoring
+
+- **injectable:** Name the root container's maybe member injectMaybe2 ([bac4f1c](https://github.com/ogre-works/ogre-tools/commit/bac4f1cbb92580cfca5399f7aa061d02b795290b))
+
 ## [24.0.0](https://github.com/ogre-works/ogre-tools/compare/v23.3.2...v24.0.0) (2026-08-20)
 
 ### ⚠ BREAKING CHANGES

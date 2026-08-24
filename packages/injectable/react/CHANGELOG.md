@@ -3,6 +3,28 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [25.0.0](https://github.com/ogre-works/ogre-tools/compare/v24.0.0...v25.0.0) (2026-08-24)
+
+### ⚠ BREAKING CHANGES
+
+- **injectable-react:** passing a v2 injection token of any cardinality other
+  than 'one' to an injection hook no longer typechecks.
+- **injectable:** `getInjectionToken2`, `getAbstractInjectionToken2` and
+  `getSpecificInjectionToken2` are curried and require a cardinality:
+  `getInjectionToken2<F>()({ id, cardinality })`. Currying is what lets
+  the options value drive inference — the `.for()` factory's type is now
+  inferred from the factory itself instead of being spelled out as a type
+  argument. Tokens consumed both singly and as a group are two tokens.
+
+### Features
+
+- **injectable-react:** Gate injection hooks on cardinality ([9275f03](https://github.com/ogre-works/ogre-tools/commit/9275f03e1c027fd73e3b1674bc5f425858720fcb))
+- **injectable:** Require cardinality on injection tokens ([5811c5e](https://github.com/ogre-works/ogre-tools/commit/5811c5e2d7008d229dba600588fb0ab24726e73f))
+
+### Bug Fixes
+
+- Expose remaining aliasTypes fields ([14a44cd](https://github.com/ogre-works/ogre-tools/commit/14a44cd6891d06c18ff0bf7c9f2c133ff8baa493))
+
 ## [24.0.0](https://github.com/ogre-works/ogre-tools/compare/v23.3.2...v24.0.0) (2026-08-20)
 
 ### Features

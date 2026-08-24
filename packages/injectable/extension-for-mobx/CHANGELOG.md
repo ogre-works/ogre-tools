@@ -3,6 +3,25 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [25.0.0](https://github.com/ogre-works/ogre-tools/compare/v24.0.0...v25.0.0) (2026-08-24)
+
+### ⚠ BREAKING CHANGES
+
+- **injectable-mobx:** passing a v2 injection token whose cardinality does not
+  match the helper no longer typechecks, and the maybe-helpers throw on
+  one at runtime.
+- **injectable:** `getInjectionToken2`, `getAbstractInjectionToken2` and
+  `getSpecificInjectionToken2` are curried and require a cardinality:
+  `getInjectionToken2<F>()({ id, cardinality })`. Currying is what lets
+  the options value drive inference — the `.for()` factory's type is now
+  inferred from the factory itself instead of being spelled out as a type
+  argument. Tokens consumed both singly and as a group are two tokens.
+
+### Features
+
+- **injectable-mobx:** Gate computed inject helpers on cardinality ([82d2a5f](https://github.com/ogre-works/ogre-tools/commit/82d2a5f93807abf5eab66ee98b473da126258295))
+- **injectable:** Require cardinality on injection tokens ([5811c5e](https://github.com/ogre-works/ogre-tools/commit/5811c5e2d7008d229dba600588fb0ab24726e73f))
+
 ## [24.0.0](https://github.com/ogre-works/ogre-tools/compare/v23.3.2...v24.0.0) (2026-08-20)
 
 **Note:** Version bump only for package @ogre-tools/injectable-extension-for-mobx
