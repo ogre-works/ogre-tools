@@ -318,13 +318,13 @@ export interface InjectMany {
   <InjectionInstance>(
     alias:
       | Injectable<InjectionInstance, unknown>
-      | InjectionToken<InjectionInstance>,
+      | InjectionToken<InjectionInstance, void, any>,
   ): InjectionInstance[];
 
   <InjectionInstance, InstantiationParam>(
     alias:
       | Injectable<InjectionInstance, unknown, InstantiationParam>
-      | InjectionToken<InjectionInstance, InstantiationParam>,
+      | InjectionToken<InjectionInstance, InstantiationParam, any>,
     param: InstantiationParam,
   ): InjectionInstance[];
 }
