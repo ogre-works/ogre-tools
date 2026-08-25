@@ -2675,3 +2675,19 @@ expectError(di.validate('some-argument'));
 // creating a container is unchanged — validation is a container method, not an
 // option
 expectType<DiContainer>(createContainer('some-container'));
+
+// injectMany works on v1 injection tokens with generic specific injection factories correctly
+
+type SomeSpecifier<Req, Res> = TypedSpecifier<string, { req: Req, res: Res }>;
+
+const someSpecificInjectionToken2 = getInjectionToken<
+  (req: unknown) => unknown, 
+  void, 
+  <Req, Res>(specifier: SomeSpecifier<Req, Res>) => SpecificInjectionToken<(req: Req) => Res, void>
+>({
+  id: "some-specific-2"
+});
+
+expectType<((req: unknown) => unknown)[]>(di.injectMany(someSpecificInjectionToken2))
+expectType<((req: string) => number)[]>(di.injectMany(someSpecificInjectionToken2.for(getTypedSpecifier<{ req: string, res: number }>()("some-specifier"))))
+
