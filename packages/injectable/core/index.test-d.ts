@@ -1674,6 +1674,26 @@ expectType<InjectionInstanceWithMeta<void>[]>(
   di.injectManyWithMeta(abstractHandlerToken, 'test'),
 );
 
+// --- same operations via the v2, factory-returning inject surface ---
+
+// inject2 on specific-from-abstract returns the factory itself
+const getSpecificFromAbstract2 = di.inject2(specificFromAbstract);
+expectType<void>(getSpecificFromAbstract2('test'));
+
+// inject2 on abstract token directly is a TYPE ERROR
+expectError(di.inject2(abstractHandlerToken));
+
+// injectMany2 on abstract token returns its many-factory verbatim
+expectType<void[]>(di.injectMany2(abstractHandlerToken)('test'));
+
+// injectWithMeta2 on abstract token directly is a TYPE ERROR
+expectError(di.injectWithMeta2(abstractHandlerToken));
+
+// injectManyWithMeta2 on abstract token returns its many-factory, meta-wrapped
+expectType<InjectionInstanceWithMeta<void>[]>(
+  di.injectManyWithMeta2(abstractHandlerToken)('test'),
+);
+
 // implementing abstract token directly is a TYPE ERROR
 expectError(
   getInjectable2({
@@ -1689,6 +1709,68 @@ getInjectable2({
   injectionToken: specificFromAbstract,
   instantiate: () => (name: string) => {},
 });
+
+// --- AbstractInjectionToken2 with a `.for()` that narrows per specifier ---
+
+// Same shape as `generalToken2WithSpecifier`, but through
+// `getAbstractInjectionToken2`: the abstract creator's explicit-SF overload
+// lets a `.for()` factory mention the specifier's own type parameter, which
+// inference from the value alone cannot reconstruct.
+const abstractTokenWithSpecifier = getAbstractInjectionToken2<
+  (arg: unknown) => boolean,
+  (arg: unknown) => boolean[],
+  <S extends TypedSpecifierWithType<'someAbstractType'>>(
+    specifier: S,
+  ) => SpecificInjectionToken2<
+    (arg: TypedSpecifierType<'someAbstractType', S>) => boolean,
+    (arg: TypedSpecifierType<'someAbstractType', S>) => boolean[],
+    any,
+    'one'
+  >
+>()({
+  id: 'abstract-token2-with-specifier',
+  cardinality: 'zero-or-many',
+});
+
+const someAbstractTypedSpecifier = getTypedSpecifier<{
+  someAbstractType: string;
+}>()('some-abstract-specifier');
+
+const specificFromAbstractWithSpecifier = abstractTokenWithSpecifier.for(
+  someAbstractTypedSpecifier,
+);
+
+// .for() returns a non-abstract token, narrowed to the specifier's own type
+expectType<boolean>(di.inject(specificFromAbstractWithSpecifier, 'hello'));
+
+// wrong arg type is a type error
+expectError(di.inject(specificFromAbstractWithSpecifier, 42));
+
+// the specific token's own cardinality is 'one', so it is not injectMany-able
+// even though the abstract token it came from is a many-token
+expectError(di.injectMany(specificFromAbstractWithSpecifier, 'hello'));
+expectType<boolean[]>(di.injectMany(abstractTokenWithSpecifier, 'hello'));
+
+// injecting the abstract token directly is still a TYPE ERROR
+expectError(di.inject(abstractTokenWithSpecifier, 'hello'));
+
+// --- same operations via the v2, factory-returning inject surface ---
+
+// inject2 on the specific token returns the narrowed factory itself
+const getSpecificFromAbstractWithSpecifier2 = di.inject2(
+  specificFromAbstractWithSpecifier,
+);
+expectType<boolean>(getSpecificFromAbstractWithSpecifier2('hello'));
+expectError(getSpecificFromAbstractWithSpecifier2(42));
+
+// injectMany2 on the abstract token returns its many-factory verbatim
+expectType<boolean[]>(di.injectMany2(abstractTokenWithSpecifier)('hello'));
+
+// injectMany2 on the specific token is a TYPE ERROR — its own cardinality is 'one'
+expectError(di.injectMany2(specificFromAbstractWithSpecifier));
+
+// inject2 on the abstract token directly is still a TYPE ERROR
+expectError(di.inject2(abstractTokenWithSpecifier));
 
 // ======================================================================
 // Disciplined type parameters: Factory alias, defaults, Alias union, exports
@@ -2200,6 +2282,24 @@ const getWrappedNonEmptyMany = di.injectMany2(genericNonEmptyManyToken);
 expectType<[{ wrapped: string }, ...{ wrapped: string }[]]>(
   getWrappedNonEmptyMany('some-string' as string),
 );
+
+// --- AbstractInjectionToken2 keeps a generic factory's genericity too ---
+
+const abstractGenericManyToken = getAbstractInjectionToken2<
+  GetWrapped,
+  <T>(value: T) => { wrapped: T }[]
+>()({
+  id: 'abstract-generic-many',
+  cardinality: 'zero-or-many',
+});
+
+// the explicit many-factory is returned verbatim through injectMany2, so `T`
+// survives injection even though the token is abstract
+const getAbstractWrappedMany = di.injectMany2(abstractGenericManyToken);
+expectType<{ wrapped: string }[]>(
+  getAbstractWrappedMany('some-string' as string),
+);
+expectType<{ wrapped: number }[]>(di.injectMany2(abstractGenericManyToken)(42));
 
 // --- an explicit consumption factory must have the shape its cardinality
 // --- implies, generics included
