@@ -1723,6 +1723,11 @@ expectAssignable<InjectionToken2>(userServiceToken2);
 
 expectAssignable<AbstractInjectionToken2>(abstractHandlerToken);
 
+// Abstract tokens are built by the same creator as concrete ones, so they
+// carry the same alias type; `__abstract` is what tells them apart.
+expectType<'injection-token2'>(abstractHandlerToken.aliasType);
+expectType<true>(abstractHandlerToken.__abstract);
+
 // Heterogeneous v2 collection — previously required Injectable2<any>
 const everyInjectable2: Injectable2[] = [
   nonParametricInjectable2,

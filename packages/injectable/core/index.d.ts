@@ -1096,6 +1096,7 @@ export interface AbstractInjectionToken2<
     | AbstractInjectionToken2<F, any, any, any> = DefaultSpecificFactory2<F, MF, Cardinality>,
   C extends Cardinality = Cardinality,
 > {
+  readonly aliasType: 'injection-token2';
   readonly __abstract: true;
   template: F;
   manyTemplate: MF;
