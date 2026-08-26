@@ -3,6 +3,18 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [25.1.0](https://github.com/ogre-works/ogre-tools/compare/v25.0.0...v25.1.0) (2026-08-26)
+
+### Features
+
+- **injectable:** Add explicit-generic overloads to getAbstractInjectionToken2 ([fcdb998](https://github.com/ogre-works/ogre-tools/commit/fcdb998f790f3f8086ee8c8b17a1d17334a8a0f3))
+
+### Bug Fixes
+
+- **injectable:** Expose the aliasType of AbstractInjectionToken2 ([2c74faa](https://github.com/ogre-works/ogre-tools/commit/2c74faae38f7a88914e05a176cc4667263c957ec))
+- Injecting many of a v1 generic specific factory token should work ([df9e558](https://github.com/ogre-works/ogre-tools/commit/df9e5584a02c72da56052f334c1daf490c67ef41))
+- InjectWithMeta and InjectManyWithMeta typings should accept generic v1 tokens ([740e7a8](https://github.com/ogre-works/ogre-tools/commit/740e7a88f0b5f21f2afcf1fed593a2fc40ae1387))
+
 ## [25.0.0](https://github.com/ogre-works/ogre-tools/compare/v24.0.0...v25.0.0) (2026-08-24)
 
 ### ⚠ BREAKING CHANGES
