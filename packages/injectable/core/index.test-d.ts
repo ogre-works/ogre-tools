@@ -1772,6 +1772,65 @@ expectError(di.injectMany2(specificFromAbstractWithSpecifier));
 // inject2 on the abstract token directly is still a TYPE ERROR
 expectError(di.inject2(abstractTokenWithSpecifier));
 
+// --- AbstractInjectionToken2 with a `.for()` that infers its own specifier's type ---
+
+const abstractTokenWithInferredSpecifier = getAbstractInjectionToken2<() => unknown>()({
+  id: 'abstract-token-with-inferred-specifier',
+  cardinality: 'zero-or-many',
+  specificInjectionTokenFactory: <Speciality extends string>(speciality: Speciality) =>
+    getSpecificInjectionToken2<() => { someProperty: Speciality }>()({
+      id: speciality,
+      speciality,
+      cardinality: 'one',
+    }),
+});
+
+const specificFromInferredSpecifier = abstractTokenWithInferredSpecifier.for(
+  'some-speciality',
+);
+
+// specifier's literal type survived inference
+expectType<{ someProperty: 'some-speciality' }>(
+  di.inject(specificFromInferredSpecifier),
+);
+
+getInjectable2({
+  id: 'good-impl',
+  injectionToken: specificFromInferredSpecifier,
+  instantiate: () => () => ({ someProperty: 'some-speciality' as const }),
+});
+
+// a widened `string` implementation no longer satisfies it
+expectError(
+  getInjectable2({
+    id: 'bad-impl',
+    injectionToken: specificFromInferredSpecifier,
+    instantiate: () => (): { someProperty: string } => ({ someProperty: 'anything' }),
+  }),
+);
+
+// same inference through the two-type-argument (F, MF) overload
+const abstractTokenWithInferredSpecifierAndMF = getAbstractInjectionToken2<
+  () => unknown,
+  () => unknown[]
+>()({
+  id: 'abstract-token-with-inferred-specifier-and-mf',
+  cardinality: 'zero-or-many',
+  specificInjectionTokenFactory: <Speciality extends string>(speciality: Speciality) =>
+    getSpecificInjectionToken2<() => { someProperty: Speciality }>()({
+      id: speciality,
+      speciality,
+      cardinality: 'one',
+    }),
+});
+
+expectType<{ someProperty: 'other-speciality' }>(
+  di.inject(abstractTokenWithInferredSpecifierAndMF.for('other-speciality')),
+);
+
+// non-generic factory's nested cardinality literal isn't widened either
+expectType<'one' | undefined>(abstractHandlerToken.for('click').cardinality);
+
 // ======================================================================
 // Disciplined type parameters: Factory alias, defaults, Alias union, exports
 // ======================================================================
