@@ -2691,3 +2691,11 @@ const someSpecificInjectionToken2 = getInjectionToken<
 expectType<((req: unknown) => unknown)[]>(di.injectMany(someSpecificInjectionToken2))
 expectType<((req: string) => number)[]>(di.injectMany(someSpecificInjectionToken2.for(getTypedSpecifier<{ req: string, res: number }>()("some-specifier"))))
 
+// injectManyWithMeta works on v1 injection tokens with generic specific injection factories correctly
+expectType<(InjectionInstanceWithMeta<(req: unknown) => unknown>)[]>(di.injectManyWithMeta(someSpecificInjectionToken2))
+expectType<(InjectionInstanceWithMeta<(req: string) => number>)[]>(di.injectManyWithMeta(someSpecificInjectionToken2.for(getTypedSpecifier<{ req: string, res: number }>()("some-specifier"))))
+
+// injectWithMeta works on v1 injection tokens with generic specific injection factories correctly
+expectType<(InjectionInstanceWithMeta<(req: unknown) => unknown>)>(di.injectWithMeta(someSpecificInjectionToken2))
+expectType<(InjectionInstanceWithMeta<(req: string) => number>)>(di.injectWithMeta(someSpecificInjectionToken2.for(getTypedSpecifier<{ req: string, res: number }>()("some-specifier"))))
+

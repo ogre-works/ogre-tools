@@ -349,13 +349,13 @@ export interface InjectManyWithMeta {
   <InjectionInstance>(
     alias:
       | Injectable<InjectionInstance, unknown>
-      | InjectionToken<InjectionInstance>,
+      | InjectionToken<InjectionInstance, void, any>,
   ): InjectionInstanceWithMeta<InjectionInstance>[];
 
   <InjectionInstance, InstantiationParam>(
     alias:
       | Injectable<InjectionInstance, unknown, InstantiationParam>
-      | InjectionToken<InjectionInstance, InstantiationParam>,
+      | InjectionToken<InjectionInstance, InstantiationParam, any>,
     param: InstantiationParam,
   ): InjectionInstanceWithMeta<InjectionInstance>[];
 }
@@ -369,13 +369,13 @@ export interface InjectWithMeta {
   <InjectionInstance>(
     alias:
       | Injectable<InjectionInstance, unknown>
-      | InjectionToken<InjectionInstance>,
+      | InjectionToken<InjectionInstance, void, any>,
   ): InjectionInstanceWithMeta<InjectionInstance>;
 
   <InjectionInstance, InstantiationParam>(
     alias:
       | Injectable<InjectionInstance, unknown, InstantiationParam>
-      | InjectionToken<InjectionInstance, InstantiationParam>,
+      | InjectionToken<InjectionInstance, InstantiationParam, any>,
     param: InstantiationParam,
   ): InjectionInstanceWithMeta<InjectionInstance>;
 }
