@@ -4,98 +4,109 @@ export const injectionTokenSymbol2 = 'injection-token2';
 
 const cardinalities = ['one', 'zero-or-one', 'zero-or-many', 'one-or-many'];
 
-export const getInjectionToken2 = (...unexpectedArgs) => {
-  // Loud failure for pre-curry call sites: without this, passing options to
-  // the outer call would silently return the inner creator instead of a token.
-  if (unexpectedArgs.length > 0) {
+const buildToken = ({
+  specificInjectionTokenFactory: specificTokenFactory = getSpecificToken2ById,
+
+  target,
+
+  tags,
+
+  ...rest
+}) => {
+  // A specific token may declare its own cardinality — its family's general
+  // token often has a different one — and inherits when it does not, which
+  // is why only general tokens are required to declare.
+  if (rest.cardinality === undefined) {
+    if (rest.speciality === undefined) {
+      throw new Error(
+        `Tried to create injection token "${rest.id}" without cardinality.`,
+      );
+    }
+  } else if (!cardinalities.includes(rest.cardinality)) {
     throw new Error(
-      `Tried to create injection token "${unexpectedArgs[0]?.id}" by passing options to the first call, but getInjectionToken2 is curried: use getInjectionToken2()(options).`,
+      `Tried to create injection token "${rest.id}" with unknown cardinality "${rest.cardinality}".`,
     );
   }
 
-  return ({
-    specificInjectionTokenFactory: specificTokenFactory = getSpecificToken2ById,
+  const specificTokensBySpeciality = new Map();
 
-    target,
+  // The factory is assumed pure and deterministic: a specifier always maps
+  // to the same token, so single-specifier calls are memoized by specifier
+  // to skip constructing a throwaway candidate on repeat `.for()` calls.
+  const specificTokensBySpecifier = new Map();
 
-    tags,
+  const generalToken = Object.assign(target ?? {}, {
+    ...rest,
 
-    ...rest
-  }) => {
-    // A specific token may declare its own cardinality — its family's general
-    // token often has a different one — and inherits when it does not, which
-    // is why only general tokens are required to declare.
-    if (rest.cardinality === undefined) {
-      if (rest.speciality === undefined) {
-        throw new Error(
-          `Tried to create injection token "${rest.id}" without cardinality.`,
-        );
+    tags: [injectionTokenTag, ...(tags ?? [])],
+
+    aliasType: injectionTokenSymbol2,
+
+    for: (...specifiers) => {
+      const memoizedToken =
+        specifiers.length === 1
+          ? specificTokensBySpecifier.get(specifiers[0])
+          : undefined;
+
+      if (memoizedToken) {
+        return memoizedToken;
       }
-    } else if (!cardinalities.includes(rest.cardinality)) {
-      throw new Error(
-        `Tried to create injection token "${rest.id}" with unknown cardinality "${rest.cardinality}".`,
+
+      const specificTokenCandidate = specificTokenFactory(...specifiers);
+
+      const existingSpecificToken = specificTokensBySpeciality.get(
+        specificTokenCandidate.speciality,
       );
-    }
 
-    const specificTokensBySpeciality = new Map();
-
-    // The factory is assumed pure and deterministic: a specifier always maps
-    // to the same token, so single-specifier calls are memoized by specifier
-    // to skip constructing a throwaway candidate on repeat `.for()` calls.
-    const specificTokensBySpecifier = new Map();
-
-    const generalToken = Object.assign(target ?? {}, {
-      ...rest,
-
-      tags: [injectionTokenTag, ...(tags ?? [])],
-
-      aliasType: injectionTokenSymbol2,
-
-      for: (...specifiers) => {
-        const memoizedToken =
-          specifiers.length === 1
-            ? specificTokensBySpecifier.get(specifiers[0])
-            : undefined;
-
-        if (memoizedToken) {
-          return memoizedToken;
-        }
-
-        const specificTokenCandidate = specificTokenFactory(...specifiers);
-
-        const existingSpecificToken = specificTokensBySpeciality.get(
-          specificTokenCandidate.speciality,
-        );
-
-        if (existingSpecificToken) {
-          if (specifiers.length === 1) {
-            specificTokensBySpecifier.set(specifiers[0], existingSpecificToken);
-          }
-
-          return existingSpecificToken;
-        }
-
-        const specificToken = specificTokenCandidate;
-
-        specificToken.id = `${generalToken.id}/${specificToken.id}`;
-        specificToken.specificTokenOf = generalToken;
-        specificToken.maxCacheSize = generalToken.maxCacheSize;
-        specificToken.tags = generalToken.tags;
-        specificToken.cardinality =
-          specificToken.cardinality ?? generalToken.cardinality;
-
-        specificTokensBySpeciality.set(specificToken.speciality, specificToken);
-
+      if (existingSpecificToken) {
         if (specifiers.length === 1) {
-          specificTokensBySpecifier.set(specifiers[0], specificToken);
+          specificTokensBySpecifier.set(specifiers[0], existingSpecificToken);
         }
 
-        return specificToken;
-      },
-    });
+        return existingSpecificToken;
+      }
 
-    return generalToken;
-  };
+      const specificToken = specificTokenCandidate;
+
+      specificToken.id = `${generalToken.id}/${specificToken.id}`;
+      specificToken.specificTokenOf = generalToken;
+      specificToken.maxCacheSize = generalToken.maxCacheSize;
+      specificToken.tags = generalToken.tags;
+      specificToken.cardinality =
+        specificToken.cardinality ?? generalToken.cardinality;
+
+      specificTokensBySpeciality.set(specificToken.speciality, specificToken);
+
+      if (specifiers.length === 1) {
+        specificTokensBySpecifier.set(specifiers[0], specificToken);
+      }
+
+      return specificToken;
+    },
+  });
+
+  return generalToken;
+};
+
+export const getInjectionToken2 = (...args) => {
+  // Non-curried form: options given directly, factory curried as the
+  // required next call — getInjectionToken2(options)(factory).
+  if (args.length === 1) {
+    const [options] = args;
+
+    return specificInjectionTokenFactory =>
+      buildToken({ ...options, specificInjectionTokenFactory });
+  }
+
+  // Loud failure for other pre-curry mistakes: without this, passing more
+  // than options to the outer call would silently be dropped.
+  if (args.length > 1) {
+    throw new Error(
+      `Tried to create injection token "${args[0]?.id}" with unexpected extra arguments.`,
+    );
+  }
+
+  return options => buildToken(options);
 };
 
 export const getSpecificInjectionToken2 = (...unexpectedArgs) => {

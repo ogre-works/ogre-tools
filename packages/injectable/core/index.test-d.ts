@@ -1772,64 +1772,78 @@ expectError(di.injectMany2(specificFromAbstractWithSpecifier));
 // inject2 on the abstract token directly is still a TYPE ERROR
 expectError(di.inject2(abstractTokenWithSpecifier));
 
-// --- AbstractInjectionToken2 with a `.for()` that infers its own specifier's type ---
+// --- getAbstractInjectionToken2(options)(specificInjectionTokenFactory): non-curried form ---
 
-const abstractTokenWithInferredSpecifier = getAbstractInjectionToken2<() => unknown>()({
-  id: 'abstract-token-with-inferred-specifier',
+const abstractTokenWithCurriedFactory = getAbstractInjectionToken2<() => unknown>({
+  id: 'abstract-token-with-curried-factory',
   cardinality: 'zero-or-many',
-  specificInjectionTokenFactory: <Speciality extends string>(speciality: Speciality) =>
-    getSpecificInjectionToken2<() => { someProperty: Speciality }>()({
-      id: speciality,
-      speciality,
-      cardinality: 'one',
-    }),
-});
-
-const specificFromInferredSpecifier = abstractTokenWithInferredSpecifier.for(
-  'some-speciality',
+})(<Speciality extends string>(speciality: Speciality) =>
+  getSpecificInjectionToken2<() => { someProperty: Speciality }>()({
+    id: speciality,
+    speciality,
+    cardinality: 'one',
+  }),
 );
 
-// specifier's literal type survived inference
 expectType<{ someProperty: 'some-speciality' }>(
-  di.inject(specificFromInferredSpecifier),
+  di.inject(abstractTokenWithCurriedFactory.for('some-speciality')),
 );
 
-getInjectable2({
-  id: 'good-impl',
-  injectionToken: specificFromInferredSpecifier,
-  instantiate: () => () => ({ someProperty: 'some-speciality' as const }),
-});
-
-// a widened `string` implementation no longer satisfies it
+// a widened `string` implementation no longer satisfies the specific token
 expectError(
   getInjectable2({
-    id: 'bad-impl',
-    injectionToken: specificFromInferredSpecifier,
+    id: 'bad-impl-non-curried',
+    injectionToken: abstractTokenWithCurriedFactory.for('some-speciality'),
     instantiate: () => (): { someProperty: string } => ({ someProperty: 'anything' }),
   }),
 );
 
-// same inference through the two-type-argument (F, MF) overload
-const abstractTokenWithInferredSpecifierAndMF = getAbstractInjectionToken2<
-  () => unknown,
-  () => unknown[]
->()({
-  id: 'abstract-token-with-inferred-specifier-and-mf',
+// multi-level specificity, each level supplying its own factory:
+// `.for('some-specifier-1').for(42)`
+const abstractTokenWithTwoLevels = getAbstractInjectionToken2<() => unknown>({
+  id: 'abstract-token-with-two-levels',
   cardinality: 'zero-or-many',
-  specificInjectionTokenFactory: <Speciality extends string>(speciality: Speciality) =>
-    getSpecificInjectionToken2<() => { someProperty: Speciality }>()({
-      id: speciality,
-      speciality,
+})(<Level1 extends string>(level1: Level1) =>
+  getAbstractInjectionToken2<() => unknown>({
+    id: `abstract-token-with-two-levels-${level1}`,
+    cardinality: 'zero-or-many',
+  })(<Level2 extends number>(level2: Level2) =>
+    getSpecificInjectionToken2<() => { level1: Level1; level2: Level2 }>()({
+      id: String(level2),
+      speciality: level2,
       cardinality: 'one',
     }),
-});
-
-expectType<{ someProperty: 'other-speciality' }>(
-  di.inject(abstractTokenWithInferredSpecifierAndMF.for('other-speciality')),
+  ),
 );
 
-// non-generic factory's nested cardinality literal isn't widened either
-expectType<'one' | undefined>(abstractHandlerToken.for('click').cardinality);
+expectType<{ level1: 'some-specifier-1'; level2: 42 }>(
+  di.inject(abstractTokenWithTwoLevels.for('some-specifier-1').for(42)),
+);
+
+// --- getInjectionToken2(options)(specificInjectionTokenFactory): same, non-abstract ---
+
+const tokenWithCurriedFactory = getInjectionToken2<() => unknown>({
+  id: 'token-with-curried-factory',
+  cardinality: 'zero-or-many',
+})(<Speciality extends string>(speciality: Speciality) =>
+  getSpecificInjectionToken2<() => { someProperty: Speciality }>()({
+    id: speciality,
+    speciality,
+    cardinality: 'one',
+  }),
+);
+
+expectType<{ someProperty: 'some-speciality' }>(
+  di.inject(tokenWithCurriedFactory.for('some-speciality')),
+);
+
+expectError(
+  getInjectable2({
+    id: 'bad-impl-non-abstract-non-curried',
+    injectionToken: tokenWithCurriedFactory.for('some-speciality'),
+    instantiate: () => (): { someProperty: string } => ({ someProperty: 'anything' }),
+  }),
+);
 
 // ======================================================================
 // Disciplined type parameters: Factory alias, defaults, Alias union, exports

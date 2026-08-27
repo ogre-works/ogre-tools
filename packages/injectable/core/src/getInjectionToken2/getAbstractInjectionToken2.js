@@ -1,17 +1,28 @@
 import { getInjectionToken2 } from './getInjectionToken2';
 
-export const getAbstractInjectionToken2 = (...unexpectedArgs) => {
-  // Loud failure for pre-curry call sites: without this, passing options to
-  // the outer call would silently return the inner creator instead of a token.
-  if (unexpectedArgs.length > 0) {
+const buildAbstractToken = options => {
+  const token = getInjectionToken2()(options);
+  token.abstract = true;
+  return token;
+};
+
+export const getAbstractInjectionToken2 = (...args) => {
+  // Non-curried form: options given directly, factory curried as the
+  // required next call — getAbstractInjectionToken2(options)(factory).
+  if (args.length === 1) {
+    const [options] = args;
+
+    return specificInjectionTokenFactory =>
+      buildAbstractToken({ ...options, specificInjectionTokenFactory });
+  }
+
+  // Loud failure for other pre-curry mistakes: without this, passing more
+  // than options to the outer call would silently be dropped.
+  if (args.length > 1) {
     throw new Error(
-      `Tried to create abstract injection token "${unexpectedArgs[0]?.id}" by passing options to the first call, but getAbstractInjectionToken2 is curried: use getAbstractInjectionToken2()(options).`,
+      `Tried to create abstract injection token "${args[0]?.id}" with unexpected extra arguments.`,
     );
   }
 
-  return options => {
-    const token = getInjectionToken2()(options);
-    token.abstract = true;
-    return token;
-  };
+  return options => buildAbstractToken(options);
 };
