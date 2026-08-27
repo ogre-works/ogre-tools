@@ -285,7 +285,7 @@ const someInjectionTokenWithTypedSpecifier = getInjectionToken2<
   ) => SpecificInjectionToken2<
     () => React.ComponentType<TypedSpecifierType<'someSpecifier', T>>,
     () => React.ComponentType<TypedSpecifierType<'someSpecifier', T>>[],
-    any,
+    undefined,
     // each specific component token is implemented by one component
     'one'
   >

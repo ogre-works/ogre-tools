@@ -47,9 +47,12 @@ const buildTokenComponent = ({
 export const getInjectionTokenComponent2 = (...args) => {
   // A single, non-curried call: options given directly, factory curried as
   // its own trailing call — getInjectionTokenComponent2(options)(factory), or
-  // getInjectionTokenComponent2(options)() for a token with no `.for` at all.
-  // The explicit-SF escape hatch (getInjectionTokenComponent2<Component, SpecificFactory>(options))
-  // uses this exact same shape — see the comment on core's getInjectionToken2.
+  // getInjectionTokenComponent2(options)() for a token component with no
+  // `.for` at all. Passing a factory also makes the token component
+  // abstract — not directly renderable, only reachable via `.for()` — same
+  // as core's getInjectionToken2. The explicit-SF escape hatch
+  // (getInjectionTokenComponent2<Component, SpecificFactory>(options)) uses
+  // this exact same shape.
   if (args.length !== 1) {
     throw new Error(
       `Tried to create injection token component${
@@ -90,13 +93,13 @@ export const getSpecificInjectionTokenComponent2 = (...args) => {
   });
 };
 
-// The recursive default `.for(id)` factory: a specific token component
-// always has a working `.for()`, so this is passed explicitly wherever that
-// default is needed, rather than relying on an implicit fallback deep in
-// buildTokenComponent.
+// The default `.for(id)` factory: builds a concrete leaf component (no
+// factory of its own), matching `getSpecificInjectionToken2`'s core
+// counterpart — a specific token component created this way is always
+// directly renderable, never abstract.
 const getDefaultComponentFactory = PlaceholderComponent => specId =>
   getInjectionTokenComponent2({
     id: specId,
     PlaceholderComponent,
     speciality: specId,
-  })(getDefaultComponentFactory(PlaceholderComponent));
+  })();
