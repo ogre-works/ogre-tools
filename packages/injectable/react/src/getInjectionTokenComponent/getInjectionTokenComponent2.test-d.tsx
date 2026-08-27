@@ -193,16 +193,10 @@ expectType<React.ComponentType<{ someProp: 'some-generic-specific' }>>(
 );
 
 // multi-level .for() through nested abstract families. Level1/Level2 are
-// deliberately plain `string`, not generic type parameters like
-// SomeTokenComponentWithGenericFactory above: an *intermediate* level's
-// factory going through getInjectionTokenComponent2's speciality overload
-// while itself returning another generic factory hits a real TS inference
-// limit — the outer call's generic gets widened to its constraint instead
-// of narrowed per specifier (same limitation noted on core's analogous
-// two-level test in index.test-d.ts). Generic-specifier narrowing itself is
-// already covered by SomeTokenComponentWithGenericFactory above; this test
-// is about multi-level nesting and abstractness, so it doesn't need to
-// double as that demonstration too.
+// plain `string` here — the non-generic shape must keep inferring cleanly
+// through nesting without any default on the factory-call's
+// `SpecificFactory` (see the comment on core's `InjectionToken2FactoryCall`);
+// the generic shape has its own test right below.
 const SomeAbstractTokenComponentWithTwoLevels =
   getInjectionTokenComponent2<
     React.ComponentType<{ level1: string; level2: string }>
@@ -242,6 +236,40 @@ expectAssignable<
 expectType<React.ComponentType<{ level1: string; level2: string }>>(
   di.inject(SomeSpecificFromTwoLevels),
 );
+
+// the same two-level family with *generic* factories at both levels: each
+// `.for()` must narrow the component's props per specifier, all the way
+// down. This is the regression test for the erasure a default on the
+// factory-call's `SpecificFactory` used to cause — an intermediate level's
+// generic factory, checked while the outer factory was itself being
+// inferred, got its type parameters instantiated to `any` against the
+// default's non-generic contextual signature, losing every level's
+// narrowing (see the comment on core's `InjectionToken2FactoryCall`).
+const SomeAbstractTokenComponentWithTwoGenericLevels =
+  getInjectionTokenComponent2<
+    React.ComponentType<{ level1: string; level2: string }>
+  >({ id: 'irrelevant' })(<Level1 extends string>(level1: Level1) =>
+    getInjectionTokenComponent2<
+      React.ComponentType<{ level1: Level1; level2: string }>
+    >({ id: `irrelevant-${level1}`, speciality: level1 })(
+      <Level2 extends string>(level2: Level2) =>
+        getInjectionTokenComponent2<
+          React.ComponentType<{ level1: Level1; level2: Level2 }>
+        >({
+          id: level2,
+          speciality: level2,
+        })(),
+    ),
+  );
+
+const SomeSpecificFromTwoGenericLevels =
+  SomeAbstractTokenComponentWithTwoGenericLevels.for('some-level1').for(
+    'some-level2',
+  );
+
+expectType<
+  React.ComponentType<{ level1: 'some-level1'; level2: 'some-level2' }>
+>(di.inject(SomeSpecificFromTwoGenericLevels));
 
 // ---- Direct JSX rendering (without injecting first) ----
 
@@ -285,6 +313,15 @@ expectError(<SomeSpecificFromGenericFactory />);
 // plain `string` here, not narrowed per specifier — see the comment on
 // SomeAbstractTokenComponentWithTwoLevels above)
 <SomeSpecificFromTwoLevels level1="some-level1" level2="some-level2" />;
+
+// two-level .for() with generic factories renders with both props narrowed
+// to their specifiers' own literal types
+<SomeSpecificFromTwoGenericLevels level1="some-level1" level2="some-level2" />;
+
+// errors when a prop doesn't match its specifier's own literal type
+expectError(
+  <SomeSpecificFromTwoGenericLevels level1="some-level1" level2="some-other" />,
+);
 
 // ---- Abstract token component (getInjectionTokenComponent2 with a factory) ----
 
