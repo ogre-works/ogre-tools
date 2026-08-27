@@ -184,7 +184,10 @@ export interface InjectionTokenComponentOptionsWithoutFactory<
 // that factory's own generic signature intact in `SpecificFactory` — an
 // *optional* slot (property or positional parameter) collapses a generic
 // factory's signature instead, which is why this is two genuine overloads
-// rather than one optional parameter.
+// rather than one optional parameter, and `SpecificFactory` must not have a
+// default either — in a multi-level `.for()` family a default erases a
+// nested generic factory's type parameters to `any` (see the comment on
+// core's `InjectionToken2FactoryCall`).
 export interface InjectionTokenComponent2FactoryCall<
   Component extends React.ComponentType<any>,
 > {
@@ -193,9 +196,7 @@ export interface InjectionTokenComponent2FactoryCall<
   <
     SpecificFactory extends (
       ...args: any[]
-    ) => SpecificInjectionTokenComponent2<Component, any> = (
-      id: string,
-    ) => SpecificInjectionTokenComponent2<Component>,
+    ) => SpecificInjectionTokenComponent2<Component, any>,
   >(
     specificInjectionTokenFactory: SpecificFactory,
   ): InjectionTokenComponent2<Component, SpecificFactory>;
@@ -251,9 +252,7 @@ export interface SpecificInjectionTokenComponent2FactoryCall<
   <
     SpecificFactory extends (
       ...args: any[]
-    ) => SpecificInjectionTokenComponent2<Component, any> = (
-      id: string,
-    ) => SpecificInjectionTokenComponent2<Component>,
+    ) => SpecificInjectionTokenComponent2<Component, any>,
   >(
     specificInjectionTokenFactory: SpecificFactory,
   ): SpecificInjectionTokenComponent2<Component, SpecificFactory>;
