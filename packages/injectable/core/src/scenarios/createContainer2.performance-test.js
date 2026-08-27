@@ -5,10 +5,10 @@ import { getInjectionToken2 } from '../getInjectionToken2/getInjectionToken2';
 
 const performance = require('perf_hooks').performance;
 
-const someInjectionToken2 = getInjectionToken2()({
+const someInjectionToken2 = getInjectionToken2({
   cardinality: 'zero-or-many',
   id: 'some-injection-token-2',
-});
+})();
 
 // Mirror of createContainer.performance-test.js using the injectable2/token2
 // API. Each parent eagerly injects its child during its outer instantiate

@@ -20,10 +20,10 @@ describe('createContainer.consumption-declarations', () => {
   beforeEach(() => {
     di = createContainer('some-container');
 
-    someToken = getInjectionToken2()({
+    someToken = getInjectionToken2({
       id: 'some-token',
       cardinality: 'one',
-    });
+    })();
 
     someImplementation = getInjectable2({
       id: 'some-implementation',
@@ -156,10 +156,10 @@ describe('createContainer.consumption-declarations', () => {
     });
 
     it('given a declared token with several implementations, injecting many instantiates every element', () => {
-      const someManyToken = getInjectionToken2()({
+      const someManyToken = getInjectionToken2({
         id: 'some-many-token',
         cardinality: 'zero-or-many',
-      });
+      })();
 
       const someConsumer = getInjectable2({
         id: 'some-consumer',
@@ -228,16 +228,16 @@ describe('createContainer.consumption-declarations', () => {
     let someConsumer;
 
     beforeEach(() => {
-      someGeneralToken = getInjectionToken2()({
+      someGeneralToken = getInjectionToken2({
         id: 'some-general-token',
         cardinality: 'zero-or-many',
-        specificInjectionTokenFactory: specifier =>
-          getSpecificInjectionToken2()({
-            id: specifier,
-            speciality: specifier,
-            cardinality: 'one',
-          }),
-      });
+      })(specifier =>
+        getSpecificInjectionToken2()({
+          id: specifier,
+          speciality: specifier,
+          cardinality: 'one',
+        }),
+      );
 
       someConsumer = getInjectable2({
         id: 'some-consumer',
@@ -303,10 +303,10 @@ describe('createContainer.consumption-declarations', () => {
 
   describe('given only a specific token is declared', () => {
     it('when injecting the general token it came from, throws', () => {
-      const someGeneralToken = getInjectionToken2()({
+      const someGeneralToken = getInjectionToken2({
         id: 'some-general-token',
         cardinality: 'zero-or-many',
-      });
+      })();
 
       const someConsumer = getInjectable2({
         id: 'some-consumer',
