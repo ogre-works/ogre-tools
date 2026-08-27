@@ -5,12 +5,9 @@ export const injectionTokenSymbol2 = 'injection-token2';
 const cardinalities = ['one', 'zero-or-one', 'zero-or-many', 'one-or-many'];
 
 const buildToken = ({
-  specificInjectionTokenFactory: specificTokenFactory = getSpecificToken2ById,
-
+  specificInjectionTokenFactory,
   target,
-
   tags,
-
   ...rest
 }) => {
   // A specific token may declare its own cardinality — its family's general
@@ -42,47 +39,53 @@ const buildToken = ({
 
     aliasType: injectionTokenSymbol2,
 
-    for: (...specifiers) => {
-      const memoizedToken =
-        specifiers.length === 1
-          ? specificTokensBySpecifier.get(specifiers[0])
-          : undefined;
+    // No factory means no `.for()` at all, matching the type: a token isn't
+    // required to be part of a family.
+    ...(specificInjectionTokenFactory && {
+      for: (...specifiers) => {
+        const memoizedToken =
+          specifiers.length === 1
+            ? specificTokensBySpecifier.get(specifiers[0])
+            : undefined;
 
-      if (memoizedToken) {
-        return memoizedToken;
-      }
-
-      const specificTokenCandidate = specificTokenFactory(...specifiers);
-
-      const existingSpecificToken = specificTokensBySpeciality.get(
-        specificTokenCandidate.speciality,
-      );
-
-      if (existingSpecificToken) {
-        if (specifiers.length === 1) {
-          specificTokensBySpecifier.set(specifiers[0], existingSpecificToken);
+        if (memoizedToken) {
+          return memoizedToken;
         }
 
-        return existingSpecificToken;
-      }
+        const specificTokenCandidate = specificInjectionTokenFactory(
+          ...specifiers,
+        );
 
-      const specificToken = specificTokenCandidate;
+        const existingSpecificToken = specificTokensBySpeciality.get(
+          specificTokenCandidate.speciality,
+        );
 
-      specificToken.id = `${generalToken.id}/${specificToken.id}`;
-      specificToken.specificTokenOf = generalToken;
-      specificToken.maxCacheSize = generalToken.maxCacheSize;
-      specificToken.tags = generalToken.tags;
-      specificToken.cardinality =
-        specificToken.cardinality ?? generalToken.cardinality;
+        if (existingSpecificToken) {
+          if (specifiers.length === 1) {
+            specificTokensBySpecifier.set(specifiers[0], existingSpecificToken);
+          }
 
-      specificTokensBySpeciality.set(specificToken.speciality, specificToken);
+          return existingSpecificToken;
+        }
 
-      if (specifiers.length === 1) {
-        specificTokensBySpecifier.set(specifiers[0], specificToken);
-      }
+        const specificToken = specificTokenCandidate;
 
-      return specificToken;
-    },
+        specificToken.id = `${generalToken.id}/${specificToken.id}`;
+        specificToken.specificTokenOf = generalToken;
+        specificToken.maxCacheSize = generalToken.maxCacheSize;
+        specificToken.tags = generalToken.tags;
+        specificToken.cardinality =
+          specificToken.cardinality ?? generalToken.cardinality;
+
+        specificTokensBySpeciality.set(specificToken.speciality, specificToken);
+
+        if (specifiers.length === 1) {
+          specificTokensBySpecifier.set(specifiers[0], specificToken);
+        }
+
+        return specificToken;
+      },
+    }),
   });
 
   return generalToken;
@@ -120,8 +123,11 @@ export const getSpecificInjectionToken2 = (...unexpectedArgs) => {
     );
   }
 
-  return options => getInjectionToken2(options)();
+  return options => getInjectionToken2(options)(getSpecificToken2ById);
 };
 
+// The recursive default `.for(id)` factory: a specific token always has a
+// working `.for()`, so this is passed explicitly wherever that default is
+// needed, rather than relying on an implicit fallback deep in buildToken.
 const getSpecificToken2ById = id =>
-  getInjectionToken2({ id, speciality: id })();
+  getInjectionToken2({ id, speciality: id })(getSpecificToken2ById);

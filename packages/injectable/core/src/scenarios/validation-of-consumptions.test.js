@@ -5,6 +5,7 @@ import getInjectableBunch from '../getInjectableBunch/getInjectableBunch';
 import { getInjectionToken } from '../getInjectionToken/getInjectionToken';
 import { getInjectionToken2 } from '../getInjectionToken2/getInjectionToken2';
 import lifecycleEnum from '../dependency-injection-container/lifecycleEnum';
+import { idBasedSpecificToken2 } from '../test-utils/idBasedSpecificToken2';
 
 describe('createContainer.validate', () => {
   let di;
@@ -21,7 +22,7 @@ describe('createContainer.validate', () => {
       someToken = getInjectionToken2({
         id: 'some-token',
         cardinality: 'one',
-      })();
+      })(idBasedSpecificToken2);
 
       someConsumer = getInjectable2({
         id: 'some-consumer',

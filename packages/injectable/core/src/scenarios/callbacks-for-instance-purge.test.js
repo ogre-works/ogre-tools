@@ -3,6 +3,7 @@ import getInjectable2 from '../getInjectable2/getInjectable2';
 import { getInjectionToken2 } from '../getInjectionToken2/getInjectionToken2';
 import { createContainer } from '../../index';
 import { instancePurgeCallbackToken } from '../dependency-injection-container/tokens';
+import { idBasedSpecificToken2 } from '../test-utils/idBasedSpecificToken2';
 
 const asPurgeCallbackInjectable = (id, target, callback) =>
   getInjectable2({
@@ -520,7 +521,7 @@ describe('callbacks-for-instance-purge', () => {
       const someToken = getInjectionToken2({
         cardinality: 'zero-or-many',
         id: 'parent-purge-token',
-      })();
+      })(idBasedSpecificToken2);
 
       const childInjectable = getInjectable2({
         id: 'child-purge',

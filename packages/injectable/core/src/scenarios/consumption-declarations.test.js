@@ -11,6 +11,7 @@ import {
   injectionDecoratorToken,
   preInjectCallbackToken,
 } from '../dependency-injection-container/tokens';
+import { idBasedSpecificToken2 } from '../test-utils/idBasedSpecificToken2';
 
 describe('createContainer.consumption-declarations', () => {
   let di;
@@ -306,7 +307,7 @@ describe('createContainer.consumption-declarations', () => {
       const someGeneralToken = getInjectionToken2({
         id: 'some-general-token',
         cardinality: 'zero-or-many',
-      })();
+      })(idBasedSpecificToken2);
 
       const someConsumer = getInjectable2({
         id: 'some-consumer',

@@ -5,6 +5,7 @@ import {
   getSpecificInjectionToken2,
 } from '../getInjectionToken2/getInjectionToken2';
 import { getAbstractInjectionToken2 } from '../getInjectionToken2/getAbstractInjectionToken2';
+import { idBasedSpecificToken2 } from '../test-utils/idBasedSpecificToken2';
 
 describe('getAbstractInjectionToken2', () => {
   let di;
@@ -20,7 +21,7 @@ describe('getAbstractInjectionToken2', () => {
       abstractToken = getAbstractInjectionToken2({
         cardinality: 'zero-or-many',
         id: 'some-abstract-token',
-      })();
+      })(idBasedSpecificToken2);
     });
 
     it('when injecting directly with di.inject, throws', () => {
@@ -152,7 +153,7 @@ describe('getAbstractInjectionToken2', () => {
         getAbstractInjectionToken2({
           id: specifier,
           speciality: specifier,
-        })(),
+        })(idBasedSpecificToken2),
       );
     });
 

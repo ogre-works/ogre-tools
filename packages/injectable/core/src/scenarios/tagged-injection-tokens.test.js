@@ -4,6 +4,7 @@ import getInjectable2 from '../getInjectable2/getInjectable2';
 import { getInjectionToken } from '../getInjectionToken/getInjectionToken';
 import { getInjectionToken2 } from '../getInjectionToken2/getInjectionToken2';
 import { getAbstractInjectionToken2 } from '../getInjectionToken2/getAbstractInjectionToken2';
+import { idBasedSpecificToken2 } from '../test-utils/idBasedSpecificToken2';
 import {
   deregistrationCallbackToken,
   deregistrationDecoratorToken,
@@ -97,7 +98,7 @@ describe('tagged-injection-tokens', () => {
         cardinality: 'zero-or-many',
         id: 'some-token',
         tags: ['some-tag'],
-      })();
+      })(idBasedSpecificToken2);
 
       expect(someToken.for('some-speciality').tags).toEqual([
         'injectionToken',
@@ -112,7 +113,7 @@ describe('tagged-injection-tokens', () => {
         cardinality: 'zero-or-many',
         id: 'some-abstract-token',
         tags: ['some-tag'],
-      })();
+      })(idBasedSpecificToken2);
 
       expect(someAbstractToken.tags).toEqual(['injectionToken', 'some-tag']);
     });

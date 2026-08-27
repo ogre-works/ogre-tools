@@ -687,7 +687,7 @@ export interface Injectable2<F extends Factory = Factory> {
   // `getInjectable2` keeps the relationship sound; precise per-injectable
   // token typing isn't observably useful here (runtime reads only token-level
   // fields like `.id`, `.abstract`, `.maxCacheSize`).
-  readonly injectionToken?: InjectionToken2<Factory>;
+  readonly injectionToken?: InjectionToken2<Factory, any, any>;
   readonly consumptions?: ReadonlyArray<Consumption>;
   readonly transient?: boolean;
   readonly causesSideEffects?: boolean;
@@ -867,12 +867,9 @@ export type DefaultSpecificFactory2<
   C extends Cardinality,
 > = (id: string) => SpecificInjectionToken2<F, MF, DefaultSpecificFactory2<F, MF, C>, C>;
 
-export interface InjectionToken2<
+export interface InjectionToken2Base<
   F extends Factory = Factory,
   MF extends AnyConsumptionFactory<F> = ManyFactory<F> | MaybeResultFactory<F>,
-  SpecificFactory extends (
-    ...args: any[]
-  ) => SpecificInjectionToken2<F, any, any, any> = DefaultSpecificFactory2<F, MF, Cardinality>,
   C extends Cardinality = Cardinality,
 > {
   readonly aliasType: 'injection-token2';
@@ -884,7 +881,6 @@ export interface InjectionToken2<
   manyTemplate: MF;
   key: Symbol;
   id: string;
-  for: SpecificFactory;
   // Declared arity. The creators always stamp a literal, so a token annotated
   // without one (`InjectionToken2<F>`, C = the whole union) means "a token of
   // some cardinality" — it is accepted by wide positions like `register` but
@@ -898,16 +894,41 @@ export interface InjectionToken2<
   tags?: string[];
 }
 
-export interface SpecificInjectionToken2<
+// `for` exists only when a real `specificInjectionTokenFactory` was given —
+// `getInjectionToken2<F>(options)()` (no factory) instantiates SpecificFactory
+// as `undefined`, so the resulting token has no `.for` at all: a compile
+// error to access, not merely `for: undefined`. This must stay a naked
+// conditional, not the usual `[X] extends [Y]` tuple guard against
+// distributing over unions — a naked conditional distributes `any` into the
+// union of both branches, which is what lets wide positions like
+// `di.inject`/`getInjectable2` (typed `InjectionToken2<F, any, any, C>`)
+// keep accepting both a for-less and a for-bearing token. `undefined`, not
+// `never`, is the sentinel: a naked conditional collapses to `never` whenever
+// the checked type is `never` itself, which would make a for-less token's
+// type useless.
+export type InjectionToken2<
+  F extends Factory = Factory,
+  MF extends AnyConsumptionFactory<F> = ManyFactory<F> | MaybeResultFactory<F>,
+  SpecificFactory extends
+    | undefined
+    | ((...args: any[]) => SpecificInjectionToken2<F, any, any, any>) = DefaultSpecificFactory2<
+    F,
+    MF,
+    Cardinality
+  >,
+  C extends Cardinality = Cardinality,
+> = SpecificFactory extends undefined
+  ? InjectionToken2Base<F, MF, C>
+  : InjectionToken2Base<F, MF, C> & { for: SpecificFactory };
+
+export type SpecificInjectionToken2<
   F extends Factory = Factory,
   MF extends AnyConsumptionFactory<F> = ManyFactory<F> | MaybeResultFactory<F>,
   SpecificFactory extends (
     ...args: any[]
   ) => SpecificInjectionToken2<F, any, any, any> = DefaultSpecificFactory2<F, MF, Cardinality>,
   C extends Cardinality = Cardinality,
-> extends InjectionToken2<F, MF, SpecificFactory, C> {
-  speciality: any;
-}
+> = InjectionToken2Base<F, MF, C> & { for: SpecificFactory; speciality: any };
 
 export interface GetInjectionToken2Options<SpecificFactory> {
   id: string;
@@ -932,14 +953,14 @@ export interface GetInjectionToken2OptionsWithoutFactory {
 }
 
 // Returned by `getInjectionToken2<F>(options)` / `getInjectionToken2<F, MF>(options)`
-// below. Calling it with no arguments uses the recursive `.for(id)` default
-// factory; calling it with a factory value keeps that factory's own generic
-// signature intact in `SF` — an *optional* slot (property or positional
-// parameter) collapses a generic factory's signature instead, which is why
-// this is two genuine overloads rather than one optional parameter. `SF`
-// keeps its default on the required overload too, even though it's never
-// actually used there: dropping it makes TS widen a *non*-generic factory's
-// own nested inference (e.g. a `.for()` returning
+// below. Calling it with no arguments gives a token with no `.for` at all —
+// see the comment on `InjectionToken2`; calling it with a factory value keeps
+// that factory's own generic signature intact in `SF` — an *optional* slot
+// (property or positional parameter) collapses a generic factory's signature
+// instead, which is why this is two genuine overloads rather than one
+// optional parameter. `SF` keeps its default on the required overload too,
+// even though it's never actually used there: dropping it makes TS widen a
+// *non*-generic factory's own nested inference (e.g. a `.for()` returning
 // `getSpecificInjectionToken2<F>()({ cardinality: 'one', ... })`) to the
 // bounds of its constraint instead of the literal `'one'` it was given.
 export interface InjectionToken2FactoryCall<
@@ -947,7 +968,7 @@ export interface InjectionToken2FactoryCall<
   MF extends AnyConsumptionFactory<F>,
   C extends Cardinality,
 > {
-  (): InjectionToken2<F, MF, DefaultSpecificFactory2<F, DefaultConsumptionFactory<C, F>, C>, C>;
+  (): InjectionToken2<F, MF, undefined, C>;
 
   <
     SF extends (...args: any[]) => SpecificInjectionToken2<F, any, any, any> =
@@ -1017,9 +1038,9 @@ export function getInjectionToken2<
 
 // getInjectionToken2<F>(options): same non-curried shape as
 // getAbstractInjectionToken2 below, for the same reason — see the comment
-// there. `getInjectionToken2<F>(options)()` uses the default `.for(id)`
-// factory; `getInjectionToken2<F>(options)(specificInjectionTokenFactory)`
-// keeps a generic factory's own signature intact.
+// there. `getInjectionToken2<F>(options)()` gives a token with no `.for` at
+// all; `getInjectionToken2<F>(options)(specificInjectionTokenFactory)` keeps
+// a generic factory's own signature intact.
 export function getInjectionToken2<F extends Factory>(
   options: GetInjectionToken2OptionsWithoutFactory & { cardinality: 'one' },
 ): InjectionToken2FactoryCall<F, ManyFactory<F>, 'one'>;
@@ -1105,15 +1126,16 @@ export interface AbstractInjectionToken2<
 }
 
 // Returned by `getAbstractInjectionToken2<F>(options)` /
-// `getAbstractInjectionToken2<F, MF>(options)` below — mirrors
-// `InjectionToken2FactoryCall`, see the comment there.
+// `getAbstractInjectionToken2<F, MF>(options)` below. Unlike
+// `InjectionToken2FactoryCall`, there is no empty-call arm: an abstract token
+// is a family by definition, so it always needs a real `.for()` factory to
+// resolve into — this is the "abstract tokens make the factory mandatory"
+// requirement.
 export interface AbstractInjectionToken2FactoryCall<
   F extends Factory,
   MF extends AnyConsumptionFactory<F>,
   C extends Cardinality,
 > {
-  (): AbstractInjectionToken2<F, MF, DefaultSpecificFactory2<F, DefaultConsumptionFactory<C, F>, C>, C>;
-
   <
     SF extends (
       ...args: any[]
@@ -1201,12 +1223,13 @@ export function getAbstractInjectionToken2<
 // getAbstractInjectionToken2<F>(options): a single, non-curried call — `F`
 // is the only type parameter here, so there's nothing for its explicit type
 // argument to force a default on.
-// `getAbstractInjectionToken2<F>(options)()` uses the default `.for(id)`
-// factory; `getAbstractInjectionToken2<F>(options)(specificInjectionTokenFactory)`
-// keeps a generic factory's own signature intact — an *optional* slot
-// (property or positional parameter) collapses it instead. Multi-level
-// specificity (`.for(a).for(b)`, each level with its own factory) works by
-// nesting: the factory given to the second call can itself return the
+// `getAbstractInjectionToken2<F>(options)(specificInjectionTokenFactory)` is
+// the only shape — the factory is mandatory, since an abstract token is a
+// family by definition and always needs one to resolve into. It also keeps a
+// generic factory's own signature intact — an *optional* slot (property or
+// positional parameter) collapses it instead. Multi-level specificity
+// (`.for(a).for(b)`, each level with its own factory) works by nesting: the
+// factory given to the second call can itself return the
 // result of another `getAbstractInjectionToken2(...)(...)` call.
 export function getAbstractInjectionToken2<F extends Factory>(
   options: GetInjectionToken2OptionsWithoutFactory & { cardinality: 'one' },
@@ -1287,7 +1310,7 @@ export type Alias1 =
 
 export type Alias2<F extends Factory = Factory> =
   | Injectable2<F>
-  | InjectionToken2<F>
+  | InjectionToken2<F, any, any>
   | AbstractInjectionToken2<F>;
 
 export type Alias = Alias1 | Alias2;
