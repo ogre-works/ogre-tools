@@ -20,7 +20,7 @@ describe('getAbstractInjectionTokenComponent2', () => {
   it('given a token component is created, it is an abstract injection token', () => {
     const SomeAbstractTokenComponent = getAbstractInjectionTokenComponent2({
       id: 'some-abstract-token-component',
-    });
+    })();
 
     expect(SomeAbstractTokenComponent.abstract).toBe(true);
   });
@@ -28,7 +28,7 @@ describe('getAbstractInjectionTokenComponent2', () => {
   it('given specifier, .for() produces a renderable component that injects from DI', () => {
     const SomeAbstractTokenComponent = getAbstractInjectionTokenComponent2({
       id: 'some-abstract-token-component',
-    });
+    })();
 
     const SpecificTokenComponent =
       SomeAbstractTokenComponent.for('some-specific');
@@ -49,7 +49,7 @@ describe('getAbstractInjectionTokenComponent2', () => {
   it('given specifier, .for() passes props to the implementation', () => {
     const SomeAbstractTokenComponent = getAbstractInjectionTokenComponent2({
       id: 'some-abstract-token-component',
-    });
+    })();
 
     const SpecificTokenComponent =
       SomeAbstractTokenComponent.for('some-specific');
@@ -75,7 +75,7 @@ describe('getAbstractInjectionTokenComponent2', () => {
   it('given same specifier, .for() returns the same component', () => {
     const SomeAbstractTokenComponent = getAbstractInjectionTokenComponent2({
       id: 'some-abstract-token-component',
-    });
+    })();
 
     const specific1 = SomeAbstractTokenComponent.for('some-specific');
     const specific2 = SomeAbstractTokenComponent.for('some-specific');
@@ -94,7 +94,7 @@ describe('getAbstractInjectionTokenComponent2', () => {
     const SomeAbstractTokenComponent = getAbstractInjectionTokenComponent2({
       id: 'some-abstract-token-component',
       PlaceholderComponent: () => <div data-testid="some-placeholder" />,
-    });
+    })();
 
     const SpecificTokenComponent =
       SomeAbstractTokenComponent.for('some-specific');
@@ -124,13 +124,12 @@ describe('getAbstractInjectionTokenComponent2', () => {
         getInjectionTokenComponent2({
           id: `custom-${specId}`,
           speciality: specId,
-        }),
+        })(),
       );
 
       const SomeAbstractTokenComponent = getAbstractInjectionTokenComponent2({
         id: 'some-abstract-token-component',
-        specificInjectionTokenFactory: customFactory,
-      });
+      })(customFactory);
 
       SpecificTokenComponent = SomeAbstractTokenComponent.for('some-specific');
     });
@@ -147,7 +146,7 @@ describe('getAbstractInjectionTokenComponent2', () => {
   it('given a specific token with an implementation, when rendered without Suspense wrapper, renders the content', () => {
     const SomeAbstractTokenComponent = getAbstractInjectionTokenComponent2({
       id: 'some-abstract-token-component',
-    });
+    })();
 
     const SpecificTokenComponent =
       SomeAbstractTokenComponent.for('some-specific');

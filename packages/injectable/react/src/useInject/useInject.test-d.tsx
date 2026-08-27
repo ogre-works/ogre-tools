@@ -42,10 +42,10 @@ const asyncInjectable = getInjectable2({
 expectType<string>(useInject(asyncInjectable));
 expectType<string>(useInjectDeferred(asyncInjectable));
 
-const someInjectionToken = getInjectionToken2<(name: string) => number>()({
+const someInjectionToken = getInjectionToken2<(name: string) => number>({
   cardinality: 'one',
   id: 'some-token',
-});
+})();
 
 expectType<number>(useInject(someInjectionToken, 'x'));
 expectType<number>(useInjectDeferred(someInjectionToken, 'x'));
@@ -53,10 +53,10 @@ expectType<number>(useInjectDeferred(someInjectionToken, 'x'));
 expectError(useInject(someInjectionToken));
 expectError(useInject(someInjectionToken, 42));
 
-const someAbstractInjectionToken = getAbstractInjectionToken2<() => string>()({
+const someAbstractInjectionToken = getAbstractInjectionToken2<() => string>({
   cardinality: 'one',
   id: 'some-abstract-token',
-});
+})();
 
 expectError(useInject(someAbstractInjectionToken));
 expectError(useInjectDeferred(someAbstractInjectionToken));
@@ -72,10 +72,10 @@ const someTypedSpecifierInjectionToken = getInjectionToken2<
     any,
     'one'
   >
->()({
+>({
   id: 'some-typed-specifier-token',
   cardinality: 'one',
-});
+})();
 
 const someTypedSpecifier = getTypedSpecifier<{
   'some-specifier': { someProp: 'some-type' };

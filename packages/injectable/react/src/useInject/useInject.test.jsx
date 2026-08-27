@@ -1693,10 +1693,10 @@ describe('useInject', () => {
     let rendered;
 
     beforeEach(() => {
-      const someInjectionToken2 = getInjectionToken2()({
+      const someInjectionToken2 = getInjectionToken2({
         cardinality: 'one',
         id: 'some-injection-token2',
-      });
+      })();
 
       const someInjectable2 = getInjectable2({
         id: 'some-implementation-of-injection-token2',

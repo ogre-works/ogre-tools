@@ -30,7 +30,7 @@ describe('getInjectionTokenComponent2', () => {
   it('given implementation registered, when rendered with props, does so', () => {
     const SomeTokenComponent = getInjectionTokenComponent2({
       id: 'some-token-component',
-    });
+    })();
 
     const someImplementation = getInjectable({
       id: 'some-implementation',
@@ -60,7 +60,7 @@ describe('getInjectionTokenComponent2', () => {
   it('given implementation registered, when rendered with children, renders them', () => {
     const SomeTokenComponent = getInjectionTokenComponent2({
       id: 'some-token-component',
-    });
+    })();
 
     const someImplementation = getInjectable({
       id: 'some-implementation',
@@ -91,7 +91,7 @@ describe('getInjectionTokenComponent2', () => {
 
     const SomeTokenComponent = getInjectionTokenComponent2({
       id: 'some-token-component',
-    });
+    })();
 
     const someImplementation = getInjectable({
       id: 'some-implementation',
@@ -118,7 +118,7 @@ describe('getInjectionTokenComponent2', () => {
     const SomeTokenComponent = getInjectionTokenComponent2({
       id: 'some-token-component',
       PlaceholderComponent: () => null,
-    });
+    })();
 
     const someImplementation = getInjectable({
       id: 'some-implementation',
@@ -142,7 +142,7 @@ describe('getInjectionTokenComponent2', () => {
   it('given overridden implementation, when rendered, renders the override', () => {
     const SomeTokenComponent = getInjectionTokenComponent2({
       id: 'some-token-component',
-    });
+    })();
 
     const someImplementation = getInjectable({
       id: 'some-implementation',
@@ -180,7 +180,7 @@ describe('getInjectionTokenComponent2', () => {
     const SomeTokenComponent = getInjectionTokenComponent2({
       id: 'some-token-component',
       PlaceholderComponent: () => <div>some-placeholder</div>,
-    });
+    })();
 
     const someImplementation = getInjectable({
       id: 'some-implementation',
@@ -217,7 +217,7 @@ describe('getInjectionTokenComponent2', () => {
 
     const SomeTokenComponent = getInjectionTokenComponent2({
       id: 'some-token-component',
-    });
+    })();
 
     const someImplementation = getInjectable({
       id: 'some-implementation',
@@ -261,7 +261,7 @@ describe('getInjectionTokenComponent2', () => {
       PlaceholderComponent: ({ name }) => (
         <div data-some-placeholder-with-name-test={name} />
       ),
-    });
+    })();
 
     const someImplementation = getInjectable({
       id: 'some-implementation',
@@ -295,7 +295,7 @@ describe('getInjectionTokenComponent2', () => {
 
     const SomeTokenComponent = getInjectionTokenComponent2({
       id: 'some-token-component',
-    });
+    })();
 
     const someImplementationInDi1 = getInjectable({
       id: 'some-implementation-1',
@@ -351,7 +351,7 @@ describe('getInjectionTokenComponent2', () => {
   it('given no implementation registered, when rendered, throws error', () => {
     const SomeTokenComponent = getInjectionTokenComponent2({
       id: 'some-token-component',
-    });
+    })();
 
     withSuppressedConsoleError(() => {
       rendered = mount(<SomeTokenComponent />);
@@ -363,7 +363,7 @@ describe('getInjectionTokenComponent2', () => {
   it('given a token component is created, it is an injection token', () => {
     const SomeTokenComponent = getInjectionTokenComponent2({
       id: 'some-token-component',
-    });
+    })();
 
     expect(isInjectionToken(SomeTokenComponent)).toBe(true);
   });
@@ -371,7 +371,7 @@ describe('getInjectionTokenComponent2', () => {
   it('given a token component is created, it has displayName related to the id', () => {
     const SomeTokenComponent = getInjectionTokenComponent2({
       id: 'some-token-component',
-    });
+    })();
 
     expect(SomeTokenComponent.displayName).toBe(
       'InjectionTokenComponent(some-token-component)',
@@ -382,7 +382,7 @@ describe('getInjectionTokenComponent2', () => {
     const SomeTokenComponent = getInjectionTokenComponent2({
       id: 'some-token-component',
       tags: ['some-tag'],
-    });
+    })();
 
     expect(SomeTokenComponent.tags).toEqual(['injectionToken', 'some-tag']);
   });
@@ -391,7 +391,7 @@ describe('getInjectionTokenComponent2', () => {
     it('given a token component, when .for() is called twice with the same specifier, returns the same object', () => {
       const SomeTokenComponent = getInjectionTokenComponent2({
         id: 'some-token-component',
-      });
+      })();
 
       const specific1 = SomeTokenComponent.for('some-specific');
       const specific2 = SomeTokenComponent.for('some-specific');
@@ -402,7 +402,7 @@ describe('getInjectionTokenComponent2', () => {
     it('given a specific token with an implementation registered, when rendered, injects from DI', () => {
       const SomeTokenComponent = getInjectionTokenComponent2({
         id: 'some-token-component',
-      });
+      })();
 
       const SpecificTokenComponent = SomeTokenComponent.for('some-specific');
 
@@ -430,7 +430,7 @@ describe('getInjectionTokenComponent2', () => {
     it('given a specific token with an implementation registered, when rendered with props, passes props to implementation', () => {
       const SomeTokenComponent = getInjectionTokenComponent2({
         id: 'some-token-component',
-      });
+      })();
 
       const SpecificTokenComponent = SomeTokenComponent.for('some-specific');
 
@@ -462,7 +462,7 @@ describe('getInjectionTokenComponent2', () => {
     it('given a specific token, it has specificTokenOf pointing to the general token component', () => {
       const SomeTokenComponent = getInjectionTokenComponent2({
         id: 'some-token-component',
-      });
+      })();
 
       const SpecificTokenComponent = SomeTokenComponent.for('some-specific');
 
@@ -472,7 +472,7 @@ describe('getInjectionTokenComponent2', () => {
     it('given injectables registered under specific tokens, di.injectMany on general token finds them', () => {
       const SomeTokenComponent = getInjectionTokenComponent2({
         id: 'some-token-component',
-      });
+      })();
 
       const someSpecificImplementation = getInjectable({
         id: 'some-specific-implementation',
@@ -490,7 +490,7 @@ describe('getInjectionTokenComponent2', () => {
     it('given a specific token, it has displayName with combined id', () => {
       const SomeTokenComponent = getInjectionTokenComponent2({
         id: 'some-token-component',
-      });
+      })();
 
       const SpecificTokenComponent = SomeTokenComponent.for('some-specific');
 
@@ -502,7 +502,7 @@ describe('getInjectionTokenComponent2', () => {
     it('given a specific token, it is an injection token', () => {
       const SomeTokenComponent = getInjectionTokenComponent2({
         id: 'some-token-component',
-      });
+      })();
 
       const SpecificTokenComponent = SomeTokenComponent.for('some-specific');
 
@@ -514,7 +514,7 @@ describe('getInjectionTokenComponent2', () => {
     it('given InjectableComponent using it as injectionToken, di.inject returns the component', () => {
       const SomeTokenComponent = getInjectionTokenComponent2({
         id: 'some-token-component',
-      });
+      })();
 
       const SomeInjectableComponent = getInjectableComponent2({
         id: 'some-injectable-component',

@@ -3,6 +3,7 @@ import React from 'react';
 import { expectAssignable, expectError, expectType } from 'tsd';
 import {
   getInjectionTokenComponent2,
+  getSpecificInjectionTokenComponent2,
   getInjectableComponent2,
   getAbstractInjectionTokenComponent2,
   SpecificInjectionTokenComponent2,
@@ -18,7 +19,7 @@ import {
 // given no type parameter, result is assignable to React.ComponentType and InjectionToken2
 const SomeTokenComponent = getInjectionTokenComponent2({
   id: 'irrelevant',
-});
+})();
 
 expectAssignable<React.ComponentType>(SomeTokenComponent);
 expectAssignable<InjectionToken2<() => React.ComponentType>>(
@@ -30,7 +31,7 @@ const SomeTokenComponentWithProps = getInjectionTokenComponent2<
   React.ComponentType<{ someProp: string }>
 >({
   id: 'irrelevant',
-});
+})();
 
 expectAssignable<React.ComponentType<{ someProp: string }>>(
   SomeTokenComponentWithProps,
@@ -81,7 +82,7 @@ const SomeTokenComponentWithPlaceholder = getInjectionTokenComponent2<
 >({
   id: 'irrelevant',
   PlaceholderComponent: ({ someProp }) => <div>{someProp}</div>,
-});
+})();
 
 expectAssignable<React.ComponentType<{ someProp: string }>>(
   SomeTokenComponentWithPlaceholder,
@@ -94,7 +95,7 @@ expectError(
     PlaceholderComponent: ({ wrongProp }: { wrongProp: number }) => (
       <div>{wrongProp}</div>
     ),
-  }),
+  })(),
 );
 
 // .for() returns a SpecificInjectionTokenComponent
@@ -124,7 +125,7 @@ const SomeTokenComponentWithTypedSpecifier = getInjectionTokenComponent2<
   ) => SpecificInjectionTokenComponent2<
     React.ComponentType<TypedSpecifierType<'someSpecifier', T>>
   >
->({ id: 'irrelevant' });
+>({ id: 'irrelevant' })();
 
 const someTypedSpecifier = getTypedSpecifier<{
   someSpecifier: { someProp: 'some-type' };
@@ -148,6 +149,76 @@ expectAssignable<React.ComponentType<{ someProp: 'some-type' }>>(
 expectType<React.ComponentType<{ someProp: 'some-type' }>>(
   di.inject(SomeTokenComponentWithTypedSpecifier.for(someTypedSpecifier)),
 );
+
+// given a real generic factory value (not the TypedSpecifier escape hatch
+// above, which never supplies one), .for() narrows the component's own
+// props per specifier, decided at the call site
+const SomeTokenComponentWithGenericFactory = getInjectionTokenComponent2<
+  React.ComponentType<{ someProp: string }>
+>({ id: 'irrelevant' })(<Speciality extends string>(speciality: Speciality) =>
+  getSpecificInjectionTokenComponent2<
+    React.ComponentType<{ someProp: Speciality }>
+  >({
+    id: speciality,
+    speciality,
+  }),
+);
+
+const SomeSpecificFromGenericFactory = SomeTokenComponentWithGenericFactory.for(
+  'some-generic-specific',
+);
+
+expectAssignable<
+  SpecificInjectionTokenComponent2<
+    React.ComponentType<{ someProp: 'some-generic-specific' }>
+  >
+>(SomeSpecificFromGenericFactory);
+
+expectType<React.ComponentType<{ someProp: 'some-generic-specific' }>>(
+  di.inject(SomeSpecificFromGenericFactory),
+);
+
+// given a real generic factory that itself returns another abstract family,
+// multi-level .for() narrows through both levels
+const SomeAbstractTokenComponentWithTwoLevels =
+  getAbstractInjectionTokenComponent2<
+    React.ComponentType<{ level1: string; level2: string }>
+  >({ id: 'irrelevant' })(<Level1 extends string>(level1: Level1) =>
+    getAbstractInjectionTokenComponent2<
+      React.ComponentType<{ level1: Level1; level2: string }>
+    >({ id: `irrelevant-${level1}` })(<Level2 extends string>(level2: Level2) =>
+      getSpecificInjectionTokenComponent2<
+        React.ComponentType<{ level1: Level1; level2: Level2 }>
+      >({
+        id: level2,
+        speciality: level2,
+      }),
+    ),
+  );
+
+// the family itself is abstract — not identifiable as a React component at
+// all, regardless of props (React.ComponentType<any>, not just a mismatched
+// props shape, so a props mismatch can't be mistaken for this)
+expectError<React.ComponentType<any>>(SomeAbstractTokenComponentWithTwoLevels);
+
+// resolving only the first of two levels still isn't enough: the result is
+// itself another abstract family, not yet a renderable component
+const SomeIntermediateFromTwoLevels =
+  SomeAbstractTokenComponentWithTwoLevels.for('some-level1');
+
+expectError<React.ComponentType<any>>(SomeIntermediateFromTwoLevels);
+
+const SomeSpecificFromTwoLevels =
+  SomeIntermediateFromTwoLevels.for('some-level2');
+
+// only once both levels are resolved is the result a renderable component
+expectAssignable<
+  React.ComponentType<{ level1: 'some-level1'; level2: 'some-level2' }>
+>(SomeSpecificFromTwoLevels);
+
+expectType<
+  React.ComponentType<{ level1: 'some-level1'; level2: 'some-level2' }>
+>(di.inject(SomeSpecificFromTwoLevels));
 
 // ---- Direct JSX rendering (without injecting first) ----
 
@@ -177,16 +248,33 @@ const SomeTypedSpecificToken =
 // typed specifier specific token errors when prop has wrong type
 expectError(<SomeTypedSpecificToken someProp={42} />);
 
+// specific token from a real generic factory renders in JSX with its prop
+// narrowed to the specifier's own literal type
+<SomeSpecificFromGenericFactory someProp="some-generic-specific" />;
+
+// errors when the prop doesn't match the specifier's own literal type
+expectError(<SomeSpecificFromGenericFactory someProp="some-other-specific" />);
+
+// errors when the prop is missing entirely
+expectError(<SomeSpecificFromGenericFactory />);
+
+// two-level .for() through a real generic factory renders with both levels
+// narrowed to their own literal types
+<SomeSpecificFromTwoLevels level1="some-level1" level2="some-level2" />;
+
+expectError(
+  <SomeSpecificFromTwoLevels level1="wrong-level1" level2="some-level2" />,
+);
+
 // ---- Abstract InjectionTokenComponent2 ----
 
 const SomeAbstractTokenComponent = getAbstractInjectionTokenComponent2<
   React.ComponentType<{ someProp: string }>
->({ id: 'irrelevant' });
+>({ id: 'irrelevant' })();
 
-// abstract token component is not assignable to React.ComponentType (cannot be rendered)
-expectError<React.ComponentType<{ someProp: string }>>(
-  SomeAbstractTokenComponent,
-);
+// abstract token component is not identifiable as a React component at all,
+// regardless of props (cannot be rendered)
+expectError<React.ComponentType<any>>(SomeAbstractTokenComponent);
 
 // .for() returns a renderable specific token component
 const SomeConcreteFromAbstract =
@@ -227,31 +315,31 @@ getInjectableComponent2({
 expectError(
   getInjectionTokenComponent2<'some-non-component'>({
     id: 'irrelevant',
-  }),
+  })(),
 );
 
 // given tags, typing is ok
 getInjectionTokenComponent2({
   id: 'irrelevant',
   tags: ['some-tag'],
-});
+})();
 
 getAbstractInjectionTokenComponent2({
   id: 'irrelevant',
   tags: ['some-tag'],
-});
+})();
 
 // given non-string tags, typing is not ok
 expectError(
   getInjectionTokenComponent2({
     id: 'irrelevant',
     tags: [42],
-  }),
+  })(),
 );
 
 expectError(
   getAbstractInjectionTokenComponent2({
     id: 'irrelevant',
     tags: [42],
-  }),
+  })(),
 );
