@@ -130,6 +130,23 @@ export type SpecificInjectionTokenComponent2<
 > = Component &
   SpecificInjectionToken2<() => Component, () => Component[], any, 'one'>;
 
+// Builds the specific component token a `specificInjectionTokenFactory`
+// returns — mirrors `getSpecificInjectionToken2` in the core package, but
+// unlike it, needs no curry: core's version defers `cardinality` to a
+// second call because it's generic there and inferring it alongside an
+// explicit `F`/`MF` on the same call would collapse it to the wide
+// `Cardinality` union (same failure mode documented throughout this file).
+// A component's cardinality is hardcoded to `'one'`
+// (see `SpecificInjectionTokenComponent2` above) — nothing generic is left
+// to infer, so `Component` explicit and `options` on the same call is safe.
+export declare function getSpecificInjectionTokenComponent2<
+  Component extends React.ComponentType<any>,
+>(
+  options: InjectionTokenComponentOptionsWithoutFactory<Component> & {
+    speciality: any;
+  },
+): SpecificInjectionTokenComponent2<Component>;
+
 export type InjectionTokenComponent2<
   Component extends React.ComponentType<any>,
   SpecificFactory extends (
@@ -140,25 +157,81 @@ export type InjectionTokenComponent2<
 > = Component &
   InjectionToken2<() => Component, () => Component[], SpecificFactory, 'one'>;
 
+export interface InjectionTokenComponentOptionsWithoutFactory<
+  Component extends React.ComponentType<any>,
+> {
+  id: string;
+  PlaceholderComponent?: React.ComponentType<React.ComponentProps<Component>>;
+  tags?: string[];
+}
+
+// Returned by `getInjectionTokenComponent2<Component>(options)` below.
+// Calling it with no arguments uses the recursive `.for(id)` default
+// factory; calling it with a factory value keeps that factory's own generic
+// signature intact in `SpecificFactory` — an *optional* slot (property or
+// positional parameter) collapses a generic factory's signature instead,
+// which is why this is two genuine overloads rather than one optional
+// parameter.
+export interface InjectionTokenComponent2FactoryCall<
+  Component extends React.ComponentType<any>,
+> {
+  (): InjectionTokenComponent2<Component>;
+
+  <
+    SpecificFactory extends (
+      ...args: any[]
+    ) => SpecificInjectionTokenComponent2<Component> = (
+      id: string,
+    ) => SpecificInjectionTokenComponent2<Component>,
+  >(
+    specificInjectionTokenFactory: SpecificFactory,
+  ): InjectionTokenComponent2<Component, SpecificFactory>;
+}
+
+// getInjectionTokenComponent2<Component, SpecificFactory>(options)(specificInjectionTokenFactory?):
+// the explicit-SF escape hatch, mirroring the equivalent overload of
+// `getInjectionToken2` in the core package — see the comment there for why
+// this is flattened (options first, factory an optional trailing call)
+// rather than curried. Needed for a `.for()` factory whose return type
+// narrows the general contract per specifier (e.g. via `TypedSpecifierType`)
+// in a way inference from a real value could never reconstruct — spelling
+// `SpecificFactory` out here lets that type be declared without needing to
+// construct a matching runtime value.
 export declare function getInjectionTokenComponent2<
   Component extends React.ComponentType<any>,
   SpecificFactory extends (
     ...args: any[]
-  ) => SpecificInjectionTokenComponent2<Component> = (
-    id: string,
   ) => SpecificInjectionTokenComponent2<Component>,
->(options: {
-  id: string;
-  PlaceholderComponent?: React.ComponentType<React.ComponentProps<Component>>;
-  specificInjectionTokenFactory?: SpecificFactory;
-  tags?: string[];
-}): InjectionTokenComponent2<Component, SpecificFactory>;
+>(
+  options: InjectionTokenComponentOptionsWithoutFactory<Component>,
+): (
+  specificInjectionTokenFactory?: SpecificFactory,
+) => InjectionTokenComponent2<Component, SpecificFactory>;
 
+// A single, non-curried call — `Component` is the only type parameter here,
+// so there's nothing for its explicit type argument to force a default on.
+// `getInjectionTokenComponent2<Component>(options)()` uses the default
+// `.for(id)` factory; `getInjectionTokenComponent2<Component>(options)(specificInjectionTokenFactory)`
+// keeps a generic factory's own signature intact.
+export declare function getInjectionTokenComponent2<
+  Component extends React.ComponentType<any>,
+>(
+  options: InjectionTokenComponentOptionsWithoutFactory<Component>,
+): InjectionTokenComponent2FactoryCall<Component>;
+
+// `SpecificFactory` may return either a concrete `SpecificInjectionTokenComponent2`
+// or another `AbstractInjectionTokenComponent2` — the latter is what lets a
+// family narrow across more than one `.for()` level (each level's factory
+// returning a further abstract family of its own), mirroring
+// `AbstractInjectionToken2`'s own `SpecificFactory` constraint in the core
+// package.
 export type AbstractInjectionTokenComponent2<
   Component extends React.ComponentType<any>,
   SpecificFactory extends (
     ...args: any[]
-  ) => SpecificInjectionTokenComponent2<Component> = (
+  ) =>
+    | SpecificInjectionTokenComponent2<Component>
+    | AbstractInjectionTokenComponent2<Component, any> = (
     id: string,
   ) => SpecificInjectionTokenComponent2<Component>,
 > = AbstractInjectionToken2<
@@ -168,19 +241,44 @@ export type AbstractInjectionTokenComponent2<
   'one'
 >;
 
+// Mirrors `InjectionTokenComponent2FactoryCall` above.
+export interface AbstractInjectionTokenComponent2FactoryCall<
+  Component extends React.ComponentType<any>,
+> {
+  (): AbstractInjectionTokenComponent2<Component>;
+
+  <
+    SpecificFactory extends (
+      ...args: any[]
+    ) =>
+      | SpecificInjectionTokenComponent2<Component>
+      | AbstractInjectionTokenComponent2<Component, any> = (
+      id: string,
+    ) => SpecificInjectionTokenComponent2<Component>,
+  >(
+    specificInjectionTokenFactory: SpecificFactory,
+  ): AbstractInjectionTokenComponent2<Component, SpecificFactory>;
+}
+
+// Mirrors the `getInjectionTokenComponent2` explicit-SF overload above.
 export declare function getAbstractInjectionTokenComponent2<
   Component extends React.ComponentType<any>,
   SpecificFactory extends (
     ...args: any[]
-  ) => SpecificInjectionTokenComponent2<Component> = (
-    id: string,
-  ) => SpecificInjectionTokenComponent2<Component>,
->(options: {
-  id: string;
-  PlaceholderComponent?: React.ComponentType<React.ComponentProps<Component>>;
-  specificInjectionTokenFactory?: SpecificFactory;
-  tags?: string[];
-}): AbstractInjectionTokenComponent2<Component, SpecificFactory>;
+  ) =>
+    | SpecificInjectionTokenComponent2<Component>
+    | AbstractInjectionTokenComponent2<Component, any>,
+>(
+  options: InjectionTokenComponentOptionsWithoutFactory<Component>,
+): (
+  specificInjectionTokenFactory?: SpecificFactory,
+) => AbstractInjectionTokenComponent2<Component, SpecificFactory>;
+
+export declare function getAbstractInjectionTokenComponent2<
+  Component extends React.ComponentType<any>,
+>(
+  options: InjectionTokenComponentOptionsWithoutFactory<Component>,
+): AbstractInjectionTokenComponent2FactoryCall<Component>;
 
 export const DiContextProvider: React.Provider<DiContainer | DiContainerForInjection>;
 
