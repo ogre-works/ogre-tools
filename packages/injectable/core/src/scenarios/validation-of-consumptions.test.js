@@ -18,10 +18,10 @@ describe('createContainer.validate', () => {
     let someConsumer;
 
     beforeEach(() => {
-      someToken = getInjectionToken2()({
+      someToken = getInjectionToken2({
         id: 'some-token',
         cardinality: 'one',
-      });
+      })();
 
       someConsumer = getInjectable2({
         id: 'some-consumer',
@@ -74,10 +74,10 @@ describe('createContainer.validate', () => {
     let someToken;
 
     beforeEach(() => {
-      someToken = getInjectionToken2()({
+      someToken = getInjectionToken2({
         id: 'some-token',
         cardinality: 'one-or-many',
-      });
+      })();
 
       di.register(
         getInjectable2({
@@ -118,10 +118,10 @@ describe('createContainer.validate', () => {
     'given a consumption of a token with cardinality "%s"',
     cardinality => {
       it('when nothing implements it, validating passes', () => {
-        const someToken = getInjectionToken2()({
+        const someToken = getInjectionToken2({
           id: 'some-token',
           cardinality,
-        });
+        })();
 
         di.register(
           getInjectable2({
@@ -138,15 +138,15 @@ describe('createContainer.validate', () => {
 
   describe('given several unsatisfied consumptions across injectables', () => {
     it('when validating, throws once listing every violation', () => {
-      const someToken = getInjectionToken2()({
+      const someToken = getInjectionToken2({
         id: 'some-token',
         cardinality: 'one',
-      });
+      })();
 
-      const someOtherToken = getInjectionToken2()({
+      const someOtherToken = getInjectionToken2({
         id: 'some-other-token',
         cardinality: 'one-or-many',
-      });
+      })();
 
       di.register(
         getInjectable2({
@@ -226,10 +226,10 @@ describe('createContainer.validate', () => {
   });
 
   it('holds no state: registering after validating works, and validating again reflects it', () => {
-    const someToken = getInjectionToken2()({
+    const someToken = getInjectionToken2({
       id: 'some-token',
       cardinality: 'one',
-    });
+    })();
 
     di.register(
       getInjectable2({
@@ -264,10 +264,10 @@ describe('createContainer.validate', () => {
     let implementationPackage;
 
     beforeEach(() => {
-      someToken = getInjectionToken2()({
+      someToken = getInjectionToken2({
         id: 'some-service-token',
         cardinality: 'one',
-      });
+      })();
 
       tokenPackage = getInjectableBunch({
         someConsumer: getInjectable2({

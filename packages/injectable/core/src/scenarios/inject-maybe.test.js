@@ -10,10 +10,10 @@ describe('createContainer.injectMaybe', () => {
   beforeEach(() => {
     di = createContainer('some-container');
 
-    someMaybeToken = getInjectionToken2()({
+    someMaybeToken = getInjectionToken2({
       id: 'some-maybe-token',
       cardinality: 'zero-or-one',
-    });
+    })();
   });
 
   describe('given a token with cardinality "zero-or-one"', () => {
@@ -126,10 +126,10 @@ describe('createContainer.injectMaybe', () => {
     'given a token with cardinality "%s"',
     cardinality => {
       it('when injecting maybe, throws', () => {
-        const someToken = getInjectionToken2()({
+        const someToken = getInjectionToken2({
           id: 'some-token',
           cardinality,
-        });
+        })();
 
         expect(() => {
           di.injectMaybe2(someToken);
@@ -154,10 +154,10 @@ describe('createContainer.injectMaybe', () => {
   });
 
   it('given an injectable injecting maybe a token of the wrong cardinality, when injected, throws naming the injectable', () => {
-    const someOtherToken = getInjectionToken2()({
+    const someOtherToken = getInjectionToken2({
       id: 'some-other-token',
       cardinality: 'zero-or-many',
-    });
+    })();
 
     const someConsumer = getInjectable2({
       id: 'some-consumer',

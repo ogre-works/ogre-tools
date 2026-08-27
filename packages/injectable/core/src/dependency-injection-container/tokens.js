@@ -27,55 +27,55 @@ export const deregistrationCallbackToken = untagged(
 );
 
 export const instantiationDecoratorToken = untagged(
-  getAbstractInjectionToken2()({
+  getAbstractInjectionToken2({
     id: 'instantiate-decorator-token',
     cardinality: 'zero-or-many',
-    specificInjectionTokenFactory: target =>
-      getSpecificInjectionToken2()({ id: target.id, speciality: target }),
-  }),
+  })(target =>
+    getSpecificInjectionToken2()({ id: target.id, speciality: target }),
+  ),
 );
 
 export const injectionDecoratorToken = untagged(
-  getAbstractInjectionToken2()({
+  getAbstractInjectionToken2({
     id: 'injection-decorator-token',
     cardinality: 'zero-or-many',
-    specificInjectionTokenFactory: target =>
-      getSpecificInjectionToken2()({ id: target.id, speciality: target }),
-  }),
+  })(target =>
+    getSpecificInjectionToken2()({ id: target.id, speciality: target }),
+  ),
 );
 
 export const instancePurgeCallbackToken = untagged(
-  getAbstractInjectionToken2()({
+  getAbstractInjectionToken2({
     id: 'instance-purge-callback-token',
     cardinality: 'zero-or-many',
-    specificInjectionTokenFactory: target =>
-      getSpecificInjectionToken2()({ id: target.id, speciality: target }),
-  }),
+  })(target =>
+    getSpecificInjectionToken2()({ id: target.id, speciality: target }),
+  ),
 );
 
 export const registrationDecoratorToken = untagged(
-  getAbstractInjectionToken2()({
+  getAbstractInjectionToken2({
     id: 'registration-decorator-token',
     cardinality: 'zero-or-many',
-    specificInjectionTokenFactory: target =>
-      getSpecificInjectionToken2()({ id: target.id, speciality: target }),
-  }),
+  })(target =>
+    getSpecificInjectionToken2()({ id: target.id, speciality: target }),
+  ),
 );
 
 export const deregistrationDecoratorToken = untagged(
-  getAbstractInjectionToken2()({
+  getAbstractInjectionToken2({
     id: 'deregistration-decorator-token',
     cardinality: 'zero-or-many',
-    specificInjectionTokenFactory: target =>
-      getSpecificInjectionToken2()({ id: target.id, speciality: target }),
-  }),
+  })(target =>
+    getSpecificInjectionToken2()({ id: target.id, speciality: target }),
+  ),
 );
 
 export const preInjectCallbackToken = untagged(
-  getAbstractInjectionToken2()({
+  getAbstractInjectionToken2({
     id: 'pre-inject-callback-token',
     cardinality: 'zero-or-many',
-    specificInjectionTokenFactory: target =>
-      getSpecificInjectionToken2()({ id: target.id, speciality: target }),
-  }),
+  })(target =>
+    getSpecificInjectionToken2()({ id: target.id, speciality: target }),
+  ),
 );

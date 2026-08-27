@@ -146,10 +146,10 @@ describe('registeredInLocalScopeSubtree', () => {
   it('given an injectable2 scope with a nested scope registering an implementation, when asked from the outer scope, is true in subtree, but false in local scope', () => {
     let capturedOuterDi;
 
-    const someInjectionToken2 = getInjectionToken2()({
+    const someInjectionToken2 = getInjectionToken2({
       cardinality: 'zero-or-many',
       id: 'some-injection-token-2',
-    });
+    })();
 
     const someImplementation = getInjectable2({
       id: 'some-implementation',

@@ -19,10 +19,10 @@ describe('cardinality-of-injection-tokens', () => {
     let someToken;
 
     beforeEach(() => {
-      someToken = getInjectionToken2()({
+      someToken = getInjectionToken2({
         id: 'some-token',
         cardinality: 'one',
-      });
+      })();
     });
 
     it('when a .for() child is created, it inherits the cardinality', () => {
@@ -130,10 +130,10 @@ describe('cardinality-of-injection-tokens', () => {
     let someToken;
 
     beforeEach(() => {
-      someToken = getInjectionToken2()({
+      someToken = getInjectionToken2({
         id: 'some-token',
         cardinality: 'zero-or-one',
-      });
+      })();
     });
 
     it('when a second implementation is registered, throws', () => {
@@ -163,10 +163,10 @@ describe('cardinality-of-injection-tokens', () => {
     'given an injection token with cardinality "%s"',
     cardinality => {
       it('when multiple implementations are registered, does not throw', () => {
-        const someToken = getInjectionToken2()({
+        const someToken = getInjectionToken2({
           id: 'some-token',
           cardinality,
-        });
+        })();
 
         di.register(
           getInjectable2({
@@ -194,16 +194,16 @@ describe('cardinality-of-injection-tokens', () => {
     let someToken;
 
     beforeEach(() => {
-      someToken = getInjectionToken2()({
+      someToken = getInjectionToken2({
         id: 'some-token',
         cardinality: 'zero-or-many',
-        specificInjectionTokenFactory: specifier =>
-          getSpecificInjectionToken2()({
-            id: specifier,
-            speciality: specifier,
-            cardinality: 'one',
-          }),
-      });
+      })(specifier =>
+        getSpecificInjectionToken2()({
+          id: specifier,
+          speciality: specifier,
+          cardinality: 'one',
+        }),
+      );
     });
 
     it('when a .for() child is created, it carries the cardinality the factory declared', () => {
@@ -279,7 +279,7 @@ describe('cardinality-of-injection-tokens', () => {
   describe('creation-time validation', () => {
     it('when creating a token without cardinality, throws', () => {
       expect(() => {
-        getInjectionToken2()({ id: 'some-token' });
+        getInjectionToken2({ id: 'some-token' })();
       }).toThrow(
         'Tried to create injection token "some-token" without cardinality.',
       );
@@ -287,7 +287,7 @@ describe('cardinality-of-injection-tokens', () => {
 
     it('when creating a token with an unknown cardinality, throws', () => {
       expect(() => {
-        getInjectionToken2()({ id: 'some-token', cardinality: 'sometimes' });
+        getInjectionToken2({ id: 'some-token', cardinality: 'sometimes' })();
       }).toThrow(
         'Tried to create injection token "some-token" with unknown cardinality "sometimes".',
       );

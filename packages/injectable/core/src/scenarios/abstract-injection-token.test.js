@@ -17,10 +17,10 @@ describe('getAbstractInjectionToken2', () => {
     let abstractToken;
 
     beforeEach(() => {
-      abstractToken = getAbstractInjectionToken2()({
+      abstractToken = getAbstractInjectionToken2({
         cardinality: 'zero-or-many',
         id: 'some-abstract-token',
-      });
+      })();
     });
 
     it('when injecting directly with di.inject, throws', () => {
@@ -145,15 +145,15 @@ describe('getAbstractInjectionToken2', () => {
     let rootAbstractToken;
 
     beforeEach(() => {
-      rootAbstractToken = getAbstractInjectionToken2()({
+      rootAbstractToken = getAbstractInjectionToken2({
         cardinality: 'zero-or-many',
         id: 'root-abstract',
-        specificInjectionTokenFactory: specifier =>
-          getAbstractInjectionToken2()({
-            id: specifier,
-            speciality: specifier,
-          }),
-      });
+      })(specifier =>
+        getAbstractInjectionToken2({
+          id: specifier,
+          speciality: specifier,
+        })(),
+      );
     });
 
     describe('given .for() returns another abstract token', () => {
@@ -205,11 +205,10 @@ describe('getAbstractInjectionToken2', () => {
         getSpecificInjectionToken2()({ id: specifier, speciality: specifier }),
       );
 
-      const someAbstractToken = getAbstractInjectionToken2()({
+      const someAbstractToken = getAbstractInjectionToken2({
         cardinality: 'zero-or-many',
         id: 'some-abstract-token',
-        specificInjectionTokenFactory: specificTokenFactoryMock,
-      });
+      })(specificTokenFactoryMock);
 
       const someSpecificToken = someAbstractToken.for('some-specifier');
 

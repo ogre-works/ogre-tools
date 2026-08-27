@@ -6,10 +6,10 @@ import { instantiationDecoratorToken } from '../dependency-injection-container/t
 
 const performance = require('perf_hooks').performance;
 
-const someInjectionToken2 = getInjectionToken2()({
+const someInjectionToken2 = getInjectionToken2({
   cardinality: 'zero-or-many',
   id: 'some-injection-token-2',
-});
+})();
 
 // Mirror of override-pattern.performance-test.js using the injectable2/token2
 // API for the base injectables (the override itself is already injectable2

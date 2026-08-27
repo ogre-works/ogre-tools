@@ -24,10 +24,10 @@ describe('createContainer.pre-inject-callbacks', () => {
     let someToken;
 
     beforeEach(() => {
-      someToken = getInjectionToken2()({
+      someToken = getInjectionToken2({
         cardinality: 'zero-or-many',
         id: 'some-token',
-      });
+      })();
 
       const someInjectable = getInjectable2({
         id: 'some-injectable',
@@ -88,10 +88,10 @@ describe('createContainer.pre-inject-callbacks', () => {
 
   describe('given a callback targeting a token with multiple implementations', () => {
     it('when injecting many, the callback fires exactly once and not per element', () => {
-      const someToken = getInjectionToken2()({
+      const someToken = getInjectionToken2({
         cardinality: 'zero-or-many',
         id: 'some-token',
-      });
+      })();
 
       const implementations = ['a', 'b', 'c'].map(x =>
         getInjectable2({
@@ -120,10 +120,10 @@ describe('createContainer.pre-inject-callbacks', () => {
 
   describe('given a callback targeting a token with no implementations', () => {
     it('when the callback registers an implementation on demand, injecting via the token returns the just-in-time instance', () => {
-      const someToken = getInjectionToken2()({
+      const someToken = getInjectionToken2({
         cardinality: 'zero-or-many',
         id: 'some-token',
-      });
+      })();
 
       const someLazyInjectable = getInjectable2({
         id: 'some-lazy-injectable',
@@ -145,19 +145,19 @@ describe('createContainer.pre-inject-callbacks', () => {
     });
 
     it('without a callback, injecting via the unimplemented token throws', () => {
-      const someToken = getInjectionToken2()({
+      const someToken = getInjectionToken2({
         cardinality: 'zero-or-many',
         id: 'some-token',
-      });
+      })();
 
       expect(() => di.inject(someToken)).toThrow();
     });
 
     it('when the callback registers nothing, injecting many fires the callback and returns empty without throwing', () => {
-      const someToken = getInjectionToken2()({
+      const someToken = getInjectionToken2({
         cardinality: 'zero-or-many',
         id: 'some-token',
-      });
+      })();
 
       const callbackMock = jest.fn();
 
@@ -207,10 +207,10 @@ describe('createContainer.pre-inject-callbacks', () => {
     });
 
     it('a callback targeting the injectionToken tag fires for token injects and not for token-less injectable injects', () => {
-      const someToken = getInjectionToken2()({
+      const someToken = getInjectionToken2({
         cardinality: 'zero-or-many',
         id: 'some-token',
-      });
+      })();
 
       const someInjectable = getInjectable2({
         id: 'some-injectable',
@@ -398,10 +398,10 @@ describe('createContainer.pre-inject-callbacks', () => {
 
   describe('machinery exemption', () => {
     it('a callback targeting the injectionToken tag does not fire for its own resolution', () => {
-      const someToken = getInjectionToken2()({
+      const someToken = getInjectionToken2({
         cardinality: 'zero-or-many',
         id: 'some-token',
-      });
+      })();
 
       const someInjectable = getInjectable2({
         id: 'some-injectable',
@@ -433,11 +433,11 @@ describe('createContainer.pre-inject-callbacks', () => {
     it('the callback fires before the injection decorator wraps', () => {
       const order = [];
 
-      const someToken = getInjectionToken2()({
+      const someToken = getInjectionToken2({
         cardinality: 'zero-or-many',
         id: 'some-token',
         tags: ['some-tag'],
-      });
+      })();
 
       const someInjectable = getInjectable2({
         id: 'some-injectable',
