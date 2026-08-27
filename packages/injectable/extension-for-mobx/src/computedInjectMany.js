@@ -19,15 +19,15 @@ export const computedInjectManyWithMetaInjectionToken = getInjectionToken({
   id: 'computed-inject-many-with-meta',
 });
 
-export const computedInjectMany2InjectionToken = getInjectionToken2()({
+export const computedInjectMany2InjectionToken = getInjectionToken2({
   id: 'computed-inject-many-2',
   cardinality: 'one',
-});
+})();
 
-export const computedInjectManyWithMeta2InjectionToken = getInjectionToken2()({
+export const computedInjectManyWithMeta2InjectionToken = getInjectionToken2({
   id: 'computed-inject-many-with-meta-2',
   cardinality: 'one',
-});
+})();
 
 export const isInternalOfComputedInjectMany = Symbol(
   'isInternalOfComputedInjectMany',
