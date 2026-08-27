@@ -2,10 +2,7 @@ import createContainer from '../dependency-injection-container/createContainer';
 import getInjectable from '../getInjectable/getInjectable';
 import getInjectable2 from '../getInjectable2/getInjectable2';
 import { getInjectionToken } from '../getInjectionToken/getInjectionToken';
-import {
-  getInjectionToken2,
-  getSpecificInjectionToken2,
-} from '../getInjectionToken2/getInjectionToken2';
+import { getInjectionToken2 } from '../getInjectionToken2/getInjectionToken2';
 import lifecycleEnum from '../dependency-injection-container/lifecycleEnum';
 import {
   injectionDecoratorToken,
@@ -233,11 +230,11 @@ describe('createContainer.consumption-declarations', () => {
         id: 'some-general-token',
         cardinality: 'zero-or-many',
       })(specifier =>
-        getSpecificInjectionToken2()({
+        getInjectionToken2({
           id: specifier,
           speciality: specifier,
           cardinality: 'one',
-        }),
+        })(),
       );
 
       someConsumer = getInjectable2({

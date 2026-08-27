@@ -10,10 +10,7 @@ import {
   getSpecificInjectionToken,
 } from './src/getInjectionToken/getInjectionToken';
 
-import {
-  getInjectionToken2,
-  getSpecificInjectionToken2,
-} from './src/getInjectionToken2/getInjectionToken2';
+import { getInjectionToken2 } from './src/getInjectionToken2/getInjectionToken2';
 
 import isInjectionToken from './src/getInjectionToken/isInjectionToken';
 
@@ -50,7 +47,6 @@ export {
   getInjectionToken,
   getInjectionToken2,
   getSpecificInjectionToken,
-  getSpecificInjectionToken2,
   isInjectionToken,
   lifecycleEnum,
   toFlatInjectables,

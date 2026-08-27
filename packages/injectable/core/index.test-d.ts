@@ -783,7 +783,6 @@ const someInjectableFactory = <P>(id: string, lifecycle: Lifecycle<P>) =>
 import {
   getInjectable2,
   getInjectionToken2,
-  getSpecificInjectionToken2,
   SingleInjectionToken2,
   Consumption,
   ConsumptionDi,
@@ -805,8 +804,8 @@ import {
 // Shared default `.for(id)` factory, for tests that need a token with a
 // real, working `.for()` — a token built with no factory at all now has no
 // `.for` in its type, so tests that exercise `.for()` chaining must give one
-// explicitly. Matches `getSpecificInjectionToken2`'s own leaf shape — no
-// further `.for()` of its own.
+// explicitly. Matches `getInjectionToken2`'s speciality-carrying overload's
+// own leaf shape — no further `.for()` of its own.
 const idBasedSpecificToken2 = <
   F extends (...args: any[]) => any,
   MF extends AnyConsumptionFactory<F>,
@@ -1641,11 +1640,11 @@ const abstractHandlerToken = getInjectionToken2<(name: string) => void>(
   // Each specific token of this family is implemented once, which the factory
   // that builds those tokens declares.
   (specifier: string) =>
-    getSpecificInjectionToken2<(name: string) => void>()({
+    getInjectionToken2<(name: string) => void>({
       id: specifier,
       speciality: specifier,
       cardinality: 'one',
-    }),
+    })(),
 );
 
 // abstract token has correct type
@@ -1793,11 +1792,11 @@ const abstractTokenWithCurriedFactory = getInjectionToken2<
   id: 'abstract-token-with-curried-factory',
   cardinality: 'zero-or-many',
 })(<Speciality extends string>(speciality: Speciality) =>
-  getSpecificInjectionToken2<() => { someProperty: Speciality }>()({
+  getInjectionToken2<() => { someProperty: Speciality }>({
     id: speciality,
     speciality,
     cardinality: 'one',
-  }),
+  })(),
 );
 
 expectType<{ someProperty: 'some-speciality' }>(
@@ -1817,24 +1816,33 @@ expectError(
 
 // multi-level specificity, each level supplying its own factory — each
 // intermediate level is abstract, since it carries its own factory:
-// `.for('some-specifier-1').for(42)`
+// `.for('some-specifier-1').for(42)`. Level1/Level2 are deliberately plain
+// `string`/`number` here, not generic type parameters like the single-level
+// tests above: an *intermediate* level's factory going through
+// getInjectionToken2's speciality overload while itself returning another
+// generic factory (Level2) hits a real TS inference limit — the outer
+// call's generic gets widened to its constraint instead of narrowed per
+// specifier. Generic-specifier narrowing itself is already covered by the
+// single-level tests above; this one is about multi-level nesting and the
+// speciality fix, so it doesn't need to double as that demonstration too.
 const abstractTokenWithTwoLevels = getInjectionToken2<() => unknown>({
   id: 'abstract-token-with-two-levels',
   cardinality: 'zero-or-many',
-})(<Level1 extends string>(level1: Level1) =>
+})((level1: string) =>
   getInjectionToken2<() => unknown>({
     id: `abstract-token-with-two-levels-${level1}`,
+    speciality: level1,
     cardinality: 'zero-or-many',
-  })(<Level2 extends number>(level2: Level2) =>
-    getSpecificInjectionToken2<() => { level1: Level1; level2: Level2 }>()({
+  })((level2: number) =>
+    getInjectionToken2<() => { level1: string; level2: number }>({
       id: String(level2),
       speciality: level2,
       cardinality: 'one',
-    }),
+    })(),
   ),
 );
 
-expectType<{ level1: 'some-specifier-1'; level2: 42 }>(
+expectType<{ level1: string; level2: number }>(
   di.inject(abstractTokenWithTwoLevels.for('some-specifier-1').for(42)),
 );
 
@@ -2185,19 +2193,19 @@ expectError(
 
 // given a specific token built with an unknown cardinality, it is not OK
 expectError(
-  getSpecificInjectionToken2<GetGreeting>()({
+  getInjectionToken2<GetGreeting>({
     id: 'unknown-specific-cardinality',
     speciality: 'some-speciality',
     cardinality: 'sometimes',
-  }),
+  })(),
 );
 
 // a specific token may omit the cardinality, inheriting its family's
 expectType<Cardinality | undefined>(
-  getSpecificInjectionToken2<GetGreeting>()({
+  getInjectionToken2<GetGreeting>({
     id: 'inheriting-specific',
     speciality: 'some-speciality',
-  }).cardinality,
+  })().cardinality,
 );
 
 // given options built up separately, whose cardinality widened to `string`,
@@ -2290,11 +2298,11 @@ const heteroCardinalityToken = getInjectionToken2<GetGreeting>({
   id: 'hetero-cardinality',
   cardinality: 'zero-or-many',
 })((specifier: string) =>
-  getSpecificInjectionToken2<GetGreeting>()({
+  getInjectionToken2<GetGreeting>({
     id: specifier,
     speciality: specifier,
     cardinality: 'one',
-  }),
+  })(),
 );
 
 expectType<'zero-or-many' | undefined>(heteroCardinalityToken.cardinality);
@@ -2735,11 +2743,11 @@ const familyToken = getInjectionToken2<GetGreeting>({
   id: 'family',
   cardinality: 'zero-or-many',
 })((specifier: string) =>
-  getSpecificInjectionToken2<GetGreeting>()({
+  getInjectionToken2<GetGreeting>({
     id: specifier,
     speciality: specifier,
     cardinality: 'one',
-  }),
+  })(),
 );
 
 getInjectable2({
