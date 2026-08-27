@@ -40,8 +40,13 @@ const buildToken = ({
     aliasType: injectionTokenSymbol2,
 
     // No factory means no `.for()` at all, matching the type: a token isn't
-    // required to be part of a family.
+    // required to be part of a family. A factory also makes the token
+    // abstract: it's only ever useful resolved via a real `.for()`, so it
+    // cannot be injected/registered directly — see checkForAbstractTokenFor
+    // and register.js's `injectionToken?.abstract` check.
     ...(specificInjectionTokenFactory && {
+      abstract: true,
+
       for: (...specifiers) => {
         const memoizedToken =
           specifiers.length === 1
@@ -94,12 +99,13 @@ const buildToken = ({
 export const getInjectionToken2 = (...args) => {
   // A single, non-curried call: options given directly, factory curried as
   // its own trailing call — getInjectionToken2(options)(factory), or
-  // getInjectionToken2(options)() for the default factory. The explicit-SF
-  // escape hatch (getInjectionToken2<F, MF, SF>(options)) uses this exact
-  // same shape, factory just optional on the trailing call instead of
-  // required — nothing distinguishes them at runtime, since SF being spelled
-  // out explicitly vs inferred from the factory value is erased by the time
-  // this code runs.
+  // getInjectionToken2(options)() for a concrete token with no `.for()` at
+  // all. Passing a factory also makes the token abstract — see buildToken.
+  // The explicit-SF escape hatch (getInjectionToken2<F, MF, SF>(options))
+  // uses this exact same shape, factory just optional on the trailing call
+  // instead of required — nothing distinguishes them at runtime, since SF
+  // being spelled out explicitly vs inferred from the factory value is
+  // erased by the time this code runs.
   if (args.length !== 1) {
     throw new Error(
       `Tried to create injection token${
@@ -123,11 +129,8 @@ export const getSpecificInjectionToken2 = (...unexpectedArgs) => {
     );
   }
 
-  return options => getInjectionToken2(options)(getSpecificToken2ById);
+  // No factory: a specific token created this way is always a concrete leaf,
+  // directly injectable/registerable. Passing a factory here would make it
+  // abstract instead, so this is left for callers to opt into explicitly.
+  return options => getInjectionToken2(options)();
 };
-
-// The recursive default `.for(id)` factory: a specific token always has a
-// working `.for()`, so this is passed explicitly wherever that default is
-// needed, rather than relying on an implicit fallback deep in buildToken.
-const getSpecificToken2ById = id =>
-  getInjectionToken2({ id, speciality: id })(getSpecificToken2ById);

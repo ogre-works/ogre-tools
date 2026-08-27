@@ -4,10 +4,9 @@ import {
   getInjectionToken2,
   getSpecificInjectionToken2,
 } from '../getInjectionToken2/getInjectionToken2';
-import { getAbstractInjectionToken2 } from '../getInjectionToken2/getAbstractInjectionToken2';
 import { idBasedSpecificToken2 } from '../test-utils/idBasedSpecificToken2';
 
-describe('getAbstractInjectionToken2', () => {
+describe('abstract injection tokens (getInjectionToken2 with a factory)', () => {
   let di;
 
   beforeEach(() => {
@@ -18,7 +17,7 @@ describe('getAbstractInjectionToken2', () => {
     let abstractToken;
 
     beforeEach(() => {
-      abstractToken = getAbstractInjectionToken2({
+      abstractToken = getInjectionToken2({
         cardinality: 'zero-or-many',
         id: 'some-abstract-token',
       })(idBasedSpecificToken2);
@@ -146,11 +145,11 @@ describe('getAbstractInjectionToken2', () => {
     let rootAbstractToken;
 
     beforeEach(() => {
-      rootAbstractToken = getAbstractInjectionToken2({
+      rootAbstractToken = getInjectionToken2({
         cardinality: 'zero-or-many',
         id: 'root-abstract',
       })(specifier =>
-        getAbstractInjectionToken2({
+        getInjectionToken2({
           id: specifier,
           speciality: specifier,
         })(idBasedSpecificToken2),
@@ -206,7 +205,7 @@ describe('getAbstractInjectionToken2', () => {
         getSpecificInjectionToken2()({ id: specifier, speciality: specifier }),
       );
 
-      const someAbstractToken = getAbstractInjectionToken2({
+      const someAbstractToken = getInjectionToken2({
         cardinality: 'zero-or-many',
         id: 'some-abstract-token',
       })(specificTokenFactoryMock);

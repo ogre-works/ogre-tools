@@ -26,7 +26,7 @@ describe('createContainer.injectMaybe', () => {
       di.register(
         getInjectable2({
           id: 'some-injectable',
-          injectionToken: someMaybeToken,
+          injectionToken: someMaybeToken.for('some-specifier'),
           instantiate: () => () => 'some-instance',
         }),
       );
@@ -42,7 +42,7 @@ describe('createContainer.injectMaybe', () => {
       di.register(
         getInjectable2({
           id: 'some-injectable',
-          injectionToken: someMaybeToken,
+          injectionToken: someMaybeToken.for('some-specifier'),
           instantiate: () => () => 'some-instance',
         }),
       );
@@ -53,7 +53,7 @@ describe('createContainer.injectMaybe', () => {
     it('when the implementation is deregistered, invoking the factory again returns undefined', () => {
       const someInjectable = getInjectable2({
         id: 'some-injectable',
-        injectionToken: someMaybeToken,
+        injectionToken: someMaybeToken.for('some-specifier'),
         instantiate: () => () => 'some-instance',
       });
 
@@ -72,7 +72,7 @@ describe('createContainer.injectMaybe', () => {
       di.register(
         getInjectable2({
           id: 'some-injectable',
-          injectionToken: someMaybeToken,
+          injectionToken: someMaybeToken.for('some-specifier'),
           instantiate: () => (someParameter, someOtherParameter) =>
             `some-instance: ${someParameter}, ${someOtherParameter}`,
         }),
@@ -101,7 +101,7 @@ describe('createContainer.injectMaybe', () => {
       di.register(
         getInjectable2({
           id: 'some-injectable',
-          injectionToken: someMaybeToken,
+          injectionToken: someMaybeToken.for('some-specifier'),
           instantiate: () => () => 'some-instance',
         }),
       );
@@ -195,7 +195,7 @@ describe('createContainer.injectMaybe', () => {
 
         getInjectable2({
           id: 'some-injectable',
-          injectionToken: someMaybeToken,
+          injectionToken: someMaybeToken.for('some-specifier'),
           instantiate: () => () => 'some-instance',
         }),
       );
