@@ -78,10 +78,10 @@ describe('factory-shape computed-inject-2 variants', () => {
     });
 
     it('given v2 token with a param, fn(token) returns a factory that accepts the param', () => {
-      const someToken2 = getInjectionToken2()({
+      const someToken2 = getInjectionToken2({
         id: 'many-2-v2-token',
         cardinality: 'zero-or-many',
-      });
+      })();
 
       const impl = getInjectable2({
         id: 'v2-impl',
@@ -110,10 +110,10 @@ describe('factory-shape computed-inject-2 variants', () => {
       let stop;
 
       beforeEach(() => {
-        tupleToken2 = getInjectionToken2()({
+        tupleToken2 = getInjectionToken2({
           id: 'many-2-tuple-token',
           cardinality: 'zero-or-many',
-        });
+        })();
 
         const firstTupleImpl = getInjectable2({
           id: 'first-tuple-impl',
@@ -252,10 +252,10 @@ describe('factory-shape computed-inject-2 variants', () => {
     });
 
     it('given v2 token with a param, fn(token) returns a factory that accepts the param', () => {
-      const someToken2 = getInjectionToken2()({
+      const someToken2 = getInjectionToken2({
         id: 'maybe-2-v2-token',
         cardinality: 'zero-or-one',
-      });
+      })();
 
       const impl = getInjectable2({
         id: 'maybe-v2-impl',
@@ -281,10 +281,10 @@ describe('factory-shape computed-inject-2 variants', () => {
     });
 
     it('given a v2 token whose cardinality is not "zero-or-one", fn(token) throws', () => {
-      const someManyToken2 = getInjectionToken2()({
+      const someManyToken2 = getInjectionToken2({
         id: 'maybe-2-many-token',
         cardinality: 'zero-or-many',
-      });
+      })();
 
       const computedInjectMaybe2 = di.inject2(
         computedInjectMaybe2InjectionToken,
@@ -298,10 +298,10 @@ describe('factory-shape computed-inject-2 variants', () => {
     });
 
     it('given a v2 zero-or-one token, registering and deregistering the implementation flips the observed value reactively', () => {
-      const someToken2 = getInjectionToken2()({
+      const someToken2 = getInjectionToken2({
         id: 'maybe-2-reactive-token',
         cardinality: 'zero-or-one',
-      });
+      })();
 
       const impl = getInjectable2({
         id: 'maybe-2-reactive-impl',
