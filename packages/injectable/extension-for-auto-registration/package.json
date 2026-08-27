@@ -35,8 +35,8 @@
     "lodash": "^4.17.21"
   },
   "peerDependencies": {
-    "@ogre-tools/fp": "^16 || ^17 || ^18 || ^19 || ^20 || ^21 || ^22 || ^23 || ^24 || ^25",
-    "@ogre-tools/injectable": "^16 || ^17 || ^18 || ^19 || ^20 || ^21 || ^22 || ^23 || ^24 || ^25"
+    "@ogre-tools/fp": "^16 || ^17 || ^18 || ^19 || ^20 || ^21 || ^22 || ^23 || ^24 || ^25 || ^26",
+    "@ogre-tools/injectable": "^16 || ^17 || ^18 || ^19 || ^20 || ^21 || ^22 || ^23 || ^24 || ^25 || ^26"
   },
   "bugs": {
     "url": "https://github.com/ogre-works/ogre-tools/issues"
