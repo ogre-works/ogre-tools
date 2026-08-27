@@ -3,6 +3,42 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [26.0.0](https://github.com/ogre-works/ogre-tools/compare/v25.1.0...v26.0.0) (2026-08-27)
+
+### ⚠ BREAKING CHANGES
+
+- getAbstractInjectionToken2 and
+  getAbstractInjectionTokenComponent2 are removed — abstractness is now
+  automatic: getInjectionToken2(options)(factory) builds an abstract
+  token, and getInjectionToken2(options)() builds a concrete token with
+  no .for() at all. getSpecificInjectionToken2 and
+  getSpecificInjectionTokenComponent2 are removed too — options carrying
+  speciality on the base creators build a specific token directly, and
+  may also take a factory so a specific token can root a nested family.
+  The implicit recursive default .for() factory is gone: tokens are
+  leaves by default, and deeper .for() chains supply an explicit
+  recursive factory, which makes the intermediate levels abstract. The
+  AbstractInjectionToken2 type is folded into InjectionToken2, keyed on
+  its SpecificFactory parameter, and the hybrid pattern (a directly
+  injectable token that also carries a real .for() factory) is retired.
+
+### Features
+
+- **injectable:** Flatten getInjectionToken2's explicit-SF overload ([925c48d](https://github.com/ogre-works/ogre-tools/commit/925c48dc8f08cb9a3e88cbc84d3e3c5febf934c5))
+- **injectable:** Fold getSpecificInjectionToken2 into getInjectionToken2 ([7fe5e7c](https://github.com/ogre-works/ogre-tools/commit/7fe5e7cb7694453a9802a0a8602e8fee49bc1e9b))
+- **injectable:** Infer generic .for() factories on getAbstractInjectionToken2 ([1359e1d](https://github.com/ogre-works/ogre-tools/commit/1359e1d61d796dd6324dc616ef50a4c9f3059383))
+- **injectable:** Infer generic .for() factories via a curried factory call ([8c6a4b5](https://github.com/ogre-works/ogre-tools/commit/8c6a4b5037ae3de09da7fd73b27393af423794ea))
+- **injectable:** Make getAbstractInjectionToken2 automatic and remove it ([1f2f8c8](https://github.com/ogre-works/ogre-tools/commit/1f2f8c8dab8d63f560475d38478cec0a9d7ae643))
+- **injectable:** Make no-factory injection tokens have no .for() at all ([fcb12b0](https://github.com/ogre-works/ogre-tools/commit/fcb12b0823ddda76365434f8e243cf3df4e49397))
+
+### Bug Fixes
+
+- **injectable:** Remove the SF default that erased nested generic .for() factories ([1b6be42](https://github.com/ogre-works/ogre-tools/commit/1b6be42e93958719b2366ed3a6884b160d26a097))
+
+### Miscellaneous Chores
+
+- Prepare for major version release ([8c0a723](https://github.com/ogre-works/ogre-tools/commit/8c0a7233028326f65433f25cd65de9cce4adaadb))
+
 ## [25.1.0](https://github.com/ogre-works/ogre-tools/compare/v25.0.0...v25.1.0) (2026-08-26)
 
 ### Features

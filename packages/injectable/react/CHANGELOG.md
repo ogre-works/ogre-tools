@@ -3,6 +3,41 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [26.0.0](https://github.com/ogre-works/ogre-tools/compare/v25.1.0...v26.0.0) (2026-08-27)
+
+### ⚠ BREAKING CHANGES
+
+- getAbstractInjectionToken2 and
+  getAbstractInjectionTokenComponent2 are removed — abstractness is now
+  automatic: getInjectionToken2(options)(factory) builds an abstract
+  token, and getInjectionToken2(options)() builds a concrete token with
+  no .for() at all. getSpecificInjectionToken2 and
+  getSpecificInjectionTokenComponent2 are removed too — options carrying
+  speciality on the base creators build a specific token directly, and
+  may also take a factory so a specific token can root a nested family.
+  The implicit recursive default .for() factory is gone: tokens are
+  leaves by default, and deeper .for() chains supply an explicit
+  recursive factory, which makes the intermediate levels abstract. The
+  AbstractInjectionToken2 type is folded into InjectionToken2, keyed on
+  its SpecificFactory parameter, and the hybrid pattern (a directly
+  injectable token that also carries a real .for() factory) is retired.
+
+### Features
+
+- **injectable-react:** Make component token creators consistent with core ([01b38cb](https://github.com/ogre-works/ogre-tools/commit/01b38cb29479a683b21d5b08a17e93e593d41467))
+- **injectable-react:** Mirror the automatic-abstract change for component tokens ([638ff77](https://github.com/ogre-works/ogre-tools/commit/638ff779ef489c7447ec463b1c54f87d7e1e69a9))
+- **injectable-react:** Mirror the getSpecificInjectionToken2 fold for component tokens ([e1c3fa3](https://github.com/ogre-works/ogre-tools/commit/e1c3fa386db95ee408db0f9b1c8e97156d8c90ca))
+- **injectable-react:** Mirror the no-factory .for() change for component tokens ([0d2032b](https://github.com/ogre-works/ogre-tools/commit/0d2032b03a409f306184d94a9e3347f2eee35b24))
+- **injectable:** Make getAbstractInjectionToken2 automatic and remove it ([1f2f8c8](https://github.com/ogre-works/ogre-tools/commit/1f2f8c8dab8d63f560475d38478cec0a9d7ae643))
+
+### Bug Fixes
+
+- **injectable-react:** Mirror the SF-default removal for component tokens ([64a9e7e](https://github.com/ogre-works/ogre-tools/commit/64a9e7efed83e5f0aaff1967c121fd08208385a6))
+
+### Miscellaneous Chores
+
+- Prepare for major version release ([8c0a723](https://github.com/ogre-works/ogre-tools/commit/8c0a7233028326f65433f25cd65de9cce4adaadb))
+
 ## [25.1.0](https://github.com/ogre-works/ogre-tools/compare/v25.0.0...v25.1.0) (2026-08-26)
 
 **Note:** Version bump only for package @ogre-tools/injectable-react
