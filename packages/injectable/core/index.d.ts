@@ -955,11 +955,15 @@ export interface GetInjectionToken2OptionsWithoutFactory {
 // that factory's own generic signature intact in `SF` — an *optional* slot
 // (property or positional parameter) collapses a generic factory's signature
 // instead, which is why this is two genuine overloads rather than one
-// optional parameter. `SF` keeps its default on the required overload too,
-// even though it's never actually used there: dropping it makes TS widen a
-// *non*-generic factory's own nested inference (e.g. a `.for()` returning
-// `getSpecificInjectionToken2<F>()({ cardinality: 'one', ... })`) to the
-// bounds of its constraint instead of the literal `'one'` it was given.
+// optional parameter. `SF` must NOT have a default either: a default doubles
+// as the contextual signature for the factory argument whenever this call
+// sits inside another factory that is itself being inferred (a multi-level
+// `.for()` family), and TS instantiates a generic factory against that
+// non-generic contextual signature — erasing its type parameters to `any`
+// and losing every level's per-specifier narrowing with them. The default
+// that used to sit here guarded the old getSpecificInjectionToken2's
+// literal-cardinality inference from widening; that creator is folded away
+// and cardinality is now an overload discriminant, so nothing needs it.
 export interface InjectionToken2FactoryCall<
   F extends Factory,
   MF extends AnyConsumptionFactory<F>,
@@ -967,10 +971,7 @@ export interface InjectionToken2FactoryCall<
 > {
   (): InjectionToken2<F, MF, undefined, C>;
 
-  <
-    SF extends (...args: any[]) => SpecificInjectionToken2<F, any, any, any> =
-      (id: string) => SpecificInjectionToken2<F, DefaultConsumptionFactory<C, F>, undefined, C>,
-  >(
+  <SF extends (...args: any[]) => SpecificInjectionToken2<F, any, any, any>>(
     specificInjectionTokenFactory: SF,
   ): InjectionToken2<F, MF, SF, C>;
 }
@@ -1096,10 +1097,7 @@ export interface SpecificInjectionToken2FactoryCall<
 > {
   (): SpecificInjectionToken2<F, MF, undefined, C>;
 
-  <
-    SF extends (...args: any[]) => SpecificInjectionToken2<F, any, any, any> =
-      (id: string) => SpecificInjectionToken2<F, DefaultConsumptionFactory<C, F>, undefined, C>,
-  >(
+  <SF extends (...args: any[]) => SpecificInjectionToken2<F, any, any, any>>(
     specificInjectionTokenFactory: SF,
   ): SpecificInjectionToken2<F, MF, SF, C>;
 }

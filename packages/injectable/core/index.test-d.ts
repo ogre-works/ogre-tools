@@ -1816,15 +1816,11 @@ expectError(
 
 // multi-level specificity, each level supplying its own factory — each
 // intermediate level is abstract, since it carries its own factory:
-// `.for('some-specifier-1').for(42)`. Level1/Level2 are deliberately plain
-// `string`/`number` here, not generic type parameters like the single-level
-// tests above: an *intermediate* level's factory going through
-// getInjectionToken2's speciality overload while itself returning another
-// generic factory (Level2) hits a real TS inference limit — the outer
-// call's generic gets widened to its constraint instead of narrowed per
-// specifier. Generic-specifier narrowing itself is already covered by the
-// single-level tests above; this one is about multi-level nesting and the
-// speciality fix, so it doesn't need to double as that demonstration too.
+// `.for('some-specifier-1').for(42)`. Level1/Level2 are plain
+// `string`/`number` here — the non-generic shape must keep inferring
+// cleanly through nesting without any default on the factory-call's `SF`
+// (see the comment on `InjectionToken2FactoryCall`); the generic shape has
+// its own test right below.
 const abstractTokenWithTwoLevels = getInjectionToken2<() => unknown>({
   id: 'abstract-token-with-two-levels',
   cardinality: 'zero-or-many',
@@ -1844,6 +1840,34 @@ const abstractTokenWithTwoLevels = getInjectionToken2<() => unknown>({
 
 expectType<{ level1: string; level2: number }>(
   di.inject(abstractTokenWithTwoLevels.for('some-specifier-1').for(42)),
+);
+
+// the same two-level family with *generic* factories at both levels: each
+// `.for()` must narrow per-value, all the way down. This is the regression
+// test for the erasure a default on the factory-call's `SF` used to cause —
+// an intermediate level's generic factory, checked while the outer factory
+// was itself being inferred, got its type parameters instantiated to `any`
+// against the default's non-generic contextual signature, losing every
+// level's narrowing (see the comment on `InjectionToken2FactoryCall`).
+const abstractTokenWithTwoGenericLevels = getInjectionToken2<() => unknown>({
+  id: 'abstract-token-with-two-generic-levels',
+  cardinality: 'zero-or-many',
+})(<Level1 extends string>(level1: Level1) =>
+  getInjectionToken2<() => unknown>({
+    id: `abstract-token-with-two-generic-levels-${level1}`,
+    speciality: level1,
+    cardinality: 'zero-or-many',
+  })(<Level2 extends number>(level2: Level2) =>
+    getInjectionToken2<() => { level1: Level1; level2: Level2 }>({
+      id: String(level2),
+      speciality: level2,
+      cardinality: 'one',
+    })(),
+  ),
+);
+
+expectType<{ level1: 'some-specifier-1'; level2: 42 }>(
+  di.inject(abstractTokenWithTwoGenericLevels.for('some-specifier-1').for(42)),
 );
 
 // ======================================================================
