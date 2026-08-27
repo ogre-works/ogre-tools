@@ -2,6 +2,7 @@ import createContainer from '../dependency-injection-container/createContainer';
 import getInjectable2 from '../getInjectable2/getInjectable2';
 import { getInjectionToken2 } from '../getInjectionToken2/getInjectionToken2';
 import { preInjectCallbackToken } from '../dependency-injection-container/tokens';
+import { idBasedSpecificToken2 } from '../test-utils/idBasedSpecificToken2';
 
 describe('createContainer.injectMaybe', () => {
   let di;
@@ -13,7 +14,7 @@ describe('createContainer.injectMaybe', () => {
     someMaybeToken = getInjectionToken2({
       id: 'some-maybe-token',
       cardinality: 'zero-or-one',
-    })();
+    })(idBasedSpecificToken2);
   });
 
   describe('given a token with cardinality "zero-or-one"', () => {

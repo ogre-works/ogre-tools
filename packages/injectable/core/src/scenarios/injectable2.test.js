@@ -4,6 +4,7 @@ import createContainer from '../dependency-injection-container/createContainer';
 import { getInjectionToken } from '../getInjectionToken/getInjectionToken';
 import { getInjectionToken2 } from '../getInjectionToken2/getInjectionToken2';
 import lifecycleEnum from '../dependency-injection-container/lifecycleEnum';
+import { idBasedSpecificToken2 } from '../test-utils/idBasedSpecificToken2';
 
 describe('getInjectable2', () => {
   let di;
@@ -522,7 +523,7 @@ describe('getInjectable2', () => {
           cardinality: 'zero-or-many',
           id: 'lru-general-token2',
           maxCacheSize: 2,
-        })();
+        })(idBasedSpecificToken2);
 
         const specificToken = generalToken.for('specific');
 

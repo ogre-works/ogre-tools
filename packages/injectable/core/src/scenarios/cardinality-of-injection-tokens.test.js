@@ -7,6 +7,7 @@ import {
   getSpecificInjectionToken2,
 } from '../getInjectionToken2/getInjectionToken2';
 import lifecycleEnum from '../dependency-injection-container/lifecycleEnum';
+import { idBasedSpecificToken2 } from '../test-utils/idBasedSpecificToken2';
 
 describe('cardinality-of-injection-tokens', () => {
   let di;
@@ -22,7 +23,7 @@ describe('cardinality-of-injection-tokens', () => {
       someToken = getInjectionToken2({
         id: 'some-token',
         cardinality: 'one',
-      })();
+      })(idBasedSpecificToken2);
     });
 
     it('when a .for() child is created, it inherits the cardinality', () => {

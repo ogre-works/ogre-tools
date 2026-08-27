@@ -8,8 +8,7 @@ const buildAbstractToken = ({ specificInjectionTokenFactory, ...options }) => {
 
 export const getAbstractInjectionToken2 = (...args) => {
   // A single, non-curried call: options given directly, factory curried as
-  // its own trailing call — getAbstractInjectionToken2(options)(factory),
-  // or getAbstractInjectionToken2(options)() for the default factory. The
+  // its own trailing call — getAbstractInjectionToken2(options)(factory). The
   // explicit-SF escape hatch (getAbstractInjectionToken2<F, MF, SF>(options))
   // uses this exact same shape — see the comment on getInjectionToken2.
   if (args.length !== 1) {
@@ -24,6 +23,18 @@ export const getAbstractInjectionToken2 = (...args) => {
 
   const [options] = args;
 
-  return specificInjectionTokenFactory =>
-    buildAbstractToken({ ...options, specificInjectionTokenFactory });
+  return specificInjectionTokenFactory => {
+    // Abstract tokens make the factory mandatory: a family is only ever
+    // useful resolved via a real `.for()`, unlike a plain injection token,
+    // which may legitimately have no `.for()` at all.
+    if (specificInjectionTokenFactory === undefined) {
+      throw new Error(
+        `Tried to create abstract injection token${
+          options?.id ? ` "${options.id}"` : ''
+        } without a specificInjectionTokenFactory; abstract tokens require one.`,
+      );
+    }
+
+    return buildAbstractToken({ ...options, specificInjectionTokenFactory });
+  };
 };
