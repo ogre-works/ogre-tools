@@ -1,9 +1,6 @@
 import getInjectable2 from '../getInjectable2/getInjectable2';
 import createContainer from '../dependency-injection-container/createContainer';
-import {
-  getInjectionToken2,
-  getSpecificInjectionToken2,
-} from '../getInjectionToken2/getInjectionToken2';
+import { getInjectionToken2 } from '../getInjectionToken2/getInjectionToken2';
 import { idBasedSpecificToken2 } from '../test-utils/idBasedSpecificToken2';
 
 describe('abstract injection tokens (getInjectionToken2 with a factory)', () => {
@@ -202,7 +199,7 @@ describe('abstract injection tokens (getInjectionToken2 with a factory)', () => 
       // The factory must be pure and deterministic — repeat .for() calls for
       // a seen specifier are served from a memo without calling it again.
       const specificTokenFactoryMock = jest.fn(specifier =>
-        getSpecificInjectionToken2()({ id: specifier, speciality: specifier }),
+        getInjectionToken2({ id: specifier, speciality: specifier })(),
       );
 
       const someAbstractToken = getInjectionToken2({

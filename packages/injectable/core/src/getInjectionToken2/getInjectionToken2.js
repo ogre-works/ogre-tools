@@ -106,6 +106,14 @@ export const getInjectionToken2 = (...args) => {
   // instead of required — nothing distinguishes them at runtime, since SF
   // being spelled out explicitly vs inferred from the factory value is
   // erased by the time this code runs.
+  //
+  // A `speciality` in options builds a specific token directly — this is how
+  // getSpecificInjectionToken2 used to be its own function; folded in here
+  // since buildToken already threads `speciality` through via `...rest`
+  // regardless of which creator is called. Unlike the old
+  // getSpecificInjectionToken2, this also accepts a factory, so a specific
+  // token can itself be a family root for nested specificity — see the
+  // comment on buildToken for why that makes it abstract too.
   if (args.length !== 1) {
     throw new Error(
       `Tried to create injection token${
@@ -120,17 +128,4 @@ export const getInjectionToken2 = (...args) => {
 
   return specificInjectionTokenFactory =>
     buildToken({ ...options, specificInjectionTokenFactory });
-};
-
-export const getSpecificInjectionToken2 = (...unexpectedArgs) => {
-  if (unexpectedArgs.length > 0) {
-    throw new Error(
-      `Tried to create specific injection token "${unexpectedArgs[0]?.id}" by passing options to the first call, but getSpecificInjectionToken2 is curried: use getSpecificInjectionToken2()(options).`,
-    );
-  }
-
-  // No factory: a specific token created this way is always a concrete leaf,
-  // directly injectable/registerable. Passing a factory here would make it
-  // abstract instead, so this is left for callers to opt into explicitly.
-  return options => getInjectionToken2(options)();
 };
