@@ -28,8 +28,6 @@ import {
   TypedSpecifier,
   TypedSpecifierType,
   TypedSpecifierWithType,
-  getAbstractInjectionToken2,
-  AbstractInjectionToken2,
 } from '.';
 
 const di = createContainer('some-container');
@@ -802,19 +800,18 @@ import {
   SpecificInjectionToken2,
   DiContainerForInjection2,
   AnyConsumptionFactory,
-  DefaultSpecificFactory2,
 } from '.';
 
 // Shared default `.for(id)` factory, for tests that need a token with a
 // real, working `.for()` — a token built with no factory at all now has no
-// `.for` in its type, so tests that exercise `.for()` chaining or match
-// against a for-bearing annotation (`SingleInjectionToken2`, etc.) must give
-// one explicitly.
+// `.for` in its type, so tests that exercise `.for()` chaining must give one
+// explicitly. Matches `getSpecificInjectionToken2`'s own leaf shape — no
+// further `.for()` of its own.
 const idBasedSpecificToken2 = <
   F extends (...args: any[]) => any,
   MF extends AnyConsumptionFactory<F>,
   C extends Cardinality,
->() => null as any as DefaultSpecificFactory2<F, MF, C>;
+>() => null as any as (id: string) => SpecificInjectionToken2<F, MF, undefined, C>;
 
 // --- getInjectable2: non-parametric singleton ---
 
@@ -878,18 +875,18 @@ expectType<(x: number) => number>(di.inject(functionInstanceInjectable2));
 const handlerToken2 = getInjectionToken2<() => string>({
   id: 'handler',
   cardinality: 'one',
-})(idBasedSpecificToken2<() => string, ManyFactory<() => string>, 'one'>());
+})();
 
 const handlerManyToken2 = getInjectionToken2<() => string>({
   id: 'handler-many',
   cardinality: 'zero-or-many',
-})(idBasedSpecificToken2<() => string, ManyFactory<() => string>, 'zero-or-many'>());
+})();
 
 // The bare annotation means "a token of some cardinality", so a declared token
 // is assignable to it but not identical to it.
 expectAssignable<InjectionToken2<() => string>>(handlerToken2);
-expectType<SingleInjectionToken2<() => string>>(handlerToken2);
-expectType<ManyInjectionToken2<() => string>>(handlerManyToken2);
+expectAssignable<SingleInjectionToken2<() => string>>(handlerToken2);
+expectAssignable<ManyInjectionToken2<() => string>>(handlerManyToken2);
 
 // public di.inject returns instance
 expectType<string>(di.inject(handlerToken2));
@@ -908,14 +905,14 @@ const userServiceToken2 = getInjectionToken2<
 >({
   id: 'user-service',
   cardinality: 'one',
-})(idBasedSpecificToken2<(userId: string) => { id: string }, ManyFactory<(userId: string) => { id: string }>, 'one'>());
+})();
 
 const userServiceManyToken2 = getInjectionToken2<
   (userId: string) => { id: string }
 >({
   id: 'user-service-many',
   cardinality: 'zero-or-many',
-})(idBasedSpecificToken2<(userId: string) => { id: string }, ManyFactory<(userId: string) => { id: string }>, 'zero-or-many'>());
+})();
 
 expectType<{ id: string }>(di.inject(userServiceToken2, 'user-123'));
 expectType<{ id: string }[]>(di.injectMany(userServiceManyToken2, 'user-123'));
@@ -1178,7 +1175,7 @@ const generalToken2WithSpecifier = getInjectionToken2<
   ) => SpecificInjectionToken2<
     (arg: TypedSpecifierType<'someType', S>) => boolean,
     (arg: TypedSpecifierType<'someType', S>) => boolean[],
-    any,
+    undefined,
     // Children of this family are consumed singly, whatever the general
     // token's own cardinality is.
     'one'
@@ -1633,9 +1630,9 @@ expectError(
   }),
 );
 
-// ---- AbstractInjectionToken2 ----
+// ---- Abstract tokens (getInjectionToken2 with a factory) ----
 
-const abstractHandlerToken = getAbstractInjectionToken2<(name: string) => void>(
+const abstractHandlerToken = getInjectionToken2<(name: string) => void>(
   {
     id: 'abstract-handler',
     cardinality: 'zero-or-many',
@@ -1652,7 +1649,7 @@ const abstractHandlerToken = getAbstractInjectionToken2<(name: string) => void>(
 );
 
 // abstract token has correct type
-expectAssignable<AbstractInjectionToken2<(name: string) => void>>(
+expectAssignable<InjectionToken2<(name: string) => void>>(
   abstractHandlerToken,
 );
 
@@ -1725,13 +1722,14 @@ getInjectable2({
   instantiate: () => (name: string) => {},
 });
 
-// --- AbstractInjectionToken2 with a `.for()` that narrows per specifier ---
+// --- Abstract token (has a factory) with a `.for()` that narrows per specifier ---
 
-// Same shape as `generalToken2WithSpecifier`, but through
-// `getAbstractInjectionToken2`: the abstract creator's explicit-SF overload
-// lets a `.for()` factory mention the specifier's own type parameter, which
-// inference from the value alone cannot reconstruct.
-const abstractTokenWithSpecifier = getAbstractInjectionToken2<
+// Same shape as `generalToken2WithSpecifier`, but through the explicit-SF
+// overload with a real factory: it lets a `.for()` factory mention the
+// specifier's own type parameter, which inference from the value alone
+// cannot reconstruct — and since a real factory type is given, the token is
+// abstract.
+const abstractTokenWithSpecifier = getInjectionToken2<
   (arg: unknown) => boolean,
   (arg: unknown) => boolean[],
   <S extends TypedSpecifierWithType<'someAbstractType'>>(
@@ -1739,7 +1737,7 @@ const abstractTokenWithSpecifier = getAbstractInjectionToken2<
   ) => SpecificInjectionToken2<
     (arg: TypedSpecifierType<'someAbstractType', S>) => boolean,
     (arg: TypedSpecifierType<'someAbstractType', S>) => boolean[],
-    any,
+    undefined,
     'one'
   >
 >({
@@ -1787,9 +1785,9 @@ expectError(di.injectMany2(specificFromAbstractWithSpecifier));
 // inject2 on the abstract token directly is still a TYPE ERROR
 expectError(di.inject2(abstractTokenWithSpecifier));
 
-// --- getAbstractInjectionToken2(options)(specificInjectionTokenFactory): non-curried form ---
+// --- getInjectionToken2(options)(specificInjectionTokenFactory): abstract, since a real factory is given ---
 
-const abstractTokenWithCurriedFactory = getAbstractInjectionToken2<
+const abstractTokenWithCurriedFactory = getInjectionToken2<
   () => unknown
 >({
   id: 'abstract-token-with-curried-factory',
@@ -1806,15 +1804,6 @@ expectType<{ someProperty: 'some-speciality' }>(
   di.inject(abstractTokenWithCurriedFactory.for('some-speciality')),
 );
 
-// abstract tokens make the factory mandatory — omitting it is a TYPE ERROR,
-// unlike the base getInjectionToken2, which allows a for-less token
-expectError(
-  getAbstractInjectionToken2<() => unknown>({
-    id: 'abstract-token-without-factory',
-    cardinality: 'zero-or-many',
-  })(),
-);
-
 // a widened `string` implementation no longer satisfies the specific token
 expectError(
   getInjectable2({
@@ -1826,13 +1815,14 @@ expectError(
   }),
 );
 
-// multi-level specificity, each level supplying its own factory:
+// multi-level specificity, each level supplying its own factory — each
+// intermediate level is abstract, since it carries its own factory:
 // `.for('some-specifier-1').for(42)`
-const abstractTokenWithTwoLevels = getAbstractInjectionToken2<() => unknown>({
+const abstractTokenWithTwoLevels = getInjectionToken2<() => unknown>({
   id: 'abstract-token-with-two-levels',
   cardinality: 'zero-or-many',
 })(<Level1 extends string>(level1: Level1) =>
-  getAbstractInjectionToken2<() => unknown>({
+  getInjectionToken2<() => unknown>({
     id: `abstract-token-with-two-levels-${level1}`,
     cardinality: 'zero-or-many',
   })(<Level2 extends number>(level2: Level2) =>
@@ -1846,33 +1836,6 @@ const abstractTokenWithTwoLevels = getAbstractInjectionToken2<() => unknown>({
 
 expectType<{ level1: 'some-specifier-1'; level2: 42 }>(
   di.inject(abstractTokenWithTwoLevels.for('some-specifier-1').for(42)),
-);
-
-// --- getInjectionToken2(options)(specificInjectionTokenFactory): same, non-abstract ---
-
-const tokenWithCurriedFactory = getInjectionToken2<() => unknown>({
-  id: 'token-with-curried-factory',
-  cardinality: 'zero-or-many',
-})(<Speciality extends string>(speciality: Speciality) =>
-  getSpecificInjectionToken2<() => { someProperty: Speciality }>()({
-    id: speciality,
-    speciality,
-    cardinality: 'one',
-  }),
-);
-
-expectType<{ someProperty: 'some-speciality' }>(
-  di.inject(tokenWithCurriedFactory.for('some-speciality')),
-);
-
-expectError(
-  getInjectable2({
-    id: 'bad-impl-non-abstract-non-curried',
-    injectionToken: tokenWithCurriedFactory.for('some-speciality'),
-    instantiate: () => (): { someProperty: string } => ({
-      someProperty: 'anything',
-    }),
-  }),
 );
 
 // ======================================================================
@@ -1906,7 +1869,7 @@ expectAssignable<Injectable2>(transientInjectable2);
 expectAssignable<InjectionToken2>(handlerToken2);
 expectAssignable<InjectionToken2>(userServiceToken2);
 
-expectAssignable<AbstractInjectionToken2>(abstractHandlerToken);
+expectAssignable<InjectionToken2>(abstractHandlerToken);
 
 // Abstract tokens are built by the same creator as concrete ones, so they
 // carry the same alias type; `__abstract` is what tells them apart.
@@ -2025,7 +1988,7 @@ expectError(
   })(),
 );
 
-const taggedAbstractToken = getAbstractInjectionToken2<() => string>({
+const taggedAbstractToken = getInjectionToken2<() => string>({
   cardinality: 'zero-or-many',
   id: 'tagged-abstract-token',
   tags: ['some-tag'],
@@ -2034,7 +1997,7 @@ const taggedAbstractToken = getAbstractInjectionToken2<() => string>({
 expectType<string[] | undefined>(taggedAbstractToken.tags);
 
 expectError(
-  getAbstractInjectionToken2<() => string>({
+  getInjectionToken2<() => string>({
     cardinality: 'zero-or-many',
     id: 'badly-tagged-abstract-token',
     tags: [42],
@@ -2058,7 +2021,7 @@ import {
 } from '.';
 
 expectAssignable<
-  AbstractInjectionToken2<
+  InjectionToken2<
     Factory,
     ManyFactory,
     PreInjectCallbackSpecificFactory
@@ -2190,22 +2153,22 @@ type GetGreeting = (name: string) => string;
 const cardinalityOneToken = getInjectionToken2<GetGreeting>({
   id: 'cardinality-one',
   cardinality: 'one',
-})(idBasedSpecificToken2<GetGreeting, ManyFactory<GetGreeting>, 'one'>());
+})();
 
 const cardinalityMaybeToken = getInjectionToken2<GetGreeting>({
   id: 'cardinality-maybe',
   cardinality: 'zero-or-one',
-})(idBasedSpecificToken2<GetGreeting, MaybeResultFactory<GetGreeting>, 'zero-or-one'>());
+})();
 
 const cardinalityManyToken = getInjectionToken2<GetGreeting>({
   id: 'cardinality-many',
   cardinality: 'zero-or-many',
-})(idBasedSpecificToken2<GetGreeting, ManyFactory<GetGreeting>, 'zero-or-many'>());
+})();
 
 const cardinalityNonEmptyManyToken = getInjectionToken2<GetGreeting>({
   id: 'cardinality-non-empty-many',
   cardinality: 'one-or-many',
-})(idBasedSpecificToken2<GetGreeting, NonEmptyManyFactory<GetGreeting>, 'one-or-many'>());
+})();
 
 // --- cardinality is mandatory ---
 
@@ -2310,21 +2273,16 @@ expectAssignable<InjectionToken2>(cardinalityMaybeToken);
 
 // --- per-cardinality annotation aliases ---
 
-expectType<SingleInjectionToken2<GetGreeting>>(cardinalityOneToken);
-expectType<MaybeInjectionToken2<GetGreeting>>(cardinalityMaybeToken);
-expectType<ManyInjectionToken2<GetGreeting>>(cardinalityManyToken);
-expectType<NonEmptyManyInjectionToken2<GetGreeting>>(
+expectAssignable<SingleInjectionToken2<GetGreeting>>(cardinalityOneToken);
+expectAssignable<MaybeInjectionToken2<GetGreeting>>(cardinalityMaybeToken);
+expectAssignable<ManyInjectionToken2<GetGreeting>>(cardinalityManyToken);
+expectAssignable<NonEmptyManyInjectionToken2<GetGreeting>>(
   cardinalityNonEmptyManyToken,
 );
 
-// --- `.for()` children carry the cardinality ---
-
-expectType<'one' | undefined>(cardinalityOneToken.for('a').cardinality);
-expectType<'one' | undefined>(
-  cardinalityOneToken.for('a').for('b').cardinality,
-);
-expectType<string>(di.inject(cardinalityOneToken.for('a'), 'some-name'));
-expectError(di.injectMany(cardinalityOneToken.for('a'), 'some-name'));
+// --- `.for()` children carry the cardinality --- (see heteroCardinalityToken
+// below — cardinalityOneToken itself has no factory, since nothing here
+// consumes it via `.for()`)
 
 // given a factory that declares a cardinality for the tokens it builds,
 // `.for()` children carry that one instead of the general token's
@@ -2347,11 +2305,6 @@ expectType<string[]>(di.injectMany(heteroCardinalityToken, 'some-name'));
 expectType<string>(di.inject(heteroCardinalityToken.for('a'), 'some-name'));
 expectError(di.inject(heteroCardinalityToken, 'some-name'));
 expectError(di.injectMany(heteroCardinalityToken.for('a'), 'some-name'));
-
-// grandchildren keep the specific cardinality too
-expectType<'one' | undefined>(
-  heteroCardinalityToken.for('a').for('b').cardinality,
-);
 
 // --- the `.for()` factory's type is inferred from the value it is given ---
 
@@ -2406,9 +2359,9 @@ expectType<[{ wrapped: string }, ...{ wrapped: string }[]]>(
   getWrappedNonEmptyMany('some-string' as string),
 );
 
-// --- AbstractInjectionToken2 keeps a generic factory's genericity too ---
+// --- an abstract token (has a factory) keeps a generic factory's genericity too ---
 
-const abstractGenericManyToken = getAbstractInjectionToken2<
+const abstractGenericManyToken = getInjectionToken2<
   GetWrapped,
   <T>(value: T) => { wrapped: T }[]
 >({
@@ -2637,8 +2590,13 @@ getInjectable2({
 });
 
 // `.for()` children of a 'zero-or-one' token are injectable maybe
+const maybeTokenWithForChild = getInjectionToken2<GetGreeting>({
+  id: 'cardinality-maybe-with-for',
+  cardinality: 'zero-or-one',
+})(idBasedSpecificToken2<GetGreeting, MaybeResultFactory<GetGreeting>, 'zero-or-one'>());
+
 expectType<string | undefined>(
-  di.injectMaybe2(cardinalityMaybeToken.for('a'))('a-name'),
+  di.injectMaybe2(maybeTokenWithForChild.for('a'))('a-name'),
 );
 
 // a generic factory keeps its generic through injectMaybe, given the maybe

@@ -3,7 +3,6 @@ import getInjectable from '../getInjectable/getInjectable';
 import getInjectable2 from '../getInjectable2/getInjectable2';
 import { getInjectionToken } from '../getInjectionToken/getInjectionToken';
 import { getInjectionToken2 } from '../getInjectionToken2/getInjectionToken2';
-import { getAbstractInjectionToken2 } from '../getInjectionToken2/getAbstractInjectionToken2';
 import { idBasedSpecificToken2 } from '../test-utils/idBasedSpecificToken2';
 import {
   deregistrationCallbackToken,
@@ -109,7 +108,7 @@ describe('tagged-injection-tokens', () => {
 
   describe('given an abstract v2 injection token', () => {
     it('carries the initial injectionToken tag and custom tags', () => {
-      const someAbstractToken = getAbstractInjectionToken2({
+      const someAbstractToken = getInjectionToken2({
         cardinality: 'zero-or-many',
         id: 'some-abstract-token',
         tags: ['some-tag'],

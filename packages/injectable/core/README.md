@@ -203,7 +203,7 @@ Key properties:
 
 #### Tagging of injection tokens
 
-Injection tokens (both `getInjectionToken` and `getInjectionToken2`/`getAbstractInjectionToken2`) accept `tags` just like injectables do, and a tag on a token fires tag-keyed decorators everywhere targeting the token itself with `.for(token)` would: registering, deregistering, instantiating or purging an implementer of the token, and injecting via the token as an alias.
+Injection tokens (both `getInjectionToken` and `getInjectionToken2`) accept `tags` just like injectables do, and a tag on a token fires tag-keyed decorators everywhere targeting the token itself with `.for(token)` would: registering, deregistering, instantiating or purging an implementer of the token, and injecting via the token as an alias.
 
 ```ts
 const messageHandlerToken = getInjectionToken2<() => void>({
@@ -562,10 +562,10 @@ const newService = getInjectable2({
 #### `getInjectionToken2` — Contracts for factories
 
 ```ts
-const serviceToken = getInjectionToken2<(id: string) => ServiceResult>()({
+const serviceToken = getInjectionToken2<(id: string) => ServiceResult>({
   id: "service",
   cardinality: "one",
-});
+})();
 
 const implInjectable = getInjectable2({
   id: "impl",
@@ -578,15 +578,20 @@ di.register(implInjectable);
 di.inject(serviceToken, "abc");       // { id: "abc", status: "ok" }
 ```
 
-Note the extra `()`: the creator is curried, which is what lets the options value drive inference — the type of a `specificInjectionTokenFactory` is inferred from the factory itself instead of being spelled out as a type argument.
+The trailing `()` takes an optional `specificInjectionTokenFactory` — the token's `.for()` factory, whose type is inferred from the factory itself instead of being spelled out as a type argument. Passing one gives the token a `.for()`; omitting it, as above, gives a token with no `.for()` at all.
 
-`getAbstractInjectionToken2` defines tokens that cannot be injected directly — they must be targeted via `.for()`:
+Passing a `specificInjectionTokenFactory` also makes the token **abstract**: it can no longer be injected or registered against directly, only reached via `.for(specifier)`. A token only ever needs a factory when it's meant to be resolved exclusively that way, so this is automatic — there's no separate "abstract" creator to opt into:
 
 ```ts
-const abstractToken = getAbstractInjectionToken2<(x: number) => string>()({
+const abstractToken = getInjectionToken2<(x: number) => string>({
   id: "formatter",
   cardinality: "one",
-});
+})(specifier =>
+  getSpecificInjectionToken2<(x: number) => string>()({
+    id: specifier,
+    speciality: specifier,
+  }),
+);
 
 const currencyFormatter = getInjectable2({
   id: "currency-formatter",

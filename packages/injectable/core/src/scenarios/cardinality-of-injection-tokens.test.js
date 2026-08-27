@@ -16,22 +16,14 @@ describe('cardinality-of-injection-tokens', () => {
     di = createContainer('some-container');
   });
 
-  describe('given an injection token with cardinality "one"', () => {
+  describe('given a plain injection token (no factory) with cardinality "one"', () => {
     let someToken;
 
     beforeEach(() => {
       someToken = getInjectionToken2({
         id: 'some-token',
         cardinality: 'one',
-      })(idBasedSpecificToken2);
-    });
-
-    it('when a .for() child is created, it inherits the cardinality', () => {
-      expect(someToken.for('some-specifier').cardinality).toBe('one');
-    });
-
-    it('when a .for() grandchild is created, it still carries the cardinality', () => {
-      expect(someToken.for('a').for('b').cardinality).toBe('one');
+      })();
     });
 
     describe('given a registered implementation', () => {
@@ -61,50 +53,6 @@ describe('cardinality-of-injection-tokens', () => {
         );
       });
 
-      it('when implementations register under .for() children, does not throw and injectMany of the base returns all', () => {
-        const childImplementationA = getInjectable2({
-          id: 'child-implementation-a',
-          injectionToken: someToken.for('a'),
-          instantiate: () => () => 'instance-a',
-        });
-
-        const childImplementationB = getInjectable2({
-          id: 'child-implementation-b',
-          injectionToken: someToken.for('b'),
-          instantiate: () => () => 'instance-b',
-        });
-
-        di.register(childImplementationA, childImplementationB);
-
-        expect(di.injectMany(someToken)).toEqual([
-          'some-instance',
-          'instance-a',
-          'instance-b',
-        ]);
-      });
-
-      it('when a second implementation registers under an already-implemented .for() child, throws with the child id', () => {
-        const childImplementation = getInjectable2({
-          id: 'child-implementation',
-          injectionToken: someToken.for('a'),
-          instantiate: () => () => 'irrelevant',
-        });
-
-        const competingChildImplementation = getInjectable2({
-          id: 'competing-child-implementation',
-          injectionToken: someToken.for('a'),
-          instantiate: () => () => 'irrelevant',
-        });
-
-        di.register(childImplementation);
-
-        expect(() => {
-          di.register(competingChildImplementation);
-        }).toThrow(
-          'Tried to register injectable "competing-child-implementation" with injection token "some-token/a", but its cardinality "one" allows at most one registration and "child-implementation" is already registered.',
-        );
-      });
-
       it('when the implementation is deregistered, registering another succeeds', () => {
         di.deregister(someInjectable);
 
@@ -124,6 +72,61 @@ describe('cardinality-of-injection-tokens', () => {
 
         expect(di.inject(someToken)()).toBe('some-overridden-instance');
       });
+    });
+  });
+
+  describe('given an abstract family token (with a .for() factory) with cardinality "one"', () => {
+    let someToken;
+
+    beforeEach(() => {
+      someToken = getInjectionToken2({
+        id: 'some-token',
+        cardinality: 'one',
+      })(idBasedSpecificToken2);
+    });
+
+    it('when a .for() child is created, it inherits the cardinality', () => {
+      expect(someToken.for('some-specifier').cardinality).toBe('one');
+    });
+
+    it('when implementations register under .for() children, does not throw and injectMany of the base returns all', () => {
+      const childImplementationA = getInjectable2({
+        id: 'child-implementation-a',
+        injectionToken: someToken.for('a'),
+        instantiate: () => () => 'instance-a',
+      });
+
+      const childImplementationB = getInjectable2({
+        id: 'child-implementation-b',
+        injectionToken: someToken.for('b'),
+        instantiate: () => () => 'instance-b',
+      });
+
+      di.register(childImplementationA, childImplementationB);
+
+      expect(di.injectMany(someToken)).toEqual(['instance-a', 'instance-b']);
+    });
+
+    it('when a second implementation registers under an already-implemented .for() child, throws with the child id', () => {
+      const childImplementation = getInjectable2({
+        id: 'child-implementation',
+        injectionToken: someToken.for('a'),
+        instantiate: () => () => 'irrelevant',
+      });
+
+      const competingChildImplementation = getInjectable2({
+        id: 'competing-child-implementation',
+        injectionToken: someToken.for('a'),
+        instantiate: () => () => 'irrelevant',
+      });
+
+      di.register(childImplementation);
+
+      expect(() => {
+        di.register(competingChildImplementation);
+      }).toThrow(
+        'Tried to register injectable "competing-child-implementation" with injection token "some-token/a", but its cardinality "one" allows at most one registration and "child-implementation" is already registered.',
+      );
     });
   });
 
@@ -211,17 +214,17 @@ describe('cardinality-of-injection-tokens', () => {
       expect(someToken.for('some-specifier').cardinality).toBe('one');
     });
 
-    it('when multiple implementations register for the base token, does not throw', () => {
+    it('when implementations register under different .for() children, does not throw', () => {
       di.register(
         getInjectable2({
           id: 'some-injectable',
-          injectionToken: someToken,
+          injectionToken: someToken.for('a'),
           instantiate: () => () => 'irrelevant',
         }),
 
         getInjectable2({
           id: 'some-other-injectable',
-          injectionToken: someToken,
+          injectionToken: someToken.for('b'),
           instantiate: () => () => 'irrelevant',
         }),
       );

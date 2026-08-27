@@ -276,30 +276,6 @@ describe('createContainer.consumption-declarations', () => {
       );
     });
 
-    it('when injecting a grandchild of it, works', () => {
-      const grandchildConsumer = getInjectable2({
-        id: 'grandchild-consumer',
-        consumptions: [someGeneralToken],
-
-        instantiate: di => {
-          const getGrandchild = di.inject(someGeneralToken.for('a').for('b'));
-
-          return () => getGrandchild();
-        },
-      });
-
-      di.register(
-        getInjectable2({
-          id: 'grandchild-implementation',
-          injectionToken: someGeneralToken.for('a').for('b'),
-          instantiate: () => () => 'grandchild-instance',
-        }),
-
-        grandchildConsumer,
-      );
-
-      expect(di.inject(grandchildConsumer)).toBe('grandchild-instance');
-    });
   });
 
   describe('given only a specific token is declared', () => {

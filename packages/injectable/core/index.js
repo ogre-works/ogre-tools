@@ -15,8 +15,6 @@ import {
   getSpecificInjectionToken2,
 } from './src/getInjectionToken2/getInjectionToken2';
 
-import { getAbstractInjectionToken2 } from './src/getInjectionToken2/getAbstractInjectionToken2';
-
 import isInjectionToken from './src/getInjectionToken/isInjectionToken';
 
 import getInjectableBunch from './src/getInjectableBunch/getInjectableBunch';
@@ -51,7 +49,6 @@ export {
   isInjectableBunch,
   getInjectionToken,
   getInjectionToken2,
-  getAbstractInjectionToken2,
   getSpecificInjectionToken,
   getSpecificInjectionToken2,
   isInjectionToken,

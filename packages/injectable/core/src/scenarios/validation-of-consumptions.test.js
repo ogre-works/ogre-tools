@@ -44,7 +44,7 @@ describe('createContainer.validate', () => {
       di.register(
         getInjectable2({
           id: 'some-implementation',
-          injectionToken: someToken,
+          injectionToken: someToken.for('some-specifier'),
           instantiate: () => () => 'some-instance',
         }),
       );

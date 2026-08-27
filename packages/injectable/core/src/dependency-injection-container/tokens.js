@@ -1,6 +1,8 @@
 import { getInjectionToken } from '../getInjectionToken/getInjectionToken';
-import { getSpecificInjectionToken2 } from '../getInjectionToken2/getInjectionToken2';
-import { getAbstractInjectionToken2 } from '../getInjectionToken2/getAbstractInjectionToken2';
+import {
+  getInjectionToken2,
+  getSpecificInjectionToken2,
+} from '../getInjectionToken2/getInjectionToken2';
 
 // Machinery tokens carry no tags: tag dispatch reads the target's token
 // chain, so a decorator registered under e.g.
@@ -27,7 +29,7 @@ export const deregistrationCallbackToken = untagged(
 );
 
 export const instantiationDecoratorToken = untagged(
-  getAbstractInjectionToken2({
+  getInjectionToken2({
     id: 'instantiate-decorator-token',
     cardinality: 'zero-or-many',
   })(target =>
@@ -36,7 +38,7 @@ export const instantiationDecoratorToken = untagged(
 );
 
 export const injectionDecoratorToken = untagged(
-  getAbstractInjectionToken2({
+  getInjectionToken2({
     id: 'injection-decorator-token',
     cardinality: 'zero-or-many',
   })(target =>
@@ -45,7 +47,7 @@ export const injectionDecoratorToken = untagged(
 );
 
 export const instancePurgeCallbackToken = untagged(
-  getAbstractInjectionToken2({
+  getInjectionToken2({
     id: 'instance-purge-callback-token',
     cardinality: 'zero-or-many',
   })(target =>
@@ -54,7 +56,7 @@ export const instancePurgeCallbackToken = untagged(
 );
 
 export const registrationDecoratorToken = untagged(
-  getAbstractInjectionToken2({
+  getInjectionToken2({
     id: 'registration-decorator-token',
     cardinality: 'zero-or-many',
   })(target =>
@@ -63,7 +65,7 @@ export const registrationDecoratorToken = untagged(
 );
 
 export const deregistrationDecoratorToken = untagged(
-  getAbstractInjectionToken2({
+  getInjectionToken2({
     id: 'deregistration-decorator-token',
     cardinality: 'zero-or-many',
   })(target =>
@@ -72,7 +74,7 @@ export const deregistrationDecoratorToken = untagged(
 );
 
 export const preInjectCallbackToken = untagged(
-  getAbstractInjectionToken2({
+  getInjectionToken2({
     id: 'pre-inject-callback-token',
     cardinality: 'zero-or-many',
   })(target =>
