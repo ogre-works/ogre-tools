@@ -127,45 +127,14 @@ export declare function getInjectionTokenComponent<
   tags?: string[];
 }): InjectionTokenComponent<Component, SpecificFactory>;
 
-// Defaults to no factory: `getSpecificInjectionTokenComponent2` builds these
-// as leaves, with no further `.for()` of their own — see the comment on
-// core's `SpecificInjectionToken2`.
-export type SpecificInjectionTokenComponent2<
-  Component extends React.ComponentType<any>,
-> = Component &
-  SpecificInjectionToken2<
-    () => Component,
-    () => Component[],
-    undefined,
-    'one'
-  >;
-
-// Builds the specific component token a `specificInjectionTokenFactory`
-// returns — mirrors `getSpecificInjectionToken2` in the core package, but
-// unlike it, needs no curry: core's version defers `cardinality` to a
-// second call because it's generic there and inferring it alongside an
-// explicit `F`/`MF` on the same call would collapse it to the wide
-// `Cardinality` union (same failure mode documented throughout this file).
-// A component's cardinality is hardcoded to `'one'`
-// (see `SpecificInjectionTokenComponent2` above) — nothing generic is left
-// to infer, so `Component` explicit and `options` on the same call is safe.
-export declare function getSpecificInjectionTokenComponent2<
-  Component extends React.ComponentType<any>,
->(
-  options: InjectionTokenComponentOptionsWithoutFactory<Component> & {
-    speciality: any;
-  },
-): SpecificInjectionTokenComponent2<Component>;
-
 // Defaults to `any`, not a concrete factory shape: a bare
 // `InjectionTokenComponent2<Component>` means "a token component, abstract
 // or not" — see the comment on core's `InjectionToken2`. The factory's
-// return type is bounded by `InjectionTokenComponent2<Component, any>`, not
-// the narrower `SpecificInjectionTokenComponent2<Component>`: a `.for()`
-// factory may return either a concrete leaf or another abstract token
-// component, the latter letting a family narrow across more than one
-// `.for()` level (mirrors core's `InjectionToken2`'s own SpecificFactory
-// bound).
+// return type is bounded by `SpecificInjectionTokenComponent2<Component, any>`
+// (declared below): every `.for()` factory must return something with
+// `speciality`, same as core's `InjectionToken2` — enforced here so
+// `buildTokenComponent`'s memoization-by-speciality always has something to
+// key on.
 //
 // The `Component &` intersection only applies when not abstract: the
 // runtime object is technically still a callable function either way (the
@@ -179,11 +148,27 @@ export type InjectionTokenComponent2<
   Component extends React.ComponentType<any>,
   SpecificFactory extends
     | undefined
-    | ((...args: any[]) => InjectionTokenComponent2<Component, any>) = any,
+    | ((...args: any[]) => SpecificInjectionTokenComponent2<Component, any>) = any,
 > = SpecificFactory extends undefined
   ? Component &
       InjectionToken2<() => Component, () => Component[], undefined, 'one'>
   : InjectionToken2<() => Component, () => Component[], SpecificFactory, 'one'>;
+
+// Defaults to no factory: the speciality-carrying overload of
+// `getInjectionTokenComponent2` below builds these as leaves, with no
+// further `.for()` of their own, unless given one explicitly — mirroring
+// core's `SpecificInjectionToken2`. Built from `InjectionTokenComponent2`
+// rather than repeating its conditional: when `SpecificFactory` is
+// `undefined` this is `Component & InjectionToken2<..., undefined, 'one'> &
+// {speciality}` (a directly-renderable leaf); otherwise it's the abstract,
+// not-a-`Component` branch plus `speciality` — a specific token component
+// that is itself a family root for nested specificity.
+export type SpecificInjectionTokenComponent2<
+  Component extends React.ComponentType<any>,
+  SpecificFactory extends
+    | undefined
+    | ((...args: any[]) => SpecificInjectionTokenComponent2<Component, any>) = undefined,
+> = InjectionTokenComponent2<Component, SpecificFactory> & { speciality: any };
 
 export interface InjectionTokenComponentOptionsWithoutFactory<
   Component extends React.ComponentType<any>,
@@ -208,7 +193,7 @@ export interface InjectionTokenComponent2FactoryCall<
   <
     SpecificFactory extends (
       ...args: any[]
-    ) => InjectionTokenComponent2<Component, any> = (
+    ) => SpecificInjectionTokenComponent2<Component, any> = (
       id: string,
     ) => SpecificInjectionTokenComponent2<Component>,
   >(
@@ -252,6 +237,49 @@ export declare function getInjectionTokenComponent2<
 ): (
   specificInjectionTokenFactory?: SpecificFactory,
 ) => InjectionTokenComponent2<Component, SpecificFactory>;
+
+// Mirrors `InjectionTokenComponent2FactoryCall`, narrowed to
+// `SpecificInjectionTokenComponent2`: returned by the `speciality`-carrying
+// overload of `getInjectionTokenComponent2` below, which folds what used to
+// be the separate `getSpecificInjectionTokenComponent2` creator into
+// `getInjectionTokenComponent2` itself.
+export interface SpecificInjectionTokenComponent2FactoryCall<
+  Component extends React.ComponentType<any>,
+> {
+  (): SpecificInjectionTokenComponent2<Component, undefined>;
+
+  <
+    SpecificFactory extends (
+      ...args: any[]
+    ) => SpecificInjectionTokenComponent2<Component, any> = (
+      id: string,
+    ) => SpecificInjectionTokenComponent2<Component>,
+  >(
+    specificInjectionTokenFactory: SpecificFactory,
+  ): SpecificInjectionTokenComponent2<Component, SpecificFactory>;
+}
+
+// getInjectionTokenComponent2<Component>(options) where options carries
+// `speciality`: builds a specific token component directly, folding in what
+// used to be the separate getSpecificInjectionTokenComponent2 creator —
+// buildTokenComponent already threads `speciality` through to core's
+// getInjectionToken2 regardless of which overload is called, so this needed
+// no runtime change, only a type declaration. Unlike the old
+// getSpecificInjectionTokenComponent2, this also accepts a factory (curried,
+// same as every other getInjectionTokenComponent2 call), so a specific token
+// component can itself be a family root for nested specificity — which
+// makes it abstract too, same as any other factory-bearing token component
+// (see the comment on `InjectionTokenComponent2`). Unlike core's equivalent
+// speciality overload, this needs no cardinality-literal split: a
+// component's cardinality is hardcoded to `'one'`, so there's no generic
+// cardinality inference here to collapse.
+export declare function getInjectionTokenComponent2<
+  Component extends React.ComponentType<any>,
+>(
+  options: InjectionTokenComponentOptionsWithoutFactory<Component> & {
+    speciality: any;
+  },
+): SpecificInjectionTokenComponent2FactoryCall<Component>;
 
 export const DiContextProvider: React.Provider<DiContainer | DiContainerForInjection>;
 

@@ -65,41 +65,11 @@ export const getInjectionTokenComponent2 = (...args) => {
 
   const [options] = args;
 
+  // A `speciality` in options builds a specific token component directly —
+  // this is how getSpecificInjectionTokenComponent2 used to be its own
+  // function; folded in here since buildTokenComponent already threads
+  // `speciality` through to core's getInjectionToken2 regardless of which
+  // creator is called.
   return specificInjectionTokenFactory =>
     buildTokenComponent({ ...options, specificInjectionTokenFactory });
 };
-
-export const getSpecificInjectionTokenComponent2 = (...args) => {
-  // A single call, no curry needed: unlike getSpecificInjectionToken2 in the
-  // core package, there's no generic cardinality to protect from collapsing
-  // here — a component token's cardinality is always 'one'.
-  if (args.length !== 1) {
-    throw new Error(
-      `Tried to create specific injection token component${
-        args[0]?.id ? ` "${args[0].id}"` : ''
-      } with ${
-        args.length
-      } arguments; getSpecificInjectionTokenComponent2 takes exactly one (options).`,
-    );
-  }
-
-  const [options] = args;
-
-  return buildTokenComponent({
-    ...options,
-    specificInjectionTokenFactory: getDefaultComponentFactory(
-      options.PlaceholderComponent,
-    ),
-  });
-};
-
-// The default `.for(id)` factory: builds a concrete leaf component (no
-// factory of its own), matching `getSpecificInjectionToken2`'s core
-// counterpart — a specific token component created this way is always
-// directly renderable, never abstract.
-const getDefaultComponentFactory = PlaceholderComponent => specId =>
-  getInjectionTokenComponent2({
-    id: specId,
-    PlaceholderComponent,
-    speciality: specId,
-  })();
