@@ -272,7 +272,6 @@ describe('createContainer.consumption-declarations', () => {
         'specific-instance',
       );
     });
-
   });
 
   describe('given only a specific token is declared', () => {
