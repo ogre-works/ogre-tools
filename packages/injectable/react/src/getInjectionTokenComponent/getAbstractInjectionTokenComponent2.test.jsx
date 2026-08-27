@@ -7,6 +7,12 @@ import { getAbstractInjectionTokenComponent2 } from './getAbstractInjectionToken
 import { getInjectionTokenComponent2 } from './getInjectionTokenComponent2';
 import { useInjectDeferred } from '../useInject/useInject';
 
+// The default `.for(id)` factory that abstract token components used to get
+// for free. Tests that need a real, working `.for()` (as opposed to
+// specifically testing a custom factory) pass this explicitly.
+const idBasedComponentFactory = specId =>
+  getInjectionTokenComponent2({ id: specId, speciality: specId })();
+
 describe('getAbstractInjectionTokenComponent2', () => {
   let di;
   let mount;
@@ -20,7 +26,7 @@ describe('getAbstractInjectionTokenComponent2', () => {
   it('given a token component is created, it is an abstract injection token', () => {
     const SomeAbstractTokenComponent = getAbstractInjectionTokenComponent2({
       id: 'some-abstract-token-component',
-    })();
+    })(idBasedComponentFactory);
 
     expect(SomeAbstractTokenComponent.abstract).toBe(true);
   });
@@ -28,7 +34,7 @@ describe('getAbstractInjectionTokenComponent2', () => {
   it('given specifier, .for() produces a renderable component that injects from DI', () => {
     const SomeAbstractTokenComponent = getAbstractInjectionTokenComponent2({
       id: 'some-abstract-token-component',
-    })();
+    })(idBasedComponentFactory);
 
     const SpecificTokenComponent =
       SomeAbstractTokenComponent.for('some-specific');
@@ -49,7 +55,7 @@ describe('getAbstractInjectionTokenComponent2', () => {
   it('given specifier, .for() passes props to the implementation', () => {
     const SomeAbstractTokenComponent = getAbstractInjectionTokenComponent2({
       id: 'some-abstract-token-component',
-    })();
+    })(idBasedComponentFactory);
 
     const SpecificTokenComponent =
       SomeAbstractTokenComponent.for('some-specific');
@@ -75,7 +81,7 @@ describe('getAbstractInjectionTokenComponent2', () => {
   it('given same specifier, .for() returns the same component', () => {
     const SomeAbstractTokenComponent = getAbstractInjectionTokenComponent2({
       id: 'some-abstract-token-component',
-    })();
+    })(idBasedComponentFactory);
 
     const specific1 = SomeAbstractTokenComponent.for('some-specific');
     const specific2 = SomeAbstractTokenComponent.for('some-specific');
@@ -83,7 +89,7 @@ describe('getAbstractInjectionTokenComponent2', () => {
     expect(specific1).toBe(specific2);
   });
 
-  it('given PlaceholderComponent, propagates it to specific components produced by the default factory', () => {
+  it('given PlaceholderComponent, propagates it to specific components produced by the factory', () => {
     const someAsyncInstantiate = asyncFn();
 
     const someAsyncInjectable = getInjectable({
@@ -91,10 +97,18 @@ describe('getAbstractInjectionTokenComponent2', () => {
       instantiate: someAsyncInstantiate,
     });
 
+    const PlaceholderComponent = () => <div data-testid="some-placeholder" />;
+
     const SomeAbstractTokenComponent = getAbstractInjectionTokenComponent2({
       id: 'some-abstract-token-component',
-      PlaceholderComponent: () => <div data-testid="some-placeholder" />,
-    })();
+      PlaceholderComponent,
+    })(specId =>
+      getInjectionTokenComponent2({
+        id: specId,
+        PlaceholderComponent,
+        speciality: specId,
+      })(),
+    );
 
     const SpecificTokenComponent =
       SomeAbstractTokenComponent.for('some-specific');
@@ -146,7 +160,7 @@ describe('getAbstractInjectionTokenComponent2', () => {
   it('given a specific token with an implementation, when rendered without Suspense wrapper, renders the content', () => {
     const SomeAbstractTokenComponent = getAbstractInjectionTokenComponent2({
       id: 'some-abstract-token-component',
-    })();
+    })(idBasedComponentFactory);
 
     const SpecificTokenComponent =
       SomeAbstractTokenComponent.for('some-specific');

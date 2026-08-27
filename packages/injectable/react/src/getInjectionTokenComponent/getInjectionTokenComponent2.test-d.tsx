@@ -31,7 +31,14 @@ const SomeTokenComponentWithProps = getInjectionTokenComponent2<
   React.ComponentType<{ someProp: string }>
 >({
   id: 'irrelevant',
-})();
+})(specId =>
+  getSpecificInjectionTokenComponent2<
+    React.ComponentType<{ someProp: string }>
+  >({
+    id: specId,
+    speciality: specId,
+  }),
+);
 
 expectAssignable<React.ComponentType<{ someProp: string }>>(
   SomeTokenComponentWithProps,
@@ -270,11 +277,27 @@ expectError(
 
 const SomeAbstractTokenComponent = getAbstractInjectionTokenComponent2<
   React.ComponentType<{ someProp: string }>
->({ id: 'irrelevant' })();
+>({ id: 'irrelevant' })(specId =>
+  getSpecificInjectionTokenComponent2<
+    React.ComponentType<{ someProp: string }>
+  >({
+    id: specId,
+    speciality: specId,
+  }),
+);
 
 // abstract token component is not identifiable as a React component at all,
 // regardless of props (cannot be rendered)
 expectError<React.ComponentType<any>>(SomeAbstractTokenComponent);
+
+// abstract token components make the factory mandatory — omitting it is a
+// TYPE ERROR, unlike the base getInjectionTokenComponent2, which allows a
+// for-less token
+expectError(
+  getAbstractInjectionTokenComponent2<
+    React.ComponentType<{ someProp: string }>
+  >({ id: 'irrelevant' })(),
+);
 
 // .for() returns a renderable specific token component
 const SomeConcreteFromAbstract =
@@ -327,7 +350,9 @@ getInjectionTokenComponent2({
 getAbstractInjectionTokenComponent2({
   id: 'irrelevant',
   tags: ['some-tag'],
-})();
+})(specId =>
+  getSpecificInjectionTokenComponent2({ id: specId, speciality: specId }),
+);
 
 // given non-string tags, typing is not ok
 expectError(

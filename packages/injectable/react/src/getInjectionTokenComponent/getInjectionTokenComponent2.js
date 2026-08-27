@@ -32,15 +32,7 @@ const buildTokenComponent = ({
     // A component token is implemented by exactly one component; its
     // `.for()` children inherit that.
     cardinality: 'one',
-  })(
-    specificInjectionTokenFactory ??
-      (specId =>
-        getInjectionTokenComponent2({
-          id: specId,
-          PlaceholderComponent,
-          speciality: specId,
-        })()),
-  );
+  })(specificInjectionTokenFactory);
 
   Object.defineProperty(TokenComponent, 'displayName', {
     get() {
@@ -54,9 +46,9 @@ const buildTokenComponent = ({
 
 export const getInjectionTokenComponent2 = (...args) => {
   // A single, non-curried call: options given directly, factory curried as
-  // its own trailing call — getInjectionTokenComponent2(options)(factory),
-  // or getInjectionTokenComponent2(options)() for the default factory. The
-  // explicit-SF escape hatch (getInjectionTokenComponent2<Component, SpecificFactory>(options))
+  // its own trailing call — getInjectionTokenComponent2(options)(factory), or
+  // getInjectionTokenComponent2(options)() for a token with no `.for` at all.
+  // The explicit-SF escape hatch (getInjectionTokenComponent2<Component, SpecificFactory>(options))
   // uses this exact same shape — see the comment on core's getInjectionToken2.
   if (args.length !== 1) {
     throw new Error(
@@ -90,5 +82,21 @@ export const getSpecificInjectionTokenComponent2 = (...args) => {
 
   const [options] = args;
 
-  return buildTokenComponent(options);
+  return buildTokenComponent({
+    ...options,
+    specificInjectionTokenFactory: getDefaultComponentFactory(
+      options.PlaceholderComponent,
+    ),
+  });
 };
+
+// The recursive default `.for(id)` factory: a specific token component
+// always has a working `.for()`, so this is passed explicitly wherever that
+// default is needed, rather than relying on an implicit fallback deep in
+// buildTokenComponent.
+const getDefaultComponentFactory = PlaceholderComponent => specId =>
+  getInjectionTokenComponent2({
+    id: specId,
+    PlaceholderComponent,
+    speciality: specId,
+  })(getDefaultComponentFactory(PlaceholderComponent));
