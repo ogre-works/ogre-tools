@@ -4,7 +4,6 @@ import {
   getInjectable2,
   getInjectionToken,
   getInjectionToken2,
-  getSpecificInjectionToken2,
   lifecycleEnum,
 } from '@ogre-tools/injectable';
 import { useInject, useInject2, useInjectDeferred } from '../../index';
@@ -41,7 +40,7 @@ expectType<number>(useInject2(someInjectionToken2)('x'));
 const someAbstractInjectionToken2 = getInjectionToken2<() => string>({
   cardinality: 'one',
   id: 'some-abstract-token-2',
-})(id => getSpecificInjectionToken2<() => string>()({ id, speciality: id }));
+})(id => getInjectionToken2<() => string>({ id, speciality: id })());
 
 expectError(useInject2(someAbstractInjectionToken2));
 
