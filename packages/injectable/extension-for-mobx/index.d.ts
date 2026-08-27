@@ -1,5 +1,4 @@
 import {
-  AbstractInjectionToken2,
   DiContainer,
   Factory,
   InjectionInstanceWithMeta,
@@ -12,11 +11,9 @@ import { IComputedValue } from 'mobx';
 export function registerMobX(di: DiContainer): void;
 
 type ComputedInjectMany = {
-  // InjectionToken2 / AbstractInjectionToken2: variadic, returns IComputedValue of instance array
+  // InjectionToken2, abstract or not: variadic, returns IComputedValue of instance array
   <F extends Factory>(
-    injectionToken:
-      | InjectionToken2<F, any, any, 'zero-or-many' | 'one-or-many'>
-      | AbstractInjectionToken2<F, any, any, 'zero-or-many' | 'one-or-many'>,
+    injectionToken: InjectionToken2<F, any, any, 'zero-or-many' | 'one-or-many'>,
     ...params: Parameters<F>
   ): IComputedValue<ReturnType<F>[]>;
 
@@ -32,11 +29,9 @@ type ComputedInjectMany = {
 };
 
 type ComputedInjectManyWithMeta = {
-  // InjectionToken2 / AbstractInjectionToken2: variadic, returns IComputedValue of instance-with-meta array
+  // InjectionToken2, abstract or not: variadic, returns IComputedValue of instance-with-meta array
   <F extends Factory>(
-    injectionToken:
-      | InjectionToken2<F, any, any, 'zero-or-many' | 'one-or-many'>
-      | AbstractInjectionToken2<F, any, any, 'zero-or-many' | 'one-or-many'>,
+    injectionToken: InjectionToken2<F, any, any, 'zero-or-many' | 'one-or-many'>,
     ...params: Parameters<F>
   ): IComputedValue<InjectionInstanceWithMeta<ReturnType<F>>[]>;
 
@@ -106,9 +101,7 @@ type ComputedInjectMany2 = {
     F extends Factory,
     MF extends (...args: Parameters<F>) => ReturnType<F>[],
   >(
-    injectionToken:
-      | InjectionToken2<F, MF, any, 'zero-or-many' | 'one-or-many'>
-      | AbstractInjectionToken2<F, MF, any, 'zero-or-many' | 'one-or-many'>,
+    injectionToken: InjectionToken2<F, MF, any, 'zero-or-many' | 'one-or-many'>,
   ): MF;
 };
 
@@ -126,9 +119,7 @@ type ComputedInjectManyWithMeta2 = {
   ) => TInstanceWithMeta[];
 
   <F extends Factory>(
-    injectionToken:
-      | InjectionToken2<F, any, any, 'zero-or-many' | 'one-or-many'>
-      | AbstractInjectionToken2<F, any, any, 'zero-or-many' | 'one-or-many'>,
+    injectionToken: InjectionToken2<F, any, any, 'zero-or-many' | 'one-or-many'>,
   ): (...params: Parameters<F>) => InjectionInstanceWithMeta<ReturnType<F>>[];
 };
 
