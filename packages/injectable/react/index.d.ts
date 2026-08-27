@@ -94,7 +94,7 @@ export declare function getInjectableComponent2<
     id: string;
     Component: Component;
     PlaceholderComponent?: React.ComponentType<React.ComponentProps<Component>>;
-    injectionToken?: InjectionToken2<() => Component>;
+    injectionToken?: InjectionToken2<() => Component, any, any>;
   },
 ): InjectableComponent2<Component>;
 
@@ -149,9 +149,9 @@ export declare function getSpecificInjectionTokenComponent2<
 
 export type InjectionTokenComponent2<
   Component extends React.ComponentType<any>,
-  SpecificFactory extends (
-    ...args: any[]
-  ) => SpecificInjectionTokenComponent2<Component> = (
+  SpecificFactory extends
+    | undefined
+    | ((...args: any[]) => SpecificInjectionTokenComponent2<Component>) = (
     id: string,
   ) => SpecificInjectionTokenComponent2<Component>,
 > = Component &
@@ -166,16 +166,16 @@ export interface InjectionTokenComponentOptionsWithoutFactory<
 }
 
 // Returned by `getInjectionTokenComponent2<Component>(options)` below.
-// Calling it with no arguments uses the recursive `.for(id)` default
-// factory; calling it with a factory value keeps that factory's own generic
-// signature intact in `SpecificFactory` — an *optional* slot (property or
-// positional parameter) collapses a generic factory's signature instead,
-// which is why this is two genuine overloads rather than one optional
-// parameter.
+// Calling it with no arguments gives a token with no `.for` at all — see the
+// comment on core's `InjectionToken2`; calling it with a factory value keeps
+// that factory's own generic signature intact in `SpecificFactory` — an
+// *optional* slot (property or positional parameter) collapses a generic
+// factory's signature instead, which is why this is two genuine overloads
+// rather than one optional parameter.
 export interface InjectionTokenComponent2FactoryCall<
   Component extends React.ComponentType<any>,
 > {
-  (): InjectionTokenComponent2<Component>;
+  (): InjectionTokenComponent2<Component, undefined>;
 
   <
     SpecificFactory extends (
@@ -241,12 +241,12 @@ export type AbstractInjectionTokenComponent2<
   'one'
 >;
 
-// Mirrors `InjectionTokenComponent2FactoryCall` above.
+// Mirrors `InjectionTokenComponent2FactoryCall` above, except there is no
+// empty-call arm: an abstract token component is a family by definition, so
+// it always needs a real `.for()` factory to resolve into.
 export interface AbstractInjectionTokenComponent2FactoryCall<
   Component extends React.ComponentType<any>,
 > {
-  (): AbstractInjectionTokenComponent2<Component>;
-
   <
     SpecificFactory extends (
       ...args: any[]

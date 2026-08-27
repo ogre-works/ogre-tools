@@ -3,6 +3,7 @@ import {
   getAbstractInjectionToken2,
   getInjectable2,
   getInjectionToken2,
+  getSpecificInjectionToken2,
   getTypedSpecifier,
   SpecificInjectionToken2,
   TypedSpecifierType,
@@ -56,7 +57,7 @@ expectError(useInject(someInjectionToken, 42));
 const someAbstractInjectionToken = getAbstractInjectionToken2<() => string>({
   cardinality: 'one',
   id: 'some-abstract-token',
-})();
+})(id => getSpecificInjectionToken2<() => string>()({ id, speciality: id }));
 
 expectError(useInject(someAbstractInjectionToken));
 expectError(useInjectDeferred(someAbstractInjectionToken));

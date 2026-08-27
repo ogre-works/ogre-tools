@@ -1,8 +1,6 @@
 import { getAbstractInjectionToken2 } from '@ogre-tools/injectable';
-import { getInjectionTokenComponent2 } from './getInjectionTokenComponent2';
 
 const buildAbstractTokenComponent = ({
-  PlaceholderComponent,
   id,
   specificInjectionTokenFactory,
   tags,
@@ -14,21 +12,14 @@ const buildAbstractTokenComponent = ({
     // Specific component tokens derived from this family are implemented by
     // exactly one component each.
     cardinality: 'one',
-  })(
-    specificInjectionTokenFactory ??
-      (specId =>
-        getInjectionTokenComponent2({
-          id: specId,
-          PlaceholderComponent,
-          speciality: specId,
-        })()),
-  );
+  })(specificInjectionTokenFactory);
 
 export const getAbstractInjectionTokenComponent2 = (...args) => {
   // A single, non-curried call: options given directly, factory curried as
-  // its own trailing call — getAbstractInjectionTokenComponent2(options)(factory),
-  // or getAbstractInjectionTokenComponent2(options)() for the default
-  // factory. The explicit-SF escape hatch
+  // its own trailing call — getAbstractInjectionTokenComponent2(options)(factory).
+  // The factory is mandatory: an abstract token component is a family by
+  // definition, so getAbstractInjectionToken2 itself throws if it is
+  // omitted. The explicit-SF escape hatch
   // (getAbstractInjectionTokenComponent2<Component, SpecificFactory>(options))
   // uses this exact same shape — see the comment on core's getInjectionToken2.
   if (args.length !== 1) {

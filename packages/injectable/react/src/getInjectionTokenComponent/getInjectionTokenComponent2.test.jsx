@@ -14,6 +14,12 @@ import { isPromise } from '@ogre-tools/fp';
 import { useInjectDeferred } from '../useInject/useInject';
 import { discoverFor } from '@ogre-tools/discoverable';
 
+// The default `.for(id)` factory that token components used to get for free.
+// Tests that need a real, working `.for()` (as opposed to specifically
+// testing a custom factory) pass this explicitly.
+const idBasedComponentFactory = specId =>
+  getInjectionTokenComponent2({ id: specId, speciality: specId })();
+
 describe('getInjectionTokenComponent2', () => {
   let di;
   let mount;
@@ -391,7 +397,7 @@ describe('getInjectionTokenComponent2', () => {
     it('given a token component, when .for() is called twice with the same specifier, returns the same object', () => {
       const SomeTokenComponent = getInjectionTokenComponent2({
         id: 'some-token-component',
-      })();
+      })(idBasedComponentFactory);
 
       const specific1 = SomeTokenComponent.for('some-specific');
       const specific2 = SomeTokenComponent.for('some-specific');
@@ -402,7 +408,7 @@ describe('getInjectionTokenComponent2', () => {
     it('given a specific token with an implementation registered, when rendered, injects from DI', () => {
       const SomeTokenComponent = getInjectionTokenComponent2({
         id: 'some-token-component',
-      })();
+      })(idBasedComponentFactory);
 
       const SpecificTokenComponent = SomeTokenComponent.for('some-specific');
 
@@ -430,7 +436,7 @@ describe('getInjectionTokenComponent2', () => {
     it('given a specific token with an implementation registered, when rendered with props, passes props to implementation', () => {
       const SomeTokenComponent = getInjectionTokenComponent2({
         id: 'some-token-component',
-      })();
+      })(idBasedComponentFactory);
 
       const SpecificTokenComponent = SomeTokenComponent.for('some-specific');
 
@@ -462,7 +468,7 @@ describe('getInjectionTokenComponent2', () => {
     it('given a specific token, it has specificTokenOf pointing to the general token component', () => {
       const SomeTokenComponent = getInjectionTokenComponent2({
         id: 'some-token-component',
-      })();
+      })(idBasedComponentFactory);
 
       const SpecificTokenComponent = SomeTokenComponent.for('some-specific');
 
@@ -472,7 +478,7 @@ describe('getInjectionTokenComponent2', () => {
     it('given injectables registered under specific tokens, di.injectMany on general token finds them', () => {
       const SomeTokenComponent = getInjectionTokenComponent2({
         id: 'some-token-component',
-      })();
+      })(idBasedComponentFactory);
 
       const someSpecificImplementation = getInjectable({
         id: 'some-specific-implementation',
@@ -490,7 +496,7 @@ describe('getInjectionTokenComponent2', () => {
     it('given a specific token, it has displayName with combined id', () => {
       const SomeTokenComponent = getInjectionTokenComponent2({
         id: 'some-token-component',
-      })();
+      })(idBasedComponentFactory);
 
       const SpecificTokenComponent = SomeTokenComponent.for('some-specific');
 
@@ -502,7 +508,7 @@ describe('getInjectionTokenComponent2', () => {
     it('given a specific token, it is an injection token', () => {
       const SomeTokenComponent = getInjectionTokenComponent2({
         id: 'some-token-component',
-      })();
+      })(idBasedComponentFactory);
 
       const SpecificTokenComponent = SomeTokenComponent.for('some-specific');
 
