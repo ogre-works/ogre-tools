@@ -1,6 +1,5 @@
 import { expectError, expectType } from 'tsd';
 import {
-  getAbstractInjectionToken2,
   getInjectable2,
   getInjectionToken2,
   getSpecificInjectionToken2,
@@ -54,7 +53,7 @@ expectType<number>(useInjectDeferred(someInjectionToken, 'x'));
 expectError(useInject(someInjectionToken));
 expectError(useInject(someInjectionToken, 42));
 
-const someAbstractInjectionToken = getAbstractInjectionToken2<() => string>({
+const someAbstractInjectionToken = getInjectionToken2<() => string>({
   cardinality: 'one',
   id: 'some-abstract-token',
 })(id => getSpecificInjectionToken2<() => string>()({ id, speciality: id }));
@@ -70,7 +69,7 @@ const someTypedSpecifierInjectionToken = getInjectionToken2<
   ) => SpecificInjectionToken2<
     () => TypedSpecifierType<'some-specifier', T>,
     () => TypedSpecifierType<'some-specifier', T>[],
-    any,
+    undefined,
     'one'
   >
 >({

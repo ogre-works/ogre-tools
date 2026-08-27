@@ -1,6 +1,5 @@
 import { expectError, expectType } from 'tsd';
 import {
-  getAbstractInjectionToken2,
   getInjectable,
   getInjectable2,
   getInjectionToken,
@@ -39,7 +38,7 @@ const someInjectionToken2 = getInjectionToken2<(name: string) => number>({
 expectType<(name: string) => number>(useInject2(someInjectionToken2));
 expectType<number>(useInject2(someInjectionToken2)('x'));
 
-const someAbstractInjectionToken2 = getAbstractInjectionToken2<() => string>({
+const someAbstractInjectionToken2 = getInjectionToken2<() => string>({
   cardinality: 'one',
   id: 'some-abstract-token-2',
 })(id => getSpecificInjectionToken2<() => string>()({ id, speciality: id }));

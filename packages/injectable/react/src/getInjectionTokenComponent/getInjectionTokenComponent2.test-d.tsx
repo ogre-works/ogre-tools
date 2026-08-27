@@ -5,7 +5,6 @@ import {
   getInjectionTokenComponent2,
   getSpecificInjectionTokenComponent2,
   getInjectableComponent2,
-  getAbstractInjectionTokenComponent2,
   SpecificInjectionTokenComponent2,
 } from '../../index';
 import {
@@ -31,14 +30,7 @@ const SomeTokenComponentWithProps = getInjectionTokenComponent2<
   React.ComponentType<{ someProp: string }>
 >({
   id: 'irrelevant',
-})(specId =>
-  getSpecificInjectionTokenComponent2<
-    React.ComponentType<{ someProp: string }>
-  >({
-    id: specId,
-    speciality: specId,
-  }),
-);
+})();
 
 expectAssignable<React.ComponentType<{ someProp: string }>>(
   SomeTokenComponentWithProps,
@@ -105,8 +97,24 @@ expectError(
   })(),
 );
 
-// .for() returns a SpecificInjectionTokenComponent
-const SomeSpecificToken = SomeTokenComponentWithProps.for('some-specific');
+// .for() returns a SpecificInjectionTokenComponent — a separate, abstract
+// (factory-bearing) token component, since SomeTokenComponentWithProps above
+// has no factory and so no `.for()` at all
+const SomeAbstractTokenComponentWithProps = getInjectionTokenComponent2<
+  React.ComponentType<{ someProp: string }>
+>({
+  id: 'irrelevant-abstract',
+})(specId =>
+  getSpecificInjectionTokenComponent2<
+    React.ComponentType<{ someProp: string }>
+  >({
+    id: specId,
+    speciality: specId,
+  }),
+);
+
+const SomeSpecificToken =
+  SomeAbstractTokenComponentWithProps.for('some-specific');
 
 expectAssignable<
   SpecificInjectionTokenComponent2<React.ComponentType<{ someProp: string }>>
@@ -188,10 +196,10 @@ expectType<React.ComponentType<{ someProp: 'some-generic-specific' }>>(
 // given a real generic factory that itself returns another abstract family,
 // multi-level .for() narrows through both levels
 const SomeAbstractTokenComponentWithTwoLevels =
-  getAbstractInjectionTokenComponent2<
+  getInjectionTokenComponent2<
     React.ComponentType<{ level1: string; level2: string }>
   >({ id: 'irrelevant' })(<Level1 extends string>(level1: Level1) =>
-    getAbstractInjectionTokenComponent2<
+    getInjectionTokenComponent2<
       React.ComponentType<{ level1: Level1; level2: string }>
     >({ id: `irrelevant-${level1}` })(<Level2 extends string>(level2: Level2) =>
       getSpecificInjectionTokenComponent2<
@@ -273,9 +281,9 @@ expectError(
   <SomeSpecificFromTwoLevels level1="wrong-level1" level2="some-level2" />,
 );
 
-// ---- Abstract InjectionTokenComponent2 ----
+// ---- Abstract token component (getInjectionTokenComponent2 with a factory) ----
 
-const SomeAbstractTokenComponent = getAbstractInjectionTokenComponent2<
+const SomeAbstractTokenComponent = getInjectionTokenComponent2<
   React.ComponentType<{ someProp: string }>
 >({ id: 'irrelevant' })(specId =>
   getSpecificInjectionTokenComponent2<
@@ -289,15 +297,6 @@ const SomeAbstractTokenComponent = getAbstractInjectionTokenComponent2<
 // abstract token component is not identifiable as a React component at all,
 // regardless of props (cannot be rendered)
 expectError<React.ComponentType<any>>(SomeAbstractTokenComponent);
-
-// abstract token components make the factory mandatory — omitting it is a
-// TYPE ERROR, unlike the base getInjectionTokenComponent2, which allows a
-// for-less token
-expectError(
-  getAbstractInjectionTokenComponent2<
-    React.ComponentType<{ someProp: string }>
-  >({ id: 'irrelevant' })(),
-);
 
 // .for() returns a renderable specific token component
 const SomeConcreteFromAbstract =
@@ -347,7 +346,7 @@ getInjectionTokenComponent2({
   tags: ['some-tag'],
 })();
 
-getAbstractInjectionTokenComponent2({
+getInjectionTokenComponent2({
   id: 'irrelevant',
   tags: ['some-tag'],
 })(specId =>
@@ -363,7 +362,7 @@ expectError(
 );
 
 expectError(
-  getAbstractInjectionTokenComponent2({
+  getInjectionTokenComponent2({
     id: 'irrelevant',
     tags: [42],
   })(),
