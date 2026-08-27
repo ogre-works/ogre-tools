@@ -104,9 +104,7 @@ const SomeAbstractTokenComponentWithProps = getInjectionTokenComponent2<
 >({
   id: 'irrelevant-abstract',
 })(specId =>
-  getInjectionTokenComponent2<
-    React.ComponentType<{ someProp: string }>
-  >({
+  getInjectionTokenComponent2<React.ComponentType<{ someProp: string }>>({
     id: specId,
     speciality: specId,
   })(),
@@ -170,9 +168,7 @@ expectType<React.ComponentType<{ someProp: 'some-type' }>>(
 const SomeTokenComponentWithGenericFactory = getInjectionTokenComponent2<
   React.ComponentType<{ someProp: string }>
 >({ id: 'irrelevant' })(<Speciality extends string>(speciality: Speciality) =>
-  getInjectionTokenComponent2<
-    React.ComponentType<{ someProp: Speciality }>
-  >({
+  getInjectionTokenComponent2<React.ComponentType<{ someProp: Speciality }>>({
     id: speciality,
     speciality,
   })(),
@@ -197,21 +193,20 @@ expectType<React.ComponentType<{ someProp: 'some-generic-specific' }>>(
 // through nesting without any default on the factory-call's
 // `SpecificFactory` (see the comment on core's `InjectionToken2FactoryCall`);
 // the generic shape has its own test right below.
-const SomeAbstractTokenComponentWithTwoLevels =
+const SomeAbstractTokenComponentWithTwoLevels = getInjectionTokenComponent2<
+  React.ComponentType<{ level1: string; level2: string }>
+>({ id: 'irrelevant' })((level1: string) =>
   getInjectionTokenComponent2<
     React.ComponentType<{ level1: string; level2: string }>
-  >({ id: 'irrelevant' })((level1: string) =>
+  >({ id: `irrelevant-${level1}`, speciality: level1 })((level2: string) =>
     getInjectionTokenComponent2<
       React.ComponentType<{ level1: string; level2: string }>
-    >({ id: `irrelevant-${level1}`, speciality: level1 })((level2: string) =>
-      getInjectionTokenComponent2<
-        React.ComponentType<{ level1: string; level2: string }>
-      >({
-        id: level2,
-        speciality: level2,
-      })(),
-    ),
-  );
+    >({
+      id: level2,
+      speciality: level2,
+    })(),
+  ),
+);
 
 // the family itself is abstract — not identifiable as a React component at
 // all, regardless of props (React.ComponentType<any>, not just a mismatched
@@ -229,9 +224,9 @@ const SomeSpecificFromTwoLevels =
   SomeIntermediateFromTwoLevels.for('some-level2');
 
 // only once both levels are resolved is the result a renderable component
-expectAssignable<
-  React.ComponentType<{ level1: string; level2: string }>
->(SomeSpecificFromTwoLevels);
+expectAssignable<React.ComponentType<{ level1: string; level2: string }>>(
+  SomeSpecificFromTwoLevels,
+);
 
 expectType<React.ComponentType<{ level1: string; level2: string }>>(
   di.inject(SomeSpecificFromTwoLevels),
@@ -328,9 +323,7 @@ expectError(
 const SomeAbstractTokenComponent = getInjectionTokenComponent2<
   React.ComponentType<{ someProp: string }>
 >({ id: 'irrelevant' })(specId =>
-  getInjectionTokenComponent2<
-    React.ComponentType<{ someProp: string }>
-  >({
+  getInjectionTokenComponent2<React.ComponentType<{ someProp: string }>>({
     id: specId,
     speciality: specId,
   })(),
@@ -391,9 +384,7 @@ getInjectionTokenComponent2({
 getInjectionTokenComponent2({
   id: 'irrelevant',
   tags: ['some-tag'],
-})(specId =>
-  getInjectionTokenComponent2({ id: specId, speciality: specId })(),
-);
+})(specId => getInjectionTokenComponent2({ id: specId, speciality: specId })());
 
 // given non-string tags, typing is not ok
 expectError(
