@@ -2268,7 +2268,7 @@ expectError(di.injectMany(cardinalityOneToken, 'some-name'));
 expectType<string[]>(di.injectMany(cardinalityManyToken, 'some-name'));
 expectError(di.inject(cardinalityManyToken, 'some-name'));
 
-expectType<string[]>(di.injectMany(cardinalityNonEmptyManyToken, 'some-name'));
+expectType<[string, ...string[]]>(di.injectMany(cardinalityNonEmptyManyToken, 'some-name'));
 expectError(di.inject(cardinalityNonEmptyManyToken, 'some-name'));
 
 // given cardinality 'zero-or-one', neither single nor many injection accepts it
