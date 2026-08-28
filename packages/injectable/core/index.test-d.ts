@@ -2947,3 +2947,32 @@ expectType<InjectionInstanceWithMeta<(req: string) => number>>(
     ),
   ),
 );
+
+const someInjectionTokenWithMoreSpecificArrayMultiFactory = getInjectionToken2<() => unknown, () => number[]>({
+  cardinality: "zero-or-many",
+  id: "some-id",
+})();
+
+// injectMany from a v1 injectable should be typed based on the MF of a v2 token
+expectType<number[]>(di.injectMany(someInjectionTokenWithMoreSpecificArrayMultiFactory));
+
+// injectManyWithMeta from a v1 injectable should be typed based on the MF of a v2 token
+expectType<InjectionInstanceWithMeta<number>[]>(di.injectManyWithMeta(someInjectionTokenWithMoreSpecificArrayMultiFactory));
+
+// injectMany from a v2 injectable should be typed based on the MF of a v2 token
+getInjectable2({
+  id: "some-id",
+  consumptions: [someInjectionTokenWithMoreSpecificArrayMultiFactory],
+  instantiate: (di) => () => {
+    expectType<number[]>(di.injectMany(someInjectionTokenWithMoreSpecificArrayMultiFactory)());
+  }
+})
+
+// injectManyWithMeta from a v2 injectable should be typed based on the MF of a v2 token
+getInjectable2({
+  id: "some-id",
+  consumptions: [someInjectionTokenWithMoreSpecificArrayMultiFactory],
+  instantiate: (di) => () => {
+    expectType<InjectionInstanceWithMeta<number>[]>(di.injectManyWithMeta(someInjectionTokenWithMoreSpecificArrayMultiFactory)());
+  }
+})

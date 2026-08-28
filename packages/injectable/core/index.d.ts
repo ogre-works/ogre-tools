@@ -308,10 +308,10 @@ export type SpecificInject<InjectionInstance, InstantiationParam> =
     : SpecificInjectWithParameter<InjectionInstance, InstantiationParam>;
 
 export interface InjectMany {
-  <F extends Factory>(
-    alias: InjectionToken2<F, any, any, 'zero-or-many' | 'one-or-many'>,
+  <F extends Factory, MF extends ManyFactory<F>>(
+    alias: InjectionToken2<F, MF, any, 'zero-or-many' | 'one-or-many'>,
     ...params: Parameters<F>
-  ): ReturnType<F>[];
+  ): ReturnType<MF>;
 
   <InjectionInstance>(
     alias:
@@ -337,10 +337,10 @@ export type InjectionInstanceWithMeta<InjectionInstance> = {
 };
 
 export interface InjectManyWithMeta {
-  <F extends Factory>(
-    alias: InjectionToken2<F, any, any, 'zero-or-many' | 'one-or-many'>,
+  <F extends Factory, MF extends ManyFactory<F>>(
+    alias: InjectionToken2<F, MF, any, 'zero-or-many' | 'one-or-many'>,
     ...params: Parameters<F>
-  ): InjectionInstanceWithMeta<ReturnType<F>>[];
+  ): InjectionInstanceWithMeta<ReturnType<MF> extends (infer R)[] ? R : never>[];
 
   <InjectionInstance>(
     alias:
@@ -742,7 +742,7 @@ export interface ScopedInject2<Cons extends Consumption> {
 }
 
 export interface ScopedInjectMany2<Cons extends Consumption> {
-  <F extends Factory, MF extends AnyConsumptionFactory<F>>(
+  <F extends Factory, MF extends ManyFactory<F>>(
     alias: Consumable<Cons> &
       InjectionToken2<F, MF, any, 'zero-or-many' | 'one-or-many'>,
   ): MF;
@@ -1267,7 +1267,7 @@ export interface InjectMaybe2 {
 // preserved), v1 returns a synthesized many-factory. Only the two
 // many-cardinalities are accepted.
 export interface InjectMany2 {
-  <F extends Factory, MF extends AnyConsumptionFactory<F>>(
+  <F extends Factory, MF extends ManyFactory<F>>(
     alias: InjectionToken2<F, MF, any, 'zero-or-many' | 'one-or-many'>,
   ): MF;
   <I>(alias: InjectionToken<I>): () => I[];
@@ -1282,9 +1282,11 @@ export type ToWithMetaFactory<F> = F extends (...args: infer P) => infer R
   ? (...args: P) => InjectionInstanceWithMeta<R>
   : never;
 
-export type ToWithMetaManyFactory<F> = F extends (...args: infer P) => infer R
+export type ToWithMetaManyFactory<F> = F extends (...args: infer P) => (infer R)[]
   ? (...args: P) => InjectionInstanceWithMeta<R>[]
-  : never;
+  : F extends (...args: infer P) => (infer R)
+    ? (...args: P) => InjectionInstanceWithMeta<R>[]
+    : never;
 
 export interface InjectWithMeta2 {
   <F extends Factory>(alias: Injectable2<F>): ToWithMetaFactory<F>;
@@ -1294,9 +1296,9 @@ export interface InjectWithMeta2 {
 }
 
 export interface InjectManyWithMeta2 {
-  <F extends Factory>(
-    alias: InjectionToken2<F, any, any, 'zero-or-many' | 'one-or-many'>,
-  ): ToWithMetaManyFactory<F>;
+  <F extends Factory, MF extends ManyFactory<F>>(
+    alias: InjectionToken2<F, MF, any, 'zero-or-many' | 'one-or-many'>,
+  ): ToWithMetaManyFactory<MF>;
   <I>(alias: InjectionToken<I>): () => InjectionInstanceWithMeta<I>[];
   <I, P>(alias: InjectionToken<I, P>): (...params: P extends any[] ? P : [P]) => InjectionInstanceWithMeta<I>[];
 }
