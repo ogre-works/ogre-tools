@@ -12,12 +12,13 @@ import { IComputedValue } from 'mobx';
 export function registerMobX(di: DiContainer): void;
 
 type ComputedInjectMany = {
-  // InjectionToken2, abstract or not: variadic, returns IComputedValue of the
-  // token's many-factory result, so a custom multi-factory narrows it
+  // InjectionToken2, abstract or not: variadic, returns IComputedValue of a
+  // plain array element-typed by the token's many-factory, so a custom
+  // multi-factory narrows it (normalized like v1 injectMany in the core)
   <F extends Factory, MF extends ManyFactory<F>>(
     injectionToken: InjectionToken2<F, MF, any, 'zero-or-many' | 'one-or-many'>,
     ...params: Parameters<F>
-  ): IComputedValue<ReturnType<MF>>;
+  ): IComputedValue<ReturnType<MF> extends (infer R)[] ? R[] : never>;
 
   // Old-style InjectionToken
   <TInjectionToken extends InjectionToken<any, any>,
