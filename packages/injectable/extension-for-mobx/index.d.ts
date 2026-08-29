@@ -4,6 +4,7 @@ import {
   InjectionInstanceWithMeta,
   InjectionToken,
   InjectionToken2,
+  ManyFactory,
   SingleInjectionToken2,
 } from '@ogre-tools/injectable';
 import { IComputedValue } from 'mobx';
@@ -11,11 +12,12 @@ import { IComputedValue } from 'mobx';
 export function registerMobX(di: DiContainer): void;
 
 type ComputedInjectMany = {
-  // InjectionToken2, abstract or not: variadic, returns IComputedValue of instance array
-  <F extends Factory>(
-    injectionToken: InjectionToken2<F, any, any, 'zero-or-many' | 'one-or-many'>,
+  // InjectionToken2, abstract or not: variadic, returns IComputedValue of the
+  // token's many-factory result, so a custom multi-factory narrows it
+  <F extends Factory, MF extends ManyFactory<F>>(
+    injectionToken: InjectionToken2<F, MF, any, 'zero-or-many' | 'one-or-many'>,
     ...params: Parameters<F>
-  ): IComputedValue<ReturnType<F>[]>;
+  ): IComputedValue<ReturnType<MF>>;
 
   // Old-style InjectionToken
   <TInjectionToken extends InjectionToken<any, any>,
@@ -29,11 +31,14 @@ type ComputedInjectMany = {
 };
 
 type ComputedInjectManyWithMeta = {
-  // InjectionToken2, abstract or not: variadic, returns IComputedValue of instance-with-meta array
-  <F extends Factory>(
-    injectionToken: InjectionToken2<F, any, any, 'zero-or-many' | 'one-or-many'>,
+  // InjectionToken2, abstract or not: variadic, returns IComputedValue of
+  // instance-with-meta array, element-typed by the token's many-factory
+  <F extends Factory, MF extends ManyFactory<F>>(
+    injectionToken: InjectionToken2<F, MF, any, 'zero-or-many' | 'one-or-many'>,
     ...params: Parameters<F>
-  ): IComputedValue<InjectionInstanceWithMeta<ReturnType<F>>[]>;
+  ): IComputedValue<
+    InjectionInstanceWithMeta<ReturnType<MF> extends (infer R)[] ? R : never>[]
+  >;
 
   // Old-style InjectionToken
   <TInjectionToken extends InjectionToken<any, any>,
@@ -51,11 +56,15 @@ export const computedInjectManyInjectionToken: InjectionToken<ComputedInjectMany
 export const computedInjectManyWithMetaInjectionToken: InjectionToken<ComputedInjectManyWithMeta>;
 
 type ComputedInjectMaybe = {
-  // InjectionToken2: variadic, returns IComputedValue of instance or undefined
-  <F extends Factory>(
-    injectionToken: InjectionToken2<F, any, any, 'zero-or-one'>,
+  // InjectionToken2: variadic, returns IComputedValue of the token's
+  // maybe-factory result (which always includes undefined)
+  <
+    F extends Factory,
+    MF extends (...args: Parameters<F>) => ReturnType<F> | undefined,
+  >(
+    injectionToken: InjectionToken2<F, MF, any, 'zero-or-one'>,
     ...params: Parameters<F>
-  ): IComputedValue<ReturnType<F> | undefined>;
+  ): IComputedValue<ReturnType<MF>>;
 
   // Old-style InjectionToken
   <TInjectionToken extends InjectionToken<any, any>,
@@ -73,10 +82,12 @@ export const computedInjectMaybeInjectionToken: InjectionToken<ComputedInjectMay
 // Factory-shape variants: `di.inject(X, token)` returns the bound callable
 // (and `di.inject2(X)(token)` equivalently). The callable is the token's
 // ManyFactory for ComputedInjectMany2 — generics on the token propagate.
-// For WithMeta2 there is no matching factory on the token, so it synthesizes
-// from Parameters<F> / ReturnType<F> (same limitation as InjectManyWithMeta2 /
-// InjectWithMeta2 in the core package). Maybe2 has no such limitation: a
-// 'zero-or-one' token carries its maybe-factory, which is returned verbatim.
+// For WithMeta2 there is no meta-shaped factory on the token, so the shape is
+// synthesized: parameters from F, the element type from the many-factory —
+// a generic factory still collapses to its constraint (same limitation as
+// InjectManyWithMeta2 / InjectWithMeta2 in the core package). Maybe2 has no
+// such limitation: a 'zero-or-one' token carries its maybe-factory, which is
+// returned verbatim.
 
 // Overload order matters on two fronts:
 // 1) At call time, TS tries overloads top-to-bottom. InjectionToken (v1) has
@@ -118,9 +129,13 @@ type ComputedInjectManyWithMeta2 = {
     ...param: TInjectionToken extends InjectionToken<any, infer T> ? [T] : []
   ) => TInstanceWithMeta[];
 
-  <F extends Factory>(
-    injectionToken: InjectionToken2<F, any, any, 'zero-or-many' | 'one-or-many'>,
-  ): (...params: Parameters<F>) => InjectionInstanceWithMeta<ReturnType<F>>[];
+  <F extends Factory, MF extends ManyFactory<F>>(
+    injectionToken: InjectionToken2<F, MF, any, 'zero-or-many' | 'one-or-many'>,
+  ): (
+    ...params: Parameters<F>
+  ) => InjectionInstanceWithMeta<
+    ReturnType<MF> extends (infer R)[] ? R : never
+  >[];
 };
 
 export const computedInjectManyWithMeta2InjectionToken: SingleInjectionToken2<ComputedInjectManyWithMeta2>;

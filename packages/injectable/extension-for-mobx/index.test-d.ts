@@ -245,9 +245,9 @@ expectError(computedInjectMaybe2(someInjectionTokenWithParameter)("wrong"));
 // derived as `(...Parameters<F>) => ReturnType<F>[]`, so the observable
 // shape matches that derivation.
 //
-// WithMeta2 / Maybe2 have no ManyFactory analog and synthesize from
-// Parameters<F> / ReturnType<F> directly (same limitation as
-// InjectManyWithMeta2 / InjectWithMeta2 in the core package).
+// WithMeta2 has no meta-shaped factory on the token and synthesizes its
+// shape: parameters from F, element type from the many-factory. Maybe2
+// returns the token's maybe-factory verbatim.
 // ===========================================================================
 
 // --- v2 non-parametric token ----------------------------------------------
@@ -361,3 +361,61 @@ expectType<number[]>(computedInjectMany2(someParamToken2)("x"));
 // generic signature whose `MF` widens to `any` under Parameters/ReturnType.
 // For generic preservation use `di.inject2(X)(token)(...args)`, which returns
 // ComputedInjectMany2 verbatim and lets overload resolution run at call site.
+
+// ===========================================================================
+// SECTION 8
+// v2 tokens with a CUSTOM multi-factory — MF narrower than the auto-derived
+// ManyFactory<F>. Every helper types its result from the token's MF, not
+// from ReturnType<F>.
+// ===========================================================================
+
+const customMFToken2 = getInjectionToken2<() => unknown, () => number[]>({
+  cardinality: 'zero-or-many',
+  id: "custom-mf-token2",
+})();
+
+const customMFParamToken2 = getInjectionToken2<
+  (id: string) => unknown,
+  (id: string) => number[]
+>({
+  cardinality: 'zero-or-many',
+  id: "custom-mf-param-token2",
+})();
+
+const customMFMaybeToken2 = getInjectionToken2<
+  () => unknown,
+  () => number | undefined
+>({
+  cardinality: 'zero-or-one',
+  id: "custom-mf-maybe-token2",
+})();
+
+// --- instance-returning helpers --------------------------------------------
+
+expectType<IComputedValue<number[]>>(computedInjectMany(customMFToken2));
+expectType<IComputedValue<InjectionInstanceWithMeta<number>[]>>(
+  computedInjectManyWithMeta(customMFToken2),
+);
+expectType<IComputedValue<number | undefined>>(
+  computedInjectMaybe(customMFMaybeToken2),
+);
+
+// the trailing param is still typed by the token's template
+expectType<IComputedValue<number[]>>(
+  computedInjectMany(customMFParamToken2, "some-id"),
+);
+expectError(computedInjectMany(customMFParamToken2, 42));
+expectError(computedInjectMany(customMFParamToken2));
+
+// --- factory-shape helpers --------------------------------------------------
+
+expectType<() => number[]>(computedInjectMany2(customMFToken2));
+expectType<() => InjectionInstanceWithMeta<number>[]>(
+  computedInjectManyWithMeta2(customMFToken2),
+);
+expectType<(id: string) => InjectionInstanceWithMeta<number>[]>(
+  computedInjectManyWithMeta2(customMFParamToken2),
+);
+expectType<() => number | undefined>(
+  computedInjectMaybe2(customMFMaybeToken2),
+);
