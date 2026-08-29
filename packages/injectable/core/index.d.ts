@@ -769,9 +769,9 @@ export interface ConsumptionInjectMaybe2<Cons extends Consumption> {
 // declarations on these paths too.
 export interface ConsumptionInjectWithMeta2<Cons extends Consumption> {
   <F extends Factory>(alias: Injectable2<F>): ToWithMetaFactory<F>;
-  <F extends Factory>(
-    alias: Consumable<Cons> & InjectionToken2<F, any, undefined, 'one'>,
-  ): ToWithMetaFactory<F>;
+  <F extends Factory, WF>(
+    alias: Consumable<Cons> & InjectionToken2<F, any, undefined, 'one', WF>,
+  ): WF;
   <I>(
     alias: Injectable<I, any> | (Consumable<Cons> & InjectionToken<I>),
   ): () => InjectionInstanceWithMeta<I>;
@@ -781,14 +781,10 @@ export interface ConsumptionInjectWithMeta2<Cons extends Consumption> {
 }
 
 export interface ConsumptionInjectManyWithMeta2<Cons extends Consumption> {
-  <F extends Factory, MF extends ManyFactory<F>>(
+  <F extends Factory, WMF>(
     alias: Consumable<Cons> &
-      InjectionToken2<F, MF, any, 'zero-or-many' | 'one-or-many'>,
-  ): (
-    ...args: Parameters<MF>
-  ) => InjectionInstanceWithMeta<
-    ReturnType<MF> extends (infer R)[] ? R : never
-  >[];
+      InjectionToken2<F, any, any, 'zero-or-many' | 'one-or-many', any, WMF>,
+  ): WMF;
   <I>(
     alias: Consumable<Cons> & InjectionToken<I>,
   ): () => InjectionInstanceWithMeta<I>[];
@@ -899,14 +895,58 @@ export type DefaultConsumptionFactory<C extends Cardinality, F extends Factory> 
     ? NonEmptyManyFactory<F>
     : ManyFactory<F>;
 
+// Default with-meta consumption shapes derived from the base/many factory:
+// the same parameters, the result (or each element) wrapped in
+// InjectionInstanceWithMeta. Like every utility-type derivation, these
+// collapse a generic factory to its constraint — a token whose withMeta
+// consumers must keep a generic declares its with-meta slots explicitly
+// instead (see InjectionToken2Base). Both are `any`-proofed: deriving over
+// `any` (wide positions such as `Consumption`'s InjectionToken2<any, ...>)
+// would otherwise produce `(...args: unknown[]) => ...`, whose contravariant
+// parameters REJECT every concrete token — the opposite of wide.
+export type DefaultWithMetaFactory<F> = 0 extends 1 & F
+  ? any
+  : ToWithMetaFactory<F>;
+
+// The trailing `MF extends any` distributes over the default MF slot — a
+// bare `InjectionToken2<F>` leaves MF as the ManyFactory | MaybeResultFactory
+// union, and deriving non-distributively would collapse the element type to
+// `never`, making the bare annotation reject every concrete token.
+export type DefaultWithMetaManyFactory<MF extends Factory> = 0 extends 1 & MF
+  ? any
+  : MF extends any
+  ? (
+      ...args: Parameters<MF>
+    ) => InjectionInstanceWithMeta<
+      ReturnType<MF> extends (infer R)[] ? R : never
+    >[]
+  : never;
+
 export interface InjectionToken2Base<
   F extends Factory = Factory,
   MF extends AnyConsumptionFactory<F> = ManyFactory<F> | MaybeResultFactory<F>,
   C extends Cardinality = Cardinality,
+  WF = DefaultWithMetaFactory<F>,
+  WMF = DefaultWithMetaManyFactory<MF>,
 > {
   readonly aliasType: 'injection-token2';
   template: F;
   manyTemplate: MF;
+  // With-meta consumption shapes: what injectWithMeta / injectManyWithMeta
+  // (and their factory-returning forms) hand back for this token. Purely
+  // type-level anchors — never set at runtime — defaulted by derivation from
+  // F / MF, which collapses a generic factory to its constraint. To keep a
+  // generic through the withMeta consumers, declare the slots explicitly via
+  // a cast — an assignment won't do, since a monomorphic (default-derived)
+  // shape can't be assigned to a generic one, only cast to it, which is
+  // honest here because the runtime is parametric:
+  //   const token = getInjectionToken2<GF, GMF>({ ... })() as InjectionToken2<
+  //     GF, GMF, undefined, 'zero-or-many',
+  //     <T>(value: T) => InjectionInstanceWithMeta<T>,
+  //     <T>(value: T) => InjectionInstanceWithMeta<T>[]
+  //   >;
+  withMetaTemplate: WF;
+  withMetaManyTemplate: WMF;
   key: Symbol;
   id: string;
   // Declared arity. The creators always stamp a literal, so a token annotated
@@ -951,9 +991,11 @@ export type InjectionToken2<
     | undefined
     | ((...args: any[]) => SpecificInjectionToken2<F, any, any, any>) = any,
   C extends Cardinality = Cardinality,
+  WF = DefaultWithMetaFactory<F>,
+  WMF = DefaultWithMetaManyFactory<MF>,
 > = SpecificFactory extends undefined
-  ? InjectionToken2Base<F, MF, C> & { readonly __abstract?: never }
-  : InjectionToken2Base<F, MF, C> & {
+  ? InjectionToken2Base<F, MF, C, WF, WMF> & { readonly __abstract?: never }
+  : InjectionToken2Base<F, MF, C, WF, WMF> & {
       readonly __abstract: true;
       for: SpecificFactory;
     };
@@ -974,7 +1016,9 @@ export type SpecificInjectionToken2<
     | undefined
     | ((...args: any[]) => SpecificInjectionToken2<F, any, any, any>) = undefined,
   C extends Cardinality = Cardinality,
-> = InjectionToken2<F, MF, SpecificFactory, C> & { speciality: any };
+  WF = DefaultWithMetaFactory<F>,
+  WMF = DefaultWithMetaManyFactory<MF>,
+> = InjectionToken2<F, MF, SpecificFactory, C, WF, WMF> & { speciality: any };
 
 export interface GetInjectionToken2Options<SpecificFactory> {
   id: string;
@@ -1336,22 +1380,29 @@ export type ToWithMetaManyFactory<F> = F extends (...args: infer P) => infer R
 
 export interface InjectWithMeta2 {
   <F extends Factory>(alias: Injectable2<F>): ToWithMetaFactory<F>;
-  <F extends Factory>(alias: InjectionToken2<F, any, undefined, 'one'>): ToWithMetaFactory<F>;
+  // Returns the token's with-meta template verbatim, so an explicitly
+  // declared generic shape survives; the default is ToWithMetaFactory<F>.
+  <F extends Factory, WF>(
+    alias: InjectionToken2<F, any, undefined, 'one', WF>,
+  ): WF;
   <I>(alias: Injectable<I, any> | InjectionToken<I>): () => InjectionInstanceWithMeta<I>;
   <I, P>(alias: Injectable<I, any, P> | InjectionToken<I, P>): (...params: P extends any[] ? P : [P]) => InjectionInstanceWithMeta<I>;
 }
 
 export interface InjectManyWithMeta2 {
-  // The element type comes from the token's many-factory (so a custom
-  // multi-factory narrows it), unwrapped inline rather than through
-  // ToWithMetaManyFactory, which keeps its published base-factory semantics.
-  <F extends Factory, MF extends ManyFactory<F>>(
-    alias: InjectionToken2<F, MF, any, 'zero-or-many' | 'one-or-many'>,
-  ): (
-    ...args: Parameters<MF>
-  ) => InjectionInstanceWithMeta<
-    ReturnType<MF> extends (infer R)[] ? R : never
-  >[];
+  // Returns the token's with-meta many-template verbatim, so an explicitly
+  // declared generic shape survives; the default derives from the token's
+  // many-factory, which is what lets a custom multi-factory narrow it.
+  <F extends Factory, WMF>(
+    alias: InjectionToken2<
+      F,
+      any,
+      any,
+      'zero-or-many' | 'one-or-many',
+      any,
+      WMF
+    >,
+  ): WMF;
   <I>(alias: InjectionToken<I>): () => InjectionInstanceWithMeta<I>[];
   <I, P>(alias: InjectionToken<I, P>): (...params: P extends any[] ? P : [P]) => InjectionInstanceWithMeta<I>[];
 }

@@ -3099,10 +3099,83 @@ getInjectable2({
     expectType<string[]>(getMany('some-string'));
     expectType<number[]>(getMany(42));
 
-    // withMeta goes through ToWithMetaManyFactory, which erases the generic
-    // to its constraint (the known WithMeta limitation)
+    // withMeta returns the token's with-meta slot, which by default derives
+    // from the many-factory and so erases the generic to its constraint —
+    // see below for declaring the slot explicitly to keep the generic
     expectType<(value: unknown) => InjectionInstanceWithMeta<unknown>[]>(
       di.injectManyWithMeta(someGenericParamTokenWithCustomMultiFactory),
     );
   },
 });
+
+// ---- Explicit with-meta slots: generics survive the withMeta consumers ----
+
+type SomeGenericWithMetaFactory = <T>(value: T) => InjectionInstanceWithMeta<T>;
+type SomeGenericWithMetaManyFactory = <T>(
+  value: T,
+) => InjectionInstanceWithMeta<T>[];
+
+// The slots are declared via a cast: the default-stamped shapes are the
+// generic ones collapsed to their constraints, so the types are comparable
+// but not assignable in this direction.
+const someTokenWithExplicitWithMetaShapes = getInjectionToken2<
+  <T>(value: T) => T,
+  <T>(value: T) => T[]
+>({
+  cardinality: 'zero-or-many',
+  id: 'some-token-with-explicit-with-meta-shapes',
+})() as InjectionToken2<
+  <T>(value: T) => T,
+  <T>(value: T) => T[],
+  undefined,
+  'zero-or-many',
+  SomeGenericWithMetaFactory,
+  SomeGenericWithMetaManyFactory
+>;
+
+// injectManyWithMeta2 returns the declared slot verbatim...
+expectType<SomeGenericWithMetaManyFactory>(
+  di.injectManyWithMeta2(someTokenWithExplicitWithMetaShapes),
+);
+
+// ...so each call narrows by its own instantiation parameter
+expectType<InjectionInstanceWithMeta<string>[]>(
+  di.injectManyWithMeta2(someTokenWithExplicitWithMetaShapes)(
+    'some-string' as string,
+  ),
+);
+expectType<InjectionInstanceWithMeta<number>[]>(
+  di.injectManyWithMeta2(someTokenWithExplicitWithMetaShapes)(42 as number),
+);
+
+// the consumption-gated variant behaves the same
+getInjectable2({
+  id: 'some-consumer-of-explicit-with-meta-shapes',
+  consumptions: [someTokenWithExplicitWithMetaShapes],
+  instantiate: di => () => {
+    expectType<SomeGenericWithMetaManyFactory>(
+      di.injectManyWithMeta(someTokenWithExplicitWithMetaShapes),
+    );
+  },
+});
+
+// a 'one'-cardinality token declares the single with-meta slot the same way
+const someOneTokenWithExplicitWithMetaShape = getInjectionToken2<
+  <T>(value: T) => T
+>({
+  cardinality: 'one',
+  id: 'some-one-token-with-explicit-with-meta-shape',
+})() as InjectionToken2<
+  <T>(value: T) => T,
+  (value: unknown) => unknown[],
+  undefined,
+  'one',
+  SomeGenericWithMetaFactory
+>;
+
+expectType<SomeGenericWithMetaFactory>(
+  di.injectWithMeta2(someOneTokenWithExplicitWithMetaShape),
+);
+expectType<InjectionInstanceWithMeta<number>>(
+  di.injectWithMeta2(someOneTokenWithExplicitWithMetaShape)(42 as number),
+);

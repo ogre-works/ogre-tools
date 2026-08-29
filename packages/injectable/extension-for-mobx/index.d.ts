@@ -83,12 +83,12 @@ export const computedInjectMaybeInjectionToken: InjectionToken<ComputedInjectMay
 // Factory-shape variants: `di.inject(X, token)` returns the bound callable
 // (and `di.inject2(X)(token)` equivalently). The callable is the token's
 // ManyFactory for ComputedInjectMany2 — generics on the token propagate.
-// For WithMeta2 there is no meta-shaped factory on the token, so the shape is
-// synthesized: parameters from F, the element type from the many-factory —
-// a generic factory still collapses to its constraint (same limitation as
-// InjectManyWithMeta2 / InjectWithMeta2 in the core package). Maybe2 has no
-// such limitation: a 'zero-or-one' token carries its maybe-factory, which is
-// returned verbatim.
+// WithMeta2 returns the token's with-meta many-template verbatim: by default
+// that derives from the many-factory (collapsing a generic to its
+// constraint), and a token that declares the slot explicitly keeps its
+// generic — same mechanism as InjectManyWithMeta2 in the core package.
+// Maybe2 needs none of this: a 'zero-or-one' token carries its maybe-factory,
+// which is returned verbatim.
 
 // Overload order matters on two fronts:
 // 1) At call time, TS tries overloads top-to-bottom. InjectionToken (v1) has
@@ -130,13 +130,16 @@ type ComputedInjectManyWithMeta2 = {
     ...param: TInjectionToken extends InjectionToken<any, infer T> ? [T] : []
   ) => TInstanceWithMeta[];
 
-  <F extends Factory, MF extends ManyFactory<F>>(
-    injectionToken: InjectionToken2<F, MF, any, 'zero-or-many' | 'one-or-many'>,
-  ): (
-    ...params: Parameters<F>
-  ) => InjectionInstanceWithMeta<
-    ReturnType<MF> extends (infer R)[] ? R : never
-  >[];
+  <F extends Factory, WMF>(
+    injectionToken: InjectionToken2<
+      F,
+      any,
+      any,
+      'zero-or-many' | 'one-or-many',
+      any,
+      WMF
+    >,
+  ): WMF;
 };
 
 export const computedInjectManyWithMeta2InjectionToken: SingleInjectionToken2<ComputedInjectManyWithMeta2>;
