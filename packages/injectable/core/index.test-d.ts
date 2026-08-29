@@ -1224,6 +1224,7 @@ expectType<InjectionInstanceWithMeta<{ id: string }>[]>(
 // Inside new-style: injectWithMeta for non-generic returns factory for meta wrapper
 const innerWithMeta = getInjectable2({
   id: 'inner-with-meta',
+  consumptions: [handlerToken2, handlerManyToken2],
   instantiate: di => {
     const getHandlerMeta = di.injectWithMeta(handlerToken2);
     expectType<() => InjectionInstanceWithMeta<string>>(getHandlerMeta);
@@ -2712,6 +2713,14 @@ const declaringInjectable = getInjectable2({
       di.injectMaybe(consumedMaybeToken),
     );
 
+    // the withMeta variants are gated the same way
+    expectType<(name: string) => InjectionInstanceWithMeta<string>>(
+      di.injectWithMeta(consumedOneToken),
+    );
+    expectType<(name: string) => InjectionInstanceWithMeta<string>[]>(
+      di.injectManyWithMeta(consumedManyToken),
+    );
+
     // a declared token is still bound to its own consumption API
     expectError(di.injectMany(consumedOneToken));
     expectError(di.inject(consumedManyToken));
@@ -2721,6 +2730,8 @@ const declaringInjectable = getInjectable2({
     expectError(di.inject(undeclaredToken));
     expectError(di.injectMany(undeclaredManyToken));
     expectError(di.injectMaybe(undeclaredMaybeToken));
+    expectError(di.injectWithMeta(undeclaredToken));
+    expectError(di.injectManyWithMeta(undeclaredManyToken));
 
     // injectables need no declaration
     expectType<(n: number) => string>(di.inject(someConsumedInjectable));
@@ -2743,9 +2754,14 @@ getInjectable2({
     expectError(di.inject(undeclaredToken));
     expectError(di.injectMany(undeclaredManyToken));
     expectError(di.injectMaybe(undeclaredMaybeToken));
+    expectError(di.injectWithMeta(undeclaredToken));
+    expectError(di.injectManyWithMeta(undeclaredManyToken));
 
     // injectables are still injectable
     expectType<(n: number) => string>(di.inject(someConsumedInjectable));
+    expectType<(n: number) => InjectionInstanceWithMeta<string>>(
+      di.injectWithMeta(someConsumedInjectable),
+    );
 
     return () => 'irrelevant';
   },

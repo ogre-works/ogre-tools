@@ -730,7 +730,7 @@ type Consumable<Cons extends Consumption> =
 // The injection surface of `instantiate`'s `di`: the same cardinality gating as
 // the container's, narrowed to what the injectable declared. Injectables pass
 // freely, matching the runtime exemption.
-export interface ScopedInject2<Cons extends Consumption> {
+export interface ConsumptionInject2<Cons extends Consumption> {
   <F extends Factory>(alias: Injectable2<F>): F;
   <F extends Factory>(
     alias: Consumable<Cons> & InjectionToken2<F, any, undefined, 'one'>,
@@ -743,7 +743,7 @@ export interface ScopedInject2<Cons extends Consumption> {
   ): (...params: [P]) => I;
 }
 
-export interface ScopedInjectMany2<Cons extends Consumption> {
+export interface ConsumptionInjectMany2<Cons extends Consumption> {
   <F extends Factory, MF extends ManyFactory<F>>(
     alias: Consumable<Cons> &
       InjectionToken2<F, MF, any, 'zero-or-many' | 'one-or-many'>,
@@ -754,11 +754,53 @@ export interface ScopedInjectMany2<Cons extends Consumption> {
   ): (...params: P extends any[] ? P : [P]) => I[];
 }
 
-export interface ScopedInjectMaybe2<Cons extends Consumption> {
+export interface ConsumptionInjectMaybe2<Cons extends Consumption> {
   <F extends Factory, MF extends (...args: Parameters<F>) => ReturnType<F> | undefined>(
     alias: Consumable<Cons> & InjectionToken2<F, MF, undefined, 'zero-or-one'>,
   ): MF;
 }
+
+// The withMeta pair mirrors InjectWithMeta2 / InjectManyWithMeta2 with the
+// same consumption gating as the plain variants — the runtime enforces
+// declarations on these paths too.
+export interface ConsumptionInjectWithMeta2<Cons extends Consumption> {
+  <F extends Factory>(alias: Injectable2<F>): ToWithMetaFactory<F>;
+  <F extends Factory>(
+    alias: Consumable<Cons> & InjectionToken2<F, any, undefined, 'one'>,
+  ): ToWithMetaFactory<F>;
+  <I>(
+    alias: Injectable<I, any> | (Consumable<Cons> & InjectionToken<I>),
+  ): () => InjectionInstanceWithMeta<I>;
+  <I, P>(
+    alias: Injectable<I, any, P> | (Consumable<Cons> & InjectionToken<I, P>),
+  ): (...params: P extends any[] ? P : [P]) => InjectionInstanceWithMeta<I>;
+}
+
+export interface ConsumptionInjectManyWithMeta2<Cons extends Consumption> {
+  <F extends Factory, MF extends ManyFactory<F>>(
+    alias: Consumable<Cons> &
+      InjectionToken2<F, MF, any, 'zero-or-many' | 'one-or-many'>,
+  ): (
+    ...args: Parameters<MF>
+  ) => InjectionInstanceWithMeta<
+    ReturnType<MF> extends (infer R)[] ? R : never
+  >[];
+  <I>(
+    alias: Consumable<Cons> & InjectionToken<I>,
+  ): () => InjectionInstanceWithMeta<I>[];
+  <I, P>(alias: Consumable<Cons> & InjectionToken<I, P>): (
+    ...params: P extends any[] ? P : [P]
+  ) => InjectionInstanceWithMeta<I>[];
+}
+
+/** @deprecated Renamed to ConsumptionInject2 — "scoped" clashes with the container's registration scopes. */
+export type ScopedInject2<Cons extends Consumption> = ConsumptionInject2<Cons>;
+/** @deprecated Renamed to ConsumptionInjectMany2 — "scoped" clashes with the container's registration scopes. */
+export type ScopedInjectMany2<Cons extends Consumption> =
+  ConsumptionInjectMany2<Cons>;
+/** @deprecated Renamed to ConsumptionInjectMaybe2 — "scoped" clashes with the container's registration scopes. */
+export type ScopedInjectMaybe2<Cons extends Consumption> =
+  ConsumptionInjectMaybe2<Cons>;
 
 // `instantiate`'s di. Leave the parameter unannotated so it is typed
 // contextually from the `consumptions` array; annotate it with this when
@@ -768,11 +810,11 @@ export interface ConsumptionDi<Cons extends Consumption = never>
     DiContainerForInjection2,
     'inject' | 'injectMany' | 'injectMaybe' | 'injectWithMeta' | 'injectManyWithMeta'
   > {
-  inject: ScopedInject2<Cons>;
-  injectMany: ScopedInjectMany2<Cons>;
-  injectMaybe: ScopedInjectMaybe2<Cons>;
-  injectWithMeta: InjectWithMeta2;
-  injectManyWithMeta: InjectManyWithMeta2;
+  inject: ConsumptionInject2<Cons>;
+  injectMany: ConsumptionInjectMany2<Cons>;
+  injectMaybe: ConsumptionInjectMaybe2<Cons>;
+  injectWithMeta: ConsumptionInjectWithMeta2<Cons>;
+  injectManyWithMeta: ConsumptionInjectManyWithMeta2<Cons>;
 }
 
 // With injectionToken: F is the injectable's actual factory (kept narrow so
