@@ -1,6 +1,6 @@
 import { expectError, expectType } from "tsd";
 
-import { createContainer, getInjectionToken, getInjectionToken2, type InjectionInstanceWithMeta } from "@ogre-tools/injectable";
+import { createContainer, getInjectionToken, getInjectionToken2, type InjectionInstanceWithMeta, type InjectionToken2 } from "@ogre-tools/injectable";
 
 import type { IComputedValue } from "mobx";
 
@@ -317,10 +317,11 @@ expectType<(a: string, b: string) => [string, string][]>(
 );
 expectError(computedInjectMany2(tupleToken2)("x", 123));
 
-// --- WithMeta2: generic T still collapses to unknown ----------------------
+// --- WithMeta2: generic T collapses by default -----------------------------
 
-// There is no meta-shaped factory on the token to key on, so the shape is
-// recomputed from Parameters<F> / ReturnType<F> and the generic is lost.
+// The token's with-meta many-template defaults to a derivation from the
+// many-factory, which loses the generic; SECTION 8 shows declaring the slot
+// explicitly to keep it.
 expectType<(value: unknown) => InjectionInstanceWithMeta<unknown>[]>(
   computedInjectManyWithMeta2(someGenericToken2),
 );
@@ -418,4 +419,33 @@ expectType<(id: string) => InjectionInstanceWithMeta<number>[]>(
 );
 expectType<() => number | undefined>(
   computedInjectMaybe2(customMFMaybeToken2),
+);
+
+// --- explicit with-meta slot: the generic survives WithMeta2 ----------------
+
+// Declared via a cast, since the default-derived monomorphic shape is
+// comparable to the generic one but not assignable to it.
+const genericMetaToken2 = getInjectionToken2<
+  <T>(value: T) => T,
+  <T>(value: T) => T[]
+>({
+  cardinality: 'zero-or-many',
+  id: "generic-meta-token2",
+})() as InjectionToken2<
+  <T>(value: T) => T,
+  <T>(value: T) => T[],
+  undefined,
+  'zero-or-many',
+  <T>(value: T) => InjectionInstanceWithMeta<T>,
+  <T>(value: T) => InjectionInstanceWithMeta<T>[]
+>;
+
+expectType<<T>(value: T) => InjectionInstanceWithMeta<T>[]>(
+  computedInjectManyWithMeta2(genericMetaToken2),
+);
+expectType<InjectionInstanceWithMeta<string>[]>(
+  computedInjectManyWithMeta2(genericMetaToken2)("some-string" as string),
+);
+expectType<InjectionInstanceWithMeta<number>[]>(
+  computedInjectManyWithMeta2(genericMetaToken2)(42 as number),
 );
