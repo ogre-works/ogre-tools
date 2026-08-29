@@ -1284,11 +1284,7 @@ export type ToWithMetaFactory<F> = F extends (...args: infer P) => infer R
   ? (...args: P) => InjectionInstanceWithMeta<R>
   : never;
 
-export type ToWithMetaManyFactory<F> = F extends (
-  ...args: infer P
-) => (infer R)[]
-  ? (...args: P) => InjectionInstanceWithMeta<R>[]
-  : F extends (...args: infer P) => infer R
+export type ToWithMetaManyFactory<F> = F extends (...args: infer P) => infer R
   ? (...args: P) => InjectionInstanceWithMeta<R>[]
   : never;
 
@@ -1300,9 +1296,16 @@ export interface InjectWithMeta2 {
 }
 
 export interface InjectManyWithMeta2 {
+  // The element type comes from the token's many-factory (so a custom
+  // multi-factory narrows it), unwrapped inline rather than through
+  // ToWithMetaManyFactory, which keeps its published base-factory semantics.
   <F extends Factory, MF extends ManyFactory<F>>(
     alias: InjectionToken2<F, MF, any, 'zero-or-many' | 'one-or-many'>,
-  ): ToWithMetaManyFactory<MF>;
+  ): (
+    ...args: Parameters<MF>
+  ) => InjectionInstanceWithMeta<
+    ReturnType<MF> extends (infer R)[] ? R : never
+  >[];
   <I>(alias: InjectionToken<I>): () => InjectionInstanceWithMeta<I>[];
   <I, P>(alias: InjectionToken<I, P>): (...params: P extends any[] ? P : [P]) => InjectionInstanceWithMeta<I>[];
 }
