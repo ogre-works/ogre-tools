@@ -340,7 +340,9 @@ export interface InjectManyWithMeta {
   <F extends Factory, MF extends ManyFactory<F>>(
     alias: InjectionToken2<F, MF, any, 'zero-or-many' | 'one-or-many'>,
     ...params: Parameters<F>
-  ): InjectionInstanceWithMeta<ReturnType<MF> extends (infer R)[] ? R : never>[];
+  ): InjectionInstanceWithMeta<
+    ReturnType<MF> extends (infer R)[] ? R : never
+  >[];
 
   <InjectionInstance>(
     alias:
@@ -1282,11 +1284,13 @@ export type ToWithMetaFactory<F> = F extends (...args: infer P) => infer R
   ? (...args: P) => InjectionInstanceWithMeta<R>
   : never;
 
-export type ToWithMetaManyFactory<F> = F extends (...args: infer P) => (infer R)[]
+export type ToWithMetaManyFactory<F> = F extends (
+  ...args: infer P
+) => (infer R)[]
   ? (...args: P) => InjectionInstanceWithMeta<R>[]
-  : F extends (...args: infer P) => (infer R)
-    ? (...args: P) => InjectionInstanceWithMeta<R>[]
-    : never;
+  : F extends (...args: infer P) => infer R
+  ? (...args: P) => InjectionInstanceWithMeta<R>[]
+  : never;
 
 export interface InjectWithMeta2 {
   <F extends Factory>(alias: Injectable2<F>): ToWithMetaFactory<F>;
