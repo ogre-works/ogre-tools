@@ -308,10 +308,14 @@ export type SpecificInject<InjectionInstance, InstantiationParam> =
     : SpecificInjectWithParameter<InjectionInstance, InstantiationParam>;
 
 export interface InjectMany {
+  // The element type comes from the token's many-factory, but the result is
+  // normalized to a plain array: the exact consumption shape (one-or-many's
+  // non-empty tuple) is injectMany2's factory-returning domain, and widening
+  // here keeps this a non-breaking fix for v1 consumers.
   <F extends Factory, MF extends ManyFactory<F>>(
     alias: InjectionToken2<F, MF, any, 'zero-or-many' | 'one-or-many'>,
     ...params: Parameters<F>
-  ): ReturnType<MF>;
+  ): ReturnType<MF> extends (infer R)[] ? R[] : never;
 
   <InjectionInstance>(
     alias:
