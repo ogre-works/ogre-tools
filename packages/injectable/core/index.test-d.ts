@@ -2268,7 +2268,9 @@ expectError(di.injectMany(cardinalityOneToken, 'some-name'));
 expectType<string[]>(di.injectMany(cardinalityManyToken, 'some-name'));
 expectError(di.inject(cardinalityManyToken, 'some-name'));
 
-expectType<[string, ...string[]]>(di.injectMany(cardinalityNonEmptyManyToken, 'some-name'));
+expectType<[string, ...string[]]>(
+  di.injectMany(cardinalityNonEmptyManyToken, 'some-name'),
+);
 expectError(di.inject(cardinalityNonEmptyManyToken, 'some-name'));
 
 // given cardinality 'zero-or-one', neither single nor many injection accepts it
@@ -2948,31 +2950,143 @@ expectType<InjectionInstanceWithMeta<(req: string) => number>>(
   ),
 );
 
-const someInjectionTokenWithMoreSpecificArrayMultiFactory = getInjectionToken2<() => unknown, () => number[]>({
-  cardinality: "zero-or-many",
-  id: "some-id",
+const someInjectionTokenWithMoreSpecificArrayMultiFactory = getInjectionToken2<
+  () => unknown,
+  () => number[]
+>({
+  cardinality: 'zero-or-many',
+  id: 'some-id',
 })();
 
 // injectMany from a v1 injectable should be typed based on the MF of a v2 token
-expectType<number[]>(di.injectMany(someInjectionTokenWithMoreSpecificArrayMultiFactory));
+expectType<number[]>(
+  di.injectMany(someInjectionTokenWithMoreSpecificArrayMultiFactory),
+);
 
 // injectManyWithMeta from a v1 injectable should be typed based on the MF of a v2 token
-expectType<InjectionInstanceWithMeta<number>[]>(di.injectManyWithMeta(someInjectionTokenWithMoreSpecificArrayMultiFactory));
+expectType<InjectionInstanceWithMeta<number>[]>(
+  di.injectManyWithMeta(someInjectionTokenWithMoreSpecificArrayMultiFactory),
+);
 
 // injectMany from a v2 injectable should be typed based on the MF of a v2 token
 getInjectable2({
-  id: "some-id",
+  id: 'some-id',
   consumptions: [someInjectionTokenWithMoreSpecificArrayMultiFactory],
-  instantiate: (di) => () => {
-    expectType<number[]>(di.injectMany(someInjectionTokenWithMoreSpecificArrayMultiFactory)());
-  }
-})
+  instantiate: di => () => {
+    expectType<number[]>(
+      di.injectMany(someInjectionTokenWithMoreSpecificArrayMultiFactory)(),
+    );
+  },
+});
 
 // injectManyWithMeta from a v2 injectable should be typed based on the MF of a v2 token
 getInjectable2({
-  id: "some-id",
+  id: 'some-id',
   consumptions: [someInjectionTokenWithMoreSpecificArrayMultiFactory],
-  instantiate: (di) => () => {
-    expectType<InjectionInstanceWithMeta<number>[]>(di.injectManyWithMeta(someInjectionTokenWithMoreSpecificArrayMultiFactory)());
-  }
-})
+  instantiate: di => () => {
+    expectType<InjectionInstanceWithMeta<number>[]>(
+      di.injectManyWithMeta(
+        someInjectionTokenWithMoreSpecificArrayMultiFactory,
+      )(),
+    );
+  },
+});
+
+// ---- Same fix, for tokens whose factory takes an instantiation parameter ----
+
+const someParametricTokenWithMoreSpecificArrayMultiFactory = getInjectionToken2<
+  (id: string) => unknown,
+  (id: string) => number[]
+>({
+  cardinality: 'zero-or-many',
+  id: 'some-parametric-token-with-more-specific-array-multi-factory',
+})();
+
+// v1 injectMany requires the instantiation parameter and is typed by the MF
+expectType<number[]>(
+  di.injectMany(
+    someParametricTokenWithMoreSpecificArrayMultiFactory,
+    'some-id-param',
+  ),
+);
+expectError(
+  di.injectMany(someParametricTokenWithMoreSpecificArrayMultiFactory, 42),
+);
+expectError(
+  di.injectMany(someParametricTokenWithMoreSpecificArrayMultiFactory),
+);
+
+// v1 injectManyWithMeta likewise
+expectType<InjectionInstanceWithMeta<number>[]>(
+  di.injectManyWithMeta(
+    someParametricTokenWithMoreSpecificArrayMultiFactory,
+    'some-id-param',
+  ),
+);
+
+// v2 injectMany returns the MF verbatim, parameter typing intact
+getInjectable2({
+  id: 'some-parametric-consumer',
+  consumptions: [someParametricTokenWithMoreSpecificArrayMultiFactory],
+  instantiate: di => () => {
+    const getMany = di.injectMany(
+      someParametricTokenWithMoreSpecificArrayMultiFactory,
+    );
+
+    expectType<(id: string) => number[]>(getMany);
+    expectType<number[]>(getMany('some-id-param'));
+    expectError(getMany(42));
+    expectError(getMany());
+
+    expectType<(id: string) => InjectionInstanceWithMeta<number>[]>(
+      di.injectManyWithMeta(
+        someParametricTokenWithMoreSpecificArrayMultiFactory,
+      ),
+    );
+  },
+});
+
+// ---- Same fix, for tokens whose instantiation parameter is generic ----
+
+const someGenericParamTokenWithCustomMultiFactory = getInjectionToken2<
+  <T>(value: T) => unknown,
+  <T>(value: T) => T[]
+>({
+  cardinality: 'zero-or-many',
+  id: 'some-generic-param-token-with-custom-multi-factory',
+})();
+
+// v1 injectMany applies the parameter immediately, so the generic collapses
+// to its constraint — the MF still decides the (array) result shape
+expectType<unknown[]>(
+  di.injectMany(someGenericParamTokenWithCustomMultiFactory, 'some-value'),
+);
+expectError(di.injectMany(someGenericParamTokenWithCustomMultiFactory));
+
+// v1 injectManyWithMeta likewise
+expectType<InjectionInstanceWithMeta<unknown>[]>(
+  di.injectManyWithMeta(
+    someGenericParamTokenWithCustomMultiFactory,
+    'some-value',
+  ),
+);
+
+// v2 injectMany returns the MF verbatim, so the generic survives and each
+// call narrows by its own instantiation parameter
+getInjectable2({
+  id: 'some-generic-param-consumer',
+  consumptions: [someGenericParamTokenWithCustomMultiFactory],
+  instantiate: di => () => {
+    const getMany = di.injectMany(someGenericParamTokenWithCustomMultiFactory);
+
+    expectType<<T>(value: T) => T[]>(getMany);
+    expectType<string[]>(getMany('some-string'));
+    expectType<number[]>(getMany(42));
+
+    // withMeta goes through ToWithMetaManyFactory, which erases the generic
+    // to its constraint (the known WithMeta limitation)
+    expectType<(value: unknown) => InjectionInstanceWithMeta<unknown>[]>(
+      di.injectManyWithMeta(someGenericParamTokenWithCustomMultiFactory),
+    );
+  },
+});
