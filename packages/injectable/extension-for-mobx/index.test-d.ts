@@ -11,6 +11,8 @@ import {
   computedInjectManyWithMetaInjectionToken,
   computedInjectMaybe2InjectionToken,
   computedInjectMaybeInjectionToken,
+  computedInjectMaybeWithMeta2InjectionToken,
+  computedInjectMaybeWithMetaInjectionToken,
 } from ".";
 
 const di = createContainer("some-container");
@@ -448,4 +450,94 @@ expectType<InjectionInstanceWithMeta<string>[]>(
 );
 expectType<InjectionInstanceWithMeta<number>[]>(
   computedInjectManyWithMeta2(genericMetaToken2)(42 as number),
+);
+
+// ===========================================================================
+// SECTION 9
+// computedInjectMaybeWithMeta / computedInjectMaybeWithMeta2 — the maybe
+// flavor of the with-meta helpers: the single meta-wrapped instance, or
+// undefined.
+// ===========================================================================
+
+const computedInjectMaybeWithMeta = di.inject(
+  computedInjectMaybeWithMetaInjectionToken,
+);
+const computedInjectMaybeWithMeta2 = di.inject2(
+  computedInjectMaybeWithMeta2InjectionToken,
+);
+
+// --- v1 tokens ---------------------------------------------------------------
+
+expectType<IComputedValue<InjectionInstanceWithMeta<string> | undefined>>(
+  computedInjectMaybeWithMeta(someInjectionToken),
+);
+expectType<IComputedValue<InjectionInstanceWithMeta<string> | undefined>>(
+  computedInjectMaybeWithMeta(someInjectionTokenWithParameter, 42),
+);
+expectError(computedInjectMaybeWithMeta(someInjectionTokenWithParameter, "wrong"));
+
+expectType<(param_0: void) => InjectionInstanceWithMeta<string> | undefined>(
+  computedInjectMaybeWithMeta2(someInjectionToken),
+);
+expectType<(param: number) => InjectionInstanceWithMeta<string> | undefined>(
+  computedInjectMaybeWithMeta2(someInjectionTokenWithParameter),
+);
+expectError(computedInjectMaybeWithMeta2(someInjectionTokenWithParameter)("wrong"));
+
+// --- v2 tokens: only 'zero-or-one' is accepted --------------------------------
+
+expectType<IComputedValue<InjectionInstanceWithMeta<string> | undefined>>(
+  computedInjectMaybeWithMeta(someMaybeToken2),
+);
+expectType<IComputedValue<InjectionInstanceWithMeta<number> | undefined>>(
+  computedInjectMaybeWithMeta(someParamMaybeToken2, "some-key"),
+);
+expectError(computedInjectMaybeWithMeta(someParamMaybeToken2, 42));
+expectError(computedInjectMaybeWithMeta(someParamMaybeToken2));
+expectError(computedInjectMaybeWithMeta(someToken2));
+
+expectType<() => InjectionInstanceWithMeta<string> | undefined>(
+  computedInjectMaybeWithMeta2(someMaybeToken2),
+);
+expectType<(key: string) => InjectionInstanceWithMeta<number> | undefined>(
+  computedInjectMaybeWithMeta2(someParamMaybeToken2),
+);
+expectError(computedInjectMaybeWithMeta2(someParamMaybeToken2)(42));
+expectError(computedInjectMaybeWithMeta2(someToken2));
+
+// --- a custom maybe-factory narrows the meta-wrapped result -------------------
+
+expectType<IComputedValue<InjectionInstanceWithMeta<number> | undefined>>(
+  computedInjectMaybeWithMeta(customMFMaybeToken2),
+);
+expectType<() => InjectionInstanceWithMeta<number> | undefined>(
+  computedInjectMaybeWithMeta2(customMFMaybeToken2),
+);
+
+// --- generic: default slot collapses; an explicit slot survives ---------------
+
+expectType<(value: unknown) => InjectionInstanceWithMeta<unknown> | undefined>(
+  computedInjectMaybeWithMeta2(someGenericMaybeToken2),
+);
+
+const genericMetaMaybeToken2 = getInjectionToken2<
+  <T>(value: T) => T,
+  <T>(value: T) => T | undefined
+>({
+  cardinality: 'zero-or-one',
+  id: "generic-meta-maybe-token2",
+})() as InjectionToken2<
+  <T>(value: T) => T,
+  <T>(value: T) => T | undefined,
+  undefined,
+  'zero-or-one',
+  (value: unknown) => InjectionInstanceWithMeta<unknown>,
+  <T>(value: T) => InjectionInstanceWithMeta<T> | undefined
+>;
+
+expectType<<T>(value: T) => InjectionInstanceWithMeta<T> | undefined>(
+  computedInjectMaybeWithMeta2(genericMetaMaybeToken2),
+);
+expectType<InjectionInstanceWithMeta<number> | undefined>(
+  computedInjectMaybeWithMeta2(genericMetaMaybeToken2)(42 as number),
 );

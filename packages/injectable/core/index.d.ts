@@ -90,6 +90,7 @@ export interface DiContainer extends DiContainerForInjection {
   injectMaybe2: InjectMaybe2;
   injectWithMeta2: InjectWithMeta2;
   injectManyWithMeta2: InjectManyWithMeta2;
+  injectMaybeWithMeta2: InjectMaybeWithMeta2;
 
   purge: Purge;
   purgeAllButOverrides: () => void;
@@ -793,6 +794,13 @@ export interface ConsumptionInjectManyWithMeta2<Cons extends Consumption> {
   ) => InjectionInstanceWithMeta<I>[];
 }
 
+export interface ConsumptionInjectMaybeWithMeta2<Cons extends Consumption> {
+  <F extends Factory, WMF>(
+    alias: Consumable<Cons> &
+      InjectionToken2<F, any, undefined, 'zero-or-one', any, WMF>,
+  ): WMF;
+}
+
 /** @deprecated Renamed to ConsumptionInject2 — "scoped" clashes with the container's registration scopes. */
 export type ScopedInject2<Cons extends Consumption> = ConsumptionInject2<Cons>;
 /** @deprecated Renamed to ConsumptionInjectMany2 — "scoped" clashes with the container's registration scopes. */
@@ -808,13 +816,19 @@ export type ScopedInjectMaybe2<Cons extends Consumption> =
 export interface ConsumptionDi<Cons extends Consumption = never>
   extends Omit<
     DiContainerForInjection2,
-    'inject' | 'injectMany' | 'injectMaybe' | 'injectWithMeta' | 'injectManyWithMeta'
+    | 'inject'
+    | 'injectMany'
+    | 'injectMaybe'
+    | 'injectWithMeta'
+    | 'injectManyWithMeta'
+    | 'injectMaybeWithMeta'
   > {
   inject: ConsumptionInject2<Cons>;
   injectMany: ConsumptionInjectMany2<Cons>;
   injectMaybe: ConsumptionInjectMaybe2<Cons>;
   injectWithMeta: ConsumptionInjectWithMeta2<Cons>;
   injectManyWithMeta: ConsumptionInjectManyWithMeta2<Cons>;
+  injectMaybeWithMeta: ConsumptionInjectMaybeWithMeta2<Cons>;
 }
 
 // With injectionToken: F is the injectable's actual factory (kept narrow so
@@ -908,18 +922,25 @@ export type DefaultWithMetaFactory<F> = 0 extends 1 & F
   ? any
   : ToWithMetaFactory<F>;
 
-// The trailing `MF extends any` distributes over the default MF slot — a
-// bare `InjectionToken2<F>` leaves MF as the ManyFactory | MaybeResultFactory
-// union, and deriving non-distributively would collapse the element type to
-// `never`, making the bare annotation reject every concrete token.
-export type DefaultWithMetaManyFactory<MF extends Factory> = 0 extends 1 & MF
+// Cardinality-shaped, exactly like the MF slot it derives from: an
+// array-returning MF (the many-cardinalities, and 'one') yields the
+// injectManyWithMeta shape, a MaybeResultFactory ('zero-or-one') yields the
+// injectMaybeWithMeta shape. The trailing `MF extends any` distributes over
+// the default MF slot — a bare `InjectionToken2<F>` leaves MF as the
+// ManyFactory | MaybeResultFactory union, and deriving non-distributively
+// would collapse the shape to nonsense, making the bare annotation reject
+// every concrete token.
+export type DefaultWithMetaConsumptionFactory<MF extends Factory> = 0 extends 1 &
+  MF
   ? any
   : MF extends any
-  ? (
-      ...args: Parameters<MF>
-    ) => InjectionInstanceWithMeta<
-      ReturnType<MF> extends (infer R)[] ? R : never
-    >[]
+  ? ReturnType<MF> extends (infer R)[]
+    ? (...args: Parameters<MF>) => InjectionInstanceWithMeta<R>[]
+    : (
+        ...args: Parameters<MF>
+      ) =>
+        | InjectionInstanceWithMeta<Exclude<ReturnType<MF>, undefined>>
+        | undefined
   : never;
 
 export interface InjectionToken2Base<
@@ -927,7 +948,7 @@ export interface InjectionToken2Base<
   MF extends AnyConsumptionFactory<F> = ManyFactory<F> | MaybeResultFactory<F>,
   C extends Cardinality = Cardinality,
   WF = DefaultWithMetaFactory<F>,
-  WMF = DefaultWithMetaManyFactory<MF>,
+  WMF = DefaultWithMetaConsumptionFactory<MF>,
 > {
   readonly aliasType: 'injection-token2';
   template: F;
@@ -946,7 +967,7 @@ export interface InjectionToken2Base<
   //     <T>(value: T) => InjectionInstanceWithMeta<T>[]
   //   >;
   withMetaTemplate: WF;
-  withMetaManyTemplate: WMF;
+  withMetaConsumptionTemplate: WMF;
   key: Symbol;
   id: string;
   // Declared arity. The creators always stamp a literal, so a token annotated
@@ -992,7 +1013,7 @@ export type InjectionToken2<
     | ((...args: any[]) => SpecificInjectionToken2<F, any, any, any>) = any,
   C extends Cardinality = Cardinality,
   WF = DefaultWithMetaFactory<F>,
-  WMF = DefaultWithMetaManyFactory<MF>,
+  WMF = DefaultWithMetaConsumptionFactory<MF>,
 > = SpecificFactory extends undefined
   ? InjectionToken2Base<F, MF, C, WF, WMF> & { readonly __abstract?: never }
   : InjectionToken2Base<F, MF, C, WF, WMF> & {
@@ -1017,7 +1038,7 @@ export type SpecificInjectionToken2<
     | ((...args: any[]) => SpecificInjectionToken2<F, any, any, any>) = undefined,
   C extends Cardinality = Cardinality,
   WF = DefaultWithMetaFactory<F>,
-  WMF = DefaultWithMetaManyFactory<MF>,
+  WMF = DefaultWithMetaConsumptionFactory<MF>,
 > = InjectionToken2<F, MF, SpecificFactory, C, WF, WMF> & { speciality: any };
 
 export interface GetInjectionToken2Options<SpecificFactory> {
@@ -1315,6 +1336,7 @@ export interface DiContainerForInjection2 {
   injectMaybe: InjectMaybe2;
   injectWithMeta: InjectWithMeta2;
   injectManyWithMeta: InjectManyWithMeta2;
+  injectMaybeWithMeta: InjectMaybeWithMeta2;
 
   register(...injectables: (Alias | InjectableBunch)[]): void;
 
@@ -1353,6 +1375,17 @@ export interface InjectMaybe2 {
   <F extends Factory, MF extends (...args: Parameters<F>) => ReturnType<F> | undefined>(
     alias: InjectionToken2<F, MF, undefined, 'zero-or-one'>,
   ): MF;
+}
+
+// The with-meta sibling of injectMaybe2: returns the token's with-meta
+// consumption template verbatim — for a 'zero-or-one' token that defaults to
+// `(...args) => InjectionInstanceWithMeta<R> | undefined`, derived from the
+// maybe-factory (the WMF slot is cardinality-shaped, like the MF slot it
+// derives from).
+export interface InjectMaybeWithMeta2 {
+  <F extends Factory, WMF>(
+    alias: InjectionToken2<F, any, undefined, 'zero-or-one', any, WMF>,
+  ): WMF;
 }
 
 // Factory-returning injectMany — v2 returns the token's many-factory (generics

@@ -12,8 +12,11 @@ import {
 } from './computedInjectMany';
 import {
   _computedInjectMaybeInjectable,
+  _computedInjectMaybeWithMetaInjectable,
   computedInjectMaybe2Injectable,
   computedInjectMaybeInjectable,
+  computedInjectMaybeWithMeta2Injectable,
+  computedInjectMaybeWithMetaInjectable,
 } from './computedInjectMaybe';
 
 export const registerMobX = di => {
@@ -32,7 +35,10 @@ export const registerMobX = di => {
       computedInjectManyWithMeta2Injectable,
       computedInjectMaybeInjectable,
       computedInjectMaybe2Injectable,
+      computedInjectMaybeWithMetaInjectable,
+      computedInjectMaybeWithMeta2Injectable,
       _computedInjectMaybeInjectable,
+      _computedInjectMaybeWithMetaInjectable,
       invalidateReactiveInstancesOnRegisterCallback,
       invalidateReactiveInstancesOnDeregisterCallback,
     );

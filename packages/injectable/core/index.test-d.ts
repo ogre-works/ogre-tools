@@ -2286,6 +2286,15 @@ expectError(di.injectMany2(cardinalityOneToken));
 expectError(di.injectWithMeta(cardinalityManyToken, 'some-name'));
 expectError(di.injectManyWithMeta(cardinalityOneToken, 'some-name'));
 
+// injectMaybeWithMeta2 accepts only 'zero-or-one' tokens, unwrapping to the
+// single meta-wrapped instance or undefined
+expectType<(name: string) => InjectionInstanceWithMeta<string> | undefined>(
+  di.injectMaybeWithMeta2(cardinalityMaybeToken),
+);
+expectError(di.injectMaybeWithMeta2(cardinalityOneToken));
+expectError(di.injectMaybeWithMeta2(cardinalityManyToken));
+expectError(di.injectMaybeWithMeta2(cardinalityNonEmptyManyToken));
+
 // --- a token of unknown cardinality cannot be consumed at all ---
 
 // given a token annotated without a cardinality, it holds a token of any
@@ -2720,6 +2729,9 @@ const declaringInjectable = getInjectable2({
     expectType<(name: string) => InjectionInstanceWithMeta<string>[]>(
       di.injectManyWithMeta(consumedManyToken),
     );
+    expectType<(name: string) => InjectionInstanceWithMeta<string> | undefined>(
+      di.injectMaybeWithMeta(consumedMaybeToken),
+    );
 
     // a declared token is still bound to its own consumption API
     expectError(di.injectMany(consumedOneToken));
@@ -2732,6 +2744,7 @@ const declaringInjectable = getInjectable2({
     expectError(di.injectMaybe(undeclaredMaybeToken));
     expectError(di.injectWithMeta(undeclaredToken));
     expectError(di.injectManyWithMeta(undeclaredManyToken));
+    expectError(di.injectMaybeWithMeta(undeclaredMaybeToken));
 
     // injectables need no declaration
     expectType<(n: number) => string>(di.inject(someConsumedInjectable));
@@ -2756,6 +2769,7 @@ getInjectable2({
     expectError(di.injectMaybe(undeclaredMaybeToken));
     expectError(di.injectWithMeta(undeclaredToken));
     expectError(di.injectManyWithMeta(undeclaredManyToken));
+    expectError(di.injectMaybeWithMeta(undeclaredMaybeToken));
 
     // injectables are still injectable
     expectType<(n: number) => string>(di.inject(someConsumedInjectable));
@@ -3178,4 +3192,55 @@ expectType<SomeGenericWithMetaFactory>(
 );
 expectType<InjectionInstanceWithMeta<number>>(
   di.injectWithMeta2(someOneTokenWithExplicitWithMetaShape)(42 as number),
+);
+
+// ---- injectMaybeWithMeta: typed by the token's cardinality-shaped WMF slot ----
+
+// a custom maybe-factory narrows the meta-wrapped result the same way a
+// custom multi-factory narrows injectManyWithMeta
+const someMaybeTokenWithMoreSpecificMaybeFactory = getInjectionToken2<
+  () => unknown,
+  () => number | undefined
+>({
+  cardinality: 'zero-or-one',
+  id: 'some-maybe-token-with-more-specific-maybe-factory',
+})();
+
+expectType<() => InjectionInstanceWithMeta<number> | undefined>(
+  di.injectMaybeWithMeta2(someMaybeTokenWithMoreSpecificMaybeFactory),
+);
+
+getInjectable2({
+  id: 'some-consumer-of-specific-maybe-factory',
+  consumptions: [someMaybeTokenWithMoreSpecificMaybeFactory],
+  instantiate: di => () => {
+    expectType<() => InjectionInstanceWithMeta<number> | undefined>(
+      di.injectMaybeWithMeta(someMaybeTokenWithMoreSpecificMaybeFactory),
+    );
+  },
+});
+
+// an explicitly declared generic slot survives, like the many variant's
+const someMaybeTokenWithExplicitWithMetaShape = getInjectionToken2<
+  <T>(value: T) => T,
+  <T>(value: T) => T | undefined
+>({
+  cardinality: 'zero-or-one',
+  id: 'some-maybe-token-with-explicit-with-meta-shape',
+})() as InjectionToken2<
+  <T>(value: T) => T,
+  <T>(value: T) => T | undefined,
+  undefined,
+  'zero-or-one',
+  (value: unknown) => InjectionInstanceWithMeta<unknown>,
+  <T>(value: T) => InjectionInstanceWithMeta<T> | undefined
+>;
+
+expectType<<T>(value: T) => InjectionInstanceWithMeta<T> | undefined>(
+  di.injectMaybeWithMeta2(someMaybeTokenWithExplicitWithMetaShape),
+);
+expectType<InjectionInstanceWithMeta<number> | undefined>(
+  di.injectMaybeWithMeta2(someMaybeTokenWithExplicitWithMetaShape)(
+    42 as number,
+  ),
 );

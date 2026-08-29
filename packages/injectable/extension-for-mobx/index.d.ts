@@ -80,6 +80,32 @@ type ComputedInjectMaybe = {
 
 export const computedInjectMaybeInjectionToken: InjectionToken<ComputedInjectMaybe>;
 
+type ComputedInjectMaybeWithMeta = {
+  // InjectionToken2: variadic, returns IComputedValue of the meta-wrapped
+  // instance or undefined, typed by the token's maybe-factory
+  <
+    F extends Factory,
+    MF extends (...args: Parameters<F>) => ReturnType<F> | undefined,
+  >(
+    injectionToken: InjectionToken2<F, MF, any, 'zero-or-one'>,
+    ...params: Parameters<F>
+  ): IComputedValue<
+    InjectionInstanceWithMeta<Exclude<ReturnType<MF>, undefined>> | undefined
+  >;
+
+  // Old-style InjectionToken
+  <TInjectionToken extends InjectionToken<any, any>,
+    TInstanceWithMeta extends TInjectionToken extends InjectionToken<infer T, any>
+      ? InjectionInstanceWithMeta<T>
+      : never,
+  >(
+    injectionToken: TInjectionToken,
+    ...param: TInjectionToken extends InjectionToken<any, infer T> ? [T] : []
+  ): IComputedValue<TInstanceWithMeta | undefined>;
+};
+
+export const computedInjectMaybeWithMetaInjectionToken: InjectionToken<ComputedInjectMaybeWithMeta>;
+
 // Factory-shape variants: `di.inject(X, token)` returns the bound callable
 // (and `di.inject2(X)(token)` equivalently). The callable is the token's
 // ManyFactory for ComputedInjectMany2 — generics on the token propagate.
@@ -166,3 +192,24 @@ type ComputedInjectMaybe2 = {
 };
 
 export const computedInjectMaybe2InjectionToken: SingleInjectionToken2<ComputedInjectMaybe2>;
+
+type ComputedInjectMaybeWithMeta2 = {
+  <TInjectionToken extends InjectionToken<any, any>,
+    TInstanceWithMeta extends TInjectionToken extends InjectionToken<infer T, any>
+      ? InjectionInstanceWithMeta<T>
+      : never,
+  >(
+    injectionToken: TInjectionToken,
+  ): (
+    ...param: TInjectionToken extends InjectionToken<any, infer T> ? [T] : []
+  ) => TInstanceWithMeta | undefined;
+
+  // Returns the token's with-meta consumption template verbatim — for a
+  // 'zero-or-one' token that is `(...args) => InjectionInstanceWithMeta<R> |
+  // undefined` by default, and an explicitly declared generic slot survives.
+  <F extends Factory, WMF>(
+    injectionToken: InjectionToken2<F, any, any, 'zero-or-one', any, WMF>,
+  ): WMF;
+};
+
+export const computedInjectMaybeWithMeta2InjectionToken: SingleInjectionToken2<ComputedInjectMaybeWithMeta2>;

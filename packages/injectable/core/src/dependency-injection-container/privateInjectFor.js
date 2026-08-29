@@ -246,6 +246,17 @@ const createMinimalDi = (
             instantiationParameters: params,
             injectingInjectable: injectableToBeInstantiated,
           }),
+
+      injectMaybeWithMeta: alias => {
+        checkForNonMaybeCardinality(alias, injectableToBeInstantiated);
+
+        return (...params) =>
+          di.injectManyWithMeta({
+            alias,
+            instantiationParameters: params,
+            injectingInjectable: injectableToBeInstantiated,
+          })[0];
+      },
     };
   }
 
