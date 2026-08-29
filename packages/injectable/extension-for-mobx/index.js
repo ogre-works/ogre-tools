@@ -8,6 +8,8 @@ import {
 import {
   computedInjectMaybe2InjectionToken,
   computedInjectMaybeInjectionToken,
+  computedInjectMaybeWithMeta2InjectionToken,
+  computedInjectMaybeWithMetaInjectionToken,
 } from './src/computedInjectMaybe';
 
 import { registerMobX } from './src/registerMobx';
@@ -20,4 +22,6 @@ export {
   computedInjectManyWithMeta2InjectionToken,
   computedInjectMaybeInjectionToken,
   computedInjectMaybe2InjectionToken,
+  computedInjectMaybeWithMetaInjectionToken,
+  computedInjectMaybeWithMeta2InjectionToken,
 };

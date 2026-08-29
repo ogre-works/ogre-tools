@@ -585,6 +585,14 @@ export default containerId => {
       (...params) =>
         publicInjectManyWithMeta(alias, ...params),
 
+    // injectMaybe2 over the with-meta plane: unwraps to the single
+    // meta-wrapped instance or undefined.
+    injectMaybeWithMeta2: alias => {
+      checkForNonMaybeCardinality(alias, rootInjectable);
+
+      return (...params) => publicInjectManyWithMeta(alias, ...params)[0];
+    },
+
     register: (...injectables) => {
       privateDi.register({
         injectables,
