@@ -3,6 +3,10 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [26.1.0](https://github.com/ogre-works/ogre-tools/compare/v26.0.0...v26.1.0) (2026-08-30)
+
+**Note:** Version bump only for package @ogre-tools/generable
+
 ## [26.0.0](https://github.com/ogre-works/ogre-tools/compare/v25.1.0...v26.0.0) (2026-08-27)
 
 ### ⚠ BREAKING CHANGES

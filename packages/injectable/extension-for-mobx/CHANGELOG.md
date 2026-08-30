@@ -3,6 +3,18 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [26.1.0](https://github.com/ogre-works/ogre-tools/compare/v26.0.0...v26.1.0) (2026-08-30)
+
+### Features
+
+- **injectable, injectable-extension-for-mobx:** Add injectMaybeWithMeta ([8fb0c7b](https://github.com/ogre-works/ogre-tools/commit/8fb0c7b816fff88250b5234aac8cf450d9827463))
+- **injectable, injectable-extension-for-mobx:** Add with-meta factory slots to v2 tokens ([aa01361](https://github.com/ogre-works/ogre-tools/commit/aa013613ab03797a298ea34758c73968ead16730))
+
+### Bug Fixes
+
+- **injectable-extension-for-mobx:** Respect a v2 token's custom multi-factory ([76fc9db](https://github.com/ogre-works/ogre-tools/commit/76fc9db60f350acca06cddf82073e038470acd1f))
+- **injectable, injectable-extension-for-mobx:** Normalize v1 injectMany to a plain array ([d342e33](https://github.com/ogre-works/ogre-tools/commit/d342e33c956894cb572d383959250c4b28491c59))
+
 ## [26.0.0](https://github.com/ogre-works/ogre-tools/compare/v25.1.0...v26.0.0) (2026-08-27)
 
 ### ⚠ BREAKING CHANGES
