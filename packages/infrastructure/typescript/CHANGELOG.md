@@ -3,6 +3,10 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [27.0.0](https://github.com/ogre-works/ogre-tools/compare/v26.1.0...v27.0.0) (2026-08-31)
+
+**Note:** Version bump only for package @ogre-tools/infrastructure-typescript
+
 ## [26.1.0](https://github.com/ogre-works/ogre-tools/compare/v26.0.0...v26.1.0) (2026-08-30)
 
 **Note:** Version bump only for package @ogre-tools/infrastructure-typescript
