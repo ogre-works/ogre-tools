@@ -541,3 +541,80 @@ expectType<<T>(value: T) => InjectionInstanceWithMeta<T> | undefined>(
 expectType<InjectionInstanceWithMeta<number> | undefined>(
   computedInjectMaybeWithMeta2(genericMetaMaybeToken2)(42 as number),
 );
+
+// ---------------------------------------------------------------------------
+// Named-slots-bag tokens flow through every computedInject* variant: the bag
+// forms resolve to the same structural token types, so the machinery here
+// needs no adaptation — asserted against a plain bag token per maybe/many
+// cardinality and a maximal generic bag token whose slots must come back
+// verbatim.
+// ---------------------------------------------------------------------------
+
+const someProbeBagManyToken = getInjectionToken2<{
+  singleFactory: (key: string) => number;
+}>({
+  cardinality: 'zero-or-many',
+  id: 'some-probe-bag-many-token',
+})();
+
+const someProbeBagMaybeToken = getInjectionToken2<{
+  singleFactory: (key: string) => number;
+}>({
+  cardinality: 'zero-or-one',
+  id: 'some-probe-bag-maybe-token',
+})();
+
+const someProbeMaximalBagToken = getInjectionToken2<{
+  singleFactory: <T>(value: T) => T;
+  manyFactory: <T>(value: T) => T[];
+  singleMetaFactory: <T>(value: T) => InjectionInstanceWithMeta<T>;
+  manyMetaFactory: <T>(value: T) => InjectionInstanceWithMeta<T>[];
+}>({
+  cardinality: 'zero-or-many',
+  id: 'some-probe-maximal-bag-token',
+})();
+
+const probeComputedInjectMany = di.inject(computedInjectManyInjectionToken);
+const probeComputedInjectManyWithMeta = di.inject(
+  computedInjectManyWithMetaInjectionToken,
+);
+const probeComputedInjectMaybe = di.inject(computedInjectMaybeInjectionToken);
+const probeComputedInjectMaybeWithMeta = di.inject(
+  computedInjectMaybeWithMetaInjectionToken,
+);
+
+expectType<IComputedValue<number[]>>(
+  probeComputedInjectMany(someProbeBagManyToken, 'some-key'),
+);
+expectType<IComputedValue<InjectionInstanceWithMeta<number>[]>>(
+  probeComputedInjectManyWithMeta(someProbeBagManyToken, 'some-key'),
+);
+expectType<IComputedValue<number | undefined>>(
+  probeComputedInjectMaybe(someProbeBagMaybeToken, 'some-key'),
+);
+expectType<IComputedValue<InjectionInstanceWithMeta<number> | undefined>>(
+  probeComputedInjectMaybeWithMeta(someProbeBagMaybeToken, 'some-key'),
+);
+
+// wrong cardinality still rejected
+expectError(probeComputedInjectMany(someProbeBagMaybeToken, 'some-key'));
+expectError(probeComputedInjectMaybe(someProbeBagManyToken, 'some-key'));
+
+// factory-shape variants: generic slots survive verbatim
+const probeComputedInjectMany2 = di.inject2(computedInjectMany2InjectionToken);
+const probeComputedInjectManyWithMeta2 = di.inject2(
+  computedInjectManyWithMeta2InjectionToken,
+);
+
+expectType<<T>(value: T) => T[]>(
+  probeComputedInjectMany2(someProbeMaximalBagToken),
+);
+expectType<string[]>(
+  probeComputedInjectMany2(someProbeMaximalBagToken)('some-string' as string),
+);
+expectType<<T>(value: T) => InjectionInstanceWithMeta<T>[]>(
+  probeComputedInjectManyWithMeta2(someProbeMaximalBagToken),
+);
+expectType<InjectionInstanceWithMeta<number>[]>(
+  probeComputedInjectManyWithMeta2(someProbeMaximalBagToken)(42 as number),
+);
