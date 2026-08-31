@@ -3,7 +3,7 @@ import {
   Factory,
   InjectionInstanceWithMeta,
   InjectionToken,
-  InjectionToken2,
+  InjectionToken2Base,
   ManyFactory,
   SingleInjectionToken2,
 } from '@ogre-tools/injectable';
@@ -16,7 +16,7 @@ type ComputedInjectMany = {
   // plain array element-typed by the token's many-factory, so a custom
   // multi-factory narrows it (normalized like v1 injectMany in the core)
   <F extends Factory, MF extends ManyFactory<F>>(
-    injectionToken: InjectionToken2<F, MF, any, 'zero-or-many' | 'one-or-many'>,
+    injectionToken: InjectionToken2Base<F, MF, 'zero-or-many' | 'one-or-many'>,
     ...params: Parameters<F>
   ): IComputedValue<ReturnType<MF> extends (infer R)[] ? R[] : never>;
 
@@ -35,7 +35,7 @@ type ComputedInjectManyWithMeta = {
   // InjectionToken2, abstract or not: variadic, returns IComputedValue of
   // instance-with-meta array, element-typed by the token's many-factory
   <F extends Factory, MF extends ManyFactory<F>>(
-    injectionToken: InjectionToken2<F, MF, any, 'zero-or-many' | 'one-or-many'>,
+    injectionToken: InjectionToken2Base<F, MF, 'zero-or-many' | 'one-or-many'>,
     ...params: Parameters<F>
   ): IComputedValue<
     InjectionInstanceWithMeta<ReturnType<MF> extends (infer R)[] ? R : never>[]
@@ -63,7 +63,7 @@ type ComputedInjectMaybe = {
     F extends Factory,
     MF extends (...args: Parameters<F>) => ReturnType<F> | undefined,
   >(
-    injectionToken: InjectionToken2<F, MF, any, 'zero-or-one'>,
+    injectionToken: InjectionToken2Base<F, MF, 'zero-or-one'>,
     ...params: Parameters<F>
   ): IComputedValue<ReturnType<MF>>;
 
@@ -87,7 +87,7 @@ type ComputedInjectMaybeWithMeta = {
     F extends Factory,
     MF extends (...args: Parameters<F>) => ReturnType<F> | undefined,
   >(
-    injectionToken: InjectionToken2<F, MF, any, 'zero-or-one'>,
+    injectionToken: InjectionToken2Base<F, MF, 'zero-or-one'>,
     ...params: Parameters<F>
   ): IComputedValue<
     InjectionInstanceWithMeta<Exclude<ReturnType<MF>, undefined>> | undefined
@@ -139,7 +139,7 @@ type ComputedInjectMany2 = {
     F extends Factory,
     MF extends (...args: Parameters<F>) => ReturnType<F>[],
   >(
-    injectionToken: InjectionToken2<F, MF, any, 'zero-or-many' | 'one-or-many'>,
+    injectionToken: InjectionToken2Base<F, MF, 'zero-or-many' | 'one-or-many'>,
   ): MF;
 };
 
@@ -157,9 +157,8 @@ type ComputedInjectManyWithMeta2 = {
   ) => TInstanceWithMeta[];
 
   <F extends Factory, WMF>(
-    injectionToken: InjectionToken2<
+    injectionToken: InjectionToken2Base<
       F,
-      any,
       any,
       'zero-or-many' | 'one-or-many',
       any,
@@ -187,7 +186,7 @@ type ComputedInjectMaybe2 = {
     F extends Factory,
     MF extends (...args: Parameters<F>) => ReturnType<F> | undefined,
   >(
-    injectionToken: InjectionToken2<F, MF, any, 'zero-or-one'>,
+    injectionToken: InjectionToken2Base<F, MF, 'zero-or-one'>,
   ): MF;
 };
 
@@ -208,7 +207,7 @@ type ComputedInjectMaybeWithMeta2 = {
   // 'zero-or-one' token that is `(...args) => InjectionInstanceWithMeta<R> |
   // undefined` by default, and an explicitly declared generic slot survives.
   <F extends Factory, WMF>(
-    injectionToken: InjectionToken2<F, any, any, 'zero-or-one', any, WMF>,
+    injectionToken: InjectionToken2Base<F, any, 'zero-or-one', any, WMF>,
   ): WMF;
 };
 

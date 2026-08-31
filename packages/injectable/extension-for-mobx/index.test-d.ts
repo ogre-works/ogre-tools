@@ -32,23 +32,23 @@ export const someInjectionTokenWithParameter = getInjectionToken<string, number>
 });
 
 // v2 InjectionToken2 for a non-parametric factory
-const someToken2 = getInjectionToken2<() => string>({
+const someToken2 = getInjectionToken2<{ singleFactory: () => string }>({
   cardinality: 'zero-or-many', id: "some-token2" })();
 
 // v2 InjectionToken2 for a parametric factory
-const someParamToken2 = getInjectionToken2<(key: string) => number>({
+const someParamToken2 = getInjectionToken2<{ singleFactory: (key: string) => number }>({
   cardinality: 'zero-or-many',
   id: "some-param-token2",
 })();
 
 // The maybe-helpers take a token declared 'zero-or-one', so each many-token
 // above has a maybe-sibling here.
-const someMaybeToken2 = getInjectionToken2<() => string>({
+const someMaybeToken2 = getInjectionToken2<{ singleFactory: () => string }>({
   id: "some-maybe-token2",
   cardinality: 'zero-or-one',
 })();
 
-const someParamMaybeToken2 = getInjectionToken2<(key: string) => number>({
+const someParamMaybeToken2 = getInjectionToken2<{ singleFactory: (key: string) => number }>({
   id: "some-param-maybe-token2",
   cardinality: 'zero-or-one',
 })();
@@ -56,20 +56,24 @@ const someParamMaybeToken2 = getInjectionToken2<(key: string) => number>({
 // v2 InjectionToken2 for a GENERIC factory — its T is decided at invocation time.
 // Explicit ManyFactory carries <T> through the many-shape, so helpers that
 // return ManyFactory preserve the generic at call time.
-const someGenericToken2 = getInjectionToken2<
-  <T>(value: T) => T,
-  <T>(value: T) => T[]
->({
+const someGenericToken2 = getInjectionToken2<{
+  singleFactory: <T>(value: T) => T;
+  manyFactory: <T>(value: T) => T[];
+  singleMetaFactory: <T>(value: T) => InjectionInstanceWithMeta<T>;
+  manyMetaFactory: <T>(value: T) => InjectionInstanceWithMeta<T>[];
+}>({
   cardinality: 'zero-or-many',
   id: "some-generic-token2",
 })();
 
 // Its maybe-sibling carries the maybe-shape explicitly, which is what lets the
 // generic survive computedInjectMaybe2.
-const someGenericMaybeToken2 = getInjectionToken2<
-  <T>(value: T) => T,
-  <T>(value: T) => T | undefined
->({
+const someGenericMaybeToken2 = getInjectionToken2<{
+  singleFactory: <T>(value: T) => T;
+  manyFactory: <T>(value: T) => T | undefined;
+  singleMetaFactory: <T>(value: T) => InjectionInstanceWithMeta<T>;
+  manyMetaFactory: <T>(value: T) => InjectionInstanceWithMeta<T> | undefined;
+}>({
   id: "some-generic-maybe-token2",
   cardinality: 'zero-or-one',
 })();
@@ -243,7 +247,7 @@ expectError(computedInjectMaybe2(someInjectionTokenWithParameter)("wrong"));
 // Factory-shape helpers with non-generic InjectionToken2.
 //
 // computedInjectMany2 returns the token's ManyFactory (MF) — the sibling
-// generic on InjectionToken2<F, MF>. For non-generic tokens MF is auto-
+// generic on InjectionToken2<{ singleFactory: F; manyFactory: MF }>. For non-generic tokens MF is auto-
 // derived as `(...Parameters<F>) => ReturnType<F>[]`, so the observable
 // shape matches that derivation.
 //
@@ -297,7 +301,12 @@ expectType<number[]>(computedInjectMany2(someGenericToken2)(42));
 
 type WrapFactory = <T>(value: T) => { wrapped: T };
 type WrapManyFactory = <T>(value: T) => { wrapped: T }[];
-const wrapToken2 = getInjectionToken2<WrapFactory, WrapManyFactory>({
+const wrapToken2 = getInjectionToken2<{
+  singleFactory: WrapFactory;
+  manyFactory: WrapManyFactory;
+  singleMetaFactory: <T>(value: T) => InjectionInstanceWithMeta<{ wrapped: T }>;
+  manyMetaFactory: <T>(value: T) => InjectionInstanceWithMeta<{ wrapped: T }>[];
+}>({
   cardinality: 'zero-or-many', id: "wrap-2" })();
 
 const wrapMany = computedInjectMany2(wrapToken2);
@@ -310,7 +319,7 @@ expectType<{ wrapped: "lit" }[]>(wrapMany("lit"));
 
 // Non-generic tuple token — the user's motivating example:
 // `instances` types as `[string, string][]` matching both params being strings
-const tupleToken2 = getInjectionToken2<(a: string, b: string) => [string, string]>({
+const tupleToken2 = getInjectionToken2<{ singleFactory: (a: string, b: string) => [string, string] }>({
   cardinality: 'zero-or-many',
   id: "tuple-2",
 })();
@@ -319,12 +328,12 @@ expectType<(a: string, b: string) => [string, string][]>(
 );
 expectError(computedInjectMany2(tupleToken2)("x", 123));
 
-// --- WithMeta2: generic T collapses by default -----------------------------
+// --- WithMeta2: the mandated explicit slot survives -------------------------
 
-// The token's with-meta many-template defaults to a derivation from the
-// many-factory, which loses the generic; SECTION 8 shows declaring the slot
-// explicitly to keep it.
-expectType<(value: unknown) => InjectionInstanceWithMeta<unknown>[]>(
+// A generic singleFactory bag must spell its meta slots (their derived
+// defaults would collapse the generic), so the with-meta many-template of a
+// generic token is always the declared shape, generics intact.
+expectType<<T>(value: T) => InjectionInstanceWithMeta<T>[]>(
   computedInjectManyWithMeta2(someGenericToken2),
 );
 
@@ -344,7 +353,7 @@ expectType<42 | undefined>(maybeGeneric(42));
 // SECTION 7
 // di.inject2 directly on the 2-variant injection tokens.
 //
-// Because computedInjectMany2InjectionToken is itself an InjectionToken2<F>,
+// Because computedInjectMany2InjectionToken is itself an InjectionToken2<{ singleFactory: F }>,
 // di.inject2 returns the function type F verbatim — overloads are preserved
 // (in contrast to `di.inject2` on a v1 token, which produces a synthesized
 // `(...p: Parameters<F>) => ReturnType<F>` wrapper that would flatten them).
@@ -372,23 +381,17 @@ expectType<number[]>(computedInjectMany2(someParamToken2)("x"));
 // from ReturnType<F>.
 // ===========================================================================
 
-const customMFToken2 = getInjectionToken2<() => unknown, () => number[]>({
+const customMFToken2 = getInjectionToken2<{ singleFactory: () => unknown; manyFactory: () => number[] }>({
   cardinality: 'zero-or-many',
   id: "custom-mf-token2",
 })();
 
-const customMFParamToken2 = getInjectionToken2<
-  (id: string) => unknown,
-  (id: string) => number[]
->({
+const customMFParamToken2 = getInjectionToken2<{ singleFactory: (id: string) => unknown; manyFactory: (id: string) => number[] }>({
   cardinality: 'zero-or-many',
   id: "custom-mf-param-token2",
 })();
 
-const customMFMaybeToken2 = getInjectionToken2<
-  () => unknown,
-  () => number | undefined
->({
+const customMFMaybeToken2 = getInjectionToken2<{ singleFactory: () => unknown; manyFactory: () => number | undefined }>({
   cardinality: 'zero-or-one',
   id: "custom-mf-maybe-token2",
 })();
@@ -425,22 +428,16 @@ expectType<() => number | undefined>(
 
 // --- explicit with-meta slot: the generic survives WithMeta2 ----------------
 
-// Declared via a cast, since the default-derived monomorphic shape is
-// comparable to the generic one but not assignable to it.
-const genericMetaToken2 = getInjectionToken2<
-  <T>(value: T) => T,
-  <T>(value: T) => T[]
->({
+// The creator stamps the slots straight from the bag.
+const genericMetaToken2 = getInjectionToken2<{
+  singleFactory: <T>(value: T) => T;
+  manyFactory: <T>(value: T) => T[];
+  singleMetaFactory: <T>(value: T) => InjectionInstanceWithMeta<T>;
+  manyMetaFactory: <T>(value: T) => InjectionInstanceWithMeta<T>[];
+}>({
   cardinality: 'zero-or-many',
   id: "generic-meta-token2",
-})() as InjectionToken2<
-  <T>(value: T) => T,
-  <T>(value: T) => T[],
-  undefined,
-  'zero-or-many',
-  <T>(value: T) => InjectionInstanceWithMeta<T>,
-  <T>(value: T) => InjectionInstanceWithMeta<T>[]
->;
+})();
 
 expectType<<T>(value: T) => InjectionInstanceWithMeta<T>[]>(
   computedInjectManyWithMeta2(genericMetaToken2),
@@ -514,26 +511,21 @@ expectType<() => InjectionInstanceWithMeta<number> | undefined>(
   computedInjectMaybeWithMeta2(customMFMaybeToken2),
 );
 
-// --- generic: default slot collapses; an explicit slot survives ---------------
+// --- generic: the mandated explicit maybe-shaped slot survives ---------------
 
-expectType<(value: unknown) => InjectionInstanceWithMeta<unknown> | undefined>(
+expectType<<T>(value: T) => InjectionInstanceWithMeta<T> | undefined>(
   computedInjectMaybeWithMeta2(someGenericMaybeToken2),
 );
 
-const genericMetaMaybeToken2 = getInjectionToken2<
-  <T>(value: T) => T,
-  <T>(value: T) => T | undefined
->({
+const genericMetaMaybeToken2 = getInjectionToken2<{
+  singleFactory: <T>(value: T) => T;
+  manyFactory: <T>(value: T) => T | undefined;
+  singleMetaFactory: (value: unknown) => InjectionInstanceWithMeta<unknown>;
+  manyMetaFactory: <T>(value: T) => InjectionInstanceWithMeta<T> | undefined;
+}>({
   cardinality: 'zero-or-one',
   id: "generic-meta-maybe-token2",
-})() as InjectionToken2<
-  <T>(value: T) => T,
-  <T>(value: T) => T | undefined,
-  undefined,
-  'zero-or-one',
-  (value: unknown) => InjectionInstanceWithMeta<unknown>,
-  <T>(value: T) => InjectionInstanceWithMeta<T> | undefined
->;
+})();
 
 expectType<<T>(value: T) => InjectionInstanceWithMeta<T> | undefined>(
   computedInjectMaybeWithMeta2(genericMetaMaybeToken2),

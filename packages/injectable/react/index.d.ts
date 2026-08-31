@@ -6,9 +6,8 @@ import {
   Injectable,
   Injectable2,
   InjectionToken,
-  InjectionToken2,
+  InjectionToken2Base,
   SpecificInjectionToken,
-  SpecificInjectionToken2,
 } from '@ogre-tools/injectable';
 
 // A hook injects a single implementation, so a token it is given must be
@@ -17,7 +16,7 @@ import {
 // abstract, and a hook can't render an abstract token — see the comment on
 // core's `InjectionToken2`.
 export function useInject<F extends Factory>(
-  injectable: Injectable2<F> | InjectionToken2<F, any, undefined, 'one'>,
+  injectable: Injectable2<F> | (InjectionToken2Base<F, any, 'one'> & { readonly __abstract?: never }),
   ...params: Parameters<F>
 ): Awaited<ReturnType<F>>;
 
@@ -33,7 +32,7 @@ export function useInject<TReturnValue, TInstantiationParameter>(
 ): Awaited<TReturnValue>;
 
 export function useInjectDeferred<F extends Factory>(
-  injectable: Injectable2<F> | InjectionToken2<F, any, undefined, 'one'>,
+  injectable: Injectable2<F> | (InjectionToken2Base<F, any, 'one'> & { readonly __abstract?: never }),
   ...params: Parameters<F>
 ): Awaited<ReturnType<F>>;
 
@@ -50,7 +49,7 @@ export function useInjectDeferred<TReturnValue, TInstantiationParameter>(
 
 export function useInject2<F extends Factory>(alias: Injectable2<F>): F;
 export function useInject2<F extends Factory>(
-  alias: InjectionToken2<F, any, undefined, 'one'>,
+  alias: (InjectionToken2Base<F, any, 'one'> & { readonly __abstract?: never }),
 ): F;
 export function useInject2<TReturnValue>(
   alias: Injectable<TReturnValue, any> | InjectionToken<TReturnValue>,
@@ -96,7 +95,9 @@ export declare function getInjectableComponent2<
     id: string;
     Component: Component;
     PlaceholderComponent?: React.ComponentType<React.ComponentProps<Component>>;
-    injectionToken?: InjectionToken2<() => Component, any, undefined>;
+    injectionToken?: InjectionToken2Base<() => Component, any> & {
+      readonly __abstract?: never;
+    };
   },
 ): InjectableComponent2<Component>;
 
@@ -151,16 +152,21 @@ export type InjectionTokenComponent2<
     | ((...args: any[]) => SpecificInjectionTokenComponent2<Component, any>) = any,
 > = SpecificFactory extends undefined
   ? Component &
-      InjectionToken2<() => Component, () => Component[], undefined, 'one'>
-  : InjectionToken2<() => Component, () => Component[], SpecificFactory, 'one'>;
+      InjectionToken2Base<() => Component, () => Component[], 'one'> & {
+        readonly __abstract?: never;
+      }
+  : InjectionToken2Base<() => Component, () => Component[], 'one'> & {
+      readonly __abstract: true;
+      for: SpecificFactory;
+    };
 
 // Defaults to no factory: the speciality-carrying overload of
 // `getInjectionTokenComponent2` below builds these as leaves, with no
 // further `.for()` of their own, unless given one explicitly — mirroring
 // core's `SpecificInjectionToken2`. Built from `InjectionTokenComponent2`
 // rather than repeating its conditional: when `SpecificFactory` is
-// `undefined` this is `Component & InjectionToken2<..., undefined, 'one'> &
-// {speciality}` (a directly-renderable leaf); otherwise it's the abstract,
+// `undefined` this is the directly-renderable concrete leaf, `Component &
+// ...token... & {speciality}`; otherwise it's the abstract,
 // not-a-`Component` branch plus `speciality` — a specific token component
 // that is itself a family root for nested specificity.
 export type SpecificInjectionTokenComponent2<
@@ -187,7 +193,7 @@ export interface InjectionTokenComponentOptionsWithoutFactory<
 // rather than one optional parameter, and `SpecificFactory` must not have a
 // default either — in a multi-level `.for()` family a default erases a
 // nested generic factory's type parameters to `any` (see the comment on
-// core's `InjectionToken2FactoryCall`).
+// core's `InjectionToken2FactoryCallFromSlots`).
 export interface InjectionTokenComponent2FactoryCall<
   Component extends React.ComponentType<any>,
 > {
@@ -220,10 +226,10 @@ export declare function getInjectionTokenComponent2<
 ): InjectionTokenComponent2FactoryCall<Component>;
 
 // getInjectionTokenComponent2<Component, SpecificFactory>(options)(specificInjectionTokenFactory?):
-// the explicit-SF escape hatch, mirroring the equivalent overload of
-// `getInjectionToken2` in the core package — see the comment there for why
-// this is flattened (options first, factory an optional trailing call)
-// rather than curried. Needed for a `.for()` factory whose return type
+// the explicit-SF escape hatch, flattened (options first, factory an
+// optional trailing call) rather than curried: since `SpecificFactory` is
+// already fixed explicitly, nothing on the options call needs inferring
+// from it. Needed for a `.for()` factory whose return type
 // narrows the general contract per specifier (e.g. via `TypedSpecifierType`)
 // in a way inference from a real value could never reconstruct — spelling
 // `SpecificFactory` out here lets that type be declared without needing to

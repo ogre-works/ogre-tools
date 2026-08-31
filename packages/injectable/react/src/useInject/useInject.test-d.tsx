@@ -41,7 +41,9 @@ const asyncInjectable = getInjectable2({
 expectType<string>(useInject(asyncInjectable));
 expectType<string>(useInjectDeferred(asyncInjectable));
 
-const someInjectionToken = getInjectionToken2<(name: string) => number>({
+const someInjectionToken = getInjectionToken2<{
+  singleFactory: (name: string) => number;
+}>({
   cardinality: 'one',
   id: 'some-token',
 })();
@@ -52,29 +54,50 @@ expectType<number>(useInjectDeferred(someInjectionToken, 'x'));
 expectError(useInject(someInjectionToken));
 expectError(useInject(someInjectionToken, 42));
 
-const someAbstractInjectionToken = getInjectionToken2<() => string>({
+const someAbstractInjectionToken = getInjectionToken2<{
+  singleFactory: () => string;
+}>({
   cardinality: 'one',
   id: 'some-abstract-token',
-})(id => getInjectionToken2<() => string>({ id, speciality: id })());
+})(id =>
+  getInjectionToken2<{ singleFactory: () => string }>({ id, speciality: id })(),
+);
 
 expectError(useInject(someAbstractInjectionToken));
 expectError(useInjectDeferred(someAbstractInjectionToken));
 
-const someTypedSpecifierInjectionToken = getInjectionToken2<
-  () => unknown,
-  () => unknown[],
-  <T extends TypedSpecifierWithType<'some-specifier'>>(
-    specifier: T,
-  ) => SpecificInjectionToken2<
-    () => TypedSpecifierType<'some-specifier', T>,
-    () => TypedSpecifierType<'some-specifier', T>[],
-    undefined,
-    'one'
-  >
->({
+type SomeTypedSpecifierNarrowingFactory = <
+  T extends TypedSpecifierWithType<'some-specifier'>,
+>(
+  specifier: T,
+) => SpecificInjectionToken2<{
+  singleFactory: () => TypedSpecifierType<'some-specifier', T>;
+  manyFactory: () => TypedSpecifierType<'some-specifier', T>[];
+  cardinality: 'one';
+}>;
+
+// T sits covariantly in the leaves' results, so no implementation value can
+// assign to the narrowing annotation — the factory value is cast, honestly,
+// since the runtime is parametric.
+const someTypedSpecifierNarrowingFactory = ((
+  specifier: TypedSpecifierWithType<'some-specifier'>,
+) =>
+  getInjectionToken2<{
+    singleFactory: () => unknown;
+    manyFactory: () => unknown[];
+  }>({
+    id: `some-typed-specifier-leaf-${specifier}`,
+    speciality: specifier,
+    cardinality: 'one',
+  })()) as SomeTypedSpecifierNarrowingFactory;
+
+const someTypedSpecifierInjectionToken = getInjectionToken2<{
+  singleFactory: () => unknown;
+  manyFactory: () => unknown[];
+}>({
   id: 'some-typed-specifier-token',
   cardinality: 'one',
-})();
+})(someTypedSpecifierNarrowingFactory);
 
 const someTypedSpecifier = getTypedSpecifier<{
   'some-specifier': { someProp: 'some-type' };
