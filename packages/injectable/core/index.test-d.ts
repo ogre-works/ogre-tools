@@ -2463,6 +2463,9 @@ type GetWrappedMetaFactory = <T>(
 type GetWrappedManyMetaFactory = <T>(
   value: T,
 ) => InjectionInstanceWithMeta<{ wrapped: T }>[];
+type GetWrappedMaybeMetaFactory = <T>(
+  value: T,
+) => InjectionInstanceWithMeta<{ wrapped: T }> | undefined;
 
 const genericManyToken = getInjectionToken2<{ singleMetaFactory: GetWrappedMetaFactory; manyMetaFactory: GetWrappedManyMetaFactory; singleFactory: GetWrapped; manyFactory: <T>(value: T) => { wrapped: T }[] }>({
   id: 'generic-many',
@@ -2535,24 +2538,24 @@ expectError(
 // given cardinality 'zero-or-one', only a shape that admits undefined is OK —
 // the factory is handed back verbatim, so one that always yields a value would
 // deny the very absence the cardinality is about
-getInjectionToken2<{ singleMetaFactory: GetWrappedMetaFactory; manyMetaFactory: GetWrappedManyMetaFactory; singleFactory: GetWrapped; manyFactory: WrappedMaybeFactory }>({
+getInjectionToken2<{ singleMetaFactory: GetWrappedMetaFactory; maybeMetaFactory: GetWrappedMaybeMetaFactory; singleFactory: GetWrapped; maybeFactory: WrappedMaybeFactory }>({
   id: 'maybe-with-maybe-shape',
   cardinality: 'zero-or-one',
 })();
 expectError(
-  getInjectionToken2<{ singleMetaFactory: GetWrappedMetaFactory; manyMetaFactory: GetWrappedManyMetaFactory; singleFactory: GetWrapped; manyFactory: WrappedBareFactory }>({
+  getInjectionToken2<{ singleMetaFactory: GetWrappedMetaFactory; maybeMetaFactory: GetWrappedMaybeMetaFactory; singleFactory: GetWrapped; maybeFactory: WrappedBareFactory }>({
     id: 'maybe-with-bare-shape',
     cardinality: 'zero-or-one',
   })(),
 );
 expectError(
-  getInjectionToken2<{ singleMetaFactory: GetWrappedMetaFactory; manyMetaFactory: GetWrappedManyMetaFactory; singleFactory: GetWrapped; manyFactory: WrappedManyFactory }>({
+  getInjectionToken2<{ singleMetaFactory: GetWrappedMetaFactory; maybeMetaFactory: GetWrappedMaybeMetaFactory; singleFactory: GetWrapped; maybeFactory: WrappedManyFactory }>({
     id: 'maybe-with-many-shape',
     cardinality: 'zero-or-one',
   })(),
 );
 expectError(
-  getInjectionToken2<{ singleMetaFactory: GetWrappedMetaFactory; manyMetaFactory: GetWrappedManyMetaFactory; singleFactory: GetWrapped; manyFactory: WrappedNonEmptyManyFactory }>({
+  getInjectionToken2<{ singleMetaFactory: GetWrappedMetaFactory; maybeMetaFactory: GetWrappedMaybeMetaFactory; singleFactory: GetWrapped; maybeFactory: WrappedNonEmptyManyFactory }>({
     id: 'maybe-with-non-empty-many-shape',
     cardinality: 'zero-or-one',
   })(),
@@ -2605,14 +2608,14 @@ expectError(
   })(),
 );
 
-// the maybe-gate holds too: a 'zero-or-one' manyFactory must include
+// the maybe-gate holds too: a 'zero-or-one' maybeFactory must include
 // undefined in its result
 expectError(
   getInjectionToken2<{
     singleFactory: GetWrapped;
-    manyFactory: WrappedBareFactory;
+    maybeFactory: WrappedBareFactory;
     singleMetaFactory: GetWrappedMetaFactory;
-    manyMetaFactory: GetWrappedManyMetaFactory;
+    maybeMetaFactory: GetWrappedMaybeMetaFactory;
   }>({
     id: 'maybe-with-bare-shape',
     cardinality: 'zero-or-one',
@@ -2720,9 +2723,9 @@ expectType<string | undefined>(
 // shape was supplied explicitly
 const genericMaybeToken = getInjectionToken2<{
   singleFactory: GetWrapped;
-  manyFactory: <T>(value: T) => { wrapped: T } | undefined;
+  maybeFactory: <T>(value: T) => { wrapped: T } | undefined;
   singleMetaFactory: GetWrappedMetaFactory;
-  manyMetaFactory: <T>(
+  maybeMetaFactory: <T>(
     value: T,
   ) => InjectionInstanceWithMeta<{ wrapped: T }> | undefined;
 }>({
@@ -3238,7 +3241,7 @@ getInjectable2({
 
 // a custom maybe-factory narrows the meta-wrapped result the same way a
 // custom multi-factory narrows injectManyWithMeta
-const someMaybeTokenWithMoreSpecificMaybeFactory = getInjectionToken2<{ singleFactory: () => unknown; manyFactory: () => number | undefined }>({
+const someMaybeTokenWithMoreSpecificMaybeFactory = getInjectionToken2<{ singleFactory: () => unknown; maybeFactory: () => number | undefined }>({
   cardinality: 'zero-or-one',
   id: 'some-maybe-token-with-more-specific-maybe-factory',
 })();
@@ -3260,9 +3263,9 @@ getInjectable2({
 // an explicitly declared generic slot survives, like the many variant's
 const someMaybeTokenWithExplicitWithMetaShape = getInjectionToken2<{
   singleFactory: <T>(value: T) => T;
-  manyFactory: <T>(value: T) => T | undefined;
+  maybeFactory: <T>(value: T) => T | undefined;
   singleMetaFactory: (value: unknown) => InjectionInstanceWithMeta<unknown>;
-  manyMetaFactory: <T>(value: T) => InjectionInstanceWithMeta<T> | undefined;
+  maybeMetaFactory: <T>(value: T) => InjectionInstanceWithMeta<T> | undefined;
 }>({
   cardinality: 'zero-or-one',
   id: 'some-maybe-token-with-explicit-with-meta-shape',
@@ -3515,18 +3518,87 @@ expectError(
   }),
 );
 
-// ...a 'zero-or-one' manyFactory must REQUIRE undefined in its result, not
+// ...a 'zero-or-one' maybeFactory must REQUIRE undefined in its result, not
 // merely permit it — the factory is handed back verbatim, and yields
 // nothing when no implementation is registered...
 expectError(
   getInjectionToken2<{
     singleFactory: () => string;
-    manyFactory: () => string;
+    maybeFactory: () => string;
   }>({
     id: 'some-never-undefined-maybe-creator-bag',
     cardinality: 'zero-or-one',
   }),
 );
+
+// ...the consumption slot is a cardinality-honest pair — the many- keys are
+// rejected on a 'zero-or-one' creator...
+expectError(
+  getInjectionToken2<{
+    singleFactory: () => string;
+    manyFactory: () => string | undefined;
+  }>({
+    id: 'some-many-keyed-maybe-creator-bag',
+    cardinality: 'zero-or-one',
+  }),
+);
+
+// ...the maybe- keys on a many-cardinality creator...
+expectError(
+  getInjectionToken2<{
+    singleFactory: () => string;
+    maybeFactory: () => string | undefined;
+  }>({
+    id: 'some-maybe-keyed-many-creator-bag',
+    cardinality: 'zero-or-many',
+  }),
+);
+
+// ...both pair members at once are rejected in any bag...
+expectError(
+  (
+    token: InjectionToken2<{
+      singleFactory: () => string;
+      manyFactory: () => string[];
+      maybeFactory: () => string | undefined;
+    }>,
+  ) => token,
+);
+
+// ...and an annotation bag pinning a cardinality must use its pair member.
+expectError(
+  (
+    token: InjectionToken2<{
+      singleFactory: () => string;
+      manyFactory: () => string[];
+      cardinality: 'zero-or-one';
+    }>,
+  ) => token,
+);
+expectError(
+  (
+    token: InjectionToken2<{
+      singleFactory: () => string;
+      maybeFactory: () => string | undefined;
+      cardinality: 'zero-or-many';
+    }>,
+  ) => token,
+);
+
+// A custom maybeFactory in the bag narrows the maybe surfaces, verbatim.
+const bagCustomMaybeToken: InjectionToken2<{
+  singleFactory: () => unknown;
+  maybeFactory: () => number | undefined;
+  cardinality: 'zero-or-one';
+  specificTokenFactory: undefined;
+}> = getInjectionToken2<{
+  singleFactory: () => unknown;
+  maybeFactory: () => number | undefined;
+}>({
+  id: 'bag-custom-maybe',
+  cardinality: 'zero-or-one',
+})();
+expectType<() => number | undefined>(di.injectMaybe2(bagCustomMaybeToken));
 
 // ...the trailing call's factory must produce leaves of the bag's own
 // contract...
@@ -3715,13 +3787,13 @@ const someMaximalMaybeBagLeafTokenFactory = <
     singleFactory: <T extends TypedSpecifierType<'instanceType', S>>(
       value: T,
     ) => T;
-    manyFactory: <T extends TypedSpecifierType<'instanceType', S>>(
+    maybeFactory: <T extends TypedSpecifierType<'instanceType', S>>(
       value: T,
     ) => T | undefined;
     singleMetaFactory: <T extends TypedSpecifierType<'instanceType', S>>(
       value: T,
     ) => InjectionInstanceWithMeta<T>;
-    manyMetaFactory: <T extends TypedSpecifierType<'instanceType', S>>(
+    maybeMetaFactory: <T extends TypedSpecifierType<'instanceType', S>>(
       value: T,
     ) => InjectionInstanceWithMeta<T> | undefined;
   }>({
@@ -3732,9 +3804,9 @@ const someMaximalMaybeBagLeafTokenFactory = <
 
 const someMaximalMaybeGenericBagToken = getInjectionToken2<{
   singleFactory: <T>(value: T) => T;
-  manyFactory: <T>(value: T) => T | undefined;
+  maybeFactory: <T>(value: T) => T | undefined;
   singleMetaFactory: <T>(value: T) => InjectionInstanceWithMeta<T>;
-  manyMetaFactory: <T>(value: T) => InjectionInstanceWithMeta<T> | undefined;
+  maybeMetaFactory: <T>(value: T) => InjectionInstanceWithMeta<T> | undefined;
 }>({
   id: 'some-maximal-maybe-generic-bag-token',
   cardinality: 'zero-or-one',

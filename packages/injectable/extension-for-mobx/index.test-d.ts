@@ -70,9 +70,9 @@ const someGenericToken2 = getInjectionToken2<{
 // generic survive computedInjectMaybe2.
 const someGenericMaybeToken2 = getInjectionToken2<{
   singleFactory: <T>(value: T) => T;
-  manyFactory: <T>(value: T) => T | undefined;
+  maybeFactory: <T>(value: T) => T | undefined;
   singleMetaFactory: <T>(value: T) => InjectionInstanceWithMeta<T>;
-  manyMetaFactory: <T>(value: T) => InjectionInstanceWithMeta<T> | undefined;
+  maybeMetaFactory: <T>(value: T) => InjectionInstanceWithMeta<T> | undefined;
 }>({
   id: "some-generic-maybe-token2",
   cardinality: 'zero-or-one',
@@ -391,7 +391,7 @@ const customMFParamToken2 = getInjectionToken2<{ singleFactory: (id: string) => 
   id: "custom-mf-param-token2",
 })();
 
-const customMFMaybeToken2 = getInjectionToken2<{ singleFactory: () => unknown; manyFactory: () => number | undefined }>({
+const customMFMaybeToken2 = getInjectionToken2<{ singleFactory: () => unknown; maybeFactory: () => number | undefined }>({
   cardinality: 'zero-or-one',
   id: "custom-mf-maybe-token2",
 })();
@@ -519,9 +519,9 @@ expectType<<T>(value: T) => InjectionInstanceWithMeta<T> | undefined>(
 
 const genericMetaMaybeToken2 = getInjectionToken2<{
   singleFactory: <T>(value: T) => T;
-  manyFactory: <T>(value: T) => T | undefined;
+  maybeFactory: <T>(value: T) => T | undefined;
   singleMetaFactory: (value: unknown) => InjectionInstanceWithMeta<unknown>;
-  manyMetaFactory: <T>(value: T) => InjectionInstanceWithMeta<T> | undefined;
+  maybeMetaFactory: <T>(value: T) => InjectionInstanceWithMeta<T> | undefined;
 }>({
   cardinality: 'zero-or-one',
   id: "generic-meta-maybe-token2",
