@@ -998,9 +998,11 @@ export interface InjectionToken2Base<
 // defaults each extractor below spells, so a bag names only what it
 // customizes — immune to positional-order concerns, and new slots can be
 // added without breaking anything. Exception: a GENERIC (or overloaded)
-// singleFactory makes `manyFactory`, `singleMetaFactory` and
-// `manyMetaFactory` mandatory as well, because their derived defaults would
-// silently collapse it (see Token2SingleFactoryBound below) — spell the collapsed
+// singleFactory makes the consumption slot (`manyFactory` or
+// `maybeFactory`), `singleMetaFactory` and the consumption meta slot
+// (`manyMetaFactory` or `maybeMetaFactory`) mandatory as well, because their
+// derived defaults would silently collapse it (see Token2SingleFactoryBound
+// below) — spell the collapsed
 // `unknown`-product shape deliberately when that is what is wanted. Unknown
 // keys are rejected (see Token2ExactSlots below). The slots are uncorrelated
 // (e.g. `manyFactory` is not checked against `singleFactory`'s parameters):
@@ -1015,13 +1017,21 @@ type AnySpecificTokenFactory = (
 
 export interface InjectionToken2Slots {
   singleFactory?: Factory;
+  // The consumption slot is a cardinality-honest PAIR: `manyFactory` for
+  // 'one' and the many-cardinalities, `maybeFactory` for 'zero-or-one' — a
+  // maybe-factory is not a many-factory, so it does not borrow the name. A
+  // bag carries at most one member of the pair, and a pinned cardinality
+  // must agree with the member used (see Token2ExactSlots below). The same
+  // split applies to the meta pair below.
   manyFactory?: Factory;
+  maybeFactory?: Factory;
   cardinality?: Cardinality;
-  // Function-bounded, unlike the positional WF/WMF parameters (which stay
+  // Function-bounded, unlike the internal WF/WMF parameters (which stay
   // unconstrained for provability): a bag is always spelled by hand, and a
   // non-function meta slot is always a mistake.
   singleMetaFactory?: Factory;
   manyMetaFactory?: Factory;
+  maybeMetaFactory?: Factory;
   specificTokenFactory?: undefined | AnySpecificTokenFactory;
 }
 
@@ -1052,13 +1062,11 @@ type Token2SingleFactoryBound<Bag> = Bag extends {
   singleFactory: infer F extends Factory;
 }
   ? IsGenericFactory<F> extends true
-    ? Bag extends {
-        manyFactory: Factory;
-        singleMetaFactory: unknown;
-        manyMetaFactory: unknown;
-      }
+    ? Bag extends { singleMetaFactory: unknown } &
+        ({ manyFactory: Factory } | { maybeFactory: Factory }) &
+        ({ manyMetaFactory: unknown } | { maybeMetaFactory: unknown })
       ? Factory
-      : 'ERROR: a generic (or overloaded) singleFactory requires explicit manyFactory, singleMetaFactory and manyMetaFactory slots — their derived defaults would collapse it'
+      : 'ERROR: a generic (or overloaded) singleFactory requires explicit manyFactory (or maybeFactory), singleMetaFactory and manyMetaFactory (or maybeMetaFactory) slots — their derived defaults would collapse it'
     : Factory
   : Factory;
 
@@ -1076,6 +1084,34 @@ type Token2SingleFactoryBound<Bag> = Bag extends {
 // conditional over the bag directly in the type parameter's own constraint
 // is a circular constraint (TS2313); mapped-type values are evaluated
 // lazily, which is what makes the self-reference legal.
+// The bounds a consumption-pair key's value must meet: normally Factory,
+// but carrying the rival pair member, or a member disagreeing with the
+// bag's pinned cardinality, bounds the key by an error literal instead —
+// the constraint then fails right on the offending key with the rule in
+// the compiler output. A cardinality that is a union, or absent, pins
+// nothing (a specific-token leaf may inherit its arity).
+type Token2ManyKeyBound<
+  Bag,
+  RivalKey extends 'maybeFactory' | 'maybeMetaFactory',
+> = Bag extends Record<RivalKey, unknown>
+  ? 'ERROR: a bag takes either the many- or the maybe- member of a consumption-slot pair, not both'
+  : Bag extends { cardinality: infer C extends Cardinality }
+  ? [C] extends ['zero-or-one']
+    ? "ERROR: a 'zero-or-one' bag takes maybeFactory / maybeMetaFactory, not the many- slots"
+    : Factory
+  : Factory;
+
+type Token2MaybeKeyBound<
+  Bag,
+  RivalKey extends 'manyFactory' | 'manyMetaFactory',
+> = Bag extends Record<RivalKey, unknown>
+  ? 'ERROR: a bag takes either the many- or the maybe- member of a consumption-slot pair, not both'
+  : Bag extends { cardinality: infer C extends Cardinality }
+  ? [C] extends ['one' | 'zero-or-many' | 'one-or-many']
+    ? "ERROR: maybeFactory / maybeMetaFactory are the 'zero-or-one' consumption slots — a many-cardinality bag takes the many- slots"
+    : Factory
+  : Factory;
+
 type Token2ExactSlots<Bag> = {
   [K in keyof Bag]: K extends 'singleFactory'
     ? Token2SingleFactoryBound<Bag>
@@ -1083,6 +1119,14 @@ type Token2ExactSlots<Bag> = {
     // value (the concrete pin), so it keeps it explicitly...
     K extends 'specificTokenFactory'
     ? undefined | AnySpecificTokenFactory
+    : K extends 'manyFactory'
+    ? Token2ManyKeyBound<Bag, 'maybeFactory'>
+    : K extends 'manyMetaFactory'
+    ? Token2ManyKeyBound<Bag, 'maybeMetaFactory'>
+    : K extends 'maybeFactory'
+    ? Token2MaybeKeyBound<Bag, 'manyFactory'>
+    : K extends 'maybeMetaFactory'
+    ? Token2MaybeKeyBound<Bag, 'manyMetaFactory'>
     : K extends keyof InjectionToken2Slots
     ? // ...while every other present key must carry a real value —
       // `singleMetaFactory: undefined` would otherwise silence the
@@ -1112,13 +1156,15 @@ type Token2SingleFactorySlot<X> = X extends Factory
   ? F
   : Factory;
 
-// A bag that pins `cardinality` without `manyFactory` derives the
-// consumption shape from the cardinality, exactly like the creators and the
-// per-cardinality aliases do — something the positional form cannot offer,
-// since its MF parameter precedes C.
-type Token2ManyFactorySlot<X> = X extends Factory
+// The consumption slot reads whichever pair member the bag carries —
+// `manyFactory` or `maybeFactory` — and a bag that pins `cardinality`
+// without either derives the consumption shape from the cardinality,
+// exactly like the creators and the per-cardinality aliases do.
+type Token2ConsumptionFactorySlot<X> = X extends Factory
   ? ManyFactory<X> | MaybeResultFactory<X>
   : X extends { manyFactory: infer F extends Factory }
+  ? F
+  : X extends { maybeFactory: infer F extends Factory }
   ? F
   : X extends { cardinality: infer C extends Cardinality }
   ? DefaultConsumptionFactory<C, Token2SingleFactorySlot<X>>
@@ -1136,9 +1182,11 @@ type Token2SingleMetaFactorySlot<X> = X extends Factory
   ? F
   : DefaultWithMetaFactory<Token2SingleFactorySlot<X>>;
 
-type Token2ManyMetaFactorySlot<X, MF extends Factory> = X extends Factory
+type Token2ConsumptionMetaFactorySlot<X, MF extends Factory> = X extends Factory
   ? DefaultWithMetaConsumptionFactory<MF>
   : X extends { manyMetaFactory: infer F }
+  ? F
+  : X extends { maybeMetaFactory: infer F }
   ? F
   : DefaultWithMetaConsumptionFactory<MF>;
 
@@ -1182,7 +1230,7 @@ type Token2<
   // solver — a correlated bound here is unprovable at every generic call
   // site. The creators still enforce the real consumption shape;
   // InjectionToken2Base keeps the strict bound for direct use.
-  MF extends Factory = Token2ManyFactorySlot<F>,
+  MF extends Factory = Token2ConsumptionFactorySlot<F>,
   // The positional fallback is `any`, not `undefined`: a bare
   // `Token2<F>` means "a token of some cardinality, abstract or
   // not" — the same wide, don't-care reading `any` gets everywhere else
@@ -1196,7 +1244,7 @@ type Token2<
     | AnySpecificTokenFactory = Token2SpecificFactorySlot<F, any>,
   C extends Cardinality = Token2CardinalitySlot<F>,
   WF = Token2SingleMetaFactorySlot<F>,
-  WMF = Token2ManyMetaFactorySlot<F, MF>,
+  WMF = Token2ConsumptionMetaFactorySlot<F, MF>,
 > = SpecificFactory extends undefined
   ? InjectionToken2Base<Token2SingleFactorySlot<F>, MF, C, WF, WMF> & {
       readonly __abstract?: never;
@@ -1219,13 +1267,13 @@ type Token2<
 type SpecificToken2<
   F extends Factory = Factory,
   // Bound `Factory` for the same reason as on InjectionToken2 above.
-  MF extends Factory = Token2ManyFactorySlot<F>,
+  MF extends Factory = Token2ConsumptionFactorySlot<F>,
   SpecificFactory extends
     | undefined
     | AnySpecificTokenFactory = Token2SpecificFactorySlot<F, undefined>,
   C extends Cardinality = Token2CardinalitySlot<F>,
   WF = Token2SingleMetaFactorySlot<F>,
-  WMF = Token2ManyMetaFactorySlot<F, MF>,
+  WMF = Token2ConsumptionMetaFactorySlot<F, MF>,
 > = Token2<F, MF, SpecificFactory, C, WF, WMF> & { speciality: any };
 
 // ---- The public annotation aliases: bag-only ----
@@ -1241,11 +1289,11 @@ export type InjectionToken2<
   Bag extends Token2ExactSlots<Bag> = { singleFactory: Factory },
 > = Token2<
   Token2SingleFactorySlot<Bag>,
-  Token2ManyFactorySlot<Bag>,
+  Token2ConsumptionFactorySlot<Bag>,
   Token2SpecificFactorySlot<Bag, any>,
   Token2CardinalitySlot<Bag>,
   Token2SingleMetaFactorySlot<Bag>,
-  Token2ManyMetaFactorySlot<Bag, Token2ManyFactorySlot<Bag>>
+  Token2ConsumptionMetaFactorySlot<Bag, Token2ConsumptionFactorySlot<Bag>>
 >;
 
 // The bag's omitted specificTokenFactory falls back to `undefined` here (a
@@ -1255,11 +1303,11 @@ export type SpecificInjectionToken2<
   Bag extends Token2ExactSlots<Bag> = { singleFactory: Factory },
 > = SpecificToken2<
   Token2SingleFactorySlot<Bag>,
-  Token2ManyFactorySlot<Bag>,
+  Token2ConsumptionFactorySlot<Bag>,
   Token2SpecificFactorySlot<Bag, undefined>,
   Token2CardinalitySlot<Bag>,
   Token2SingleMetaFactorySlot<Bag>,
-  Token2ManyMetaFactorySlot<Bag, Token2ManyFactorySlot<Bag>>
+  Token2ConsumptionMetaFactorySlot<Bag, Token2ConsumptionFactorySlot<Bag>>
 >;
 
 export interface GetInjectionToken2Options<SpecificFactory> {
@@ -1310,24 +1358,32 @@ type Token2CreatorExactSlots<Bag> = Token2ExactSlots<Bag> & {
 };
 
 // The gate each per-cardinality overload puts on its runtime `cardinality`
-// option: the overload's own literal — unless the bag spells a manyFactory
-// whose shape disagrees with that cardinality's consumption shape, in which
-// case the overload admits nothing, mirroring the positional creator's
-// per-cardinality MF gating. For 'zero-or-one' that includes REQUIRING
-// `undefined` in the manyFactory's result, not merely permitting it — the
-// factory is handed back verbatim, and a 'zero-or-one' token yields nothing
-// when no implementation is registered — same as the positional creator's
-// 'zero-or-one' arm.
+// option: the overload's own literal — unless the bag carries the wrong
+// member of a consumption-slot pair for that cardinality (a creator bag has
+// no cardinality key, so this correlation cannot live in the bag
+// constraint), or a member whose shape disagrees with the cardinality's
+// consumption shape. For 'zero-or-one' the shape check REQUIRES `undefined`
+// in the maybeFactory's result, not merely permitting it — the factory is
+// handed back verbatim, and a 'zero-or-one' token yields nothing when no
+// implementation is registered.
 type Token2CreatorCardinality<Bag, C extends Cardinality> = Bag extends {
   singleFactory: infer F extends Factory;
 }
-  ? Bag extends { manyFactory: infer MF extends Factory }
-    ? MF extends DefaultConsumptionFactory<C, F>
-      ? C extends 'zero-or-one'
+  ? [C] extends ['zero-or-one']
+    ? Bag extends { manyFactory: unknown } | { manyMetaFactory: unknown }
+      ? never
+      : Bag extends { maybeFactory: infer MF extends Factory }
+      ? MF extends MaybeResultFactory<F>
         ? undefined extends ReturnType<MF>
           ? C
           : never
-        : C
+        : never
+      : C
+    : Bag extends { maybeFactory: unknown } | { maybeMetaFactory: unknown }
+    ? never
+    : Bag extends { manyFactory: infer MF extends Factory }
+    ? MF extends DefaultConsumptionFactory<C, F>
+      ? C
       : never
     : C
   : never;
@@ -1347,6 +1403,8 @@ type Token2CreatorCardinality<Bag, C extends Cardinality> = Bag extends {
 type Token2FromSlots<Bag, C extends Cardinality, SF> = (
   Bag extends { manyFactory: infer MF extends Factory }
     ? MF
+    : Bag extends { maybeFactory: infer MF extends Factory }
+    ? MF
     : Cardinality extends C
     ?
         | ManyFactory<Token2SingleFactorySlot<Bag>>
@@ -1358,7 +1416,7 @@ type Token2FromSlots<Bag, C extends Cardinality, SF> = (
       MF,
       C,
       Token2SingleMetaFactorySlot<Bag>,
-      Token2ManyMetaFactorySlot<Bag, MF>
+      Token2ConsumptionMetaFactorySlot<Bag, MF>
     > &
       (SF extends undefined
         ? { readonly __abstract?: never }
