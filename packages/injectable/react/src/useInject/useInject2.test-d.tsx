@@ -1,5 +1,6 @@
 import { expectError, expectType } from 'tsd';
 import {
+  InjectionInstanceWithMeta,
   getInjectable,
   getInjectable2,
   getInjectionToken,
@@ -29,7 +30,9 @@ expectType<string>(useInject2(withParamsInjectable2)('x', 1));
 expectError(useInject2(withParamsInjectable2)());
 expectError(useInject2(withParamsInjectable2)(1, 'x'));
 
-const someInjectionToken2 = getInjectionToken2<(name: string) => number>({
+const someInjectionToken2 = getInjectionToken2<{
+  singleFactory: (name: string) => number;
+}>({
   cardinality: 'one',
   id: 'some-token-2',
 })();
@@ -37,15 +40,24 @@ const someInjectionToken2 = getInjectionToken2<(name: string) => number>({
 expectType<(name: string) => number>(useInject2(someInjectionToken2));
 expectType<number>(useInject2(someInjectionToken2)('x'));
 
-const someAbstractInjectionToken2 = getInjectionToken2<() => string>({
+const someAbstractInjectionToken2 = getInjectionToken2<{
+  singleFactory: () => string;
+}>({
   cardinality: 'one',
   id: 'some-abstract-token-2',
-})(id => getInjectionToken2<() => string>({ id, speciality: id })());
+})(id =>
+  getInjectionToken2<{ singleFactory: () => string }>({ id, speciality: id })(),
+);
 
 expectError(useInject2(someAbstractInjectionToken2));
 
 // Generic factory: proves T flows at invocation time
-const genericInjectionToken2 = getInjectionToken2<<T>(value: T) => T>({
+const genericInjectionToken2 = getInjectionToken2<{
+  singleFactory: <T>(value: T) => T;
+  manyFactory: <T>(value: T) => T[];
+  singleMetaFactory: <T>(value: T) => InjectionInstanceWithMeta<T>;
+  manyMetaFactory: <T>(value: T) => InjectionInstanceWithMeta<T>[];
+}>({
   cardinality: 'one',
   id: 'generic-identity',
 })();
@@ -97,10 +109,12 @@ expectType<(param: string) => number>(useInject2(v1TokenWithParam));
 // ==== Cardinality gating of the injection hooks ====
 
 // given a token declared 'one', every hook accepts it
-const singleGreetingToken = getInjectionToken2<() => string>({
-  id: 'single-greeting',
-  cardinality: 'one',
-})();
+const singleGreetingToken = getInjectionToken2<{ singleFactory: () => string }>(
+  {
+    id: 'single-greeting',
+    cardinality: 'one',
+  },
+)();
 
 expectType<string>(useInject(singleGreetingToken));
 expectType<string>(useInjectDeferred(singleGreetingToken));
@@ -108,7 +122,7 @@ expectType<() => string>(useInject2(singleGreetingToken));
 
 // given a token declared with a many-cardinality, the hooks reject it — those
 // are consumed through di.injectMany
-const manyGreetingToken = getInjectionToken2<() => string>({
+const manyGreetingToken = getInjectionToken2<{ singleFactory: () => string }>({
   id: 'many-greeting',
   cardinality: 'zero-or-many',
 })();
@@ -119,7 +133,7 @@ expectError(useInject2(manyGreetingToken));
 
 // given a token declared 'zero-or-one', the hooks reject it too — presence has
 // to be handled by the caller, which a hook's return type cannot express
-const maybeGreetingToken = getInjectionToken2<() => string>({
+const maybeGreetingToken = getInjectionToken2<{ singleFactory: () => string }>({
   id: 'maybe-greeting',
   cardinality: 'zero-or-one',
 })();

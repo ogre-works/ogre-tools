@@ -13,9 +13,9 @@ import {
   TypedSpecifierWithType,
 } from '@ogre-tools/injectable';
 
-const someInjectionTokenUsingProps = getInjectionToken2<
-  () => React.ComponentType<{ someProp: string }>
->({
+const someInjectionTokenUsingProps = getInjectionToken2<{
+  singleFactory: () => React.ComponentType<{ someProp: string }>;
+}>({
   cardinality: 'zero-or-many',
   id: 'irrelevant',
 })();
@@ -61,9 +61,9 @@ expectAssignable<Injectable2<() => React.ComponentType>>(
 );
 
 // given injection token, and functional component not using props, typing is ok
-const someInjectionTokenNotUsingProps = getInjectionToken2<
-  () => React.ComponentType
->({
+const someInjectionTokenNotUsingProps = getInjectionToken2<{
+  singleFactory: () => React.ComponentType;
+}>({
   cardinality: 'zero-or-many',
   id: 'irrelevant',
 })();
@@ -167,9 +167,9 @@ expectError(
 );
 
 // given injection token, and contradictory functional component using props, typing is not ok
-const someInjectionTokenUsingContradictoryProps = getInjectionToken2<
-  () => React.ComponentType<{ someProp: number }>
->({
+const someInjectionTokenUsingContradictoryProps = getInjectionToken2<{
+  singleFactory: () => React.ComponentType<{ someProp: number }>;
+}>({
   cardinality: 'zero-or-many',
   id: 'irrelevant',
 })();
@@ -183,9 +183,9 @@ expectError(
 );
 
 // given non-sensical injection token, and functional component, typing is not ok
-const someNonSensicalInjectionToken = getInjectionToken2<
-  () => 'some-non-component'
->({
+const someNonSensicalInjectionToken = getInjectionToken2<{
+  singleFactory: () => 'some-non-component';
+}>({
   cardinality: 'zero-or-many',
   id: 'irrelevant',
 })();
@@ -277,22 +277,43 @@ expectError(
 );
 
 // given injection token with typed specifier, and functional component using props, typing is ok
-const someInjectionTokenWithTypedSpecifier = getInjectionToken2<
-  () => React.ComponentType<unknown>,
-  () => React.ComponentType<unknown>[],
-  <T extends TypedSpecifierWithType<'someSpecifier'>>(
-    specifier: T,
-  ) => SpecificInjectionToken2<
-    () => React.ComponentType<TypedSpecifierType<'someSpecifier', T>>,
-    () => React.ComponentType<TypedSpecifierType<'someSpecifier', T>>[],
-    undefined,
-    // each specific component token is implemented by one component
-    'one'
-  >
->({
+type SomeComponentSpecifierNarrowingFactory = <
+  T extends TypedSpecifierWithType<'someSpecifier'>,
+>(
+  specifier: T,
+) => SpecificInjectionToken2<{
+  singleFactory: () => React.ComponentType<
+    TypedSpecifierType<'someSpecifier', T>
+  >;
+  manyFactory: () => React.ComponentType<
+    TypedSpecifierType<'someSpecifier', T>
+  >[];
+  // each specific component token is implemented by one component
+  cardinality: 'one';
+}>;
+
+// The specifier-narrowing return type mentions T in ComponentType's
+// invariant props position, so no implementation value can assign to it —
+// the factory value is cast, honestly, since the runtime is parametric.
+const someComponentSpecifierNarrowingFactory = ((
+  specifier: TypedSpecifierWithType<'someSpecifier'>,
+) =>
+  getInjectionToken2<{
+    singleFactory: () => React.ComponentType<unknown>;
+    manyFactory: () => React.ComponentType<unknown>[];
+  }>({
+    id: `narrowed-${specifier}`,
+    speciality: specifier,
+    cardinality: 'one',
+  })()) as SomeComponentSpecifierNarrowingFactory;
+
+const someInjectionTokenWithTypedSpecifier = getInjectionToken2<{
+  singleFactory: () => React.ComponentType<unknown>;
+  manyFactory: () => React.ComponentType<unknown>[];
+}>({
   id: 'irrelevant',
   cardinality: 'zero-or-many',
-})();
+})(someComponentSpecifierNarrowingFactory);
 
 const someTypedSpecifier = getTypedSpecifier<{
   someSpecifier: { someProp: 'some-type' };

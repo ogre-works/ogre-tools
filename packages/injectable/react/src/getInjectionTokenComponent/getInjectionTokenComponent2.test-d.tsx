@@ -20,11 +20,11 @@ const SomeTokenComponent = getInjectionTokenComponent2({
 })();
 
 expectAssignable<React.ComponentType>(SomeTokenComponent);
-expectAssignable<InjectionToken2<() => React.ComponentType>>(
+expectAssignable<InjectionToken2<{ singleFactory: () => React.ComponentType }>>(
   SomeTokenComponent,
 );
 
-// given typed as component with props, result is assignable to React.ComponentType<Props> and InjectionToken2<() => Component>
+// given typed as component with props, result is assignable to React.ComponentType<Props> and InjectionToken2<{ singleFactory: () => Component }>
 const SomeTokenComponentWithProps = getInjectionTokenComponent2<
   React.ComponentType<{ someProp: string }>
 >({
@@ -36,7 +36,9 @@ expectAssignable<React.ComponentType<{ someProp: string }>>(
 );
 
 expectAssignable<
-  InjectionToken2<() => React.ComponentType<{ someProp: string }>>
+  InjectionToken2<{
+    singleFactory: () => React.ComponentType<{ someProp: string }>;
+  }>
 >(SomeTokenComponentWithProps);
 
 // di.inject returns the correct component type
