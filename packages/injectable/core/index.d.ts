@@ -957,15 +957,19 @@ export interface InjectionToken2Base<
   // (and their factory-returning forms) hand back for this token. Purely
   // type-level anchors — never set at runtime — defaulted by derivation from
   // F / MF, which collapses a generic factory to its constraint. To keep a
-  // generic through the withMeta consumers, declare the slots explicitly via
-  // a cast — an assignment won't do, since a monomorphic (default-derived)
-  // shape can't be assigned to a generic one, only cast to it, which is
-  // honest here because the runtime is parametric:
-  //   const token = getInjectionToken2<GF, GMF>({ ... })() as InjectionToken2<
-  //     GF, GMF, undefined, 'zero-or-many',
-  //     <T>(value: T) => InjectionInstanceWithMeta<T>,
-  //     <T>(value: T) => InjectionInstanceWithMeta<T>[]
-  //   >;
+  // generic through the withMeta consumers, declare the slots explicitly by
+  // creating the token through the slots-bag creator overload, which stamps
+  // them on the returned token:
+  //   const token = getInjectionToken2<{
+  //     singleFactory: GF;
+  //     manyFactory: GMF;
+  //     singleMetaFactory: <T>(value: T) => InjectionInstanceWithMeta<T>;
+  //     manyMetaFactory: <T>(value: T) => InjectionInstanceWithMeta<T>[];
+  //   }>({ id: 'some-id', cardinality: 'zero-or-many' })();
+  // (On a token built positionally, a cast to the bag annotation does the
+  // same — a cast, not an assignment, since a monomorphic default-derived
+  // shape can't be assigned to a generic one; honest either way because the
+  // runtime is parametric.)
   withMetaTemplate: WF;
   withMetaConsumptionTemplate: WMF;
   key: Symbol;
@@ -982,6 +986,174 @@ export interface InjectionToken2Base<
   // because the built-in machinery tokens are untagged.
   tags?: string[];
 }
+
+// ---- Named type-parameter slots (the favoured annotation form) ----
+//
+// InjectionToken2 and SpecificInjectionToken2 accept, instead of the
+// positional tail, a single object of named slots as the first (and only)
+// type argument:
+//
+//   InjectionToken2<{ singleFactory: F; cardinality: 'one' }>
+//
+// `singleFactory` is mandatory; every other slot is optional and defaults
+// exactly as its positional counterpart does, so a bag names only what it
+// customizes — immune to positional-order concerns, and new slots can be
+// added without breaking anything. Exception: a GENERIC (or overloaded)
+// singleFactory makes `manyFactory`, `singleMetaFactory` and
+// `manyMetaFactory` mandatory as well, because their derived defaults would
+// silently collapse it (see Token2SingleFactoryBound below) — spell the collapsed
+// `unknown`-product shape deliberately when that is what is wanted. Unknown
+// keys are rejected (see Token2ExactSlots below). The slots are uncorrelated
+// (e.g. `manyFactory` is not checked against `singleFactory`'s parameters):
+// cross-slot conformance is the creators' job; annotations state intent.
+// "Any specific-token factory" — what a `.for()` slot may hold, with no
+// correlation to a particular contract. The single point of truth for the
+// uncorrelated shape; the creators' SF bounds spell the F-correlated
+// variant, where the correlation is the point.
+type AnySpecificTokenFactory = (
+  ...args: any[]
+) => SpecificInjectionToken2<any, any, any, any>;
+
+export interface InjectionToken2Slots {
+  singleFactory?: Factory;
+  manyFactory?: Factory;
+  cardinality?: Cardinality;
+  // Function-bounded, unlike the positional WF/WMF parameters (which stay
+  // unconstrained for provability): a bag is always spelled by hand, and a
+  // non-function meta slot is always a mistake.
+  singleMetaFactory?: Factory;
+  manyMetaFactory?: Factory;
+  specificTokenFactory?: undefined | AnySpecificTokenFactory;
+}
+
+// Detects a generic function type: rebuilding the signature from
+// Parameters<>/ReturnType<> collapses type parameters to their constraints,
+// and the collapsed signature is assignable back to F only when F had no
+// type parameters to lose. A non-generic factory that deliberately produces
+// `unknown` (e.g. `() => unknown`) rebuilds to itself, so it is NOT flagged.
+// OVERLOADED factories are flagged as well — deliberately: the rebuild sees
+// only the last call signature, which is exactly what the derived defaults
+// would silently reduce an overloaded contract to, so the explicit-slots
+// mandate protects them for the same reason it protects generics.
+type IsGenericFactory<F extends Factory> = 0 extends 1 & F
+  ? false
+  : ((...args: Parameters<F>) => ReturnType<F>) extends F
+  ? false
+  : true;
+
+// The bound the bag's own `singleFactory` value must meet: normally just
+// Factory, but a GENERIC singleFactory in a bag that does not also spell
+// every derived factory slot (manyFactory and both meta slots, whose
+// defaults would silently collapse the generic to its constraint) is bounded
+// by an error literal instead, so the constraint fails right on the bag with
+// the requirement spelled out in the compiler output. Naming a collapsed
+// `unknown`-product shape deliberately satisfies the requirement; having the
+// collapse happen silently does not.
+type Token2SingleFactoryBound<Bag> = Bag extends {
+  singleFactory: infer F extends Factory;
+}
+  ? IsGenericFactory<F> extends true
+    ? Bag extends {
+        manyFactory: Factory;
+        singleMetaFactory: unknown;
+        manyMetaFactory: unknown;
+      }
+      ? Factory
+      : 'ERROR: a generic (or overloaded) singleFactory requires explicit manyFactory, singleMetaFactory and manyMetaFactory slots — their derived defaults would collapse it'
+    : Factory
+  : Factory;
+
+// The slots-bag constraint: a bag whose every key exists on
+// InjectionToken2Slots with a conforming value, which carries the mandatory
+// `singleFactory` (a bag without the contract factory is a mistake, not a
+// wide annotation — the positional form covers "any factory"), and whose
+// generic-singleFactory obligations hold (see Token2SingleFactoryBound).
+// Self-referential on purpose — a plain `extends Partial<InjectionToken2Slots>`
+// bound would let a typo'd key (`cardinalty`) pass silently, since extra
+// properties satisfy an all-optional object type; mapping the bag's own keys
+// makes an unknown key demand `never` and fail the constraint instead. The
+// generic-obligation conditional lives in the mapped type's VALUE position
+// (and the presence requirement is a plain intersection) because a
+// conditional over the bag directly in the type parameter's own constraint
+// is a circular constraint (TS2313); mapped-type values are evaluated
+// lazily, which is what makes the self-reference legal.
+type Token2ExactSlots<Bag> = {
+  [K in keyof Bag]: K extends 'singleFactory'
+    ? Token2SingleFactoryBound<Bag>
+    : // specificTokenFactory is the one slot where `undefined` is a real
+    // value (the concrete pin), so it keeps it explicitly...
+    K extends 'specificTokenFactory'
+    ? undefined | AnySpecificTokenFactory
+    : K extends keyof InjectionToken2Slots
+    ? // ...while every other present key must carry a real value —
+      // `singleMetaFactory: undefined` would otherwise silence the
+      // generic-collapse mandate.
+      NonNullable<InjectionToken2Slots[K]>
+    : never;
+} & { singleFactory: Factory };
+
+// ---- Slot extractors ----
+//
+// Each maps either form of the first type argument to one effective slot:
+// the positional branch hands the value through (or the positional default),
+// the bag branches extract the key or fall back to that same default. All of
+// them are DELIBERATELY naked distributive conditionals with the checked
+// parameter appearing in the first branch: inside a distributive true branch
+// TS substitutes `X & Factory` for X, which keeps the whole conditional
+// provably Factory-bounded (so it can instantiate InjectionToken2Base and
+// sit inside Parameters<>/ReturnType<>) while staying transparent to
+// inference — a tuple guard or an `infer`-rebound branch would be opaque to
+// one or the other, and the machinery signatures below infer F through
+// these. For a concrete positional F every extractor resolves to exactly
+// what the pre-slots declaration spelled, so existing annotations keep their
+// exact types.
+type Token2SingleFactorySlot<X> = X extends Factory
+  ? X
+  : X extends { singleFactory: infer F extends Factory }
+  ? F
+  : Factory;
+
+// A bag that pins `cardinality` without `manyFactory` derives the
+// consumption shape from the cardinality, exactly like the creators and the
+// per-cardinality aliases do — something the positional form cannot offer,
+// since its MF parameter precedes C.
+type Token2ManyFactorySlot<X> = X extends Factory
+  ? ManyFactory<X> | MaybeResultFactory<X>
+  : X extends { manyFactory: infer F extends Factory }
+  ? F
+  : X extends { cardinality: infer C extends Cardinality }
+  ? DefaultConsumptionFactory<C, Token2SingleFactorySlot<X>>
+  : ManyFactory<Token2SingleFactorySlot<X>> | MaybeResultFactory<Token2SingleFactorySlot<X>>;
+
+type Token2CardinalitySlot<X> = X extends Factory
+  ? Cardinality
+  : X extends { cardinality: infer C extends Cardinality }
+  ? C
+  : Cardinality;
+
+type Token2SingleMetaFactorySlot<X> = X extends Factory
+  ? DefaultWithMetaFactory<X>
+  : X extends { singleMetaFactory: infer F }
+  ? F
+  : DefaultWithMetaFactory<Token2SingleFactorySlot<X>>;
+
+type Token2ManyMetaFactorySlot<X, MF extends Factory> = X extends Factory
+  ? DefaultWithMetaConsumptionFactory<MF>
+  : X extends { manyMetaFactory: infer F }
+  ? F
+  : DefaultWithMetaConsumptionFactory<MF>;
+
+// The specific-token-factory slot decides abstractness, and its
+// key-omitted fallback differs per alias — `any` (wide, "abstract or not")
+// for InjectionToken2, `undefined` (concrete) for SpecificInjectionToken2 —
+// mirroring their positional defaults, so the fallback is a parameter.
+type Token2SpecificFactorySlot<X, Fallback> = X extends Factory
+  ? Fallback
+  : X extends {
+      specificTokenFactory: infer F extends undefined | AnySpecificTokenFactory;
+    }
+  ? F
+  : Fallback;
 
 // `for` — and abstractness — exist only when a real `specificInjectionTokenFactory`
 // was given: `getInjectionToken2<F>(options)()` (no factory) instantiates
@@ -1000,23 +1172,38 @@ export interface InjectionToken2Base<
 // `undefined`, not `never`, is the sentinel: a naked conditional collapses to
 // `never` whenever the checked type is `never` itself, which would make a
 // for-less token's type useless.
+//
+// The first slot also accepts a named-slots bag — see InjectionToken2Slots.
+// The positional tail (every parameter after the first) is deprecated in
+// favour of the bag; it remains for compatibility and the machinery
+// signatures below, which still spell it.
 export type InjectionToken2<
-  F extends Factory = Factory,
-  MF extends AnyConsumptionFactory<F> = ManyFactory<F> | MaybeResultFactory<F>,
-  // Defaults to `any`, not `undefined`: a bare `InjectionToken2<F>` means "a
-  // token of some cardinality, abstract or not" — the same wide, don't-care
-  // reading `any` gets everywhere else (`injectMany`, `Consumption`, `Alias2`).
-  // Positions that must pin one state spell it out explicitly instead of
-  // relying on this default.
+  F extends Factory | Token2ExactSlots<F> = Factory,
+  // Bound `Factory`, not `AnyConsumptionFactory<F>`: F may now be a slots
+  // bag, and the extractor standing in for it is opaque to the constraint
+  // solver — a correlated bound here is unprovable at every generic call
+  // site. The creators still enforce the real consumption shape;
+  // InjectionToken2Base keeps the strict bound for direct use.
+  MF extends Factory = Token2ManyFactorySlot<F>,
+  // The positional fallback is `any`, not `undefined`: a bare
+  // `InjectionToken2<F>` means "a token of some cardinality, abstract or
+  // not" — the same wide, don't-care reading `any` gets everywhere else
+  // (`injectMany`, `Consumption`, `Alias2`). Positions that must pin one
+  // state spell it out explicitly instead of relying on this default. The
+  // returned token's F in the bound is `any`, uncorrelated with this alias's
+  // F, for the same provability reason as MF's bound; the creators keep the
+  // correlated constraint.
   SpecificFactory extends
     | undefined
-    | ((...args: any[]) => SpecificInjectionToken2<F, any, any, any>) = any,
-  C extends Cardinality = Cardinality,
-  WF = DefaultWithMetaFactory<F>,
-  WMF = DefaultWithMetaConsumptionFactory<MF>,
+    | AnySpecificTokenFactory = Token2SpecificFactorySlot<F, any>,
+  C extends Cardinality = Token2CardinalitySlot<F>,
+  WF = Token2SingleMetaFactorySlot<F>,
+  WMF = Token2ManyMetaFactorySlot<F, MF>,
 > = SpecificFactory extends undefined
-  ? InjectionToken2Base<F, MF, C, WF, WMF> & { readonly __abstract?: never }
-  : InjectionToken2Base<F, MF, C, WF, WMF> & {
+  ? InjectionToken2Base<Token2SingleFactorySlot<F>, MF, C, WF, WMF> & {
+      readonly __abstract?: never;
+    }
+  : InjectionToken2Base<Token2SingleFactorySlot<F>, MF, C, WF, WMF> & {
       readonly __abstract: true;
       for: SpecificFactory;
     };
@@ -1030,15 +1217,19 @@ export type InjectionToken2<
 // `speciality` — enforced by `InjectionToken2`'s own SpecificFactory bound
 // above — so that `buildToken`'s memoization-by-speciality has something to
 // key on.
+// Accepts the same named-slots bag as InjectionToken2 in its first slot; the
+// bag's omitted specificTokenFactory defaults to `undefined` here (concrete),
+// mirroring the positional default below rather than InjectionToken2's `any`.
 export type SpecificInjectionToken2<
-  F extends Factory = Factory,
-  MF extends AnyConsumptionFactory<F> = ManyFactory<F> | MaybeResultFactory<F>,
+  F extends Factory | Token2ExactSlots<F> = Factory,
+  // Bound `Factory` for the same reason as on InjectionToken2 above.
+  MF extends Factory = Token2ManyFactorySlot<F>,
   SpecificFactory extends
     | undefined
-    | ((...args: any[]) => SpecificInjectionToken2<F, any, any, any>) = undefined,
-  C extends Cardinality = Cardinality,
-  WF = DefaultWithMetaFactory<F>,
-  WMF = DefaultWithMetaConsumptionFactory<MF>,
+    | AnySpecificTokenFactory = Token2SpecificFactorySlot<F, undefined>,
+  C extends Cardinality = Token2CardinalitySlot<F>,
+  WF = Token2SingleMetaFactorySlot<F>,
+  WMF = Token2ManyMetaFactorySlot<F, MF>,
 > = InjectionToken2<F, MF, SpecificFactory, C, WF, WMF> & { speciality: any };
 
 export interface GetInjectionToken2Options<SpecificFactory> {
@@ -1282,6 +1473,183 @@ export function getInjectionToken2<
     cardinality?: undefined;
   },
 ): SpecificInjectionToken2FactoryCall<F, MF, Cardinality>;
+
+// ---- Slots-bag creator overloads ----
+//
+// The creator accepts the named-slots bag as the sole type argument — the
+// favoured form whenever a token's slots need spelling at all (a generic
+// contract, a custom consumption factory, explicit meta shapes):
+//
+//   getInjectionToken2<{
+//     singleFactory: <T>(value: T) => T;
+//     manyFactory: <T>(value: T) => T[];
+//     singleMetaFactory: <T>(value: T) => InjectionInstanceWithMeta<T>;
+//     manyMetaFactory: <T>(value: T) => InjectionInstanceWithMeta<T>[];
+//   }>({ id: 'some-id', cardinality: 'zero-or-many' })();
+//
+// This replaces the cast idiom for explicit with-meta slots: the slots are
+// pure type-level anchors with no runtime counterpart, so stamping them
+// from the bag is exactly as honest as the cast was, without the cast.
+//
+// The creator bag carries only what cannot be inferred, so two slots the
+// annotation bags accept are rejected here: `cardinality` comes from the
+// runtime option — a per-overload literal discriminant below, exactly like
+// the positional creator and for the same reason (a C *inferred* from the
+// option's literal alongside an explicit type argument widens to the whole
+// union) — and `specificTokenFactory` comes from the trailing call, its
+// type inferred from the factory value, same as the positional creator.
+type Token2CreatorExactSlots<Bag> = Token2ExactSlots<Bag> & {
+  cardinality?: never;
+  specificTokenFactory?: never;
+};
+
+// The gate each per-cardinality overload puts on its runtime `cardinality`
+// option: the overload's own literal — unless the bag spells a manyFactory
+// whose shape disagrees with that cardinality's consumption shape, in which
+// case the overload admits nothing, mirroring the positional creator's
+// per-cardinality MF gating. For 'zero-or-one' that includes REQUIRING
+// `undefined` in the manyFactory's result, not merely permitting it — the
+// factory is handed back verbatim, and a 'zero-or-one' token yields nothing
+// when no implementation is registered — same as the positional creator's
+// 'zero-or-one' arm.
+type Token2CreatorCardinality<Bag, C extends Cardinality> = Bag extends {
+  singleFactory: infer F extends Factory;
+}
+  ? Bag extends { manyFactory: infer MF extends Factory }
+    ? MF extends DefaultConsumptionFactory<C, F>
+      ? C extends 'zero-or-one'
+        ? undefined extends ReturnType<MF>
+          ? C
+          : never
+        : C
+      : never
+    : C
+  : never;
+
+// What the bag creator's trailing call hands back: the same resolution the
+// annotation forms produce (built on InjectionToken2Base directly, since a
+// computed bag intersection cannot be proven against InjectionToken2's own
+// self-referential bound), with the overload's cardinality and the trailing
+// call's factory — or undefined — filling the slots the creator bag does
+// not carry. An omitted manyFactory defaults to the cardinality's own
+// consumption shape, like the positional creator's per-cardinality
+// overloads.
+// An omitted manyFactory defaults per cardinality: the overload's literal
+// picks its consumption shape, and the wide-C case (the no-cardinality
+// speciality overload) falls back to the positional creator's own wide
+// default, so a leaf declared through either form is the identical type.
+type Token2FromSlots<Bag, C extends Cardinality, SF> = (
+  Bag extends { manyFactory: infer MF extends Factory }
+    ? MF
+    : Cardinality extends C
+    ?
+        | ManyFactory<Token2SingleFactorySlot<Bag>>
+        | MaybeResultFactory<Token2SingleFactorySlot<Bag>>
+    : DefaultConsumptionFactory<C, Token2SingleFactorySlot<Bag>>
+) extends infer MF extends Factory
+  ? InjectionToken2Base<
+      Token2SingleFactorySlot<Bag>,
+      MF,
+      C,
+      Token2SingleMetaFactorySlot<Bag>,
+      Token2ManyMetaFactorySlot<Bag, MF>
+    > &
+      (SF extends undefined
+        ? { readonly __abstract?: never }
+        : { readonly __abstract: true; for: SF })
+  : never;
+
+// The trailing call's SF bound is correlated with the bag's own contract —
+// `.for()` must produce leaves of the very contract the root declares, like
+// the positional InjectionToken2FactoryCall. Unlike the token ALIASES'
+// uncorrelated bounds (unprovable through the extractors at generic call
+// sites), these interfaces only ever instantiate with a concrete Bag — a
+// creator call site — where the extractor resolves and the correlation is
+// checkable.
+export interface InjectionToken2FactoryCallFromSlots<
+  Bag,
+  C extends Cardinality,
+> {
+  (): Token2FromSlots<Bag, C, undefined>;
+
+  <
+    SF extends (
+      ...args: any[]
+    ) => SpecificInjectionToken2<Token2SingleFactorySlot<Bag>, any, any, any>,
+  >(
+    specificInjectionTokenFactory: SF,
+  ): Token2FromSlots<Bag, C, SF>;
+}
+
+export interface SpecificInjectionToken2FactoryCallFromSlots<
+  Bag,
+  C extends Cardinality,
+> {
+  (): Token2FromSlots<Bag, C, undefined> & { speciality: any };
+
+  <
+    SF extends (
+      ...args: any[]
+    ) => SpecificInjectionToken2<Token2SingleFactorySlot<Bag>, any, any, any>,
+  >(
+    specificInjectionTokenFactory: SF,
+  ): Token2FromSlots<Bag, C, SF> & { speciality: any };
+}
+
+export function getInjectionToken2<Bag extends Token2CreatorExactSlots<Bag>>(
+  options: GetInjectionToken2OptionsWithoutFactory & {
+    cardinality: Token2CreatorCardinality<Bag, 'one'>;
+  },
+): InjectionToken2FactoryCallFromSlots<Bag, 'one'>;
+export function getInjectionToken2<Bag extends Token2CreatorExactSlots<Bag>>(
+  options: GetInjectionToken2OptionsWithoutFactory & {
+    cardinality: Token2CreatorCardinality<Bag, 'zero-or-one'>;
+  },
+): InjectionToken2FactoryCallFromSlots<Bag, 'zero-or-one'>;
+export function getInjectionToken2<Bag extends Token2CreatorExactSlots<Bag>>(
+  options: GetInjectionToken2OptionsWithoutFactory & {
+    cardinality: Token2CreatorCardinality<Bag, 'zero-or-many'>;
+  },
+): InjectionToken2FactoryCallFromSlots<Bag, 'zero-or-many'>;
+export function getInjectionToken2<Bag extends Token2CreatorExactSlots<Bag>>(
+  options: GetInjectionToken2OptionsWithoutFactory & {
+    cardinality: Token2CreatorCardinality<Bag, 'one-or-many'>;
+  },
+): InjectionToken2FactoryCallFromSlots<Bag, 'one-or-many'>;
+
+// The speciality-carrying bag overloads mirror the positional speciality
+// overloads, including the no-cardinality variant for leaves that inherit
+// their arity from the `.for()` of the general token that produced them.
+export function getInjectionToken2<Bag extends Token2CreatorExactSlots<Bag>>(
+  options: GetInjectionToken2OptionsWithoutFactory & {
+    speciality: any;
+    cardinality: Token2CreatorCardinality<Bag, 'one'>;
+  },
+): SpecificInjectionToken2FactoryCallFromSlots<Bag, 'one'>;
+export function getInjectionToken2<Bag extends Token2CreatorExactSlots<Bag>>(
+  options: GetInjectionToken2OptionsWithoutFactory & {
+    speciality: any;
+    cardinality: Token2CreatorCardinality<Bag, 'zero-or-one'>;
+  },
+): SpecificInjectionToken2FactoryCallFromSlots<Bag, 'zero-or-one'>;
+export function getInjectionToken2<Bag extends Token2CreatorExactSlots<Bag>>(
+  options: GetInjectionToken2OptionsWithoutFactory & {
+    speciality: any;
+    cardinality: Token2CreatorCardinality<Bag, 'zero-or-many'>;
+  },
+): SpecificInjectionToken2FactoryCallFromSlots<Bag, 'zero-or-many'>;
+export function getInjectionToken2<Bag extends Token2CreatorExactSlots<Bag>>(
+  options: GetInjectionToken2OptionsWithoutFactory & {
+    speciality: any;
+    cardinality: Token2CreatorCardinality<Bag, 'one-or-many'>;
+  },
+): SpecificInjectionToken2FactoryCallFromSlots<Bag, 'one-or-many'>;
+export function getInjectionToken2<Bag extends Token2CreatorExactSlots<Bag>>(
+  options: GetInjectionToken2OptionsWithoutFactory & {
+    speciality: any;
+    cardinality?: undefined;
+  },
+): SpecificInjectionToken2FactoryCallFromSlots<Bag, Cardinality>;
 
 // ---- Per-cardinality annotation aliases ----
 //

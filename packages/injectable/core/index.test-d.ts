@@ -3244,3 +3244,720 @@ expectType<InjectionInstanceWithMeta<number> | undefined>(
     42 as number,
   ),
 );
+
+// ---- Named type-parameter slots: the bag alternative to the positional tail ----
+
+// A bare bag and the bare positional form resolve to the same type; every
+// omitted slot gets the same default either way. The annotations live on
+// parameters rather than initialized consts: a const's reference is
+// control-flow narrowed out of the abstract|concrete union by its
+// initializer, which would make the identity check compare a narrowed type.
+// Calling the checker with a real token proves both spellings accept it.
+const bareBagEqualsBarePositional = (
+  positional: InjectionToken2<(x: number) => string>,
+  bag: InjectionToken2<{ singleFactory: (x: number) => string }>,
+) => {
+  expectType<InjectionToken2<{ singleFactory: (x: number) => string }>>(
+    positional,
+  );
+  expectType<InjectionToken2<(x: number) => string>>(bag);
+};
+
+const someBagComparisonToken = getInjectionToken2<(x: number) => string>({
+  id: 'some-bag-comparison-token',
+  cardinality: 'one',
+})();
+
+bareBagEqualsBarePositional(someBagComparisonToken, someBagComparisonToken);
+
+// singleFactory is mandatory: a bag without the contract factory is a
+// mistake, not a wide annotation — the positional form covers "any factory".
+expectError((token: InjectionToken2<{}>) => token);
+expectError((token: InjectionToken2<{ cardinality: 'one' }>) => token);
+
+// A non-generic factory deliberately producing `unknown` mandates nothing
+// extra — it is not mistaken for a collapsed generic.
+const someUnknownProducingToken = getInjectionToken2<() => unknown>({
+  id: 'some-unknown-producing-token',
+  cardinality: 'one',
+})();
+
+expectType<
+  InjectionToken2<{
+    singleFactory: () => unknown;
+    cardinality: 'one';
+    specificTokenFactory: undefined;
+  }>
+>(someUnknownProducingToken);
+
+// A GENERIC singleFactory makes every derived factory slot mandatory —
+// manyFactory and both meta slots would otherwise silently collapse the
+// generic to its constraint.
+expectError(
+  (
+    token: InjectionToken2<{
+      singleFactory: <T>(value: T) => T;
+      cardinality: 'zero-or-many';
+    }>,
+  ) => token,
+);
+expectError(
+  (
+    token: InjectionToken2<{
+      singleFactory: <T>(value: T) => T;
+      manyFactory: <T>(value: T) => T[];
+      cardinality: 'zero-or-many';
+    }>,
+  ) => token,
+);
+
+// A bag that pins cardinality without manyFactory derives the consumption
+// shape from the cardinality — like the creators do, and unlike the
+// positional form, whose MF slot precedes C — so a declared token matches
+// the bag annotation exactly, not merely assignably; spelling the derived
+// manyFactory out gives the same type again.
+const bagHandlerToken = getInjectionToken2<() => string>({
+  id: 'bag-handler',
+  cardinality: 'one',
+})();
+
+expectType<
+  InjectionToken2<{
+    singleFactory: () => string;
+    cardinality: 'one';
+    specificTokenFactory: undefined;
+  }>
+>(bagHandlerToken);
+
+expectType<
+  InjectionToken2<{
+    singleFactory: () => string;
+    manyFactory: ManyFactory<() => string>;
+    cardinality: 'one';
+    specificTokenFactory: undefined;
+  }>
+>(bagHandlerToken);
+
+// The bag reads wide the same way the positional defaults do: a declared
+// token is assignable to the less-pinned spellings of itself.
+expectAssignable<
+  InjectionToken2<{ singleFactory: () => string; cardinality: 'one' }>
+>(bagHandlerToken);
+expectAssignable<InjectionToken2<{ singleFactory: () => string }>>(
+  bagHandlerToken,
+);
+
+// Each cardinality's bag annotation is accepted by exactly the consumption
+// API the cardinality picks — and a creator's token assigns to the
+// annotation directly.
+const bagAnnotatedOneToken: InjectionToken2<{
+  singleFactory: (x: number) => string;
+  cardinality: 'one';
+  specificTokenFactory: undefined;
+}> = getInjectionToken2<(x: number) => string>({
+  id: 'bag-annotated-one',
+  cardinality: 'one',
+})();
+expectType<string>(di.inject(bagAnnotatedOneToken, 42));
+expectError(di.injectMany(bagAnnotatedOneToken, 42));
+
+const bagAnnotatedManyToken: InjectionToken2<{
+  singleFactory: (x: number) => string;
+  cardinality: 'zero-or-many';
+  specificTokenFactory: undefined;
+}> = getInjectionToken2<(x: number) => string>({
+  id: 'bag-annotated-many',
+  cardinality: 'zero-or-many',
+})();
+expectType<string[]>(di.injectMany(bagAnnotatedManyToken, 42));
+expectError(di.inject(bagAnnotatedManyToken, 42));
+
+const bagAnnotatedMaybeToken: InjectionToken2<{
+  singleFactory: (x: number) => string;
+  cardinality: 'zero-or-one';
+  specificTokenFactory: undefined;
+}> = getInjectionToken2<(x: number) => string>({
+  id: 'bag-annotated-maybe',
+  cardinality: 'zero-or-one',
+})();
+expectType<(x: number) => string | undefined>(
+  di.injectMaybe2(bagAnnotatedMaybeToken),
+);
+
+// A bag-annotated token implements and registers like any other.
+getInjectable2({
+  id: 'some-implementation-via-bag-annotated-token',
+  instantiate: () => (x: number) => String(x),
+  injectionToken: bagAnnotatedOneToken,
+});
+
+// A custom manyFactory in the bag narrows injectMany, verbatim through the
+// factory-returning surface.
+const bagCustomManyToken: InjectionToken2<{
+  singleFactory: () => unknown;
+  manyFactory: () => number[];
+  cardinality: 'zero-or-many';
+  specificTokenFactory: undefined;
+}> = getInjectionToken2<() => unknown, () => number[]>({
+  id: 'bag-custom-many',
+  cardinality: 'zero-or-many',
+})();
+expectType<number[]>(di.injectMany(bagCustomManyToken));
+expectType<() => number[]>(di.injectMany2(bagCustomManyToken));
+
+// The with-meta slots via the slots-bag creator: the bag is the creator's
+// sole type argument and the slots are stamped on the returned token — no
+// cast involved. A generic singleFactory mandates every factory slot, so
+// nothing collapses silently; a slot whose collapsed `unknown`-product
+// shape is genuinely wanted is spelled that way deliberately
+// (singleMetaFactory here).
+const someBagTokenWithExplicitWithMetaShapes = getInjectionToken2<{
+  singleFactory: <T>(value: T) => T;
+  manyFactory: <T>(value: T) => T[];
+  singleMetaFactory: (value: unknown) => InjectionInstanceWithMeta<unknown>;
+  manyMetaFactory: <T>(value: T) => InjectionInstanceWithMeta<T>[];
+}>({
+  cardinality: 'zero-or-many',
+  id: 'some-bag-token-with-explicit-with-meta-shapes',
+})();
+
+expectType<<T>(value: T) => InjectionInstanceWithMeta<T>[]>(
+  di.injectManyWithMeta2(someBagTokenWithExplicitWithMetaShapes),
+);
+expectType<InjectionInstanceWithMeta<number>[]>(
+  di.injectManyWithMeta2(someBagTokenWithExplicitWithMetaShapes)(42 as number),
+);
+
+const someBagOneTokenWithExplicitWithMetaShape = getInjectionToken2<{
+  singleFactory: <T>(value: T) => T;
+  manyFactory: (value: unknown) => unknown[];
+  singleMetaFactory: <T>(value: T) => InjectionInstanceWithMeta<T>;
+  manyMetaFactory: (value: unknown) => InjectionInstanceWithMeta<unknown>[];
+}>({
+  cardinality: 'one',
+  id: 'some-bag-one-token-with-explicit-with-meta-shape',
+})();
+
+expectType<<T>(value: T) => InjectionInstanceWithMeta<T>>(
+  di.injectWithMeta2(someBagOneTokenWithExplicitWithMetaShape),
+);
+expectType<InjectionInstanceWithMeta<number>>(
+  di.injectWithMeta2(someBagOneTokenWithExplicitWithMetaShape)(42 as number),
+);
+
+// The creator enforces the same bag rules: a generic singleFactory without
+// every explicit factory slot is rejected...
+expectError(
+  getInjectionToken2<{
+    singleFactory: <T>(value: T) => T;
+    manyFactory: <T>(value: T) => T[];
+  }>({
+    id: 'some-collapsing-creator-bag',
+    cardinality: 'zero-or-many',
+  }),
+);
+
+// ...a creator bag does not carry what the call already infers — cardinality
+// comes from the runtime option, the specific-token factory from the
+// trailing call...
+expectError(
+  getInjectionToken2<{
+    singleFactory: () => string;
+    cardinality: 'one';
+  }>({
+    id: 'some-cardinality-carrying-creator-bag',
+    cardinality: 'one',
+  }),
+);
+
+// ...and a manyFactory whose shape disagrees with the given cardinality's
+// consumption shape is rejected, like the positional creator's overloads
+// reject it.
+expectError(
+  getInjectionToken2<{
+    singleFactory: () => string;
+    manyFactory: () => string | undefined;
+  }>({
+    id: 'some-shape-disagreeing-creator-bag',
+    cardinality: 'zero-or-many',
+  }),
+);
+
+// ...a 'zero-or-one' manyFactory must REQUIRE undefined in its result, not
+// merely permit it — the factory is handed back verbatim, and yields
+// nothing when no implementation is registered...
+expectError(
+  getInjectionToken2<{
+    singleFactory: () => string;
+    manyFactory: () => string;
+  }>({
+    id: 'some-never-undefined-maybe-creator-bag',
+    cardinality: 'zero-or-one',
+  }),
+);
+
+// ...the trailing call's factory must produce leaves of the bag's own
+// contract...
+const someForeignContractLeafTokenFactory = (specifier: string) =>
+  getInjectionToken2<() => number>({
+    id: `some-foreign-contract-leaf-${specifier}`,
+    speciality: specifier,
+    cardinality: 'one',
+  })();
+
+expectError(
+  getInjectionToken2<{ singleFactory: () => string }>({
+    id: 'some-foreign-leaf-creator-bag',
+    cardinality: 'one',
+  })(someForeignContractLeafTokenFactory),
+);
+
+// ...the meta slots must be factories — junk values, or an explicit
+// `undefined` that would silence the generic-collapse mandate, are
+// rejected in creator bags and annotation bags alike...
+expectError(
+  getInjectionToken2<{
+    singleFactory: <T>(value: T) => T;
+    manyFactory: <T>(value: T) => T[];
+    singleMetaFactory: 42;
+    manyMetaFactory: null;
+  }>({
+    id: 'some-junk-meta-creator-bag',
+    cardinality: 'zero-or-many',
+  }),
+);
+expectError(
+  (
+    token: InjectionToken2<{
+      singleFactory: <T>(value: T) => T;
+      manyFactory: <T>(value: T) => T[];
+      singleMetaFactory: undefined;
+      manyMetaFactory: undefined;
+    }>,
+  ) => token,
+);
+
+// ...and an OVERLOADED singleFactory mandates the explicit slots too — the
+// derived defaults would see only its last call signature.
+expectError(
+  (
+    token: InjectionToken2<{
+      singleFactory: { (x: string): string; (x: number): number };
+    }>,
+  ) => token,
+);
+
+// A no-cardinality speciality leaf is the identical type through either
+// form — the bag creator's wide-cardinality manyFactory default matches the
+// positional creator's.
+const someBagNoCardinalityLeafToken = getInjectionToken2<{
+  singleFactory: () => string;
+}>({
+  id: 'some-bag-no-cardinality-leaf',
+  speciality: 'some-speciality',
+})();
+const somePositionalNoCardinalityLeafToken = getInjectionToken2<() => string>({
+  id: 'some-positional-no-cardinality-leaf',
+  speciality: 'some-speciality',
+})();
+expectType<typeof somePositionalNoCardinalityLeafToken>(
+  someBagNoCardinalityLeafToken,
+);
+expectType<typeof someBagNoCardinalityLeafToken>(
+  somePositionalNoCardinalityLeafToken,
+);
+
+// Typed specifiers give the maximal scenarios' `.for()` factories
+// something to narrow by: each leaf's slots keep their own generic, with
+// the generic's bound narrowed to the specifier's declared instance type —
+// per-specifier narrowing and per-call narrowing at once.
+const someStringInstanceSpecifier = getTypedSpecifier<{
+  instanceType: string;
+}>()('some-string-instance-specifier');
+
+const someNumberInstanceSpecifier = getTypedSpecifier<{
+  instanceType: number;
+}>()('some-number-instance-specifier');
+
+// The maximal generic bag: every spellable slot spelled, every factory
+// generic, and a real `.for()` factory whose leaves keep the generics too.
+// Both tokens are built with the slots-bag creator — no positional type
+// parameters, no casts, and nothing inferable repeated: cardinality comes
+// from the runtime option, the specific-token factory from the trailing
+// call. The mandate on generic singleFactory is satisfied by declaration,
+// nothing collapses, and each consumption surface hands its slot back
+// verbatim.
+const someMaximalBagLeafTokenFactory = <
+  S extends TypedSpecifierWithType<'instanceType'>,
+>(
+  specifier: S,
+) =>
+  getInjectionToken2<{
+    singleFactory: <T extends TypedSpecifierType<'instanceType', S>>(
+      value: T,
+    ) => T;
+    manyFactory: <T extends TypedSpecifierType<'instanceType', S>>(
+      value: T,
+    ) => T[];
+    singleMetaFactory: <T extends TypedSpecifierType<'instanceType', S>>(
+      value: T,
+    ) => InjectionInstanceWithMeta<T>;
+    manyMetaFactory: <T extends TypedSpecifierType<'instanceType', S>>(
+      value: T,
+    ) => InjectionInstanceWithMeta<T>[];
+  }>({
+    id: `some-maximal-bag-leaf-${specifier}`,
+    speciality: specifier,
+    cardinality: 'zero-or-many',
+  })();
+
+const someMaximalGenericBagToken = getInjectionToken2<{
+  singleFactory: <T>(value: T) => T;
+  manyFactory: <T>(value: T) => T[];
+  singleMetaFactory: <T>(value: T) => InjectionInstanceWithMeta<T>;
+  manyMetaFactory: <T>(value: T) => InjectionInstanceWithMeta<T>[];
+}>({
+  id: 'some-maximal-generic-bag-token',
+  cardinality: 'zero-or-many',
+})(someMaximalBagLeafTokenFactory);
+
+// the many-factory survives, narrowing per call...
+expectType<<T>(value: T) => T[]>(di.injectMany2(someMaximalGenericBagToken));
+expectType<string[]>(
+  di.injectMany2(someMaximalGenericBagToken)('some-string' as string),
+);
+
+// ...as does the many-meta-factory...
+expectType<<T>(value: T) => InjectionInstanceWithMeta<T>[]>(
+  di.injectManyWithMeta2(someMaximalGenericBagToken),
+);
+expectType<InjectionInstanceWithMeta<number>[]>(
+  di.injectManyWithMeta2(someMaximalGenericBagToken)(42 as number),
+);
+
+// ...and the `.for()` factory comes back verbatim — a generic,
+// specifier-narrowing factory.
+expectType<typeof someMaximalBagLeafTokenFactory>(
+  someMaximalGenericBagToken.for,
+);
+
+const someMaximalStringLeafToken = someMaximalGenericBagToken.for(
+  someStringInstanceSpecifier,
+);
+const someMaximalNumberLeafToken = someMaximalGenericBagToken.for(
+  someNumberInstanceSpecifier,
+);
+
+// each leaf's slots keep their generic, bounded by the specifier's declared
+// instance type...
+expectType<<T extends string>(value: T) => T[]>(
+  di.injectMany2(someMaximalStringLeafToken),
+);
+expectType<<T extends number>(value: T) => T[]>(
+  di.injectMany2(someMaximalNumberLeafToken),
+);
+
+// ...the generic still narrows per call, within the bound...
+expectType<'some-value'[]>(
+  di.injectMany2(someMaximalStringLeafToken)('some-value'),
+);
+expectType<InjectionInstanceWithMeta<42>[]>(
+  di.injectManyWithMeta2(someMaximalNumberLeafToken)(42),
+);
+
+// ...and the wrong instance type is rejected.
+expectError(di.injectMany2(someMaximalStringLeafToken)(42));
+expectError(di.injectMany2(someMaximalNumberLeafToken)('some-value'));
+
+// The same maximal shape at 'zero-or-one': the consumption slots are the
+// maybe-shaped counterparts. Unlike the many surfaces, the maybe surfaces
+// pin the specific-token-factory slot to undefined, so the abstract root is
+// not directly consumable — consumption happens through its `.for()`
+// leaves, which return the generic maybe shapes verbatim.
+const someMaximalMaybeBagLeafTokenFactory = <
+  S extends TypedSpecifierWithType<'instanceType'>,
+>(
+  specifier: S,
+) =>
+  getInjectionToken2<{
+    singleFactory: <T extends TypedSpecifierType<'instanceType', S>>(
+      value: T,
+    ) => T;
+    manyFactory: <T extends TypedSpecifierType<'instanceType', S>>(
+      value: T,
+    ) => T | undefined;
+    singleMetaFactory: <T extends TypedSpecifierType<'instanceType', S>>(
+      value: T,
+    ) => InjectionInstanceWithMeta<T>;
+    manyMetaFactory: <T extends TypedSpecifierType<'instanceType', S>>(
+      value: T,
+    ) => InjectionInstanceWithMeta<T> | undefined;
+  }>({
+    id: `some-maximal-maybe-bag-leaf-${specifier}`,
+    speciality: specifier,
+    cardinality: 'zero-or-one',
+  })();
+
+const someMaximalMaybeGenericBagToken = getInjectionToken2<{
+  singleFactory: <T>(value: T) => T;
+  manyFactory: <T>(value: T) => T | undefined;
+  singleMetaFactory: <T>(value: T) => InjectionInstanceWithMeta<T>;
+  manyMetaFactory: <T>(value: T) => InjectionInstanceWithMeta<T> | undefined;
+}>({
+  id: 'some-maximal-maybe-generic-bag-token',
+  cardinality: 'zero-or-one',
+})(someMaximalMaybeBagLeafTokenFactory);
+
+// the `.for()` factory comes back verbatim...
+expectType<typeof someMaximalMaybeBagLeafTokenFactory>(
+  someMaximalMaybeGenericBagToken.for,
+);
+
+// ...the abstract root is rejected by the maybe surfaces...
+expectError(di.injectMaybe2(someMaximalMaybeGenericBagToken));
+expectError(di.injectMaybeWithMeta2(someMaximalMaybeGenericBagToken));
+
+// ...and a leaf hands the maybe-factory back with its generic bounded by
+// the specifier's declared instance type, still narrowing per call...
+const someMaximalMaybeStringLeafToken = someMaximalMaybeGenericBagToken.for(
+  someStringInstanceSpecifier,
+);
+
+expectType<<T extends string>(value: T) => T | undefined>(
+  di.injectMaybe2(someMaximalMaybeStringLeafToken),
+);
+expectType<'some-value' | undefined>(
+  di.injectMaybe2(someMaximalMaybeStringLeafToken)('some-value'),
+);
+
+// ...as it does the maybe-shaped meta slot...
+expectType<
+  <T extends string>(value: T) => InjectionInstanceWithMeta<T> | undefined
+>(di.injectMaybeWithMeta2(someMaximalMaybeStringLeafToken));
+expectType<InjectionInstanceWithMeta<'some-value'> | undefined>(
+  di.injectMaybeWithMeta2(someMaximalMaybeStringLeafToken)('some-value'),
+);
+
+// ...and the wrong instance type is rejected.
+expectError(di.injectMaybe2(someMaximalMaybeStringLeafToken)(42));
+
+// The same maximal shape at 'one': the single-consumption cardinality. Like
+// the maybe surfaces, inject/injectWithMeta pin the specific-token-factory
+// slot to undefined, so the abstract root is not directly consumable —
+// consumption happens through its `.for()` leaves, which return the
+// contract and the single-meta slot verbatim.
+const someMaximalOneBagLeafTokenFactory = <
+  S extends TypedSpecifierWithType<'instanceType'>,
+>(
+  specifier: S,
+) =>
+  getInjectionToken2<{
+    singleFactory: <T extends TypedSpecifierType<'instanceType', S>>(
+      value: T,
+    ) => T;
+    manyFactory: <T extends TypedSpecifierType<'instanceType', S>>(
+      value: T,
+    ) => T[];
+    singleMetaFactory: <T extends TypedSpecifierType<'instanceType', S>>(
+      value: T,
+    ) => InjectionInstanceWithMeta<T>;
+    manyMetaFactory: <T extends TypedSpecifierType<'instanceType', S>>(
+      value: T,
+    ) => InjectionInstanceWithMeta<T>[];
+  }>({
+    id: `some-maximal-one-bag-leaf-${specifier}`,
+    speciality: specifier,
+    cardinality: 'one',
+  })();
+
+const someMaximalOneGenericBagToken = getInjectionToken2<{
+  singleFactory: <T>(value: T) => T;
+  manyFactory: <T>(value: T) => T[];
+  singleMetaFactory: <T>(value: T) => InjectionInstanceWithMeta<T>;
+  manyMetaFactory: <T>(value: T) => InjectionInstanceWithMeta<T>[];
+}>({
+  id: 'some-maximal-one-generic-bag-token',
+  cardinality: 'one',
+})(someMaximalOneBagLeafTokenFactory);
+
+// the `.for()` factory comes back verbatim...
+expectType<typeof someMaximalOneBagLeafTokenFactory>(
+  someMaximalOneGenericBagToken.for,
+);
+
+// ...the abstract root is rejected by the single surfaces...
+expectError(di.inject2(someMaximalOneGenericBagToken));
+expectError(di.injectWithMeta2(someMaximalOneGenericBagToken));
+
+// ...and a leaf hands the contract factory back with its generic bounded
+// by the specifier's declared instance type, still narrowing per call...
+const someMaximalOneStringLeafToken = someMaximalOneGenericBagToken.for(
+  someStringInstanceSpecifier,
+);
+
+expectType<<T extends string>(value: T) => T>(
+  di.inject2(someMaximalOneStringLeafToken),
+);
+expectType<'some-value'>(
+  di.inject2(someMaximalOneStringLeafToken)('some-value'),
+);
+
+// ...as it does the single-meta slot...
+expectType<<T extends string>(value: T) => InjectionInstanceWithMeta<T>>(
+  di.injectWithMeta2(someMaximalOneStringLeafToken),
+);
+expectType<InjectionInstanceWithMeta<'some-value'>>(
+  di.injectWithMeta2(someMaximalOneStringLeafToken)('some-value'),
+);
+
+// ...and the wrong instance type is rejected.
+expectError(di.inject2(someMaximalOneStringLeafToken)(42));
+
+// The same maximal shape at 'one-or-many': the non-empty many cardinality.
+// Its consumption slots take the non-empty tuple shapes, and — as with
+// every many cardinality — the many surfaces accept the abstract root
+// itself.
+const someMaximalNonEmptyBagLeafTokenFactory = <
+  S extends TypedSpecifierWithType<'instanceType'>,
+>(
+  specifier: S,
+) =>
+  getInjectionToken2<{
+    singleFactory: <T extends TypedSpecifierType<'instanceType', S>>(
+      value: T,
+    ) => T;
+    manyFactory: <T extends TypedSpecifierType<'instanceType', S>>(
+      value: T,
+    ) => [T, ...T[]];
+    singleMetaFactory: <T extends TypedSpecifierType<'instanceType', S>>(
+      value: T,
+    ) => InjectionInstanceWithMeta<T>;
+    manyMetaFactory: <T extends TypedSpecifierType<'instanceType', S>>(
+      value: T,
+    ) => [InjectionInstanceWithMeta<T>, ...InjectionInstanceWithMeta<T>[]];
+  }>({
+    id: `some-maximal-non-empty-bag-leaf-${specifier}`,
+    speciality: specifier,
+    cardinality: 'one-or-many',
+  })();
+
+const someMaximalNonEmptyGenericBagToken = getInjectionToken2<{
+  singleFactory: <T>(value: T) => T;
+  manyFactory: <T>(value: T) => [T, ...T[]];
+  singleMetaFactory: <T>(value: T) => InjectionInstanceWithMeta<T>;
+  manyMetaFactory: <T>(
+    value: T,
+  ) => [InjectionInstanceWithMeta<T>, ...InjectionInstanceWithMeta<T>[]];
+}>({
+  id: 'some-maximal-non-empty-generic-bag-token',
+  cardinality: 'one-or-many',
+})(someMaximalNonEmptyBagLeafTokenFactory);
+
+// the non-empty many-factory survives on the abstract root itself,
+// narrowing per call...
+expectType<<T>(value: T) => [T, ...T[]]>(
+  di.injectMany2(someMaximalNonEmptyGenericBagToken),
+);
+expectType<[string, ...string[]]>(
+  di.injectMany2(someMaximalNonEmptyGenericBagToken)('some-string' as string),
+);
+
+// ...as does the non-empty meta slot...
+expectType<
+  <T>(
+    value: T,
+  ) => [InjectionInstanceWithMeta<T>, ...InjectionInstanceWithMeta<T>[]]
+>(di.injectManyWithMeta2(someMaximalNonEmptyGenericBagToken));
+expectType<
+  [InjectionInstanceWithMeta<number>, ...InjectionInstanceWithMeta<number>[]]
+>(di.injectManyWithMeta2(someMaximalNonEmptyGenericBagToken)(42 as number));
+
+// ...and the `.for()` factory comes back verbatim, its leaves keeping the
+// same shapes.
+expectType<typeof someMaximalNonEmptyBagLeafTokenFactory>(
+  someMaximalNonEmptyGenericBagToken.for,
+);
+
+const someMaximalNonEmptyNumberLeafToken =
+  someMaximalNonEmptyGenericBagToken.for(someNumberInstanceSpecifier);
+expectType<<T extends number>(value: T) => [T, ...T[]]>(
+  di.injectMany2(someMaximalNonEmptyNumberLeafToken),
+);
+expectType<[42, ...42[]]>(
+  di.injectMany2(someMaximalNonEmptyNumberLeafToken)(42),
+);
+expectType<
+  <T extends number>(
+    value: T,
+  ) => [InjectionInstanceWithMeta<T>, ...InjectionInstanceWithMeta<T>[]]
+>(di.injectManyWithMeta2(someMaximalNonEmptyNumberLeafToken));
+expectError(di.injectMany2(someMaximalNonEmptyNumberLeafToken)('some-value'));
+
+// Unknown keys are rejected — a typo cannot silently become a default...
+expectError(
+  (
+    token: InjectionToken2<{
+      singleFactory: () => string;
+      cardinalty: 'one';
+    }>,
+  ) => token,
+);
+
+// ...and so are ill-typed slot values.
+expectError(
+  (
+    token: InjectionToken2<{
+      singleFactory: () => string;
+      cardinality: 'once';
+    }>,
+  ) => token,
+);
+
+// An abstract token via the bag: a real `.for()` factory's type lands in the
+// specificTokenFactory slot, making `.for` exist verbatim and the token
+// abstract.
+const someBagLeafTokenFactory = (specifier: string) =>
+  getInjectionToken2<() => string>({
+    id: `some-bag-leaf-${specifier}`,
+    speciality: specifier,
+    cardinality: 'one',
+  })();
+
+const bagAbstractToken: InjectionToken2<{
+  singleFactory: () => string;
+  cardinality: 'one';
+  specificTokenFactory: typeof someBagLeafTokenFactory;
+}> = getInjectionToken2<() => string>({
+  id: 'some-bag-abstract-token',
+  cardinality: 'one',
+})(someBagLeafTokenFactory);
+
+expectType<typeof someBagLeafTokenFactory>(bagAbstractToken.for);
+expectError(di.inject(bagAbstractToken));
+expectType<string>(di.inject(bagAbstractToken.for('some-specifier')));
+
+// SpecificInjectionToken2's bag mirrors its own positional defaults — the
+// omitted specificTokenFactory slot falls back to `undefined` (a concrete
+// leaf), not InjectionToken2's wide `any`.
+const someRealSpecificToken = getInjectionToken2<() => string>({
+  id: 'some-real-specific-token',
+  speciality: 'some-speciality',
+  cardinality: 'one',
+})();
+
+const positionallyAnnotatedSpecificToken: SpecificInjectionToken2<
+  () => string
+> = someRealSpecificToken;
+
+expectType<SpecificInjectionToken2<{ singleFactory: () => string }>>(
+  positionallyAnnotatedSpecificToken,
+);
+
+// Consumption gating accepts bag-annotated tokens.
+getInjectable2({
+  id: 'some-consumer-of-bag-annotated-token',
+  consumptions: [bagAnnotatedManyToken],
+  instantiate: di => () => {
+    expectType<(x: number) => string[]>(di.injectMany(bagAnnotatedManyToken));
+  },
+});
