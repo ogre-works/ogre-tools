@@ -105,7 +105,7 @@ See Injectable.
 #### To Inject
 - Different ways **To Inject**:
   1. Methods of `di` to inject an instance of an `injectable`: `di.inject`, `di.injectMany` or `di.injectManyWithMeta`.
-  2. Methods of `@ogre-tools/injectable-mobx` to inject instances reactively: `computedInjectMany`, `computedInjectManyWithMeta` or `computedInjectMaybe`.
+  2. Methods of `@ogre-tools/injectable-extension-for-mobx` to inject instances reactively: `computedInjectMany`, `computedInjectManyWithMeta` or `computedInjectMaybe`.
 - If injected `injectable` has lifecycle of `keyedSingleton`, different strategies also require the key as `instantiationParameter`.
 
 Different ways **To Inject**:
@@ -775,7 +775,7 @@ di.purge(token, "a");         // purges key "a" across all implementations of a 
 
 ### Extensions:
 #### MobX: Reactive ways To Inject
-Reactive utilities in `@ogre-tools/injectable-mobx`.
+Reactive utilities in `@ogre-tools/injectable-extension-for-mobx`.
 
 See "To Inject" for examples.
 
