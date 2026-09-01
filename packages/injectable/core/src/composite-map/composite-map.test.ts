@@ -9,25 +9,25 @@ describe('compositeMap', () => {
     });
 
     it('throws when calling set with a key that is not an array', () => {
-      expect(() => compositeMap.set('not an array', 1)).toThrowError(
+      expect(() => compositeMap.set('not an array', 1)).toThrow(
         'Expected key to be an array',
       );
     });
 
     it('throws when calling has with a key that is not an array', () => {
-      expect(() => compositeMap.has('not an array')).toThrowError(
+      expect(() => compositeMap.has('not an array')).toThrow(
         'Expected key to be an array',
       );
     });
 
     it('throws when calling get with a key that is not an array', () => {
-      expect(() => compositeMap.get('not an array')).toThrowError(
+      expect(() => compositeMap.get('not an array')).toThrow(
         'Expected key to be an array',
       );
     });
 
     it('throws when calling set with a key that is an empty array', () => {
-      expect(() => compositeMap.set([], 1)).toThrowError(
+      expect(() => compositeMap.set([], 1)).toThrow(
         'Keys must be at least length 1',
       );
     });
