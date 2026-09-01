@@ -1,10 +1,8 @@
-export {
-  getElementComponent,
-  ElementComponent,
-  TagNames,
-} from './src/element-component';
+export { getElementComponent } from './src/element-component';
+export type { ElementComponent, TagNames } from './src/element-component';
 
-export { getPlugin, Plugin } from './src/plugin/plugin';
+export { getPlugin } from './src/plugin/plugin';
+export type { Plugin } from './src/plugin/plugin';
 
 export { getPropsFromPlugins } from './src/get-props-from-plugins';
 export type {
