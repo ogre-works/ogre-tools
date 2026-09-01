@@ -9,7 +9,7 @@ describe('flushPromises', () => {
 
     await flushPromises();
 
-    const promiseIsPending = util.inspect(promise).includes('pending');
+    const promiseIsPending = util.inspect(promise).includes('<pending>');
 
     expect(promiseIsPending).toBe(false);
   });
