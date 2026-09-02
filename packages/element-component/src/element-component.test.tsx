@@ -2,7 +2,7 @@ import * as React from 'react';
 import { ComponentType } from 'react';
 import { getElementComponent } from './element-component';
 import { RenderResult } from '@testing-library/react';
-import { render } from '@testing-library/react';
+import { fireEvent, render } from '@testing-library/react';
 
 import { Discover, discoverFor } from '@ogre-tools/discoverable';
 
@@ -206,7 +206,7 @@ describe('element', () => {
       const somePlugin2 = getPlugin<{ $somePlugin2Input?: boolean }>(() => ({
         $somePlugin2Input: undefined,
 
-        ref: node => {
+        ref: (node: HTMLElement | null) => {
           node?.classList.add('some-class-from-functional-ref');
         },
       }));
@@ -597,7 +597,7 @@ describe('element', () => {
       const discover = discoverFor(() => rendered);
       const element = discover.getSingleElement('some-element').discovered;
 
-      element.click();
+      fireEvent.click(element);
 
       expect(onClickSpy).toHaveBeenCalledTimes(1);
     });
@@ -688,7 +688,7 @@ describe('element', () => {
       const discover = discoverFor(() => rendered);
       const element = discover.getSingleElement('some-element').discovered;
 
-      element.click();
+      fireEvent.click(element);
 
       expect(calls).toEqual(['wrapper2', 'wrapper1']);
     });
@@ -730,7 +730,7 @@ describe('element', () => {
       const discover = discoverFor(() => rendered);
       const element = discover.getSingleElement('some-element').discovered;
 
-      element.click();
+      fireEvent.click(element);
 
       expect(calls).toEqual(['plugin', 'wrapper']);
     });
@@ -917,9 +917,9 @@ describe('getPropsFromPlugins', () => {
 
     assertType<WrapperEntry<{ label: string }>>(typedWrapper);
 
-    // @ts-expect-error — props.label must be a string
     const _badWrapper: WrapperEntry<{ label: string }> = {
       Component: TypedWrapperComponent,
+      // @ts-expect-error — props.label must be a string
       props: { label: 1 },
     };
     void _badWrapper;
