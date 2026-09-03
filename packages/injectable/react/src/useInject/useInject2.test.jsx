@@ -159,3 +159,55 @@ describe('useInject2', () => {
     });
   });
 });
+
+describe('given the container for injection, as the application provides it', () => {
+  // The real application renders DiContextProvider with the container for
+  // injection, not the full container. That one has no `inject2`, so a hook
+  // reaching for it crashes in the application while passing every test that
+  // provides a full container.
+  let containerForInjection;
+  let mountWithContainerForInjection;
+
+  beforeEach(() => {
+    const di = createContainer('some-container');
+
+    const exposeContainerForInjection = getInjectable({
+      id: 'expose-container-for-injection',
+      instantiate: diForInjection => diForInjection,
+    });
+
+    di.register(exposeContainerForInjection);
+
+    containerForInjection = di.inject(exposeContainerForInjection);
+
+    mountWithContainerForInjection = node =>
+      render(
+        <DiContextProvider value={containerForInjection}>
+          {node}
+        </DiContextProvider>,
+      );
+  });
+
+  it('does not have inject2 at all, which is what made this a bug', () => {
+    expect(containerForInjection.inject2).toBeUndefined();
+  });
+
+  it('still returns a factory whose invocation produces the instance', () => {
+    const someInjectable2 = getInjectable2({
+      id: 'container-for-injection-no-params',
+      instantiate: () => () => 42,
+    });
+
+    containerForInjection.register(someInjectable2);
+
+    const SomeComponent = () => {
+      const factory = useInject2(someInjectable2);
+
+      return <div data-testid="value">{factory()}</div>;
+    };
+
+    const rendered = mountWithContainerForInjection(<SomeComponent />);
+
+    expect(rendered.getByTestId('value').textContent).toBe('42');
+  });
+});

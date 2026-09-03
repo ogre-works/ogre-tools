@@ -10,3 +10,4 @@ export { getInjectionTokenComponent } from './src/getInjectionTokenComponent/get
 export { getInjectionTokenComponent2 } from './src/getInjectionTokenComponent/getInjectionTokenComponent2';
 export { useInject, useInjectDeferred } from './src/useInject/useInject';
 export { useInject2 } from './src/useInject/useInject2';
+export { useDi } from './src/useDi/useDi';

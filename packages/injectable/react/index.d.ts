@@ -288,6 +288,11 @@ export declare function getInjectionTokenComponent2<
 
 export const DiContextProvider: React.Provider<DiContainer | DiContainerForInjection>;
 
+// The container the nearest DiContextProvider holds. For a hook that has to
+// inject aliases decided by its caller, and therefore cannot be an injectable
+// declaring them as consumptions.
+export function useDi(): DiContainerForInjection;
+
 /** @deprecated Use injection hooks (`useSyncInject`, `useInjectDeferAwait`, `useInjectAsReactive`) or `getInjectableComponent` instead. */
 export interface WithInjectablesSyncOptions<
   Dependencies extends object,
