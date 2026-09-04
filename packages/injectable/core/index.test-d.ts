@@ -4063,3 +4063,33 @@ getInjectable2({
     expectType<(x: number) => string[]>(di.injectMany(bagAnnotatedManyToken));
   },
 });
+
+// ======================================================================
+// Identity of the injectable being instantiated: di.id / di.scopes / di.scopedId
+// ======================================================================
+
+const identityInjectable = getInjectable2({
+  id: 'identity',
+  instantiate: di => () => {
+    expectType<string>(di.id);
+    expectType<string[]>(di.scopes);
+    expectType<string[]>(di.scopedId);
+
+    return 'irrelevant';
+  },
+});
+
+// the identity is on the di of an override too
+di.override2(identityInjectable, di => () => {
+  expectType<string>(di.id);
+  expectType<string[]>(di.scopedId);
+
+  return 'irrelevant';
+});
+
+// and on the wide di
+declare const someWideDi: DiContainerForInjection2;
+
+expectType<string>(someWideDi.id);
+expectType<string[]>(someWideDi.scopes);
+expectType<string[]>(someWideDi.scopedId);
