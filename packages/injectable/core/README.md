@@ -356,6 +356,15 @@ const someLoggerInjectable = getInjectable({
 
   Be aware it is `undefined` for anything resolved through `injectMany`, where the token stands in as the injecting party rather than the consumer.
 
+- **`di.id`, `di.scopes` and `di.scopedId`** (on the `di` of a `getInjectable2`) are your *own* identity and place in the tree, as opposed to the consumer's: your id, the ids of the scopes you were registered under, outermost first and the immediate owner last, and the two together — the segments of your namespaced id. The scope pair walks the registration tree on every read and hands back a fresh array, so read them once. Two scopes registering an injectable of the same bare id get two instances, and this is how each tells which one it is, no matter who injects it:
+
+```ts
+const someLoggerInjectable = getInjectable2({
+  id: "some-logger",
+  instantiate: (di) => () => createLogger({ prefix: di.scopedId.join(":") }),
+});
+```
+
 - **`di.purge` means two different things.** On the container it purges instances globally. On the `di` inside an `instantiate` it is restricted to the scope: the owner's own instances and those of the injectables it registered directly, and it throws `Tried to purge "some-id" from "some-owner", but it is not within its registration context tree.` for anything else. Neither form removes registrations — only instances.
 - **Footgun: a scope belongs to the injectable, not to the instance.** The owner's identity is the injectable object, so a `transient` or `keyedSingleton` owner does not get a fresh scope per instantiation. Its second instantiation re-runs the same `di.register` calls and throws `Tried to register same injectable multiple times: "some-owner:some-id"`. The same happens after `di.purge` of a singleton owner, since purging drops the instance but keeps the registrations, so re-injecting re-runs `instantiate`. Scopes are a structural mechanism for features, not a per-instance one.
 - **Footgun: cardinality bounds are container-wide.** Two scopes cannot each register their own implementation of a token declared `one` or `zero-or-one`; the second registration is rejected regardless of which scope it is in.

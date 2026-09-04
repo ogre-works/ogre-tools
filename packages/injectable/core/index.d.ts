@@ -1580,6 +1580,26 @@ export interface DiContainerForInjection2 {
   injectManyWithMeta: InjectManyWithMeta2;
   injectMaybeWithMeta: InjectMaybeWithMeta2;
 
+  // ---- Identity of the injectable being instantiated ----
+  //
+  // For instantiate-code shared across injectables: decorators, and
+  // factories producing many injectables from one `instantiate`. An
+  // imperative override sees the identity of the injectable it stands in
+  // for, since that is what was registered.
+
+  // The injectable's own id, as given to `getInjectable2`.
+  readonly id: string;
+
+  // The ids of the scopes the injectable was registered under, outermost
+  // first and the immediate owner last — the segments of its namespaced id
+  // minus its own; empty at container level. Each read walks the
+  // registration tree and returns a fresh array.
+  readonly scopes: string[];
+
+  // `scopes` followed by `id`: the segments of the namespaced id. Each read
+  // walks the registration tree and returns a fresh array.
+  readonly scopedId: string[];
+
   register(...injectables: (Alias | InjectableBunch)[]): void;
 
   deregister(...injectables: (Alias | InjectableBunch)[]): void;

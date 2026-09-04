@@ -86,4 +86,33 @@ describe('createContainer2.performance', () => {
       expect(p2 - p1).toBeLessThan(350);
     });
   });
+
+  // A transient allocates a fresh minimalDi per inject, so this is the
+  // benchmark for whatever the v2 minimalDi carries — every member and getter
+  // added to it costs here, on every instantiation, whether read or not.
+  describe('when injecting a transient repeatedly', () => {
+    it('is quick enough', () => {
+      const transientInjectable = getInjectable2({
+        id: 'some-transient',
+        transient: true,
+        instantiate: () => () => null,
+      });
+
+      di.register(transientInjectable);
+
+      const p1 = performance.now();
+
+      for (let i = 0; i < 30000; i++) {
+        di.inject(transientInjectable);
+      }
+
+      const p2 = performance.now();
+
+      console.log(
+        `[BENCH] createContainer2 30k transient inject: ${(p2 - p1).toFixed(2)}ms`,
+      );
+
+      expect(p2 - p1).toBeLessThan(200);
+    });
+  });
 });

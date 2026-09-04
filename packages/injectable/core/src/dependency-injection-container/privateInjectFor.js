@@ -31,6 +31,7 @@ export const privateInjectFor =
     checkForNonMaybeCardinality,
     namespacedIdByInjectableMap,
     getNamespacedId,
+    getScopeIds,
     getApplicableDecorators,
   }) =>
   ({ withMeta }) =>
@@ -130,6 +131,7 @@ export const privateInjectFor =
       injectingInjectable,
       namespacedIdByInjectableMap,
       getNamespacedId,
+      getScopeIds,
       getApplicableDecorators,
       checkForNonMaybeCardinality,
     );
@@ -149,6 +151,7 @@ const createMinimalDi = (
   injectableToBeInstantiated,
   injectingInjectable,
   namespacedIdByInjectableMap,
+  getScopeIds,
   checkForNonMaybeCardinality,
 ) => {
   // Closure-captured methods are fixed up-front (`shared` plus inject*),
@@ -194,11 +197,36 @@ const createMinimalDi = (
   };
 
   if (injectableToBeInstantiated.aliasType === injectableSymbol2) {
+    // An imperative override (di.override / di.earlyOverride) instantiates a
+    // stand-in object that was never registered; the registration tree only
+    // knows the original, so the scope walk starts from it.
+    const registeredInjectable =
+      injectableToBeInstantiated.overriddenInjectable ||
+      injectableToBeInstantiated;
+
     // V2 minimalDi: inject/injectMany/etc are factory-returning. Each method
     // is inlined directly against `di` (no minimalInject* intermediary) so
     // we don't allocate four extra closures per minimalDi just to forward.
     return {
       ...shared,
+
+      // The identity of what is being instantiated, for instantiate-code
+      // shared across injectables (decorators, reusable factories). `id` is a
+      // plain read; the scope pair walks the registration tree per read,
+      // hence getters.
+      id: injectableToBeInstantiated.id,
+
+      get scopes() {
+        return getScopeIds(registeredInjectable);
+      },
+
+      get scopedId() {
+        const ids = getScopeIds(registeredInjectable);
+
+        ids.push(injectableToBeInstantiated.id);
+
+        return ids;
+      },
 
       inject:
         alias =>
@@ -358,6 +386,7 @@ const getInstance = (
   injectingInjectable,
   namespacedIdByInjectableMap,
   getNamespacedId,
+  getScopeIds,
   getApplicableDecorators,
   checkForNonMaybeCardinality,
 ) => {
@@ -385,6 +414,7 @@ const getInstance = (
       injectableToBeInstantiated,
       injectingInjectable,
       namespacedIdByInjectableMap,
+      getScopeIds,
       checkForNonMaybeCardinality,
     );
 
@@ -410,6 +440,7 @@ const getInstance = (
       injectableToBeInstantiated,
       injectingInjectable,
       namespacedIdByInjectableMap,
+      getScopeIds,
       checkForNonMaybeCardinality,
     );
 
@@ -441,6 +472,7 @@ const getInstance = (
         injectableToBeInstantiated,
         injectingInjectable,
         namespacedIdByInjectableMap,
+        getScopeIds,
         checkForNonMaybeCardinality,
       );
 
@@ -464,6 +496,7 @@ const getInstance = (
     injectableToBeInstantiated,
     injectingInjectable,
     namespacedIdByInjectableMap,
+    getScopeIds,
     checkForNonMaybeCardinality,
   );
 
