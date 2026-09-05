@@ -31,7 +31,7 @@ export const privateInjectFor =
     checkForNonMaybeCardinality,
     namespacedIdByInjectableMap,
     getNamespacedId,
-    getScopeIds,
+    getScopedId,
     getApplicableDecorators,
   }) =>
   ({ withMeta }) =>
@@ -131,7 +131,7 @@ export const privateInjectFor =
       injectingInjectable,
       namespacedIdByInjectableMap,
       getNamespacedId,
-      getScopeIds,
+      getScopedId,
       getApplicableDecorators,
       checkForNonMaybeCardinality,
     );
@@ -151,7 +151,7 @@ const createMinimalDi = (
   injectableToBeInstantiated,
   injectingInjectable,
   namespacedIdByInjectableMap,
-  getScopeIds,
+  getScopedId,
   checkForNonMaybeCardinality,
 ) => {
   // Closure-captured methods are fixed up-front (`shared` plus inject*),
@@ -217,15 +217,15 @@ const createMinimalDi = (
       id: injectableToBeInstantiated.id,
 
       get scopeIds() {
-        return getScopeIds(registeredInjectable);
+        const ids = getScopedId(registeredInjectable);
+
+        ids.pop();
+
+        return ids;
       },
 
       get scopedId() {
-        const ids = getScopeIds(registeredInjectable);
-
-        ids.push(injectableToBeInstantiated.id);
-
-        return ids;
+        return getScopedId(registeredInjectable);
       },
 
       inject:
@@ -386,7 +386,7 @@ const getInstance = (
   injectingInjectable,
   namespacedIdByInjectableMap,
   getNamespacedId,
-  getScopeIds,
+  getScopedId,
   getApplicableDecorators,
   checkForNonMaybeCardinality,
 ) => {
@@ -414,7 +414,7 @@ const getInstance = (
       injectableToBeInstantiated,
       injectingInjectable,
       namespacedIdByInjectableMap,
-      getScopeIds,
+      getScopedId,
       checkForNonMaybeCardinality,
     );
 
@@ -440,7 +440,7 @@ const getInstance = (
       injectableToBeInstantiated,
       injectingInjectable,
       namespacedIdByInjectableMap,
-      getScopeIds,
+      getScopedId,
       checkForNonMaybeCardinality,
     );
 
@@ -472,7 +472,7 @@ const getInstance = (
         injectableToBeInstantiated,
         injectingInjectable,
         namespacedIdByInjectableMap,
-        getScopeIds,
+        getScopedId,
         checkForNonMaybeCardinality,
       );
 
@@ -496,7 +496,7 @@ const getInstance = (
     injectableToBeInstantiated,
     injectingInjectable,
     namespacedIdByInjectableMap,
-    getScopeIds,
+    getScopedId,
     checkForNonMaybeCardinality,
   );
 

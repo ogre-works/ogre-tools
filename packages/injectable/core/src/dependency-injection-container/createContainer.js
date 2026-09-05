@@ -5,7 +5,8 @@ import { registerFor, registerSingleFor } from './register';
 import { purgeInstancesFor, purgeStoredInstancesFor } from './purgeInstances';
 import { deregisterFor } from './deregister';
 import { overrideFor, unoverrideFor } from './override';
-import { getNamespacedIdFor, getScopeIdsFor } from './getNamespacedIdFor';
+import { getNamespacedIdFor } from './getNamespacedIdFor';
+import { getScopedIdFor } from './getScopedIdFor';
 import { checkForNoMatchesFor } from './checkForNoMatchesFor';
 import { checkForTooManyMatchesFor } from './checkForTooManyMatches';
 import { checkForSideEffectsFor } from './checkForSideEffectsFor';
@@ -48,7 +49,7 @@ export default containerId => {
   const childrenByParentMap = new Map();
 
   const getNamespacedId = getNamespacedIdFor(injectableAndRegistrationContext);
-  const getScopeIds = getScopeIdsFor(injectableAndRegistrationContext);
+  const getScopedId = getScopedIdFor(injectableAndRegistrationContext);
 
   const getRelatedInjectables = getRelatedInjectablesFor({
     injectablesByInjectionToken,
@@ -138,7 +139,7 @@ export default containerId => {
     checkForNonMaybeCardinality,
     namespacedIdByInjectableMap,
     getNamespacedId,
-    getScopeIds,
+    getScopedId,
     getApplicableDecorators,
   });
 
