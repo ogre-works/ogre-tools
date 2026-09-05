@@ -4065,14 +4065,14 @@ getInjectable2({
 });
 
 // ======================================================================
-// Identity of the injectable being instantiated: di.id / di.scopes / di.scopedId
+// Identity of the injectable being instantiated: di.id / di.scopeIds / di.scopedId
 // ======================================================================
 
 const identityInjectable = getInjectable2({
   id: 'identity',
   instantiate: di => () => {
     expectType<string>(di.id);
-    expectType<string[]>(di.scopes);
+    expectType<string[]>(di.scopeIds);
     expectType<string[]>(di.scopedId);
 
     return 'irrelevant';
@@ -4091,5 +4091,5 @@ di.override2(identityInjectable, di => () => {
 declare const someWideDi: DiContainerForInjection2;
 
 expectType<string>(someWideDi.id);
-expectType<string[]>(someWideDi.scopes);
+expectType<string[]>(someWideDi.scopeIds);
 expectType<string[]>(someWideDi.scopedId);

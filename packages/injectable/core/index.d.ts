@@ -1594,9 +1594,9 @@ export interface DiContainerForInjection2 {
   // first and the immediate owner last — the segments of its namespaced id
   // minus its own; empty at container level. Each read walks the
   // registration tree and returns a fresh array.
-  readonly scopes: string[];
+  readonly scopeIds: string[];
 
-  // `scopes` followed by `id`: the segments of the namespaced id. Each read
+  // `scopeIds` followed by `id`: the segments of the namespaced id. Each read
   // walks the registration tree and returns a fresh array.
   readonly scopedId: string[];
 

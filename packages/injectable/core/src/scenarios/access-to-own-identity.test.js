@@ -20,7 +20,7 @@ describe('access-to-own-identity', () => {
         id: 'some-injectable',
         instantiate: di => () => ({
           id: di.id,
-          scopes: di.scopes,
+          scopeIds: di.scopeIds,
           scopedId: di.scopedId,
         }),
       });
@@ -32,8 +32,8 @@ describe('access-to-own-identity', () => {
       expect(di.inject(someInjectable).id).toBe('some-injectable');
     });
 
-    it('when instantiated, has no scopes', () => {
-      expect(di.inject(someInjectable).scopes).toEqual([]);
+    it('when instantiated, has no scope ids', () => {
+      expect(di.inject(someInjectable).scopeIds).toEqual([]);
     });
 
     it('when instantiated, its scoped id is just its own id', () => {
@@ -50,7 +50,7 @@ describe('access-to-own-identity', () => {
       someInjectable = getInjectable2({
         id: 'some-injectable',
         instantiate: di => () => ({
-          scopes: di.scopes,
+          scopeIds: di.scopeIds,
           scopedId: di.scopedId,
         }),
       });
@@ -71,7 +71,7 @@ describe('access-to-own-identity', () => {
     });
 
     it('when instantiated, knows the ids of its scopes, outermost first', () => {
-      expect(di.inject(someInjectable).scopes).toEqual([
+      expect(di.inject(someInjectable).scopeIds).toEqual([
         'some-outer-scope',
         'some-inner-scope',
       ]);
@@ -85,14 +85,14 @@ describe('access-to-own-identity', () => {
       ]);
     });
 
-    it('when the scopes are read again, arrays are fresh instead of shared', () => {
+    it('when the scope ids are read again, arrays are fresh instead of shared', () => {
       const someInstance = di.inject(someInjectable);
 
-      someInstance.scopes.push('some-mutation');
+      someInstance.scopeIds.push('some-mutation');
 
       di.purge(someInjectable);
 
-      expect(di.inject(someInjectable).scopes).toEqual([
+      expect(di.inject(someInjectable).scopeIds).toEqual([
         'some-outer-scope',
         'some-inner-scope',
       ]);
@@ -119,7 +119,7 @@ describe('access-to-own-identity', () => {
     ]);
   });
 
-  it('given injectable2 deregistered from one scope and registered within another, when instantiated, the scopes follow', () => {
+  it('given injectable2 deregistered from one scope and registered within another, when instantiated, the scope ids follow', () => {
     const someInjectable = getInjectable2({
       id: 'some-injectable',
       instantiate: di => () => di.scopedId,
@@ -308,7 +308,7 @@ describe('access-to-own-identity', () => {
       id: 'some-injectable',
       instantiate: di => ({
         id: di.id,
-        scopes: di.scopes,
+        scopeIds: di.scopeIds,
         scopedId: di.scopedId,
       }),
       lifecycle: lifecycleEnum.singleton,
@@ -318,7 +318,7 @@ describe('access-to-own-identity', () => {
 
     expect(di.inject(someInjectable)).toEqual({
       id: undefined,
-      scopes: undefined,
+      scopeIds: undefined,
       scopedId: undefined,
     });
   });
