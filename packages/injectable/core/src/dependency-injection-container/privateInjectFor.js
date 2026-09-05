@@ -216,7 +216,7 @@ const createMinimalDi = (
       // hence getters.
       id: injectableToBeInstantiated.id,
 
-      get scopes() {
+      get scopeIds() {
         return getScopeIds(registeredInjectable);
       },
 

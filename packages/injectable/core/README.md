@@ -356,7 +356,7 @@ const someLoggerInjectable = getInjectable({
 
   Be aware it is `undefined` for anything resolved through `injectMany`, where the token stands in as the injecting party rather than the consumer.
 
-- **`di.id`, `di.scopes` and `di.scopedId`** (on the `di` of a `getInjectable2`) are your *own* identity and place in the tree, as opposed to the consumer's: your id, the ids of the scopes you were registered under, outermost first and the immediate owner last, and the two together — the segments of your namespaced id. The scope pair walks the registration tree on every read and hands back a fresh array, so read them once. Two scopes registering an injectable of the same bare id get two instances, and this is how each tells which one it is, no matter who injects it:
+- **`di.id`, `di.scopeIds` and `di.scopedId`** (on the `di` of a `getInjectable2`) are your *own* identity and place in the tree, as opposed to the consumer's: your id, the ids of the scopes you were registered under, outermost first and the immediate owner last, and the two together — the segments of your namespaced id. The scope pair walks the registration tree on every read and hands back a fresh array, so read them once. Two scopes registering an injectable of the same bare id get two instances, and this is how each tells which one it is, no matter who injects it:
 
 ```ts
 const someLoggerInjectable = getInjectable2({
