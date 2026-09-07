@@ -7,6 +7,7 @@ import {
   Injectable2,
   InjectionToken,
   InjectionToken2Base,
+  InjectionTokenOf,
   SpecificInjectionToken,
 } from '@ogre-tools/injectable';
 
@@ -95,9 +96,11 @@ export declare function getInjectableComponent2<
     id: string;
     Component: Component;
     PlaceholderComponent?: React.ComponentType<React.ComponentProps<Component>>;
-    injectionToken?: InjectionToken2Base<() => Component, any> & {
-      readonly __abstract?: never;
-    };
+    injectionToken?: InjectionTokenOf<
+      InjectionToken2Base<() => Component, any> & {
+        readonly __abstract?: never;
+      }
+    >;
   },
 ): InjectableComponent2<Component>;
 
