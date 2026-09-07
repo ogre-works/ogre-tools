@@ -25,6 +25,7 @@ import { withPreInjectCallbacksFor } from './withPreInjectCallbacksFor';
 import { isRelatedToToken } from './getRelatedTokens';
 import { firePurgeCallbacksFor } from './firePurgeCallbacksFor';
 import { getApplicableDecoratorsFor } from './getApplicableDecoratorsFor';
+import { injectionTokenResolutionFor } from './injectionTokenResolutionFor';
 import { isCompositeStorage } from './privateInjectFor';
 
 // Folds the installed global instantiation callbacks into one function with
@@ -86,6 +87,9 @@ export default containerId => {
   const getNamespacedId = getNamespacedIdFor(injectableAndRegistrationContext);
   const getScopedId = getScopedIdFor(injectableAndRegistrationContext);
 
+  const { resolveInjectionTokenOf, getInjectionTokenOf, forgetInjectionTokenOf } =
+    injectionTokenResolutionFor({ injectableAndRegistrationContext });
+
   const getRelatedInjectables = getRelatedInjectablesFor({
     injectablesByInjectionToken,
     injectableSet,
@@ -122,6 +126,7 @@ export default containerId => {
   const getApplicableDecorators = getApplicableDecoratorsFor({
     injectMany: nonDecoratedPrivateInjectMany,
     injectablesByInjectionToken,
+    getInjectionTokenOf,
   });
 
   const getGlobalInstantiationCallback = () =>
@@ -353,19 +358,23 @@ export default containerId => {
     injectableAndRegistrationContext,
     childrenByParentMap,
     firePurgeCallbacks,
+    resolveInjectionTokenOf,
+    getInjectionTokenOf,
   });
 
   const registerSingle = (injectable, context) => {
     rawRegisterSingle(injectable, context);
 
+    const injectionToken = getInjectionTokenOf(injectable);
+
     let wiringChanged = false;
 
-    if (isRelatedToToken(injectable.injectionToken, injectionDecoratorToken)) {
+    if (isRelatedToToken(injectionToken, injectionDecoratorToken)) {
       decoratorCache.injection = null;
       wiringChanged = true;
     }
 
-    if (isRelatedToToken(injectable.injectionToken, preInjectCallbackToken)) {
+    if (isRelatedToToken(injectionToken, preInjectCallbackToken)) {
       decoratorCache.preInject = null;
       wiringChanged = true;
     }
@@ -413,12 +422,16 @@ export default containerId => {
     getDi: () => privateDi,
     decoratorCache,
     syncInjectWiring,
+    getInjectionTokenOf,
+    forgetInjectionTokenOf,
   });
 
   const privateRegister = registerFor({
     registerSingle,
     injectMany: nonDecoratedPrivateInjectMany,
     getApplicableDecorators,
+    resolveInjectionTokenOf,
+    getInjectionTokenOf,
   });
 
   const earlyOverride = earlyOverrideFor({

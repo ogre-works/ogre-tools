@@ -365,6 +365,16 @@ const someLoggerInjectable = getInjectable2({
 });
 ```
 
+- **A registration can key its token by its scope.** `injectionToken` may be a function of the scope the injectable is registered under, `({ scopeIds }) => someToken.for(...)`, resolved once at registration with the same `scopeIds` the injectable's own `di.scopeIds` will read as. This is for token families whose specifier must be unique per scope without the scope's author spelling it: two scopes registering the same shape of injectable end up under two different specific tokens, and neither had to invent a globally unique name. The function is called once per registration and must return a token; deregistering forgets the resolution, so registering again elsewhere resolves afresh. Registration and deregistration callbacks receive the resolved token as their second argument, since the injectable alone would only show them the function.
+
+```ts
+const bookmarkHotbarItemInjectable = getInjectable2({
+  id: "bookmark-hotbar-item",
+  instantiate: (di) => () => createBookmarkItem(),
+  injectionToken: ({ scopeIds }) => hotbarItemInjectionToken.for([...scopeIds, "bookmark"].join(":")),
+});
+```
+
 - **`di.purge` means two different things.** On the container it purges instances globally. On the `di` inside an `instantiate` it is restricted to the scope: the owner's own instances and those of the injectables it registered directly, and it throws `Tried to purge "some-id" from "some-owner", but it is not within its registration context tree.` for anything else. Neither form removes registrations — only instances.
 - **Footgun: a scope belongs to the injectable, not to the instance.** The owner's identity is the injectable object, so a `transient` or `keyedSingleton` owner does not get a fresh scope per instantiation. Its second instantiation re-runs the same `di.register` calls and throws `Tried to register same injectable multiple times: "some-owner:some-id"`. The same happens after `di.purge` of a singleton owner, since purging drops the instance but keeps the registrations, so re-injecting re-runs `instantiate`. Scopes are a structural mechanism for features, not a per-instance one.
 - **Footgun: cardinality bounds are container-wide.** Two scopes cannot each register their own implementation of a token declared `one` or `zero-or-one`; the second registration is rejected regardless of which scope it is in.

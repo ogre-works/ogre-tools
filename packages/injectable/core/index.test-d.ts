@@ -1017,6 +1017,77 @@ expectError(
   }),
 );
 
+
+// --- consumptions: a declared family covers its nested descendants ---
+const scopedFamilyToken = getInjectionToken2<{ singleFactory: () => string }>({
+  id: 'scoped-family',
+  cardinality: 'zero-or-many',
+})((kind: string) =>
+  getInjectionToken2<{ singleFactory: () => string }>({
+    id: `scoped-family-${kind}`,
+    speciality: kind,
+    cardinality: 'zero-or-many',
+  })((scopeIds: readonly string[]) =>
+    getInjectionToken2<{ singleFactory: () => string }>({
+      id: `scoped-family-${kind}-${scopeIds.join(':')}`,
+      speciality: scopeIds.join(':'),
+      cardinality: 'one',
+    })(),
+  ),
+);
+
+getInjectable2({
+  id: 'consumes-a-nested-descendant',
+  consumptions: [scopedFamilyToken],
+  instantiate: (di) => {
+    // Two levels below the declared token is still covered by the declaration.
+    expectType<() => string>(di.inject(scopedFamilyToken.for('some-kind').for(di.scopeIds)));
+
+    return () => 'irrelevant';
+  },
+});
+
+// --- getInjectable2: injectionToken as a function of the registration scope ---
+const scopedHandlerToken = getInjectionToken2<{
+  singleFactory: () => (event: string) => void;
+  manyFactory: ManyFactory<() => (event: string) => void>;
+}>({
+  id: 'scoped-handler',
+  cardinality: 'zero-or-many',
+})((scopeId: string) =>
+  getInjectionToken2<{ singleFactory: () => (event: string) => void }>({
+    id: `scoped-handler-${scopeId}`,
+    speciality: scopeId,
+    cardinality: 'one',
+  })(),
+);
+
+const scopedHandlerImpl = getInjectable2({
+  id: 'scoped-handler-impl',
+  instantiate: () => () => (event: string) => {},
+  injectionToken: ({ scopeIds }) => scopedHandlerToken.for(scopeIds.join(':')),
+});
+
+// F stays the implementation's own, inferred with the token's contract
+// flowing in from the function form just as from a plain token.
+expectType<Injectable2<() => (event: string) => void>>(scopedHandlerImpl);
+
+// The scope is typed: only `scopeIds` exists on it.
+getInjectable2({
+  id: 'scoped-handler-impl-2',
+  instantiate: () => () => (event: string) => {},
+  // @ts-expect-error - no such property on the registration scope
+  injectionToken: ({ nope }) => scopedHandlerToken.for(String(nope)),
+});
+
+// The implementation must still satisfy the token's factory contract.
+// @ts-expect-error - factory takes a number, the token wants a string
+getInjectable2({
+  id: 'scoped-handler-impl-3',
+  instantiate: () => () => (event: number) => {},
+  injectionToken: ({ scopeIds }) => scopedHandlerToken.for(scopeIds.join(':')),
+});
+
 // --- getInjectable (v1): same narrow-vs-wide behavior at inject sites ---
 
 // Same Item / NarrowComponent / BroadComponent fixtures, v1 API: the token's
