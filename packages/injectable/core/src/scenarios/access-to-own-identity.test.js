@@ -37,9 +37,7 @@ describe('access-to-own-identity', () => {
     });
 
     it('when instantiated, its scoped id is just its own id', () => {
-      expect(di.inject(someInjectable).scopedId).toEqual([
-        'some-injectable',
-      ]);
+      expect(di.inject(someInjectable).scopedId).toEqual(['some-injectable']);
     });
   });
 
@@ -208,13 +206,9 @@ describe('access-to-own-identity', () => {
     di.inject(someScopeInjectable);
     di.inject(someOtherScopeInjectable);
 
-    expect([
-      di.inject(someInjectable),
-      di.inject(someOtherInjectable),
-    ]).toEqual([
-      'some-scope/some-injectable',
-      'some-other-scope/some-injectable',
-    ]);
+    expect([di.inject(someInjectable), di.inject(someOtherInjectable)]).toEqual(
+      ['some-scope/some-injectable', 'some-other-scope/some-injectable'],
+    );
   });
 
   it('given injectable2 early-overridden before being registered within a scope, when instantiated, the override sees the identity of the original', () => {
