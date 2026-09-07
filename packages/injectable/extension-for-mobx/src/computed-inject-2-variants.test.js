@@ -158,6 +158,88 @@ describe('factory-shape computed-inject-2 variants', () => {
       });
     });
 
+    describe('given a v2 token family and autorun observing one specific token', () => {
+      let someTokenFamily;
+      let observed;
+      let stop;
+
+      beforeEach(() => {
+        someTokenFamily = getInjectionToken2({
+          id: 'some-token-family',
+          cardinality: 'zero-or-many',
+        })(specifier =>
+          getInjectionToken2({
+            id: `some-token-family-${specifier}`,
+            speciality: specifier,
+            cardinality: 'zero-or-many',
+          })(),
+        );
+
+        const computedInjectMany2 = di.inject2(
+          computedInjectMany2InjectionToken,
+        );
+
+        const factoryForToken = computedInjectMany2(
+          someTokenFamily.for('some-scope'),
+        );
+
+        observed = [];
+        stop = autorun(() => {
+          observed.push([...factoryForToken()]);
+        });
+      });
+
+      afterEach(() => {
+        stop();
+      });
+
+      it('when an impl whose injection token is resolved from its scope gets registered by that scope, reacts', () => {
+        const someImpl = getInjectable2({
+          id: 'some-impl',
+          instantiate: () => () => 'some-instance',
+          injectionToken: ({ scopeIds }) =>
+            someTokenFamily.for(scopeIds.join(':')),
+        });
+
+        const someScope = getInjectable2({
+          id: 'some-scope',
+          instantiate: di => () => di.register(someImpl),
+        });
+
+        runInAction(() => {
+          di.register(someScope);
+          di.inject2(someScope)();
+        });
+
+        expect(observed).toEqual([[], ['some-instance']]);
+      });
+
+      it('when such an impl gets deregistered, reacts', () => {
+        const someImpl = getInjectable2({
+          id: 'some-impl',
+          instantiate: () => () => 'some-instance',
+          injectionToken: ({ scopeIds }) =>
+            someTokenFamily.for(scopeIds.join(':')),
+        });
+
+        const someScope = getInjectable2({
+          id: 'some-scope',
+          instantiate: di => () => di.register(someImpl),
+        });
+
+        runInAction(() => {
+          di.register(someScope);
+          di.inject2(someScope)();
+        });
+
+        runInAction(() => {
+          di.deregister(someImpl);
+        });
+
+        expect(observed).toEqual([[], ['some-instance'], []]);
+      });
+    });
+
     it('given same token and same args, fn(token)(...args) hits the same reactive instance (referentially stable)', () => {
       const someToken = getInjectionToken({ id: 'many-2-stable-token' });
 
