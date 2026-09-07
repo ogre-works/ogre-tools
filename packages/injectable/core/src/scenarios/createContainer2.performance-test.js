@@ -109,7 +109,9 @@ describe('createContainer2.performance', () => {
       const p2 = performance.now();
 
       console.log(
-        `[BENCH] createContainer2 30k transient inject: ${(p2 - p1).toFixed(2)}ms`,
+        `[BENCH] createContainer2 30k transient inject: ${(p2 - p1).toFixed(
+          2,
+        )}ms`,
       );
 
       expect(p2 - p1).toBeLessThan(200);

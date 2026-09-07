@@ -8,7 +8,5 @@ export const getNamespacedIdFor = injectableAndRegistrationContext => {
   const getScopedId = getScopedIdFor(injectableAndRegistrationContext);
 
   return alias =>
-    isInjectionToken(alias)
-      ? `(${alias.id})`
-      : getScopedId(alias).join(':');
+    isInjectionToken(alias) ? `(${alias.id})` : getScopedId(alias).join(':');
 };
