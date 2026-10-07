@@ -109,7 +109,16 @@ export interface DiContainer extends DiContainerForInjection {
   deregister(...injectables: (Alias | InjectableBunch)[]): void;
 
   getNumberOfInstances: () => Record<string, number>;
+
+  setGlobalInstantiationCallback: (cb: GlobalInstantiationCallback) => void;
 }
+
+export type GlobalInstantiationCallback = <InjectionInstance, InstantiationParams extends any[]>(
+  di: DiContainerForInjection, 
+  id: string, 
+  instantiate: InstantiationDecoratorForTags<InjectionInstance, InstantiationParams>, 
+  params: InstantiationParams
+) => InjectionInstance;
 
 export type Instantiate<InjectionInstance, InstantiationParam = void> = (di: DiContainerForInjection, param: InstantiationParam) => InjectionInstance;
 
