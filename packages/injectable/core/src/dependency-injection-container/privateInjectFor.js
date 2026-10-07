@@ -33,6 +33,7 @@ export const privateInjectFor =
     getNamespacedId,
     getScopedId,
     getApplicableDecorators,
+    getGlobalInstantiationCallback,
   }) =>
   ({ withMeta }) =>
   ({ alias, instantiationParameters, injectingInjectable }) => {
@@ -134,6 +135,7 @@ export const privateInjectFor =
       getScopedId,
       getApplicableDecorators,
       checkForNonMaybeCardinality,
+      getGlobalInstantiationCallback(),
     );
 
     if (!withMeta) {
@@ -338,6 +340,8 @@ const instantiate = (
   minimalDi,
   instantiationParameters,
   getApplicableDecorators,
+  getNamespacedId,
+  globalInstantiationCallback
 ) => {
   // Decorators always look up against the original injectable so that an
   // imperative override (di.override / di.earlyOverride) is wrapped by any
@@ -357,14 +361,13 @@ const instantiate = (
     decorators.length === 0
       ? injectableToBeInstantiated.instantiate
       : flow(...decorators)(injectableToBeInstantiated.instantiate);
-
-  // New-style injectable2: curried (di) => (...params) => instance
-  if (injectableToBeInstantiated.aliasType === injectableSymbol2) {
-    return decorated(minimalDi)(...instantiationParameters);
-  }
-
+      const instantiate = injectableToBeInstantiated.aliasType === injectableSymbol2
+      // New-style injectable2: curried (di) => (...params) => instance
+    ? (di, ...args) => decorated(di)(...args)
   // Old-style: (di, ...params) => instance
-  return decorated(minimalDi, ...instantiationParameters);
+    : decorated;
+
+  return globalInstantiationCallback(minimalDi, getNamespacedId(injectableToBeInstantiated), instantiate, instantiationParameters);
 };
 
 const ensureInstanceMap = (instancesByInjectableMap, key) => {
@@ -389,6 +392,7 @@ const getInstance = (
   getScopedId,
   getApplicableDecorators,
   checkForNonMaybeCardinality,
+  globalInstantiationCallback,
 ) => {
   const cacheKey =
     injectableToBeInstantiated.overriddenInjectable ||
@@ -424,6 +428,8 @@ const getInstance = (
       minimalDi,
       instantiationParameters,
       getApplicableDecorators,
+     getNamespacedId,
+      globalInstantiationCallback,
     );
 
     // Singletons store the instance directly in the map — no per-injectable
@@ -450,6 +456,8 @@ const getInstance = (
       minimalDi,
       instantiationParameters,
       getApplicableDecorators,
+     getNamespacedId,
+      globalInstantiationCallback,
     );
   }
 
@@ -482,6 +490,8 @@ const getInstance = (
         minimalDi,
         instantiationParameters,
         getApplicableDecorators,
+       getNamespacedId,
+        globalInstantiationCallback,
       );
 
       instancesByInjectableMap.set(cacheKey, newInstance);
@@ -538,6 +548,8 @@ const getInstance = (
     minimalDi,
     instantiationParameters,
     getApplicableDecorators,
+   getNamespacedId,
+    globalInstantiationCallback,
   );
 
   if (instanceCompositeKey[0] !== nonStoredInstanceKey) {

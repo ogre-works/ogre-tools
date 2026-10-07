@@ -48,6 +48,8 @@ export default containerId => {
   const namespacedIdByInjectableMap = new Map();
   const childrenByParentMap = new Map();
 
+  let globalInstantiationCallback = (di, _id, instantiate, args) => instantiate(di, ...args);
+
   const getNamespacedId = getNamespacedIdFor(injectableAndRegistrationContext);
   const getScopedId = getScopedIdFor(injectableAndRegistrationContext);
 
@@ -88,6 +90,8 @@ export default containerId => {
     injectMany: nonDecoratedPrivateInjectMany,
     injectablesByInjectionToken,
   });
+
+  const getGlobalInstantiationCallback = () => globalInstantiationCallback
 
   const getSideEffectsArePrevented = injectable =>
     sideEffectsArePrevented &&
@@ -141,6 +145,7 @@ export default containerId => {
     getNamespacedId,
     getScopedId,
     getApplicableDecorators,
+    getGlobalInstantiationCallback,
   });
 
   const nonDecoratedPrivateInject = nonDecoratedPrivateInjectUnknownMeta({
@@ -554,6 +559,10 @@ export default containerId => {
 
   const publicDi = {
     ...privateDi,
+
+    setGlobalInstantiationCallback: (callback) => {
+      globalInstantiationCallback = callback;
+    },
 
     inject: publicInject,
     injectWithMeta: publicInjectWithMeta,
