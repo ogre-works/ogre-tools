@@ -876,6 +876,12 @@ export interface ConsumptionDi<Cons extends Consumption = never>
   injectMaybeWithMeta: ConsumptionInjectMaybeWithMeta2<Cons>;
 }
 
+// `consumptions` is inferred as a readonly tuple, and `di` is narrowed to its
+// elements. Inferred as the union of its elements instead, TypeScript would
+// drop every token assignable to another one declared alongside it, as two
+// tokens typed with `any` are, taking the dropped one's `.for()` descendants
+// out of what `di` accepts.
+//
 // With injectionToken: F is the injectable's actual factory (kept narrow so
 // `di.inject2(injectable)` returns the narrow factory), TF is the token's
 // factory contract. The `F extends TF` constraint verifies the implementation
@@ -883,11 +889,11 @@ export interface ConsumptionDi<Cons extends Consumption = never>
 export function getInjectable2<
   F extends TF,
   TF extends Factory,
-  const Cons extends Consumption = never,
+  const Cons extends ReadonlyArray<Consumption> = [],
 >(options: {
   readonly id: string;
-  readonly consumptions?: ReadonlyArray<Cons>;
-  readonly instantiate: (di: ConsumptionDi<Cons>) => F;
+  readonly consumptions?: Cons;
+  readonly instantiate: (di: ConsumptionDi<Cons[number]>) => F;
   readonly injectionToken: InjectionTokenOf<Token2<TF, any, undefined, any>>;
   readonly transient?: boolean;
   readonly causesSideEffects?: boolean;
@@ -899,11 +905,11 @@ export function getInjectable2<
 // useInject / useInject2 still get precise parameter and return types.
 export function getInjectable2<
   F extends Factory,
-  const Cons extends Consumption = never,
+  const Cons extends ReadonlyArray<Consumption> = [],
 >(options: {
   readonly id: string;
-  readonly consumptions?: ReadonlyArray<Cons>;
-  readonly instantiate: (di: ConsumptionDi<Cons>) => F;
+  readonly consumptions?: Cons;
+  readonly instantiate: (di: ConsumptionDi<Cons[number]>) => F;
   readonly transient?: boolean;
   readonly causesSideEffects?: boolean;
   readonly tags?: string[];

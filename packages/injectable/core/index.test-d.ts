@@ -1047,6 +1047,72 @@ getInjectable2({
   },
 });
 
+// --- consumptions: declared tokens stay distinct, even when alike ---
+// Typed with `any` for the host's id, the two root tokens below are assignable
+// to each other. Were the declared consumptions reduced to a union, one would
+// absorb the other, and the absorbed one's `.for()` descendants would no
+// longer be injectable.
+type SomeHostKind<THostId> = TypedSpecifier<string, { hostId: THostId }>;
+type SomeHostId<H extends SomeHostKind<any>> = TypedSpecifierType<'hostId', H>;
+type SomeAddress<THostId> = { id: string } & ([THostId] extends [void] ? unknown : { hostId: THostId });
+type OpenSomething<THostId> = (opening: SomeAddress<THostId> & { input: string }) => void;
+type FocusSomething<THostId> = (address: SomeAddress<THostId>) => void;
+
+const openSomethingToken = getInjectionToken2<{
+  singleFactory: () => OpenSomething<any>;
+  manyFactory: ManyFactory<() => OpenSomething<any>>;
+}>({
+  id: 'open-something',
+  cardinality: 'zero-or-many',
+})(
+  <H extends SomeHostKind<any>>(
+    hostKind: H,
+  ): SpecificInjectionToken2<{
+    singleFactory: () => OpenSomething<SomeHostId<H>>;
+    specificTokenFactory: undefined;
+    cardinality: 'one';
+  }> =>
+    getInjectionToken2<{ singleFactory: () => OpenSomething<SomeHostId<H>> }>({
+      id: `open-something-${hostKind}`,
+      speciality: hostKind,
+      cardinality: 'one',
+    })(),
+);
+
+const focusSomethingToken = getInjectionToken2<{
+  singleFactory: () => FocusSomething<any>;
+  manyFactory: ManyFactory<() => FocusSomething<any>>;
+}>({
+  id: 'focus-something',
+  cardinality: 'zero-or-many',
+})(
+  <H extends SomeHostKind<any>>(
+    hostKind: H,
+  ): SpecificInjectionToken2<{
+    singleFactory: () => FocusSomething<SomeHostId<H>>;
+    specificTokenFactory: undefined;
+    cardinality: 'one';
+  }> =>
+    getInjectionToken2<{ singleFactory: () => FocusSomething<SomeHostId<H>> }>({
+      id: `focus-something-${hostKind}`,
+      speciality: hostKind,
+      cardinality: 'one',
+    })(),
+);
+
+const someHostKind = getTypedSpecifier<{ hostId: string }>()('some-host');
+
+getInjectable2({
+  id: 'consumes-two-alike-tokens',
+  consumptions: [openSomethingToken, focusSomethingToken],
+  instantiate: (di) => {
+    expectType<() => OpenSomething<string>>(di.inject(openSomethingToken.for(someHostKind)));
+    expectType<() => FocusSomething<string>>(di.inject(focusSomethingToken.for(someHostKind)));
+
+    return () => 'irrelevant';
+  },
+});
+
 // --- getInjectable2: injectionToken as a function of the registration scope ---
 const scopedHandlerToken = getInjectionToken2<{
   singleFactory: () => (event: string) => void;
