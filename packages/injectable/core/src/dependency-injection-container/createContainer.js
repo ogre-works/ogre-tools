@@ -27,6 +27,35 @@ import { firePurgeCallbacksFor } from './firePurgeCallbacksFor';
 import { getApplicableDecoratorsFor } from './getApplicableDecoratorsFor';
 import { isCompositeStorage } from './privateInjectFor';
 
+// Folds the installed global instantiation callbacks into one function with
+// the same shape, each wrapping the next and the last wrapping the real
+// instantiation. First added is outermost.
+//
+// Folded once per add/dispose rather than per instantiation, so the cost on
+// the instantiation path is one call plus the adapter closures the fold needs
+// to carry `instantiate` and `id` inward — and nothing at all while no
+// callback is installed.
+const composeInstantiationCallbacks = callbacks => {
+  if (callbacks.length === 0) {
+    return undefined;
+  }
+
+  if (callbacks.length === 1) {
+    return callbacks[0];
+  }
+
+  return callbacks.reduceRight(
+    (inner, callback) => (di, id, instantiate, params) =>
+      callback(
+        di,
+        id,
+        (innerDi, ...innerParams) =>
+          inner(innerDi, id, instantiate, innerParams),
+        params,
+      ),
+  );
+};
+
 export default containerId => {
   const injectableSet = new Set();
 
@@ -48,7 +77,11 @@ export default containerId => {
   const namespacedIdByInjectableMap = new Map();
   const childrenByParentMap = new Map();
 
-  let globalInstantiationCallback = (di, _id, instantiate, args) => instantiate(di, ...args);
+  // Global instantiation callbacks, outermost first, and the single composed
+  // function they fold into. `undefined` when none are installed, which is
+  // what lets the instantiation path skip this machinery entirely.
+  let globalInstantiationCallbacks = [];
+  let composedGlobalInstantiationCallback = undefined;
 
   const getNamespacedId = getNamespacedIdFor(injectableAndRegistrationContext);
   const getScopedId = getScopedIdFor(injectableAndRegistrationContext);
@@ -91,7 +124,42 @@ export default containerId => {
     injectablesByInjectionToken,
   });
 
-  const getGlobalInstantiationCallback = () => globalInstantiationCallback
+  const getGlobalInstantiationCallback = () =>
+    composedGlobalInstantiationCallback;
+
+  const addGlobalInstantiationCallback = callback => {
+    globalInstantiationCallbacks = [...globalInstantiationCallbacks, callback];
+
+    composedGlobalInstantiationCallback = composeInstantiationCallbacks(
+      globalInstantiationCallbacks,
+    );
+
+    let disposed = false;
+
+    return () => {
+      if (disposed) {
+        return;
+      }
+
+      disposed = true;
+
+      // Remove one occurrence by index: the same function may legitimately be
+      // added twice, and each add owns exactly one disposal.
+      const index = globalInstantiationCallbacks.indexOf(callback);
+
+      if (index === -1) {
+        return;
+      }
+
+      globalInstantiationCallbacks = globalInstantiationCallbacks.filter(
+        (_, i) => i !== index,
+      );
+
+      composedGlobalInstantiationCallback = composeInstantiationCallbacks(
+        globalInstantiationCallbacks,
+      );
+    };
+  };
 
   const getSideEffectsArePrevented = injectable =>
     sideEffectsArePrevented &&
@@ -560,9 +628,20 @@ export default containerId => {
   const publicDi = {
     ...privateDi,
 
-    setGlobalInstantiationCallback: (callback) => {
-      globalInstantiationCallback = callback;
-    },
+    // Wraps every instantiation in this container, for cross-cutting concerns
+    // that have no single target to hang off — adding context to a thrown
+    // error, timing, tracing. Returns a disposer; callbacks compose, first
+    // added outermost.
+    //
+    // Deliberately NOT an injection token, unlike every other extension point
+    // in `tokens.js`. Firing a token-sourced callback means injecting it, and
+    // that injection is itself an instantiation, so the hook re-enters itself
+    // without bound. The targeted hooks escape this because they are
+    // `.for(target)`-scoped — injecting the callback looks up
+    // `someToken.for(thatCallback)`, which is empty — and a catch-all has no
+    // such escape. Keeping the callbacks as plain functions, outside the
+    // container, is what makes a catch-all tractable at all.
+    addGlobalInstantiationCallback,
 
     inject: publicInject,
     injectWithMeta: publicInjectWithMeta,
