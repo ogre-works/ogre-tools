@@ -4093,3 +4093,59 @@ declare const someWideDi: DiContainerForInjection2;
 expectType<string>(someWideDi.id);
 expectType<string[]>(someWideDi.scopeIds);
 expectType<string[]>(someWideDi.scopedId);
+
+// ======================================================================
+// Global instantiation callbacks: di.addGlobalInstantiationCallback
+// ======================================================================
+
+const someCallbackTargetInjectable = getInjectable({
+  id: 'some-callback-target',
+  instantiate: () => 42,
+});
+
+const someCallbackTargetInjectable2 = getInjectable2({
+  id: 'some-callback-target-2',
+  instantiate: () => () => 42,
+});
+
+di.register(someCallbackTargetInjectable, someCallbackTargetInjectable2);
+
+// A pass-through callback type-checks, and adding one returns a disposer.
+expectType<() => void>(
+  di.addGlobalInstantiationCallback((callbackDi, id, instantiate, params) => {
+    expectType<string>(id);
+
+    return instantiate(callbackDi, ...params);
+  }),
+);
+
+// The motivating case: wrapping a thrown error with the injectable's id.
+di.addGlobalInstantiationCallback((callbackDi, id, instantiate, params) => {
+  try {
+    return instantiate(callbackDi, ...params);
+  } catch (error) {
+    throw new Error(`while instantiating "${id}"`);
+  }
+});
+
+// The di is whichever shape the injectable being instantiated expects, so it
+// must be narrowed before use rather than assumed to be v1-shaped.
+di.addGlobalInstantiationCallback((callbackDi, id, instantiate, params) => {
+  expectError(callbackDi.inject(someCallbackTargetInjectable));
+
+  if ('scopedId' in callbackDi) {
+    expectType<() => number>(callbackDi.inject(someCallbackTargetInjectable2));
+  }
+
+  return instantiate(callbackDi, ...params);
+});
+
+// The callback is added on the container, not on the di handed to an instantiate.
+getInjectable({
+  id: 'some-non-adder',
+  instantiate: instantiateDi => {
+    expectError(instantiateDi.addGlobalInstantiationCallback(() => undefined));
+
+    return 'irrelevant';
+  },
+});

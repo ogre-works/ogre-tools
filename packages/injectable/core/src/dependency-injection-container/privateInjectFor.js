@@ -340,8 +340,8 @@ const instantiate = (
   minimalDi,
   instantiationParameters,
   getApplicableDecorators,
-  getNamespacedId,
-  globalInstantiationCallback
+  namespacedIdByInjectableMap,
+  globalInstantiationCallback,
 ) => {
   // Decorators always look up against the original injectable so that an
   // imperative override (di.override / di.earlyOverride) is wrapped by any
@@ -361,13 +361,38 @@ const instantiate = (
     decorators.length === 0
       ? injectableToBeInstantiated.instantiate
       : flow(...decorators)(injectableToBeInstantiated.instantiate);
-      const instantiate = injectableToBeInstantiated.aliasType === injectableSymbol2
-      // New-style injectable2: curried (di) => (...params) => instance
+
+  const isV2 = injectableToBeInstantiated.aliasType === injectableSymbol2;
+
+  // No global callback installed — the dominant case. Call straight through,
+  // keeping the path free of the adapter closure, the rest-args array and the
+  // namespaced-id lookup the callback needs.
+  if (!globalInstantiationCallback) {
+    // New-style injectable2: curried (di) => (...params) => instance
+    if (isV2) {
+      return decorated(minimalDi)(...instantiationParameters);
+    }
+
+    // Old-style: (di, ...params) => instance
+    return decorated(minimalDi, ...instantiationParameters);
+  }
+
+  // Both shapes are handed to the callback as (di, ...params) => instance, so
+  // a callback never has to care which it is wrapping.
+  const toBeInstantiated = isV2
     ? (di, ...args) => decorated(di)(...args)
-  // Old-style: (di, ...params) => instance
     : decorated;
 
-  return globalInstantiationCallback(minimalDi, getNamespacedId(injectableToBeInstantiated), instantiate, instantiationParameters);
+  // Memoized at registration, rather than walking the registration tree per
+  // instantiation. Keyed on `target` for the same reason the decorators are:
+  // an imperative override is a stand-in that was never registered and so has
+  // no entry of its own, and should report the identity it stands in for.
+  return globalInstantiationCallback(
+    minimalDi,
+    namespacedIdByInjectableMap.get(target),
+    toBeInstantiated,
+    instantiationParameters,
+  );
 };
 
 const ensureInstanceMap = (instancesByInjectableMap, key) => {
@@ -428,7 +453,7 @@ const getInstance = (
       minimalDi,
       instantiationParameters,
       getApplicableDecorators,
-     getNamespacedId,
+      namespacedIdByInjectableMap,
       globalInstantiationCallback,
     );
 
@@ -456,7 +481,7 @@ const getInstance = (
       minimalDi,
       instantiationParameters,
       getApplicableDecorators,
-     getNamespacedId,
+      namespacedIdByInjectableMap,
       globalInstantiationCallback,
     );
   }
@@ -490,7 +515,7 @@ const getInstance = (
         minimalDi,
         instantiationParameters,
         getApplicableDecorators,
-       getNamespacedId,
+        namespacedIdByInjectableMap,
         globalInstantiationCallback,
       );
 
@@ -548,7 +573,7 @@ const getInstance = (
     minimalDi,
     instantiationParameters,
     getApplicableDecorators,
-   getNamespacedId,
+    namespacedIdByInjectableMap,
     globalInstantiationCallback,
   );
 

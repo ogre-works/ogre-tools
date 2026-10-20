@@ -110,13 +110,22 @@ export interface DiContainer extends DiContainerForInjection {
 
   getNumberOfInstances: () => Record<string, number>;
 
-  setGlobalInstantiationCallback: (cb: GlobalInstantiationCallback) => void;
+  // Wraps every instantiation in this container. Returns a disposer;
+  // callbacks compose, first added outermost.
+  addGlobalInstantiationCallback: (cb: GlobalInstantiationCallback) => () => void;
 }
 
+// The di a global instantiation callback is handed is the very one the
+// injectable's own `instantiate` receives: v1-shaped for an `Injectable`,
+// v2-shaped (factory-returning `inject`) for an `Injectable2`. Narrow before
+// reaching into it; a pass-through callback hands it back to `instantiate`
+// untouched.
+export type DiContainerForGlobalInstantiationCallback = DiContainerForInjection | DiContainerForInjection2;
+
 export type GlobalInstantiationCallback = <InjectionInstance, InstantiationParams extends any[]>(
-  di: DiContainerForInjection, 
-  id: string, 
-  instantiate: InstantiationDecoratorForTags<InjectionInstance, InstantiationParams>, 
+  di: DiContainerForGlobalInstantiationCallback,
+  id: string,
+  instantiate: (di: DiContainerForGlobalInstantiationCallback, ...params: InstantiationParams) => InjectionInstance,
   params: InstantiationParams
 ) => InjectionInstance;
 
