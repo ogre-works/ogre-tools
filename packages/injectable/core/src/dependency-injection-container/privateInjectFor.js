@@ -156,47 +156,52 @@ const createMinimalDi = (
   getScopedId,
   checkForNonMaybeCardinality,
 ) => {
-  // Closure-captured methods are fixed up-front (`shared` plus inject*),
-  // so user code can detach them — `const { register } = di; register(...)`
-  // and similar patterns appear in tests. A class-with-prototype dispatcher
-  // would be cheaper to allocate but loses that detach-friendly behavior.
-  const shared = {
-    register: (...injectables) => {
-      di.register({
-        injectables,
-        context: [{ injectable: injectableToBeInstantiated }],
-        source: injectableToBeInstantiated,
-      });
-    },
-
-    deregister: (...injectables) => {
-      di.deregister({
-        injectables,
-        context: [{ injectable: injectableToBeInstantiated }],
-        source: injectableToBeInstantiated,
-      });
-    },
-
-    get sourceNamespace() {
-      const nsId = namespacedIdByInjectableMap.get(injectingInjectable);
-      const lastColon = nsId ? nsId.lastIndexOf(':') : -1;
-
-      return lastColon > 0 ? nsId.slice(0, lastColon) : undefined;
-    },
-
-    hasRegistrations: di.hasRegistrations,
-    getNumberOfRegistrations: di.getNumberOfRegistrations,
-    getNumberOfInstances: di.getNumberOfInstances,
-
-    purge: (alias, ...keyParts) =>
-      di.scopedPurge(injectableToBeInstantiated, alias, ...keyParts),
-
-    registeredInLocalScope: alias =>
-      di.registeredInScopeOf(injectableToBeInstantiated, alias),
-
-    registeredInLocalScopeSubtree: alias =>
-      di.registeredInSubtreeOf(injectableToBeInstantiated, alias),
+  // Closure-captured methods are fixed up-front (the shared ones plus
+  // inject*), so user code can detach them — `const { register } = di;
+  // register(...)` and similar patterns appear in tests. A
+  // class-with-prototype dispatcher would be cheaper to allocate but loses
+  // that detach-friendly behavior.
+  //
+  // Both shapes below are written out as object literals rather than spread
+  // from a shared object: spreading an object that has a getter takes V8's
+  // slow path, which made building this object several times as costly as
+  // the literal, once per instantiation.
+  const register = (...injectables) => {
+    di.register({
+      injectables,
+      context: [{ injectable: injectableToBeInstantiated }],
+      source: injectableToBeInstantiated,
+    });
   };
+
+  const deregister = (...injectables) => {
+    di.deregister({
+      injectables,
+      context: [{ injectable: injectableToBeInstantiated }],
+      source: injectableToBeInstantiated,
+    });
+  };
+
+  // Computed once per call, up front: the getter it used to be was read once
+  // per call too, when the shared object was spread.
+  const injectingNamespacedId =
+    namespacedIdByInjectableMap.get(injectingInjectable);
+
+  const lastColon = injectingNamespacedId
+    ? injectingNamespacedId.lastIndexOf(':')
+    : -1;
+
+  const sourceNamespace =
+    lastColon > 0 ? injectingNamespacedId.slice(0, lastColon) : undefined;
+
+  const purge = (alias, ...keyParts) =>
+    di.scopedPurge(injectableToBeInstantiated, alias, ...keyParts);
+
+  const registeredInLocalScope = alias =>
+    di.registeredInScopeOf(injectableToBeInstantiated, alias);
+
+  const registeredInLocalScopeSubtree = alias =>
+    di.registeredInSubtreeOf(injectableToBeInstantiated, alias);
 
   if (injectableToBeInstantiated.aliasType === injectableSymbol2) {
     // An imperative override (di.override / di.earlyOverride) instantiates a
@@ -210,7 +215,17 @@ const createMinimalDi = (
     // is inlined directly against `di` (no minimalInject* intermediary) so
     // we don't allocate four extra closures per minimalDi just to forward.
     return {
-      ...shared,
+      // Shared with the v1 shape below, down to registeredInLocalScopeSubtree:
+      // keep the two lists in step.
+      register,
+      deregister,
+      sourceNamespace,
+      hasRegistrations: di.hasRegistrations,
+      getNumberOfRegistrations: di.getNumberOfRegistrations,
+      getNumberOfInstances: di.getNumberOfInstances,
+      purge,
+      registeredInLocalScope,
+      registeredInLocalScopeSubtree,
 
       // The identity of what is being instantiated, for instantiate-code
       // shared across injectables (decorators, reusable factories). `id` is a
@@ -320,7 +335,17 @@ const createMinimalDi = (
     });
 
   return {
-    ...shared,
+    // Shared with the v2 shape above, down to registeredInLocalScopeSubtree:
+    // keep the two lists in step.
+    register,
+    deregister,
+    sourceNamespace,
+    hasRegistrations: di.hasRegistrations,
+    getNumberOfRegistrations: di.getNumberOfRegistrations,
+    getNumberOfInstances: di.getNumberOfInstances,
+    purge,
+    registeredInLocalScope,
+    registeredInLocalScopeSubtree,
 
     inject: minimalInject,
     injectMany: minimalInjectMany,
