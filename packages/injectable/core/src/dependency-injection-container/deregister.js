@@ -40,12 +40,15 @@ export const deregisterFor =
     const flatInjectables = toFlatInjectables(injectables);
 
     // Fire callbacks for all injectables being deregistered (original batch semantics),
-    // each with the token it was registered under.
+    // each with the token it was registered under, and its namespaced id: what
+    // an injectable injecting from within it knows as its `sourceNamespace`,
+    // when it is a scope.
     flatInjectables.forEach(injectable => {
       const injectionToken = getInjectionTokenOf(injectable);
+      const namespacedId = namespacedIdByInjectableMap.get(injectable);
 
       callbacks.forEach(callback => {
-        callback(injectable, injectionToken);
+        callback(injectable, injectionToken, namespacedId);
       });
     });
 

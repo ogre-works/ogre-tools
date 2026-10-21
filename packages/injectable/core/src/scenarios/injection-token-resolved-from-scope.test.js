@@ -214,6 +214,7 @@ describe('injection-token-resolved-from-scope', () => {
     expect(deregistrationCallbackMock).toHaveBeenCalledWith(
       someInjectable,
       someToken.for(''),
+      'some-injectable',
     );
   });
 

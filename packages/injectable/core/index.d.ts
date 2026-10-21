@@ -580,7 +580,24 @@ export const deregistrationDecoratorToken: Token2<
 >;
 
 export const registrationCallbackToken: RegistrationCallback;
-export const deregistrationCallbackToken: RegistrationCallback;
+
+// Called with what is being deregistered, while it still is registered: the
+// injectable, the token it was registered under, and its namespaced id. When
+// the injectable is a scope, its namespaced id is what an injectable
+// registered within it knows as its `sourceNamespace` when injecting, so
+// whatever was handed out to the scope's injectables can be told apart and let
+// go of. Fires for everything a deregistered scope takes along, too.
+export type DeregistrationCallback = (
+  injectable: Injectable<any, any, any> | Injectable2<any>,
+  injectionToken: InjectionToken<any, any, any> | Token2<Factory, any, any> | undefined,
+  namespacedId: string,
+) => void;
+
+export const deregistrationCallbackToken: InjectionToken2<{
+  singleFactory: () => DeregistrationCallback;
+  cardinality: 'zero-or-many';
+  specificTokenFactory: undefined;
+}>;
 
 // --- instancePurgeCallbackToken ---
 //

@@ -1,6 +1,7 @@
 import { expectAssignable, expectError, expectNotType, expectType } from 'tsd';
 import {
   createContainer,
+  deregistrationCallbackToken,
   DiContainer,
   DiContainerForInjection,
   getInjectable,
@@ -4285,4 +4286,22 @@ getInjectable({
 
     return 'irrelevant';
   },
+});
+
+// ======================================================================
+// deregistrationCallbackToken type tests
+// ======================================================================
+
+// an injectable2 can be a callback for deregistration, and is told what is
+// being deregistered, under which token, and its namespaced id
+getInjectable2({
+  id: 'some-deregistration-callback',
+
+  instantiate: () => () => (injectable, injectionToken, namespacedId) => {
+    expectType<string>(injectable.id);
+    expectAssignable<object | undefined>(injectionToken);
+    expectType<string>(namespacedId);
+  },
+
+  injectionToken: deregistrationCallbackToken,
 });
