@@ -89,12 +89,34 @@ export type InjectableComponent2<Component extends React.ComponentType<any>> =
 
 type ExcludedKeys2 = 'aliasType' | 'instantiate' | 'injectionToken';
 
+// Blocks inference from where it is used, so that T is decided elsewhere and
+// only checked here. The built-in NoInfer would do, but needs TypeScript 5.4.
+type NoInferFrom<T> = [T][T extends any ? 0 : never];
+
+// Without a token, the component decides its own type. Listed first, so that
+// a token given as undefined, or as a value that may be undefined, is still
+// accepted as before.
 export declare function getInjectableComponent2<
   Component extends React.ComponentType<any>
 >(
   injectable: Omit<Injectable2<() => Component>, ExcludedKeys2> & {
     id: string;
     Component: Component;
+    PlaceholderComponent?: React.ComponentType<React.ComponentProps<Component>>;
+    injectionToken?: undefined;
+  },
+): InjectableComponent2<Component>;
+
+// Given a token, the token decides the component type: an inline Component
+// takes its props from it, and a narrower one (a plain function component
+// for a token of React.ComponentType) is checked against it instead of
+// narrowing the token's type.
+export declare function getInjectableComponent2<
+  Component extends React.ComponentType<any>
+>(
+  injectable: Omit<Injectable2<() => Component>, ExcludedKeys2> & {
+    id: string;
+    Component: NoInferFrom<Component>;
     PlaceholderComponent?: React.ComponentType<React.ComponentProps<Component>>;
     injectionToken?: InjectionTokenOf<
       InjectionToken2Base<() => Component, any> & {

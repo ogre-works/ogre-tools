@@ -153,6 +153,33 @@ expectType<React.ComponentType<{ someProp: string }>>(
   di.inject(SomeInjectableComponentUsingInjectionToken),
 );
 
+// given injection token, and plain functional component using props, the token decides the type
+const SomeInjectableComponentUsingInjectionTokenAndPlainComponent =
+  getInjectableComponent2({
+    id: 'irrelevant',
+    Component: SomeFunctionalComponentUsingProps,
+    injectionToken: someInjectionTokenUsingProps,
+  });
+
+expectType<React.ComponentType<{ someProp: string }>>(
+  di.inject(SomeInjectableComponentUsingInjectionTokenAndPlainComponent),
+);
+
+// given injection token, and inline functional component, props are typed by the token
+getInjectableComponent2({
+  id: 'irrelevant',
+  Component: ({ someProp }) => <div>{someProp.toUpperCase()}</div>,
+  injectionToken: someInjectionTokenUsingProps,
+});
+
+expectError(
+  getInjectableComponent2({
+    id: 'irrelevant',
+    Component: ({ someProp2 }) => <div>{someProp2}</div>,
+    injectionToken: someInjectionTokenUsingProps,
+  }),
+);
+
 // given injection token, and component with contradictory props, typing is not ok
 const SomeFunctionalComponentUsingContradictoryPropsAsComponentType: React.ComponentType<{
   someProp: number;
