@@ -4,6 +4,7 @@ import { createContainer } from '../../index';
 import { getInjectionToken } from '../getInjectionToken/getInjectionToken';
 import { deregistrationCallbackToken } from '../dependency-injection-container/tokens';
 import getInjectableBunch from '../getInjectableBunch/getInjectableBunch';
+import getInjectable2 from '../getInjectable2/getInjectable2';
 
 describe('createContainer.callbacks-for-deregistration', () => {
   describe('given there is an injectable and callback for deregistration', () => {
@@ -230,5 +231,77 @@ describe('createContainer.callbacks-for-deregistration', () => {
     expect(deregisterCallbackMock.mock.calls.map(get('0.id'))).toEqual([
       'some-root-injectable',
     ]);
+  });
+
+  describe('given a scope has registered injectables, and an injectable2 is a callback for deregistration', () => {
+    let di;
+    let someScopeInjectable;
+    let someInjectableInScope;
+    let deregisterCallbackMock;
+
+    beforeEach(() => {
+      di = createContainer('some-container');
+
+      deregisterCallbackMock = jest.fn();
+
+      const someDeregistrationCallbackInjectable = getInjectable2({
+        id: 'some-deregistration-callback',
+        instantiate: () => () => deregisterCallbackMock,
+        injectionToken: deregistrationCallbackToken,
+      });
+
+      someInjectableInScope = getInjectable2({
+        id: 'some-injectable-in-scope',
+
+        instantiate: di => () => di.sourceNamespace,
+      });
+
+      someScopeInjectable = getInjectable2({
+        id: 'some-scope',
+
+        instantiate: di => () => {
+          di.register(someInjectableInScope);
+        },
+      });
+
+      di.register(someDeregistrationCallbackInjectable, someScopeInjectable);
+
+      di.inject2(someScopeInjectable)();
+    });
+
+    it('when the scope is deregistered, calls the callback with the namespaced id of the scope and of what it takes along', () => {
+      di.deregister(someScopeInjectable);
+
+      expect(deregisterCallbackMock.mock.calls.map(get('2'))).toEqual([
+        'some-scope',
+        'some-scope:some-injectable-in-scope',
+      ]);
+    });
+
+    it('the namespaced id of the scope is what its injectables know as their source namespace when injecting', () => {
+      const someInjectingInjectable = getInjectable2({
+        id: 'some-injecting',
+        instantiate: di => () => di.inject(someInjectableInScope)(),
+      });
+
+      const someOtherScopeInjectable = getInjectable2({
+        id: 'some-other-scope',
+
+        instantiate: di => () => {
+          di.register(someInjectingInjectable);
+        },
+      });
+
+      di.register(someOtherScopeInjectable);
+      di.inject2(someOtherScopeInjectable)();
+
+      const sourceNamespace = di.inject2(someInjectingInjectable)();
+
+      di.deregister(someOtherScopeInjectable);
+
+      expect(deregisterCallbackMock.mock.calls.map(get('2'))).toContain(
+        sourceNamespace,
+      );
+    });
   });
 });

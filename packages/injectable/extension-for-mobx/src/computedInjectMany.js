@@ -44,8 +44,10 @@ export const atomsByTokenInjectable = getInjectable({
 const getInvalidatorInstance = di => {
   const atomsByToken = di.inject(atomsByTokenInjectable);
 
-  return injectable => {
-    let token = injectable.injectionToken;
+  // The container hands over the token the injectable was registered under,
+  // which an `injectionToken` given as a function would otherwise hide.
+  return (injectable, injectionToken = injectable.injectionToken) => {
+    let token = injectionToken;
 
     while (token !== undefined) {
       const atom = atomsByToken.get(token);

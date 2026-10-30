@@ -26,6 +26,8 @@ export const deregisterFor =
     getDi,
     decoratorCache,
     syncInjectWiring,
+    getInjectionTokenOf,
+    forgetInjectionTokenOf,
   }) =>
   ({ injectables, context, source }) => {
     // Collect callbacks first (while all injectables are still registered)
@@ -37,10 +39,16 @@ export const deregisterFor =
 
     const flatInjectables = toFlatInjectables(injectables);
 
-    // Fire callbacks for all injectables being deregistered (original batch semantics)
+    // Fire callbacks for all injectables being deregistered (original batch semantics),
+    // each with the token it was registered under, and its namespaced id: what
+    // an injectable injecting from within it knows as its `sourceNamespace`,
+    // when it is a scope.
     flatInjectables.forEach(injectable => {
+      const injectionToken = getInjectionTokenOf(injectable);
+      const namespacedId = namespacedIdByInjectableMap.get(injectable);
+
       callbacks.forEach(callback => {
-        callback(injectable);
+        callback(injectable, injectionToken, namespacedId);
       });
     });
 
@@ -56,19 +64,21 @@ export const deregisterFor =
       namespacedIdByInjectableMap,
       childrenByParentMap,
       di,
+      getInjectionTokenOf,
+      forgetInjectionTokenOf,
     });
 
     let injectWiringChanged = false;
 
     flatInjectables.forEach(injectable => {
-      if (
-        isRelatedToToken(injectable.injectionToken, injectionDecoratorToken)
-      ) {
+      const injectionToken = getInjectionTokenOf(injectable);
+
+      if (isRelatedToToken(injectionToken, injectionDecoratorToken)) {
         decoratorCache.injection = null;
         injectWiringChanged = true;
       }
 
-      if (isRelatedToToken(injectable.injectionToken, preInjectCallbackToken)) {
+      if (isRelatedToToken(injectionToken, preInjectCallbackToken)) {
         decoratorCache.preInject = null;
         injectWiringChanged = true;
       }
@@ -107,6 +117,8 @@ export const deregisterSingleFor =
     namespacedIdByInjectableMap,
     childrenByParentMap,
     di,
+    getInjectionTokenOf,
+    forgetInjectionTokenOf,
   }) =>
   injectable => {
     if (isInjectionToken(injectable)) {
@@ -145,13 +157,17 @@ export const deregisterSingleFor =
     injectableSet.delete(injectable);
     namespacedIdByInjectableMap.delete(injectable);
 
-    const tokens = getRelatedTokens(injectable.injectionToken);
+    const tokens = getRelatedTokens(getInjectionTokenOf(injectable));
 
     tokens.forEach(token => {
       const tokenSet = injectablesByInjectionToken.get(token);
       tokenSet.delete(injectable);
       invalidateRelatedInjectablesCache(tokenSet);
     });
+
+    // Resolved per registration, so a later registration, in another scope,
+    // resolves afresh.
+    forgetInjectionTokenOf(injectable);
 
     overridingInjectables.delete(injectable);
   };

@@ -1,6 +1,7 @@
 import { expectAssignable, expectError, expectNotType, expectType } from 'tsd';
 import {
   createContainer,
+  deregistrationCallbackToken,
   DiContainer,
   DiContainerForInjection,
   getInjectable,
@@ -1016,6 +1017,143 @@ expectError(
     instantiate: () => () => ({ wrong: true }),
   }),
 );
+
+
+// --- consumptions: a declared family covers its nested descendants ---
+const scopedFamilyToken = getInjectionToken2<{ singleFactory: () => string }>({
+  id: 'scoped-family',
+  cardinality: 'zero-or-many',
+})((kind: string) =>
+  getInjectionToken2<{ singleFactory: () => string }>({
+    id: `scoped-family-${kind}`,
+    speciality: kind,
+    cardinality: 'zero-or-many',
+  })((scopeIds: readonly string[]) =>
+    getInjectionToken2<{ singleFactory: () => string }>({
+      id: `scoped-family-${kind}-${scopeIds.join(':')}`,
+      speciality: scopeIds.join(':'),
+      cardinality: 'one',
+    })(),
+  ),
+);
+
+getInjectable2({
+  id: 'consumes-a-nested-descendant',
+  consumptions: [scopedFamilyToken],
+  instantiate: (di) => {
+    // Two levels below the declared token is still covered by the declaration.
+    expectType<() => string>(di.inject(scopedFamilyToken.for('some-kind').for(di.scopeIds)));
+
+    return () => 'irrelevant';
+  },
+});
+
+// --- consumptions: declared tokens stay distinct, even when alike ---
+// Typed with `any` for the host's id, the two root tokens below are assignable
+// to each other. Were the declared consumptions reduced to a union, one would
+// absorb the other, and the absorbed one's `.for()` descendants would no
+// longer be injectable.
+type SomeHostKind<THostId> = TypedSpecifier<string, { hostId: THostId }>;
+type SomeHostId<H extends SomeHostKind<any>> = TypedSpecifierType<'hostId', H>;
+type SomeAddress<THostId> = { id: string } & ([THostId] extends [void] ? unknown : { hostId: THostId });
+type OpenSomething<THostId> = (opening: SomeAddress<THostId> & { input: string }) => void;
+type FocusSomething<THostId> = (address: SomeAddress<THostId>) => void;
+
+const openSomethingToken = getInjectionToken2<{
+  singleFactory: () => OpenSomething<any>;
+  manyFactory: ManyFactory<() => OpenSomething<any>>;
+}>({
+  id: 'open-something',
+  cardinality: 'zero-or-many',
+})(
+  <H extends SomeHostKind<any>>(
+    hostKind: H,
+  ): SpecificInjectionToken2<{
+    singleFactory: () => OpenSomething<SomeHostId<H>>;
+    specificTokenFactory: undefined;
+    cardinality: 'one';
+  }> =>
+    getInjectionToken2<{ singleFactory: () => OpenSomething<SomeHostId<H>> }>({
+      id: `open-something-${hostKind}`,
+      speciality: hostKind,
+      cardinality: 'one',
+    })(),
+);
+
+const focusSomethingToken = getInjectionToken2<{
+  singleFactory: () => FocusSomething<any>;
+  manyFactory: ManyFactory<() => FocusSomething<any>>;
+}>({
+  id: 'focus-something',
+  cardinality: 'zero-or-many',
+})(
+  <H extends SomeHostKind<any>>(
+    hostKind: H,
+  ): SpecificInjectionToken2<{
+    singleFactory: () => FocusSomething<SomeHostId<H>>;
+    specificTokenFactory: undefined;
+    cardinality: 'one';
+  }> =>
+    getInjectionToken2<{ singleFactory: () => FocusSomething<SomeHostId<H>> }>({
+      id: `focus-something-${hostKind}`,
+      speciality: hostKind,
+      cardinality: 'one',
+    })(),
+);
+
+const someHostKind = getTypedSpecifier<{ hostId: string }>()('some-host');
+
+getInjectable2({
+  id: 'consumes-two-alike-tokens',
+  consumptions: [openSomethingToken, focusSomethingToken],
+  instantiate: (di) => {
+    expectType<() => OpenSomething<string>>(di.inject(openSomethingToken.for(someHostKind)));
+    expectType<() => FocusSomething<string>>(di.inject(focusSomethingToken.for(someHostKind)));
+
+    return () => 'irrelevant';
+  },
+});
+
+// --- getInjectable2: injectionToken as a function of the registration scope ---
+const scopedHandlerToken = getInjectionToken2<{
+  singleFactory: () => (event: string) => void;
+  manyFactory: ManyFactory<() => (event: string) => void>;
+}>({
+  id: 'scoped-handler',
+  cardinality: 'zero-or-many',
+})((scopeId: string) =>
+  getInjectionToken2<{ singleFactory: () => (event: string) => void }>({
+    id: `scoped-handler-${scopeId}`,
+    speciality: scopeId,
+    cardinality: 'one',
+  })(),
+);
+
+const scopedHandlerImpl = getInjectable2({
+  id: 'scoped-handler-impl',
+  instantiate: () => () => (event: string) => {},
+  injectionToken: ({ scopeIds }) => scopedHandlerToken.for(scopeIds.join(':')),
+});
+
+// F stays the implementation's own, inferred with the token's contract
+// flowing in from the function form just as from a plain token.
+expectType<Injectable2<() => (event: string) => void>>(scopedHandlerImpl);
+
+// The scope is typed: only `scopeIds` exists on it.
+getInjectable2({
+  id: 'scoped-handler-impl-2',
+  instantiate: () => () => (event: string) => {},
+  // @ts-expect-error - no such property on the registration scope
+  injectionToken: ({ nope }) => scopedHandlerToken.for(String(nope)),
+});
+
+// The implementation must still satisfy the token's factory contract.
+// @ts-expect-error - factory takes a number, the token wants a string
+getInjectable2({
+  id: 'scoped-handler-impl-3',
+  instantiate: () => () => (event: number) => {},
+  injectionToken: ({ scopeIds }) => scopedHandlerToken.for(scopeIds.join(':')),
+});
 
 // --- getInjectable (v1): same narrow-vs-wide behavior at inject sites ---
 
@@ -4148,4 +4286,22 @@ getInjectable({
 
     return 'irrelevant';
   },
+});
+
+// ======================================================================
+// deregistrationCallbackToken type tests
+// ======================================================================
+
+// an injectable2 can be a callback for deregistration, and is told what is
+// being deregistered, under which token, and its namespaced id
+getInjectable2({
+  id: 'some-deregistration-callback',
+
+  instantiate: () => () => (injectable, injectionToken, namespacedId) => {
+    expectType<string>(injectable.id);
+    expectAssignable<object | undefined>(injectionToken);
+    expectType<string>(namespacedId);
+  },
+
+  injectionToken: deregistrationCallbackToken,
 });

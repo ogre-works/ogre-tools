@@ -448,7 +448,13 @@ export const lifecycleEnum: {
   };
 };
 
-type RegistrationCallback = (injectable: Injectable<any, any, any>) => void;
+// Called with what was (de)registered and the token it was registered under:
+// the resolved one when `injectionToken` was given as a function, which the
+// injectable alone would not reveal.
+type RegistrationCallback = (
+  injectable: Injectable<any, any, any> | Injectable2<any>,
+  injectionToken: InjectionToken<any, any, any> | Token2<Factory, any, any> | undefined,
+) => void;
 
 // --- injectionDecoratorToken ---
 //
@@ -574,7 +580,24 @@ export const deregistrationDecoratorToken: Token2<
 >;
 
 export const registrationCallbackToken: RegistrationCallback;
-export const deregistrationCallbackToken: RegistrationCallback;
+
+// Called with what is being deregistered, while it still is registered: the
+// injectable, the token it was registered under, and its namespaced id. When
+// the injectable is a scope, its namespaced id is what an injectable
+// registered within it knows as its `sourceNamespace` when injecting, so
+// whatever was handed out to the scope's injectables can be told apart and let
+// go of. Fires for everything a deregistered scope takes along, too.
+export type DeregistrationCallback = (
+  injectable: Injectable<any, any, any> | Injectable2<any>,
+  injectionToken: InjectionToken<any, any, any> | Token2<Factory, any, any> | undefined,
+  namespacedId: string,
+) => void;
+
+export const deregistrationCallbackToken: InjectionToken2<{
+  singleFactory: () => DeregistrationCallback;
+  cardinality: 'zero-or-many';
+  specificTokenFactory: undefined;
+}>;
 
 // --- instancePurgeCallbackToken ---
 //
@@ -699,6 +722,20 @@ export function getTypedSpecifier
 
 // ---- Injectable2 / InjectionToken2 ----
 
+// The scope an injectable is being registered under, as handed to an
+// `injectionToken` given as a function: the ids of the scopes, outermost first
+// and the immediate owner last — what the injectable's own `di.scopeIds` will
+// read as. Resolved once per registration, so the same injectable registered
+// by two scopes ends up under two tokens.
+export interface RegistrationScope {
+  readonly scopeIds: string[];
+}
+
+// An `injectionToken` is a token, or a function of the registration's scope
+// producing one — for token families keyed by something only the registration
+// knows, `({ scopeIds }) => someToken.for(...)`.
+export type InjectionTokenOf<T> = T | ((scope: RegistrationScope) => T);
+
 export interface Injectable2<F extends Factory = Factory> {
   readonly aliasType: 'injectable2';
   readonly id: string;
@@ -708,7 +745,7 @@ export interface Injectable2<F extends Factory = Factory> {
   // `getInjectable2` keeps the relationship sound; precise per-injectable
   // token typing isn't observably useful here (runtime reads only token-level
   // fields like `.id`, `.abstract`, `.maxCacheSize`).
-  readonly injectionToken?: Token2<Factory, any, any>;
+  readonly injectionToken?: InjectionTokenOf<Token2<Factory, any, any>>;
   readonly consumptions?: ReadonlyArray<Consumption>;
   readonly transient?: boolean;
   readonly causesSideEffects?: boolean;
@@ -734,8 +771,10 @@ export type Consumption =
 
 // The `.for()` derivatives of a declared token are covered by declaring the
 // token itself — otherwise a specifier only known at runtime could not be
-// declared at all. One level suffices: the default `.for()` factory is
-// self-similar, so a child's own `for` yields the same shape again.
+// declared at all. Families nest (`token.for(kind).for(scopeIds)`), so the
+// descendants are walked a few levels down; the walk is bounded because the
+// default `.for()` factory is self-similar, and a child's own `for` yields
+// the same shape again, which an unbounded walk would never finish.
 type NotAny<T> = 0 extends 1 & T ? never : T;
 
 export type ConsumptionChildOf<C> = C extends {
@@ -746,9 +785,14 @@ export type ConsumptionChildOf<C> = C extends {
     : never
   : never;
 
+type ConsumptionDescendantOf<C, Depth extends unknown[] = [0, 0, 0, 0]> =
+  Depth extends [unknown, ...infer Shallower]
+    ? ConsumptionChildOf<C> | ConsumptionDescendantOf<ConsumptionChildOf<C>, Shallower>
+    : never;
+
 type Consumable<Cons extends Consumption> =
   | Cons
-  | ConsumptionChildOf<Cons>;
+  | ConsumptionDescendantOf<Cons>;
 
 // The injection surface of `instantiate`'s `di`: the same cardinality gating as
 // the container's, narrowed to what the injectable declared. Injectables pass
@@ -849,6 +893,12 @@ export interface ConsumptionDi<Cons extends Consumption = never>
   injectMaybeWithMeta: ConsumptionInjectMaybeWithMeta2<Cons>;
 }
 
+// `consumptions` is inferred as a readonly tuple, and `di` is narrowed to its
+// elements. Inferred as the union of its elements instead, TypeScript would
+// drop every token assignable to another one declared alongside it, as two
+// tokens typed with `any` are, taking the dropped one's `.for()` descendants
+// out of what `di` accepts.
+//
 // With injectionToken: F is the injectable's actual factory (kept narrow so
 // `di.inject2(injectable)` returns the narrow factory), TF is the token's
 // factory contract. The `F extends TF` constraint verifies the implementation
@@ -856,12 +906,12 @@ export interface ConsumptionDi<Cons extends Consumption = never>
 export function getInjectable2<
   F extends TF,
   TF extends Factory,
-  const Cons extends Consumption = never,
+  const Cons extends ReadonlyArray<Consumption> = [],
 >(options: {
   readonly id: string;
-  readonly consumptions?: ReadonlyArray<Cons>;
-  readonly instantiate: (di: ConsumptionDi<Cons>) => F;
-  readonly injectionToken: Token2<TF, any, undefined, any>;
+  readonly consumptions?: Cons;
+  readonly instantiate: (di: ConsumptionDi<Cons[number]>) => F;
+  readonly injectionToken: InjectionTokenOf<Token2<TF, any, undefined, any>>;
   readonly transient?: boolean;
   readonly causesSideEffects?: boolean;
   readonly tags?: string[];
@@ -872,11 +922,11 @@ export function getInjectable2<
 // useInject / useInject2 still get precise parameter and return types.
 export function getInjectable2<
   F extends Factory,
-  const Cons extends Consumption = never,
+  const Cons extends ReadonlyArray<Consumption> = [],
 >(options: {
   readonly id: string;
-  readonly consumptions?: ReadonlyArray<Cons>;
-  readonly instantiate: (di: ConsumptionDi<Cons>) => F;
+  readonly consumptions?: Cons;
+  readonly instantiate: (di: ConsumptionDi<Cons[number]>) => F;
   readonly transient?: boolean;
   readonly causesSideEffects?: boolean;
   readonly tags?: string[];

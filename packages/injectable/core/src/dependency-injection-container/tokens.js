@@ -19,10 +19,13 @@ export const registrationCallbackToken = untagged(
   }),
 );
 
+// A token2, so that an injectable2 can be one. Old-style injectables can be
+// one too, as the container gathers them the same.
 export const deregistrationCallbackToken = untagged(
-  getInjectionToken({
+  getInjectionToken2({
     id: 'deregistration-callback-token',
-  }),
+    cardinality: 'zero-or-many',
+  })(),
 );
 
 export const instantiationDecoratorToken = untagged(

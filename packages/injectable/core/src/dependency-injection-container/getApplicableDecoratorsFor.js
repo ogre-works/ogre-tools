@@ -30,7 +30,7 @@ import { getRelatedTokens } from './getRelatedTokens';
 const EMPTY = Object.freeze([]);
 
 export const getApplicableDecoratorsFor =
-  ({ injectMany, injectablesByInjectionToken }) =>
+  ({ injectMany, injectablesByInjectionToken, getInjectionTokenOf }) =>
   ({ decoratorToken, target, injectingInjectable }) => {
     const registered = injectablesByInjectionToken.get(decoratorToken);
 
@@ -60,7 +60,7 @@ export const getApplicableDecoratorsFor =
     dispatch(decoratorToken.for(target));
 
     const chain = getRelatedTokens(
-      target.injectionToken ?? target.specificTokenOf,
+      getInjectionTokenOf(target) ?? target.specificTokenOf,
     );
 
     for (const t of chain) {

@@ -11,7 +11,13 @@ import { invalidateRelatedInjectablesCache } from './getRelatedInjectablesFor';
 import flow from './fastFlow';
 
 export const registerFor =
-  ({ registerSingle, injectMany, getApplicableDecorators }) =>
+  ({
+    registerSingle,
+    injectMany,
+    getApplicableDecorators,
+    resolveInjectionTokenOf,
+    getInjectionTokenOf,
+  }) =>
   ({ injectables, context, source }) => {
     const flatInjectables = toFlatInjectables(injectables);
 
@@ -31,13 +37,16 @@ export const registerFor =
     for (let i = 0; i < flatInjectables.length; i++) {
       const injectable = flatInjectables[i];
 
-      if (
-        isRelatedToToken(injectable.injectionToken, registrationDecoratorToken)
-      ) {
+      // Resolved before anything reads the token: the phases below sort by it.
+      resolveInjectionTokenOf(injectable, context);
+
+      const injectionToken = getInjectionTokenOf(injectable);
+
+      if (isRelatedToToken(injectionToken, registrationDecoratorToken)) {
         registerSingle(injectable, context);
         registeredRegistrationDecoratorInjectables.push(injectable);
       } else if (
-        isRelatedToToken(injectable.injectionToken, instantiationDecoratorToken)
+        isRelatedToToken(injectionToken, instantiationDecoratorToken)
       ) {
         phase0Injectables.push(injectable);
       } else {
@@ -55,8 +64,12 @@ export const registerFor =
         injectingInjectable: source,
       });
 
+      // The token as resolved for this registration: an `injectionToken` given
+      // as a function is opaque to a callback reading the injectable alone.
+      const injectionToken = getInjectionTokenOf(injectable);
+
       for (let j = 0; j < callbacks.length; j++) {
-        callbacks[j](injectable);
+        callbacks[j](injectable, injectionToken);
       }
     };
 
@@ -113,8 +126,10 @@ export const registerFor =
     }
 
     const fireBatchCallbacks = injectable => {
+      const injectionToken = getInjectionTokenOf(injectable);
+
       for (let j = 0; j < callbacks.length; j++) {
-        callbacks[j](injectable);
+        callbacks[j](injectable, injectionToken);
       }
     };
 
@@ -131,6 +146,8 @@ export const registerSingleFor = ({
   injectableAndRegistrationContext,
   childrenByParentMap,
   firePurgeCallbacks,
+  resolveInjectionTokenOf,
+  getInjectionTokenOf,
 }) => {
   const getNamespacedId = getNamespacedIdFor(injectableAndRegistrationContext);
 
@@ -140,6 +157,12 @@ export const registerSingleFor = ({
     if (!injectableId) {
       throw new Error('Tried to register injectable without ID.');
     }
+
+    // A registration decorator may hand in an injectable the batch never saw,
+    // so the token is resolved here too; resolving twice is harmless.
+    resolveInjectionTokenOf(injectable, injectionContext);
+
+    const injectionToken = getInjectionTokenOf(injectable);
 
     // Build reverse index: for each parent in the context, record this injectable as a child.
     for (let i = 0; i < injectionContext.length; i++) {
@@ -190,13 +213,13 @@ export const registerSingleFor = ({
     }
 
     const upperBoundedCardinality =
-      injectable.injectionToken?.cardinality === 'one' ||
-      injectable.injectionToken?.cardinality === 'zero-or-one'
-        ? injectable.injectionToken.cardinality
+      injectionToken?.cardinality === 'one' ||
+      injectionToken?.cardinality === 'zero-or-one'
+        ? injectionToken.cardinality
         : undefined;
 
     if (upperBoundedCardinality) {
-      const token = injectable.injectionToken;
+      const token = injectionToken;
       const registered = injectablesByInjectionToken.get(token);
 
       if (registered) {
@@ -204,7 +227,7 @@ export const registerSingleFor = ({
           // Exact registrations only: the index also holds `.for()`
           // descendants of the token, and specialization must not be
           // outlawed by the base token's bound.
-          if (member.injectionToken === token) {
+          if (getInjectionTokenOf(member) === token) {
             throw new Error(
               `Tried to register injectable "${namespacedId}" with injection token "${
                 token.id
@@ -220,14 +243,14 @@ export const registerSingleFor = ({
     injectableIdSet.add(namespacedId);
     injectableSet.add(injectable);
     namespacedIdByInjectableMap.set(injectable, namespacedId);
-    if (injectable.injectionToken?.abstract) {
+    if (injectionToken?.abstract) {
       throw new Error(
-        `Tried to register injectable "${namespacedId}" with injection token "${injectable.injectionToken.id}", but it is abstract. Use ".for(specifier)" for a concrete token.`,
+        `Tried to register injectable "${namespacedId}" with injection token "${injectionToken.id}", but it is abstract. Use ".for(specifier)" for a concrete token.`,
       );
     }
 
     const maxCacheSize =
-      injectable.maxCacheSize ?? injectable.injectionToken?.maxCacheSize;
+      injectable.maxCacheSize ?? injectionToken?.maxCacheSize;
 
     // LRU is only meaningful for keyed lifecycles — singletons hold one
     // instance and would never overflow. For keyed lifecycles with a size
@@ -244,7 +267,7 @@ export const registerSingleFor = ({
       instancesByInjectableMap.set(injectable, instanceMap);
     }
 
-    const tokens = getRelatedTokens(injectable.injectionToken);
+    const tokens = getRelatedTokens(injectionToken);
 
     for (let t = 0; t < tokens.length; t++) {
       const token = tokens[t];
