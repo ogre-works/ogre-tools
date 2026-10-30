@@ -369,6 +369,59 @@ describe('global-instantiation-callback', () => {
     });
   });
 
+  describe('given a callback added both before and after another', () => {
+    let callOrder;
+    let someInjectable;
+    let disposeLastAdd;
+
+    beforeEach(() => {
+      callOrder = [];
+
+      const callbackFor = name => (di, id, instantiate, params) => {
+        callOrder.push(`${name}-before`);
+
+        const instance = instantiate(di, ...params);
+
+        callOrder.push(`${name}-after`);
+
+        return instance;
+      };
+
+      const repeatedCallback = callbackFor('repeated');
+
+      di.addGlobalInstantiationCallback(repeatedCallback);
+      di.addGlobalInstantiationCallback(callbackFor('other'));
+      disposeLastAdd = di.addGlobalInstantiationCallback(repeatedCallback);
+
+      someInjectable = getInjectable({
+        id: 'some-id',
+        lifecycle: lifecycleEnum.transient,
+
+        instantiate: () => {
+          callOrder.push('instantiate');
+
+          return 10;
+        },
+      });
+
+      di.register(someInjectable);
+    });
+
+    it('when disposing the last add, keeps the first add outermost', () => {
+      disposeLastAdd();
+
+      di.inject(someInjectable);
+
+      expect(callOrder).toEqual([
+        'repeated-before',
+        'other-before',
+        'instantiate',
+        'other-after',
+        'repeated-after',
+      ]);
+    });
+  });
+
   describe('given a callback and its disposer', () => {
     let callbackSpy;
     let dispose;
@@ -399,21 +452,15 @@ describe('global-instantiation-callback', () => {
       expect(callbackSpy).not.toHaveBeenCalled();
     });
 
-    it('when disposed twice, is a no-op the second time', () => {
-      const otherSpy = jest
-        .fn()
-        .mockImplementation((di, id, instantiate, params) =>
-          instantiate(di, ...params),
-        );
-
-      di.addGlobalInstantiationCallback(otherSpy);
+    it('given the same callback added twice, when disposing one twice, still calls it for the other', () => {
+      di.addGlobalInstantiationCallback(callbackSpy);
 
       dispose();
       dispose();
 
       di.inject(someInjectable);
 
-      expect(otherSpy).toHaveBeenCalledTimes(1);
+      expect(callbackSpy).toHaveBeenCalledTimes(1);
     });
 
     it('given the same callback added twice, when disposing one, still calls it for the other', () => {
