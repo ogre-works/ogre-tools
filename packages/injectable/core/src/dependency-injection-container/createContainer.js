@@ -33,8 +33,8 @@ import { isCompositeStorage } from './privateInjectFor';
 //
 // Folded once per add/dispose rather than per instantiation, so the cost on
 // the instantiation path is one call plus the adapter closures the fold needs
-// to carry `instantiate` and `id` inward — and nothing at all while no
-// callback is installed.
+// to carry `proceed` inward — and nothing at all while no callback is
+// installed.
 const composeInstantiationCallbacks = callbacks => {
   if (callbacks.length === 0) {
     return undefined;
@@ -45,14 +45,12 @@ const composeInstantiationCallbacks = callbacks => {
   }
 
   return callbacks.reduceRight(
-    (inner, callback) => (di, id, instantiate, params) =>
-      callback(
-        di,
-        id,
-        (innerDi, ...innerParams) =>
-          inner(innerDi, id, instantiate, innerParams),
-        params,
-      ),
+    // A block body, so that what an inner callback returns never reaches the
+    // outer one through proceed.
+    (inner, callback) => (id, proceed) =>
+      callback(id, () => {
+        inner(id, proceed);
+      }),
   );
 };
 
@@ -80,7 +78,10 @@ export default containerId => {
   // Global instantiation callbacks, outermost first, and the single composed
   // function they fold into. `undefined` when none are installed, which is
   // what lets the instantiation path skip this machinery entirely.
-  let globalInstantiationCallbacks = [];
+  //
+  // Each add gets an entry of its own, so that its disposer removes exactly
+  // that add even when the same function has been added more than once.
+  let globalInstantiationCallbackEntries = [];
   let composedGlobalInstantiationCallback = undefined;
 
   const getNamespacedId = getNamespacedIdFor(injectableAndRegistrationContext);
@@ -127,36 +128,29 @@ export default containerId => {
   const getGlobalInstantiationCallback = () =>
     composedGlobalInstantiationCallback;
 
-  const addGlobalInstantiationCallback = callback => {
-    globalInstantiationCallbacks = [...globalInstantiationCallbacks, callback];
+  const setGlobalInstantiationCallbackEntries = entries => {
+    globalInstantiationCallbackEntries = entries;
 
     composedGlobalInstantiationCallback = composeInstantiationCallbacks(
-      globalInstantiationCallbacks,
+      entries.map(entry => entry.callback),
     );
+  };
 
-    let disposed = false;
+  const addGlobalInstantiationCallback = callback => {
+    const entry = { callback };
+
+    setGlobalInstantiationCallbackEntries([
+      ...globalInstantiationCallbackEntries,
+      entry,
+    ]);
 
     return () => {
-      if (disposed) {
+      if (!globalInstantiationCallbackEntries.includes(entry)) {
         return;
       }
 
-      disposed = true;
-
-      // Remove one occurrence by index: the same function may legitimately be
-      // added twice, and each add owns exactly one disposal.
-      const index = globalInstantiationCallbacks.indexOf(callback);
-
-      if (index === -1) {
-        return;
-      }
-
-      globalInstantiationCallbacks = globalInstantiationCallbacks.filter(
-        (_, i) => i !== index,
-      );
-
-      composedGlobalInstantiationCallback = composeInstantiationCallbacks(
-        globalInstantiationCallbacks,
+      setGlobalInstantiationCallbackEntries(
+        globalInstantiationCallbackEntries.filter(x => x !== entry),
       );
     };
   };

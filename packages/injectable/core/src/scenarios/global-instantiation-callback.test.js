@@ -15,11 +15,7 @@ describe('global-instantiation-callback', () => {
     let callbackSpy;
 
     beforeEach(() => {
-      callbackSpy = jest
-        .fn()
-        .mockImplementation((di, id, instantiate, params) =>
-          instantiate(di, ...params),
-        );
+      callbackSpy = jest.fn().mockImplementation((id, proceed) => proceed());
 
       di.addGlobalInstantiationCallback(callbackSpy);
     });
@@ -45,10 +41,8 @@ describe('global-instantiation-callback', () => {
 
         it('calls the callback with the expected arguments', () => {
           expect(callbackSpy).toHaveBeenCalledWith(
-            expect.objectContaining({ inject: expect.any(Function) }),
             'some-id',
             expect.any(Function),
-            [],
           );
         });
 
@@ -87,10 +81,8 @@ describe('global-instantiation-callback', () => {
 
         it('calls the callback with the expected arguments', () => {
           expect(callbackSpy).toHaveBeenCalledWith(
-            expect.objectContaining({ inject: expect.any(Function) }),
             'some-id',
             expect.any(Function),
-            [],
           );
         });
 
@@ -131,10 +123,8 @@ describe('global-instantiation-callback', () => {
         expect(di.inject(someInjectable)).toBe(10);
 
         expect(callbackSpy).toHaveBeenCalledWith(
-          expect.anything(),
           'some-namespace:some-id',
           expect.any(Function),
-          [],
         );
       });
 
@@ -144,10 +134,8 @@ describe('global-instantiation-callback', () => {
         expect(di.inject(someInjectable)).toBe(20);
 
         expect(callbackSpy).toHaveBeenCalledWith(
-          expect.anything(),
           'some-namespace:some-id',
           expect.any(Function),
-          [],
         );
       });
     });
@@ -175,10 +163,8 @@ describe('global-instantiation-callback', () => {
         expect(di.inject(someInjectable)).toBe(10);
 
         expect(callbackSpy).toHaveBeenCalledWith(
-          expect.anything(),
           'some-namespace:some-id',
           expect.any(Function),
-          [],
         );
       });
 
@@ -188,10 +174,8 @@ describe('global-instantiation-callback', () => {
         expect(di.inject(someInjectable)).toBe(20);
 
         expect(callbackSpy).toHaveBeenCalledWith(
-          expect.anything(),
           'some-namespace:some-id',
           expect.any(Function),
-          [],
         );
       });
     });
@@ -213,16 +197,14 @@ describe('global-instantiation-callback', () => {
         di.register(someInjectable);
       });
 
-      it('when injecting with a parameter, passes the parameters to the callback', () => {
+      it('when injecting with a parameter, does not pass the parameter to the callback', () => {
         expect(di.inject(someInjectable, 'some-key')).toBe(
           'instance-for-some-key',
         );
 
         expect(callbackSpy).toHaveBeenCalledWith(
-          expect.anything(),
           'some-id',
           expect.any(Function),
-          ['some-key'],
         );
       });
 
@@ -231,10 +213,63 @@ describe('global-instantiation-callback', () => {
         di.inject(someInjectable, 'b');
         di.inject(someInjectable, 'a');
 
-        expect(callbackSpy.mock.calls.map(call => call[3])).toEqual([
-          ['a'],
-          ['b'],
-        ]);
+        expect(callbackSpy).toHaveBeenCalledTimes(2);
+      });
+    });
+
+    it('given an injectable injecting a dependency, calls the callback for both, the injectable first', () => {
+      const someDependency = getInjectable({
+        id: 'some-dependency',
+        instantiate: () => 10,
+      });
+
+      const someInjectable = getInjectable({
+        id: 'some-id',
+        instantiate: di => di.inject(someDependency) + 1,
+      });
+
+      di.register(someInjectable, someDependency);
+
+      di.inject(someInjectable);
+
+      expect(callbackSpy.mock.calls.map(call => call[0])).toEqual([
+        'some-id',
+        'some-dependency',
+      ]);
+    });
+
+    describe('given an injectable2 with a param and a dependency', () => {
+      let someInjectable;
+
+      beforeEach(() => {
+        const someDependency = getInjectable2({
+          id: 'some-dependency',
+          instantiate: () => () => 'some-dependency-value',
+        });
+
+        someInjectable = getInjectable2({
+          id: 'some-id',
+          lifecycle: lifecycleEnum.transient,
+
+          instantiate: di => param => `${di.inject(someDependency)()}-${param}`,
+        });
+
+        di.register(someInjectable, someDependency);
+      });
+
+      it('when injecting, instantiates with the dependency and the param', () => {
+        expect(di.inject(someInjectable, 'some-param')).toBe(
+          'some-dependency-value-some-param',
+        );
+      });
+
+      it('when injecting, does not pass the param to the callback', () => {
+        di.inject(someInjectable, 'some-param');
+
+        expect(callbackSpy).toHaveBeenCalledWith(
+          'some-id',
+          expect.any(Function),
+        );
       });
     });
 
@@ -285,9 +320,9 @@ describe('global-instantiation-callback', () => {
 
   describe('given a callback wrapping thrown errors with context', () => {
     beforeEach(() => {
-      di.addGlobalInstantiationCallback((di, id, instantiate, params) => {
+      di.addGlobalInstantiationCallback((id, proceed) => {
         try {
-          return instantiate(di, ...params);
+          proceed();
         } catch (error) {
           throw new Error(
             `Error while instantiating "${id}": ${error.message}`,
@@ -312,6 +347,27 @@ describe('global-instantiation-callback', () => {
       );
     });
 
+    it('when injecting an injectable whose dependency throws, throws with the context of each', () => {
+      const someDependency = getInjectable({
+        id: 'some-dependency',
+
+        instantiate: () => {
+          throw new Error('some-error');
+        },
+      });
+
+      const someInjectable = getInjectable({
+        id: 'some-id',
+        instantiate: di => di.inject(someDependency),
+      });
+
+      di.register(someInjectable, someDependency);
+
+      expect(() => di.inject(someInjectable)).toThrow(
+        'Error while instantiating "some-id": Error while instantiating "some-dependency": some-error',
+      );
+    });
+
     it('when injecting an injectable that does not throw, does not interfere', () => {
       const someInjectable = getInjectable({
         id: 'some-id',
@@ -330,14 +386,12 @@ describe('global-instantiation-callback', () => {
     beforeEach(() => {
       callOrder = [];
 
-      const callbackFor = name => (di, id, instantiate, params) => {
+      const callbackFor = name => (id, proceed) => {
         callOrder.push(`${name}-before`);
 
-        const instance = instantiate(di, ...params);
+        proceed();
 
         callOrder.push(`${name}-after`);
-
-        return instance;
       };
 
       di.addGlobalInstantiationCallback(callbackFor('first'));
@@ -369,17 +423,261 @@ describe('global-instantiation-callback', () => {
     });
   });
 
+  describe('given a callback added both before and after another', () => {
+    let callOrder;
+    let someInjectable;
+    let disposeLastAdd;
+
+    beforeEach(() => {
+      callOrder = [];
+
+      const callbackFor = name => (id, proceed) => {
+        callOrder.push(`${name}-before`);
+
+        proceed();
+
+        callOrder.push(`${name}-after`);
+      };
+
+      const repeatedCallback = callbackFor('repeated');
+
+      di.addGlobalInstantiationCallback(repeatedCallback);
+      di.addGlobalInstantiationCallback(callbackFor('other'));
+      disposeLastAdd = di.addGlobalInstantiationCallback(repeatedCallback);
+
+      someInjectable = getInjectable({
+        id: 'some-id',
+        lifecycle: lifecycleEnum.transient,
+
+        instantiate: () => {
+          callOrder.push('instantiate');
+
+          return 10;
+        },
+      });
+
+      di.register(someInjectable);
+    });
+
+    it('when disposing the last add, keeps the first add outermost', () => {
+      disposeLastAdd();
+
+      di.inject(someInjectable);
+
+      expect(callOrder).toEqual([
+        'repeated-before',
+        'other-before',
+        'instantiate',
+        'other-after',
+        'repeated-after',
+      ]);
+    });
+  });
+
+  describe('given a callback that does not proceed', () => {
+    beforeEach(() => {
+      di.addGlobalInstantiationCallback(() => {});
+    });
+
+    it('when injecting, throws', () => {
+      const someInjectable = getInjectable({
+        id: 'some-id',
+        instantiate: () => 10,
+      });
+
+      di.register(someInjectable);
+
+      expect(() => di.inject(someInjectable)).toThrow(
+        'A global instantiation callback returned without "some-id" having been instantiated.',
+      );
+    });
+  });
+
+  describe('given a callback that swallows an error thrown by the instantiation', () => {
+    beforeEach(() => {
+      di.addGlobalInstantiationCallback((id, proceed) => {
+        try {
+          proceed();
+        } catch (error) {
+          // swallowed
+        }
+      });
+    });
+
+    it('when injecting an injectable that throws, throws', () => {
+      const someInjectable = getInjectable({
+        id: 'some-id',
+
+        instantiate: () => {
+          throw new Error('some-error');
+        },
+      });
+
+      di.register(someInjectable);
+
+      expect(() => di.inject(someInjectable)).toThrow(
+        'A global instantiation callback returned without "some-id" having been instantiated.',
+      );
+    });
+  });
+
+  describe('given a callback that proceeds twice', () => {
+    beforeEach(() => {
+      di.addGlobalInstantiationCallback((id, proceed) => {
+        proceed();
+        proceed();
+      });
+    });
+
+    it('when injecting, throws', () => {
+      const someInjectable = getInjectable({
+        id: 'some-id',
+        instantiate: () => 10,
+      });
+
+      di.register(someInjectable);
+
+      expect(() => di.inject(someInjectable)).toThrow(
+        'Tried to proceed with the instantiation of "some-id" more than once.',
+      );
+    });
+  });
+
+  describe('given a callback trying to get hold of the instance', () => {
+    let proceedResults;
+
+    beforeEach(() => {
+      proceedResults = [];
+
+      di.addGlobalInstantiationCallback((id, proceed) => {
+        proceedResults.push(proceed());
+
+        return 'some-replacement';
+      });
+    });
+
+    it('when injecting an injectable1, proceeding yields nothing and the instance is not replaced', () => {
+      const someInjectable = getInjectable({
+        id: 'some-id',
+        instantiate: () => 'some-secret',
+      });
+
+      di.register(someInjectable);
+
+      expect(di.inject(someInjectable)).toBe('some-secret');
+      expect(proceedResults).toEqual([undefined]);
+    });
+
+    it('when injecting an injectable2, proceeding yields nothing and the instance is not replaced', () => {
+      const someInjectable = getInjectable2({
+        id: 'some-id',
+        instantiate: () => () => 'some-secret',
+      });
+
+      di.register(someInjectable);
+
+      expect(di.inject(someInjectable)).toBe('some-secret');
+      expect(proceedResults).toEqual([undefined]);
+    });
+  });
+
+  describe('given two callbacks, the inner one returning something', () => {
+    let proceedResults;
+    let someInjectable;
+
+    beforeEach(() => {
+      proceedResults = [];
+
+      di.addGlobalInstantiationCallback((id, proceed) => {
+        proceedResults.push(proceed());
+      });
+
+      di.addGlobalInstantiationCallback((id, proceed) => {
+        proceed();
+
+        return 'some-message-for-the-outer-callback';
+      });
+
+      someInjectable = getInjectable({
+        id: 'some-id',
+        instantiate: () => 'some-secret',
+      });
+
+      di.register(someInjectable);
+    });
+
+    it('when injecting, proceeding yields nothing to the outer one', () => {
+      di.inject(someInjectable);
+
+      expect(proceedResults).toEqual([undefined]);
+    });
+  });
+
+  describe('given two callbacks wrapping thrown errors with context', () => {
+    beforeEach(() => {
+      const wrappingCallbackFor = name => (id, proceed) => {
+        try {
+          proceed();
+        } catch (error) {
+          throw new Error(`${name}: ${error.message}`);
+        }
+      };
+
+      di.addGlobalInstantiationCallback(wrappingCallbackFor('outer'));
+      di.addGlobalInstantiationCallback(wrappingCallbackFor('inner'));
+    });
+
+    it('when injecting an injectable that throws, throws with the context of both', () => {
+      const someInjectable = getInjectable({
+        id: 'some-id',
+
+        instantiate: () => {
+          throw new Error('some-error');
+        },
+      });
+
+      di.register(someInjectable);
+
+      expect(() => di.inject(someInjectable)).toThrow(
+        'outer: inner: some-error',
+      );
+    });
+  });
+
+  describe('given a callback that keeps proceed for later', () => {
+    let keptProceed;
+    let someInjectable;
+
+    beforeEach(() => {
+      di.addGlobalInstantiationCallback((id, proceed) => {
+        keptProceed = proceed;
+
+        proceed();
+      });
+
+      someInjectable = getInjectable({
+        id: 'some-id',
+        instantiate: () => 10,
+      });
+
+      di.register(someInjectable);
+      di.inject(someInjectable);
+    });
+
+    it('when proceeding again after the injection, throws', () => {
+      expect(() => keptProceed()).toThrow(
+        'Tried to proceed with the instantiation of "some-id" more than once.',
+      );
+    });
+  });
+
   describe('given a callback and its disposer', () => {
     let callbackSpy;
     let dispose;
     let someInjectable;
 
     beforeEach(() => {
-      callbackSpy = jest
-        .fn()
-        .mockImplementation((di, id, instantiate, params) =>
-          instantiate(di, ...params),
-        );
+      callbackSpy = jest.fn().mockImplementation((id, proceed) => proceed());
 
       dispose = di.addGlobalInstantiationCallback(callbackSpy);
 
@@ -399,21 +697,15 @@ describe('global-instantiation-callback', () => {
       expect(callbackSpy).not.toHaveBeenCalled();
     });
 
-    it('when disposed twice, is a no-op the second time', () => {
-      const otherSpy = jest
-        .fn()
-        .mockImplementation((di, id, instantiate, params) =>
-          instantiate(di, ...params),
-        );
-
-      di.addGlobalInstantiationCallback(otherSpy);
+    it('given the same callback added twice, when disposing one twice, still calls it for the other', () => {
+      di.addGlobalInstantiationCallback(callbackSpy);
 
       dispose();
       dispose();
 
       di.inject(someInjectable);
 
-      expect(otherSpy).toHaveBeenCalledTimes(1);
+      expect(callbackSpy).toHaveBeenCalledTimes(1);
     });
 
     it('given the same callback added twice, when disposing one, still calls it for the other', () => {
@@ -432,11 +724,7 @@ describe('global-instantiation-callback', () => {
     let someInjectable;
 
     beforeEach(() => {
-      callbackSpy = jest
-        .fn()
-        .mockImplementation((di, id, instantiate, params) =>
-          instantiate(di, ...params),
-        );
+      callbackSpy = jest.fn().mockImplementation((id, proceed) => proceed());
 
       someInjectable = getInjectable({
         id: 'some-id',
@@ -459,14 +747,14 @@ describe('global-instantiation-callback', () => {
       di.addGlobalInstantiationCallback(callbackSpy);
     });
 
-    it('when injecting, the callback sees the decorated instantiation', () => {
+    it('when injecting, the instance is the decorated one', () => {
       expect(di.inject(someInjectable)).toBe(11);
     });
 
     it('when injecting, the callback also fires for the decorator itself', () => {
       di.inject(someInjectable);
 
-      expect(callbackSpy.mock.calls.map(call => call[1])).toEqual([
+      expect(callbackSpy.mock.calls.map(call => call[0])).toEqual([
         'some-decorator',
         'some-id',
       ]);

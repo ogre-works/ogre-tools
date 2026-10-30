@@ -377,22 +377,42 @@ const instantiate = (
     return decorated(minimalDi, ...instantiationParameters);
   }
 
-  // Both shapes are handed to the callback as (di, ...params) => instance, so
-  // a callback never has to care which it is wrapping.
-  const toBeInstantiated = isV2
-    ? (di, ...args) => decorated(di)(...args)
-    : decorated;
-
   // Memoized at registration, rather than walking the registration tree per
   // instantiation. Keyed on `target` for the same reason the decorators are:
   // an imperative override is a stand-in that was never registered and so has
   // no entry of its own, and should report the identity it stands in for.
-  return globalInstantiationCallback(
-    minimalDi,
-    namespacedIdByInjectableMap.get(target),
-    toBeInstantiated,
-    instantiationParameters,
-  );
+  const id = namespacedIdByInjectableMap.get(target);
+
+  // The callback only gets to say when the instantiation happens. The di, the
+  // params and the instance stay here: an instance may well be a secret, and
+  // a callback that cannot see one cannot leak or replace it either.
+  let instance;
+  let proceeded = false;
+  let instantiated = false;
+
+  globalInstantiationCallback(id, () => {
+    if (proceeded) {
+      throw new Error(
+        `Tried to proceed with the instantiation of "${id}" more than once.`,
+      );
+    }
+
+    proceeded = true;
+
+    instance = isV2
+      ? decorated(minimalDi)(...instantiationParameters)
+      : decorated(minimalDi, ...instantiationParameters);
+
+    instantiated = true;
+  });
+
+  if (!instantiated) {
+    throw new Error(
+      `A global instantiation callback returned without "${id}" having been instantiated.`,
+    );
+  }
+
+  return instance;
 };
 
 const ensureInstanceMap = (instancesByInjectableMap, key) => {
