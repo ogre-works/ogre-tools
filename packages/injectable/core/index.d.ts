@@ -115,19 +115,11 @@ export interface DiContainer extends DiContainerForInjection {
   addGlobalInstantiationCallback: (cb: GlobalInstantiationCallback) => () => void;
 }
 
-// The di a global instantiation callback is handed is the very one the
-// injectable's own `instantiate` receives: v1-shaped for an `Injectable`,
-// v2-shaped (factory-returning `inject`) for an `Injectable2`. Narrow before
-// reaching into it; a pass-through callback hands it back to `instantiate`
-// untouched.
-export type DiContainerForGlobalInstantiationCallback = DiContainerForInjection | DiContainerForInjection2;
-
-export type GlobalInstantiationCallback = <InjectionInstance, InstantiationParams extends any[]>(
-  di: DiContainerForGlobalInstantiationCallback,
-  id: string,
-  instantiate: (di: DiContainerForGlobalInstantiationCallback, ...params: InstantiationParams) => InjectionInstance,
-  params: InstantiationParams
-) => InjectionInstance;
+// A global instantiation callback is told the namespaced id of what is being
+// instantiated and decides when it happens by calling `proceed` exactly once.
+// It never sees the di, the params or the instance, which may be a secret:
+// `proceed` returns nothing, and neither does the callback.
+export type GlobalInstantiationCallback = (id: string, proceed: () => void) => void;
 
 export type Instantiate<InjectionInstance, InstantiationParam = void> = (di: DiContainerForInjection, param: InstantiationParam) => InjectionInstance;
 

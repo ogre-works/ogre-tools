@@ -33,8 +33,8 @@ import { isCompositeStorage } from './privateInjectFor';
 //
 // Folded once per add/dispose rather than per instantiation, so the cost on
 // the instantiation path is one call plus the adapter closures the fold needs
-// to carry `instantiate` and `id` inward — and nothing at all while no
-// callback is installed.
+// to carry `proceed` inward — and nothing at all while no callback is
+// installed.
 const composeInstantiationCallbacks = callbacks => {
   if (callbacks.length === 0) {
     return undefined;
@@ -45,14 +45,8 @@ const composeInstantiationCallbacks = callbacks => {
   }
 
   return callbacks.reduceRight(
-    (inner, callback) => (di, id, instantiate, params) =>
-      callback(
-        di,
-        id,
-        (innerDi, ...innerParams) =>
-          inner(innerDi, id, instantiate, innerParams),
-        params,
-      ),
+    (inner, callback) => (id, proceed) =>
+      callback(id, () => inner(id, proceed)),
   );
 };
 
