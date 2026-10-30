@@ -45,8 +45,12 @@ const composeInstantiationCallbacks = callbacks => {
   }
 
   return callbacks.reduceRight(
+    // A block body, so that what an inner callback returns never reaches the
+    // outer one through proceed.
     (inner, callback) => (id, proceed) =>
-      callback(id, () => inner(id, proceed)),
+      callback(id, () => {
+        inner(id, proceed);
+      }),
   );
 };
 

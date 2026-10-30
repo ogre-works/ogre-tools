@@ -581,6 +581,96 @@ describe('global-instantiation-callback', () => {
     });
   });
 
+  describe('given two callbacks, the inner one returning something', () => {
+    let proceedResults;
+    let someInjectable;
+
+    beforeEach(() => {
+      proceedResults = [];
+
+      di.addGlobalInstantiationCallback((id, proceed) => {
+        proceedResults.push(proceed());
+      });
+
+      di.addGlobalInstantiationCallback((id, proceed) => {
+        proceed();
+
+        return 'some-message-for-the-outer-callback';
+      });
+
+      someInjectable = getInjectable({
+        id: 'some-id',
+        instantiate: () => 'some-secret',
+      });
+
+      di.register(someInjectable);
+    });
+
+    it('when injecting, proceeding yields nothing to the outer one', () => {
+      di.inject(someInjectable);
+
+      expect(proceedResults).toEqual([undefined]);
+    });
+  });
+
+  describe('given two callbacks wrapping thrown errors with context', () => {
+    beforeEach(() => {
+      const wrappingCallbackFor = name => (id, proceed) => {
+        try {
+          proceed();
+        } catch (error) {
+          throw new Error(`${name}: ${error.message}`);
+        }
+      };
+
+      di.addGlobalInstantiationCallback(wrappingCallbackFor('outer'));
+      di.addGlobalInstantiationCallback(wrappingCallbackFor('inner'));
+    });
+
+    it('when injecting an injectable that throws, throws with the context of both', () => {
+      const someInjectable = getInjectable({
+        id: 'some-id',
+
+        instantiate: () => {
+          throw new Error('some-error');
+        },
+      });
+
+      di.register(someInjectable);
+
+      expect(() => di.inject(someInjectable)).toThrow(
+        'outer: inner: some-error',
+      );
+    });
+  });
+
+  describe('given a callback that keeps proceed for later', () => {
+    let keptProceed;
+    let someInjectable;
+
+    beforeEach(() => {
+      di.addGlobalInstantiationCallback((id, proceed) => {
+        keptProceed = proceed;
+
+        proceed();
+      });
+
+      someInjectable = getInjectable({
+        id: 'some-id',
+        instantiate: () => 10,
+      });
+
+      di.register(someInjectable);
+      di.inject(someInjectable);
+    });
+
+    it('when proceeding again after the injection, throws', () => {
+      expect(() => keptProceed()).toThrow(
+        'Tried to proceed with the instantiation of "some-id" more than once.',
+      );
+    });
+  });
+
   describe('given a callback and its disposer', () => {
     let callbackSpy;
     let dispose;

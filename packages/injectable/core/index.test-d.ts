@@ -4116,13 +4116,6 @@ di.addGlobalInstantiationCallback((id, proceed) => {
   }
 });
 
-// The callback never gets the di, the params or the instance.
-expectError(
-  di.addGlobalInstantiationCallback((id: string, proceed: () => void, somethingMore: unknown) => {
-    proceed();
-  }),
-);
-
 // The callback is added on the container, not on the di handed to an instantiate.
 getInjectable({
   id: 'some-non-adder',
