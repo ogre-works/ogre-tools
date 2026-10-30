@@ -238,6 +238,64 @@ describe('global-instantiation-callback', () => {
       });
     });
 
+    it('given an injectable injecting a dependency, calls the callback for both, the injectable first', () => {
+      const someDependency = getInjectable({
+        id: 'some-dependency',
+        instantiate: () => 10,
+      });
+
+      const someInjectable = getInjectable({
+        id: 'some-id',
+        instantiate: di => di.inject(someDependency) + 1,
+      });
+
+      di.register(someInjectable, someDependency);
+
+      di.inject(someInjectable);
+
+      expect(callbackSpy.mock.calls.map(call => call[1])).toEqual([
+        'some-id',
+        'some-dependency',
+      ]);
+    });
+
+    describe('given an injectable2 with a param and a dependency', () => {
+      let someInjectable;
+
+      beforeEach(() => {
+        const someDependency = getInjectable2({
+          id: 'some-dependency',
+          instantiate: () => () => 'some-dependency-value',
+        });
+
+        someInjectable = getInjectable2({
+          id: 'some-id',
+          lifecycle: lifecycleEnum.transient,
+
+          instantiate: di => param => `${di.inject(someDependency)()}-${param}`,
+        });
+
+        di.register(someInjectable, someDependency);
+      });
+
+      it('when injecting, instantiates with the dependency and the param', () => {
+        expect(di.inject(someInjectable, 'some-param')).toBe(
+          'some-dependency-value-some-param',
+        );
+      });
+
+      it('when injecting, calls the callback with the param', () => {
+        di.inject(someInjectable, 'some-param');
+
+        expect(callbackSpy).toHaveBeenCalledWith(
+          expect.anything(),
+          'some-id',
+          expect.any(Function),
+          ['some-param'],
+        );
+      });
+    });
+
     it('given a transient injectable, calls the callback for every injection', () => {
       const someInjectable = getInjectable({
         id: 'some-id',
@@ -309,6 +367,27 @@ describe('global-instantiation-callback', () => {
 
       expect(() => di.inject(someInjectable)).toThrow(
         'Error while instantiating "some-id": some-error',
+      );
+    });
+
+    it('when injecting an injectable whose dependency throws, throws with the context of each', () => {
+      const someDependency = getInjectable({
+        id: 'some-dependency',
+
+        instantiate: () => {
+          throw new Error('some-error');
+        },
+      });
+
+      const someInjectable = getInjectable({
+        id: 'some-id',
+        instantiate: di => di.inject(someDependency),
+      });
+
+      di.register(someInjectable, someDependency);
+
+      expect(() => di.inject(someInjectable)).toThrow(
+        'Error while instantiating "some-id": Error while instantiating "some-dependency": some-error',
       );
     });
 
@@ -419,6 +498,51 @@ describe('global-instantiation-callback', () => {
         'other-after',
         'repeated-after',
       ]);
+    });
+  });
+
+  describe('given three callbacks, the outermost substituting the params', () => {
+    let calls;
+    let someInjectable;
+
+    beforeEach(() => {
+      calls = [];
+
+      const recordingCallbackFor = name => (di, id, instantiate, params) => {
+        calls.push({ name, id, params });
+
+        return instantiate(di, ...params);
+      };
+
+      di.addGlobalInstantiationCallback((di, id, instantiate, params) =>
+        instantiate(di, 'some-substituted-param'),
+      );
+
+      di.addGlobalInstantiationCallback(recordingCallbackFor('middle'));
+      di.addGlobalInstantiationCallback(recordingCallbackFor('inner'));
+
+      someInjectable = getInjectable({
+        id: 'some-id',
+        lifecycle: lifecycleEnum.transient,
+        instantiate: (di, param) => `instance-${param}`,
+      });
+
+      di.register(someInjectable);
+    });
+
+    it('when injecting, the inner callbacks are told the id and the substituted params', () => {
+      di.inject(someInjectable, 'some-param');
+
+      expect(calls).toEqual([
+        { name: 'middle', id: 'some-id', params: ['some-substituted-param'] },
+        { name: 'inner', id: 'some-id', params: ['some-substituted-param'] },
+      ]);
+    });
+
+    it('when injecting, instantiates with the substituted params', () => {
+      expect(di.inject(someInjectable, 'some-param')).toBe(
+        'instance-some-substituted-param',
+      );
     });
   });
 
