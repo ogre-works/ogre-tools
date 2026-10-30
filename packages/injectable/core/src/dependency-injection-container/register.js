@@ -45,7 +45,9 @@ export const registerFor =
       if (isRelatedToToken(injectionToken, registrationDecoratorToken)) {
         registerSingle(injectable, context);
         registeredRegistrationDecoratorInjectables.push(injectable);
-      } else if (isRelatedToToken(injectionToken, instantiationDecoratorToken)) {
+      } else if (
+        isRelatedToToken(injectionToken, instantiationDecoratorToken)
+      ) {
         phase0Injectables.push(injectable);
       } else {
         phase2Injectables.push(injectable);
@@ -247,7 +249,8 @@ export const registerSingleFor = ({
       );
     }
 
-    const maxCacheSize = injectable.maxCacheSize ?? injectionToken?.maxCacheSize;
+    const maxCacheSize =
+      injectable.maxCacheSize ?? injectionToken?.maxCacheSize;
 
     // LRU is only meaningful for keyed lifecycles — singletons hold one
     // instance and would never overflow. For keyed lifecycles with a size

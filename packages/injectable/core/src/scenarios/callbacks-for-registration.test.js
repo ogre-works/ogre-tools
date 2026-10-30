@@ -31,27 +31,39 @@ describe('createContainer.callbacks-for-registration', () => {
     it('when the both are registered together callback first, calls the callback with the injectable', () => {
       di.register(someRegistrationCallbackInjectable, someInjectable);
 
-      expect(callbackMock).toHaveBeenCalledWith(someInjectable, someInjectable.injectionToken);
+      expect(callbackMock).toHaveBeenCalledWith(
+        someInjectable,
+        someInjectable.injectionToken,
+      );
     });
 
     it('when the both are registered together injectable first, still calls the callback with the injectable', () => {
       di.register(someInjectable, someRegistrationCallbackInjectable);
 
-      expect(callbackMock).toHaveBeenCalledWith(someInjectable, someInjectable.injectionToken);
+      expect(callbackMock).toHaveBeenCalledWith(
+        someInjectable,
+        someInjectable.injectionToken,
+      );
     });
 
     it('when the both are registered separately callback first, calls the callback with the injectable', () => {
       di.register(someRegistrationCallbackInjectable);
       di.register(someInjectable);
 
-      expect(callbackMock).toHaveBeenCalledWith(someInjectable, someInjectable.injectionToken);
+      expect(callbackMock).toHaveBeenCalledWith(
+        someInjectable,
+        someInjectable.injectionToken,
+      );
     });
 
     it('when the both are registered separately injectable first, does not call the callback', () => {
       di.register(someInjectable);
       di.register(someRegistrationCallbackInjectable);
 
-      expect(callbackMock).not.toHaveBeenCalledWith(someInjectable, someInjectable.injectionToken);
+      expect(callbackMock).not.toHaveBeenCalledWith(
+        someInjectable,
+        someInjectable.injectionToken,
+      );
     });
   });
 
@@ -101,7 +113,10 @@ describe('createContainer.callbacks-for-registration', () => {
         [someRegistrationCallbackInjectable, registrationCallbackToken],
       ]);
 
-      expect(callbackMock).toHaveBeenCalledWith(someInjectable, someInjectable.injectionToken);
+      expect(callbackMock).toHaveBeenCalledWith(
+        someInjectable,
+        someInjectable.injectionToken,
+      );
     });
 
     it('when the both are registered separately callback first, calls the callback with the injectables of the bunch', () => {

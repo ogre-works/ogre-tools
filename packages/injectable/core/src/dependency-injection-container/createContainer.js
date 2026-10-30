@@ -87,8 +87,11 @@ export default containerId => {
   const getNamespacedId = getNamespacedIdFor(injectableAndRegistrationContext);
   const getScopedId = getScopedIdFor(injectableAndRegistrationContext);
 
-  const { resolveInjectionTokenOf, getInjectionTokenOf, forgetInjectionTokenOf } =
-    injectionTokenResolutionFor({ injectableAndRegistrationContext });
+  const {
+    resolveInjectionTokenOf,
+    getInjectionTokenOf,
+    forgetInjectionTokenOf,
+  } = injectionTokenResolutionFor({ injectableAndRegistrationContext });
 
   const getRelatedInjectables = getRelatedInjectablesFor({
     injectablesByInjectionToken,

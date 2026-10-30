@@ -57,5 +57,9 @@ export const injectionTokenResolutionFor = ({
     resolvedTokenByInjectable.delete(injectable);
   };
 
-  return { resolveInjectionTokenOf, getInjectionTokenOf, forgetInjectionTokenOf };
+  return {
+    resolveInjectionTokenOf,
+    getInjectionTokenOf,
+    forgetInjectionTokenOf,
+  };
 };
