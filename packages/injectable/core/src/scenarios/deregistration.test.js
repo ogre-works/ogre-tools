@@ -419,4 +419,124 @@ describe('createContainer.deregistration', () => {
       'Tried to deregister using injection token "some-token", but deregistration using token is illegal.',
     );
   });
+
+  it('given registered injectable which was injected, deregistered and registered again, when overriding, does not throw', () => {
+    const di = createContainer('some-container');
+
+    const someInjectable = getInjectable({
+      id: 'some-injectable',
+      instantiate: () => 'some-instance',
+    });
+
+    di.register(someInjectable);
+    di.inject(someInjectable);
+    di.deregister(someInjectable);
+
+    di.register(someInjectable);
+
+    expect(() => {
+      di.override(someInjectable, () => 'some-overridden-instance');
+    }).not.toThrow();
+
+    expect(di.inject(someInjectable)).toBe('some-overridden-instance');
+  });
+
+  describe('garbage collection of deregistered injectables', () => {
+    const waitUntilCollected = target =>
+      new Promise(resolve => {
+        const registry = new FinalizationRegistry(() => resolve());
+        registry.register(target);
+        target = undefined;
+
+        setImmediate(() => {
+          // Reading `registry` keeps it in the setImmediate closure, which
+          // keeps the registry strongly reachable across the GC cycle —
+          // FinalizationRegistry callbacks only fire while the registry is.
+          registry;
+          global.gc();
+        });
+      });
+
+    let di;
+
+    beforeEach(() => {
+      di = createContainer('some-container');
+    });
+
+    it('given injectable registered and deregistered, releases what its instantiate holds', async () => {
+      let collectionPromise;
+
+      (() => {
+        const held = {};
+
+        const someInjectable = getInjectable({
+          id: 'some-injectable',
+          instantiate: () => held,
+        });
+
+        di.register(someInjectable);
+        di.deregister(someInjectable);
+
+        collectionPromise = waitUntilCollected(held);
+      })();
+
+      await collectionPromise;
+    });
+
+    it('given injectable registered, injected and deregistered, releases what its instantiate holds', async () => {
+      let collectionPromise;
+
+      (() => {
+        const held = {};
+
+        const someInjectable = getInjectable({
+          id: 'some-injectable',
+          instantiate: () => held,
+        });
+
+        di.register(someInjectable);
+        di.inject(someInjectable);
+        di.deregister(someInjectable);
+
+        collectionPromise = waitUntilCollected(held);
+      })();
+
+      await collectionPromise;
+    });
+
+    it('given injectable registered by another injectable which stays registered, when injected and deregistered, releases what its instantiate holds', async () => {
+      let collectionPromise;
+
+      const registererInjectable = getInjectable({
+        id: 'registerer',
+        instantiate: di => ({
+          register: injectable => di.register(injectable),
+          deregister: injectable => di.deregister(injectable),
+        }),
+      });
+
+      di.register(registererInjectable);
+
+      const registerer = di.inject(registererInjectable);
+
+      (() => {
+        const held = {};
+
+        const someInjectable = getInjectable({
+          id: 'some-injectable',
+          instantiate: () => held,
+        });
+
+        registerer.register(someInjectable);
+        di.inject(someInjectable);
+        registerer.deregister(someInjectable);
+
+        collectionPromise = waitUntilCollected(held);
+      })();
+
+      await collectionPromise;
+
+      expect(di.hasRegistrations(registererInjectable)).toBe(true);
+    });
+  });
 });

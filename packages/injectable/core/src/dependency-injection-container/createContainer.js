@@ -409,6 +409,8 @@ export default containerId => {
     injectableIdSet,
     namespacedIdByInjectableMap,
     childrenByParentMap,
+    alreadyInjected,
+    rootInjectable,
     // Todo: get rid of function usage.
     getDi: () => privateDi,
     decoratorCache,
