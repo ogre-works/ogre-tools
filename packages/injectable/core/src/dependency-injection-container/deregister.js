@@ -22,6 +22,8 @@ export const deregisterFor =
     injectableIdSet,
     namespacedIdByInjectableMap,
     childrenByParentMap,
+    alreadyInjected,
+    rootInjectable,
     // Todo: get rid of function usage.
     getDi,
     decoratorCache,
@@ -55,6 +57,8 @@ export const deregisterFor =
       injectableIdSet,
       namespacedIdByInjectableMap,
       childrenByParentMap,
+      alreadyInjected,
+      rootInjectable,
       di,
     });
 
@@ -106,6 +110,8 @@ export const deregisterSingleFor =
     injectableIdSet,
     namespacedIdByInjectableMap,
     childrenByParentMap,
+    alreadyInjected,
+    rootInjectable,
     di,
   }) =>
   injectable => {
@@ -125,6 +131,10 @@ export const deregisterSingleFor =
     const children = childrenByParentMap.get(injectable);
 
     if (children) {
+      // Detached first: deregistering a child takes it out of the children
+      // of its parents, which would otherwise mutate the set being iterated.
+      childrenByParentMap.delete(injectable);
+
       children.forEach(child => {
         injectableAndRegistrationContext.delete(child);
 
@@ -134,9 +144,29 @@ export const deregisterSingleFor =
           });
         }
       });
-
-      childrenByParentMap.delete(injectable);
     }
+
+    // Nothing may keep the injectable once it is deregistered: the container
+    // outlives it, so whatever its instantiate holds would stay reachable.
+    // Registration recorded it as a child of each parent in its context, which
+    // is stored for a nested registration and, for a container-level one, is
+    // the container's root. A child the cascade above deregisters has lost
+    // its context already, but the only set it was in is its parent's, which
+    // the cascade detached, so there is nothing left to take it out of.
+    const registrationContext =
+      injectableAndRegistrationContext.get(injectable);
+
+    if (registrationContext) {
+      for (let i = 0; i < registrationContext.length; i++) {
+        childrenByParentMap
+          .get(registrationContext[i].injectable)
+          ?.delete(injectable);
+      }
+    } else {
+      childrenByParentMap.get(rootInjectable)?.delete(injectable);
+    }
+
+    alreadyInjected.delete(injectable);
 
     purgeInstances(injectable);
     injectableAndRegistrationContext.delete(injectable);
